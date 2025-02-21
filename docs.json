@@ -1,11 +1,12 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "CyborgDB Docs",
+  "description": "Documentation for CyborgDB, the Confidential Vector Database.",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#10A3AE",
+    "light": "#5DC3CA",
+    "dark": "#314656"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -58,17 +59,12 @@
       "anchors": [
         {
           "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
+          "href": "https://docs.cyborg.co/",
           "icon": "book-open-cover"
         },
         {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
-        },
-        {
           "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
+          "href": "https://cyborg.co/blog",
           "icon": "newspaper"
         }
       ]
@@ -82,20 +78,24 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "https://www.cyborg.co/contact"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Get Started",
+      "href": "https://www.cyborg.co"
     }
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/CyborgHQ",
+      "github": "https://github.com/cyborginc",
+      "linkedin": "https://linkedin.com/company/cyborginc",
+      "website": "https://www.cyborg.co"
     }
+  },
+  "search": {
+    "prompt": "Search documentation..."
   }
 }
