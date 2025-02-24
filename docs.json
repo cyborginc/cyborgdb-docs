@@ -37,38 +37,174 @@
       },
       {
         "tab": "API Reference",
-        "groups": [
+        "versions": [
           {
-            "group": "API Documentation",
-            "pages": [
-              "api-reference/introduction"
+            "version": "v0.9.x",
+            "dropdowns": [
+              {
+                "dropdown": "Python",
+                "icon": "python",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "api-reference/v0.9.x/python/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "api-reference/v0.9.x/python/client/client",
+                      "api-reference/v0.9.x/python/client/create-index",
+                      "api-reference/v0.9.x/python/client/load-index",
+                      "api-reference/v0.9.x/python/client/list-indexes"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "api-reference/v0.9.x/python/encrypted-index/upsert",
+                      "api-reference/v0.9.x/python/encrypted-index/query",
+                      "api-reference/v0.9.x/python/encrypted-index/train",
+                      "api-reference/v0.9.x/python/encrypted-index/get",
+                      "api-reference/v0.9.x/python/encrypted-index/delete",
+                      "api-reference/v0.9.x/python/encrypted-index/delete-index"
+                    ]
+                  },
+                  {
+                    "group": "Types & Getters",
+                    "pages": [
+                      "api-reference/v0.9.x/python/getters",
+                      "api-reference/v0.9.x/python/types"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "C++",
+                "icon": "brackets-curly",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "api-reference/v0.9.x/cpp/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "api-reference/v0.9.x/cpp/client/client",
+                      "api-reference/v0.9.x/cpp/client/create-index",
+                      "api-reference/v0.9.x/cpp/client/load-index",
+                      "api-reference/v0.9.x/cpp/client/list-indexes"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "api-reference/v0.9.x/cpp/encrypted-index/upsert",
+                      "api-reference/v0.9.x/cpp/encrypted-index/query",
+                      "api-reference/v0.9.x/cpp/encrypted-index/train",
+                      "api-reference/v0.9.x/cpp/encrypted-index/get",
+                      "api-reference/v0.9.x/cpp/encrypted-index/delete",
+                      "api-reference/v0.9.x/cpp/encrypted-index/delete-index"
+                    ]
+                  },
+                  {
+                    "group": "Types & Getters",
+                    "pages": [
+                      "api-reference/v0.9.x/cpp/getters",
+                      "api-reference/v0.9.x/cpp/types"
+                    ]
+                  }
+                ]
+              }
             ]
           },
           {
-            "group": "Endpoint Examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete"
+            "version": "v0.8.x",
+            "dropdowns": [
+              {
+                "dropdown": "Python",
+                "icon": "python",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "api-reference/v0.8.x/python/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "api-reference/v0.8.x/python/client/client",
+                      "api-reference/v0.8.x/python/client/create-index",
+                      "api-reference/v0.8.x/python/client/load-index",
+                      "api-reference/v0.8.x/python/client/list-indexes"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "api-reference/v0.8.x/python/encrypted-index/upsert",
+                      "api-reference/v0.8.x/python/encrypted-index/query",
+                      "api-reference/v0.8.x/python/encrypted-index/train",
+                      "api-reference/v0.8.x/python/encrypted-index/get",
+                      "api-reference/v0.8.x/python/encrypted-index/delete-index"
+                    ]
+                  },
+                  {
+                    "group": "Types & Getters",
+                    "pages": [
+                      "api-reference/v0.8.x/python/getters",
+                      "api-reference/v0.8.x/python/types"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "C++",
+                "icon": "brackets-curly",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "api-reference/v0.8.x/cpp/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "api-reference/v0.8.x/cpp/client/client",
+                      "api-reference/v0.8.x/cpp/client/create-index",
+                      "api-reference/v0.8.x/cpp/client/load-index",
+                      "api-reference/v0.8.x/cpp/client/list-indexes"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "api-reference/v0.8.x/cpp/encrypted-index/upsert",
+                      "api-reference/v0.8.x/cpp/encrypted-index/query",
+                      "api-reference/v0.8.x/cpp/encrypted-index/train",
+                      "api-reference/v0.8.x/cpp/encrypted-index/get",
+                      "api-reference/v0.8.x/cpp/encrypted-index/delete-index"
+                    ]
+                  },
+                  {
+                    "group": "Types & Getters",
+                    "pages": [
+                      "api-reference/v0.8.x/cpp/getters",
+                      "api-reference/v0.8.x/cpp/types"
+                    ]
+                  }
+                ]
+              }
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://docs.cyborg.co/",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://cyborg.co/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",

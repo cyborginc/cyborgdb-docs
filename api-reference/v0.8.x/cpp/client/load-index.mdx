@@ -1,0 +1,51 @@
+---
+title: "Load Index"
+mode: "wide"
+---
+
+Loads an existing encrypted index and returns an instance of `EncryptedIndex`.
+
+```cpp
+std::unique_ptr<cyborg::EncryptedIndex> 
+    LoadIndex(const std::string index_name,
+              const std::array<uint8_t, 32>& index_key,
+              const std::optional<size_t>& max_cache_size = 0);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|----------------|-------------------------------|-----------------------------------------------------|
+| `index_name` | `std::string` | Name of the index to create (must be unique). |
+| `index_key` | `std::array<uint8_t, 32>` | 32-byte encryption key for the index, used to secure index data. |
+| `max_cache_size` | `size_t` | _(Optional)_ Maximum size for the local cache (default is `0`). |
+
+### Returns
+
+`std::unique_ptr<cyborg::EncryptedIndex>`: A pointer to the loaded index ([`EncryptedIndex`](../encrypted-index)).
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::invalid_argument">
+        - Throws if the index name does not exist.
+    </Accordion>
+    <Accordion title="std::runtime_exception">
+        - Throws if the index could not be loaded or decrypted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+#include "cyborg_vector_search/client.hpp"
+#include "cyborg_vector_search/encrypted_index.hpp"
+#include <array>
+
+// ... Initialize the client ...
+
+// Create a secure 32-byte key (example: all zeros)
+std::array<uint8_t, 32> index_key = {0};
+
+auto index = client.LoadIndex("my_index", index_key);
+```

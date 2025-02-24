@@ -1,0 +1,19 @@
+---
+title: "Cyborg Vector Search - Python API Reference"
+sidebarTitle: "Python API Introduction"
+description: "`v0.8.x`"
+mode: "wide"
+---
+
+<Note>Cyborg Vector Search was renamed to CyborgDB in `v0.9.0`. This version of the docs will refer to the project as Cyborg Vector Search.</Note>
+
+The `CyborgVectorSearch` classes (`Client` and `EncryptedIndex`) provides an interface to initialize, train, and efficiently query encrypted vector indexes in Cyborg Vector Search. It allows creating different vector index types (such as `ivf`, `ivfpq`, `ivfflat`), with configurable distance metrics and device options.
+
+### Key Features
+
+- **Vector Indexing**: Create, load, and manage vector indexes.
+- **Encrypted Search**: Provides encrypted Approximate Nearest Neighbor (ANN) search capabilities.
+- **Hardware Acceleration**: Option to configure CPU and GPU acceleration.
+- **Flexible Data Input**: Accepts data in both `numpy` and `list` formats for embeddings and IDs.
+
+This API is also available in [C++](../cpp/).

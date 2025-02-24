@@ -1,0 +1,52 @@
+---
+title: "Upsert"
+mode: "wide"
+---
+
+Adds or updates vector embeddings in the index.
+
+```cpp
+void Upsert(Array2D<float>& vectors,
+            const std::vector<uint64_t> ids,
+            const std::vector<std::vector<uint8_t>> items = {});
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---------------|-----------------------------|-----------------------------------------------------|
+| `vectors` | [`Array2D<float>`](../types#array2d) | 2D container with vector embeddings to index. |
+| `ids` | `std::vector<uint64_t>` | Unique identifiers for each vector. |
+| `items` | `std::vector<std::vector<uint8_t>>` | _(Optional)_ Item contents in bytes. |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::invalid_argument">
+        - Throws if vector dimensions are incompatible with the index configuration.
+        - Throws if index was not created or loaded yet.
+        - Throws if there is a mismatch between the number of `vectors`, `ids` or `items`.
+    </Accordion>
+    <Accordion title="std::runtime_exception">
+        - Throws if the vectors could not be upserted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+#include "encrypted_index.hpp"
+
+// Assume Array2D<float> is properly defined and populated.
+cyborg::Array2D<float> embeddings{/*...*/};
+std::vector<uint64_t> ids = {1, 2, 3};
+
+// Upsert without additional item data
+index->Upsert(embeddings, ids);
+
+// Upsert with associated items
+std::vector<std::vector<uint8_t>> items = {
+    {'a', 'b', 'c'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}
+};
+index->Upsert(embeddings, ids, items);
+```

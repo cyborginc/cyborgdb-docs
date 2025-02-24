@@ -1,0 +1,41 @@
+---
+title: "Getter Functions"
+---
+
+## is_trained
+
+```cpp
+bool is_trained() const;
+```
+
+Returns whether the index has been trained.
+
+---
+
+## index_name
+
+```cpp
+std::string index_name() const;
+```
+
+Returns the name of the index.
+
+---
+
+## index_type
+
+```cpp
+IndexType index_type() const;
+```
+
+Returns the type of the index (for example, IVF, IVFPQ, or IVFFlat).
+
+---
+
+## index_config
+
+```cpp
+IndexConfig* index_config() const;
+```
+
+Returns a pointer to the index configuration.

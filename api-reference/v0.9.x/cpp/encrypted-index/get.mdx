@@ -1,0 +1,39 @@
+---
+title: "Get"
+mode: "wide"
+---
+
+Retrieves and decrypts items associated with the specified IDs.
+
+```cpp
+std::vector<std::vector<uint8_t>> GetItems(std::vector<uint64_t> ids);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `ids` | `std::vector<uint64_t>` | IDs to retrieve. (For a single item, provide a `std::vector` with one element.)|
+
+### Returns
+
+`std::vector<std::vector<uint8_t>>`: A vector of decrypted items, each represented as a vector of bytes.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::runtime_exception">
+        - Throws if the items could not be retrieved or decrypted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+std::vector<uint64_t> item_ids = {1, 2, 3};
+auto items = index->GetItems(item_ids);
+
+for (const auto& item : items) {
+    // Process each decrypted item (as a vector of bytes)
+}
+```

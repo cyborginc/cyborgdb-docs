@@ -1,0 +1,124 @@
+---
+title: "Upsert"
+mode: "wide"
+---
+
+Adds or updates vector embeddings in the index. Accepts a list of dictionaries, where each dictionary represents a vector with its ID.
+
+```python
+def upsert(self, vectors: List[Dict[str, Union[int, List[float], bytes, Dict[str, Union[str, int, bool, float]]]]])
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|-----------------------------------|-----------------------------------------------------------------------------------------------|
+| `vectors` | `List[Dict[str, Union[int, List[float], bytes, Dict[str, Union[str, int, bool, float]]]]]` | A list of dictionaries, where each dictionary has the format `{"id": int, "vector": List[float], "item": bytes, "metadata": Dict[]}`. |
+
+Where each `vector` dictionary has the following fields:
+
+- `id` (`int`): Unique integer identifier for the vector.
+- `vector` (`List[float]`): Embedding vector as a list of floats.
+- `item` (`bytes`): Item contents in bytes (_optional_)
+- `metadata` (`dict`): Dictionary of key-value pairs associated with the vector (_optional_)
+
+<Tip>For more info on metadata, see [Metadata Filtering](/guides/data-operations/metadata-filtering).
+Note that metadata filtering will not be available until `v0.9.0`</Tip>
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the vector dimensions are incompatible with the index configuration.
+        - Throws if the index was not created or loaded yet.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the vectors could not be upserted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# Initial configuration already done...
+
+# Load Index
+index = client.load_index(index_name=index_name, index_key=index_key)
+
+# Single upsert (wrapped in a list)
+index.upsert([{"id": 1, "vector": [0.1, 0.2, 0.3]}])
+
+# Upsert with metadata
+# Note: not available until v0.9.0
+index.upsert([
+  {"id": 1,
+   "vector": [0.1, 0.2, 0.3],
+   "metadata": {"type": "dog", "temperament": "good boy"}
+  }
+])
+
+# Batch upsert
+index.upsert([
+    {"id": 1, "vector": [0.1, 0.2, 0.3]},
+    {"id": 2, "vector": [0.4, 0.5, 0.6]}
+])
+
+# Upsert with items
+index.upsert([
+    {"id": 1, "vector": [0.1, 0.1, 0.1, 0.1], "item": b'item_contents_here...'},
+    {"id": 2, "vector": [0.2, 0.2, 0.2, 0.2], "item": b'item_contents_here...'}
+])
+```
+
+<Tip>You can pass the `id` and `vector` fields as tuples, if you wish to skip the dictionary. On big datasets, this can make a signficant difference in memory usage.</Tip>
+
+---
+
+## `Upsert` Secondary Overload: NumPy Array Format
+
+<Tip>This format is optimal for large batches due to its memory efficiency and compatibility with batch processing optimizations.</Tip>
+
+```python
+def upsert(self, ids: np.ndarray, vectors: np.ndarray)
+```
+
+Accepts two NumPy arrays:
+
+- A 2D array of floats for the vector embeddings.
+- A 1D array of integers for the unique IDs.
+
+This structure is suited for efficient handling of large batches, with type safety for IDs and embeddings.
+
+### Parameters
+
+| Parameter | Type | Description |
+|------------|-----------------|--------------------------------------------------------------------------------------------------|
+| `ids` | `np.ndarray` | 1D NumPy array of shape `(num_items,)` with `dtype=int`, containing unique integer identifiers for each vector. Length must match `vectors`. |
+| `vectors` | `np.ndarray` | 2D NumPy array of shape `(num_items, vector_dim)` with `dtype=float`, representing vector embeddings. |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the vector dimensions are incompatible with the index configuration.
+        - Throws if the index was not created or loaded yet.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the vectors could not be upserted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import numpy as np
+
+# Load index
+index = client.load_index(index_name=index_name, index_key=index_key)
+
+# NumPy-based upsert with two arrays
+vectors = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=float)  # 2 vectors of dimension 3
+ids = np.array([101, 102], dtype=int)  # Unique integer IDs for each vector
+
+index.upsert(vectors=vectors, ids=ids)
+```

@@ -1,0 +1,57 @@
+---
+title: "Create Index"
+mode: "wide"
+---
+
+Creates and returns a new encrypted index based on the provided configuration.
+
+```python
+def create_index(self,
+                 index_name: str,
+                 index_key: bytes,
+                 index_config: IndexConfig,
+                 max_cache_size: int = 0)
+```
+
+### Parameters
+| Parameter | Type | Description |
+|---------------|--------------------|----------------------------------------------------------------------------------------|
+| `index_name` | `str` | Name of the index to create. Must be unique. |
+| `index_key` | `bytes` | 32-byte encryption key for the index, used to secure the index data. |
+| `index_config` | [`IndexConfig`](../types#indexconfig) | Configuration dictionary specifying the index type (`ivf`, `ivfpq`, or `ivfflat`) and relevant parameters such as `dimension`, `n_lists`, `pq_dim`, and `pq_bits`. |
+| `max_cache_size` | `int` | _(Optional)_ Maximum size of local cache to keep for encrypted index. Defaults to `0`. |
+
+### Returns
+
+`EncryptedIndex`: An instance of the newly created encrypted index.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the index name is not unique.
+        - Throws if the index configuration is invalid.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the index could not be created.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import cyborg_vector_search_py as cvs
+import secrets
+
+index_location = cvs.DBConfig(location='redis', connection_string="redis://localhost")
+config_location = cvs.DBConfig(location='redis', connection_string="redis://localhost")
+items_location = cvs.DBConfig(location='postgres', table_name="items", connection_string="host=localhost dbname=postgres")
+
+client = cvs.Client(index_location=index_location, config_location=config_location, items_location=items_location)
+
+index_name = "my_index"
+index_key = secrets.token_bytes(32)  # Generate a secure 32-byte encryption key
+index_config = cvs.IndexIVF(dimension=128, n_lists=1024, metric="euclidean")
+
+search.create_index(index_name=index_name, index_key=index_key, index_config=index_config)
+```
