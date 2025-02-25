@@ -5,22 +5,28 @@ mode: "wide"
 
 <Warning>This action is irreversible. Proceed with caution.</Warning>
 
-Deletes the current index and all its associated data.  
+Deletes the specified encrypted items stored in the index, including all its associated fields (`vector`, `contents`, `metadata`).
 
 ```cpp
-void DeleteIndex();
+void Delete(std::vector<std::string> ids);
 ```
+
+**Parameters**:
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `ids` | `std::vector<std::string>` | IDs to delete. |
 
 ### Exceptions
 
 <AccordionGroup>
     <Accordion title="std::runtime_exception">
-        - Throws if the index could not be deleted.
+        - Throws if the items could not be deleted.
     </Accordion>
 </AccordionGroup>
 
 ### Example Usage
 
 ```cpp
-index->DeleteIndex();
+// Delete items with IDs "item_1" and "item_2"
+index->Delete(["item_1", "item_2"]);
 ```

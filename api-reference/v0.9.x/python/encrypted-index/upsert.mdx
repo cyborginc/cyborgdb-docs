@@ -6,24 +6,29 @@ mode: "wide"
 Adds or updates vector embeddings in the index. Accepts a list of dictionaries, where each dictionary represents a vector with its ID.
 
 ```python
-def upsert(self, vectors: List[Dict[str, Union[int, List[float], bytes, Dict[str, Union[str, int, bool, float]]]]])
+def upsert(self, items: List[Dict[str, Any]])
 ```
 
 ### Parameters
 
 | Parameter | Type | Description |
 |-----------|-----------------------------------|-----------------------------------------------------------------------------------------------|
-| `vectors` | `List[Dict[str, Union[int, List[float], bytes, Dict[str, Union[str, int, bool, float]]]]]` | A list of dictionaries, where each dictionary has the format `{"id": int, "vector": List[float], "item": bytes, "metadata": Dict[]}`. |
+| `items` | `List[Dict[str, Any]]` | A list of dictionaries, where each dictionary has the format `{"id": str, "vector": List[float], "contents": Union[bytes, str], "metadata": Dict[str, str]}`. |
 
-Where each `vector` dictionary has the following fields:
+Where each `item` dictionary has the following fields:
 
-- `id` (`int`): Unique integer identifier for the vector.
-- `vector` (`List[float]`): Embedding vector as a list of floats.
-- `item` (`bytes`): Item contents in bytes (_optional_)
-- `metadata` (`dict`): Dictionary of key-value pairs associated with the vector (_optional_)
+| Parameter | Type | Description |
+|-----------|-----------------------------------|-----------------------------------------------------------------------------------------------|
+| `id` | `str` | Unique string identifier for the item. |
+| `vector` | `List[float]` | Embedding vector as a list of floats (_optional_ if index is configured to compute embeddings). |
+| `contents` | `bytes`, `str` or `Image` | Item contents (_optional_). Must be a `str` or `Image` if index is configured to compute embeddings. |
+| `metadata` | `Dict[str, any]` | Dictionary of key-value metadata pairs associated with the vector (_optional_). |
 
-<Tip>For more info on metadata, see [Metadata Filtering](/guides/data-operations/metadata-filtering).
-Note that metadata filtering will not be available until `v0.9.0`</Tip>
+<Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index)), then the `vector` parameter is optional.
+If `vector` provided, then it will be used (its dimensionality must match that of the `embedding_model`).
+If `vector` is not provided, a vector embedding will be auto-generated from `contents` using `sentence-transformers`. `contents` must be text in this case.</Note>
+
+<Tip>For more info on metadata, see [Metadata Filtering](/guides/data-operations/metadata-filtering).</Tip>
 
 ### Exceptions
 
@@ -46,12 +51,11 @@ Note that metadata filtering will not be available until `v0.9.0`</Tip>
 index = client.load_index(index_name=index_name, index_key=index_key)
 
 # Single upsert (wrapped in a list)
-index.upsert([{"id": 1, "vector": [0.1, 0.2, 0.3]}])
+index.upsert([{"id": "item_1", "vector": [0.1, 0.2, 0.3]}])
 
 # Upsert with metadata
-# Note: not available until v0.9.0
 index.upsert([
-  {"id": 1,
+  {"id": "item_1",
    "vector": [0.1, 0.2, 0.3],
    "metadata": {"type": "dog", "temperament": "good boy"}
   }
@@ -59,14 +63,14 @@ index.upsert([
 
 # Batch upsert
 index.upsert([
-    {"id": 1, "vector": [0.1, 0.2, 0.3]},
-    {"id": 2, "vector": [0.4, 0.5, 0.6]}
+    {"id": "item_1", "vector": [0.1, 0.2, 0.3]},
+    {"id": "item_2", "vector": [0.4, 0.5, 0.6]}
 ])
 
 # Upsert with items
 index.upsert([
-    {"id": 1, "vector": [0.1, 0.1, 0.1, 0.1], "item": b'item_contents_here...'},
-    {"id": 2, "vector": [0.2, 0.2, 0.2, 0.2], "item": b'item_contents_here...'}
+    {"id": "item_1", "vector": [0.1, 0.1, 0.1, 0.1], "contents": b'item_contents_here...'}, # Bytes
+    {"id": "item_2", "vector": [0.2, 0.2, 0.2, 0.2], "contents": "item_contents_here..."} # Text
 ])
 ```
 
@@ -74,9 +78,10 @@ index.upsert([
 
 ---
 
-## `Upsert` Secondary Overload: NumPy Array Format
+## Upsert Secondary Overload: NumPy Array Format
 
-<Tip>This format is optimal for large batches due to its memory efficiency and compatibility with batch processing optimizations.</Tip>
+<Tip>This format is optimal for large batches due to its memory efficiency and compatibility with batch processing optimizations.
+It is primarily intended for benchmarking purposes (hence the use of `int` for IDs).</Tip>
 
 ```python
 def upsert(self, ids: np.ndarray, vectors: np.ndarray)

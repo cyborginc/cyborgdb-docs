@@ -53,5 +53,5 @@ index_name = "my_index"
 index_key = secrets.token_bytes(32)  # Generate a secure 32-byte encryption key
 index_config = cvs.IndexIVF(dimension=128, n_lists=1024, metric="euclidean")
 
-search.create_index(index_name=index_name, index_key=index_key, index_config=index_config)
+client.create_index(index_name=index_name, index_key=index_key, index_config=index_config)
 ```

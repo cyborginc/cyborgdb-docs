@@ -13,17 +13,13 @@ def upsert(self, vectors: List[Dict[str, Union[int, List[float], bytes, Dict[str
 
 | Parameter | Type | Description |
 |-----------|-----------------------------------|-----------------------------------------------------------------------------------------------|
-| `vectors` | `List[Dict[str, Union[int, List[float], bytes, Dict[str, Union[str, int, bool, float]]]]]` | A list of dictionaries, where each dictionary has the format `{"id": int, "vector": List[float], "item": bytes, "metadata": Dict[]}`. |
+| `vectors` | `List[Dict[str, Union[int, List[float], bytes, Dict[str, Union[str, int, bool, float]]]]]` | A list of dictionaries, where each dictionary has the format `{"id": int, "vector": List[float], "item": bytes}`. |
 
 Where each `vector` dictionary has the following fields:
 
 - `id` (`int`): Unique integer identifier for the vector.
 - `vector` (`List[float]`): Embedding vector as a list of floats.
 - `item` (`bytes`): Item contents in bytes (_optional_)
-- `metadata` (`dict`): Dictionary of key-value pairs associated with the vector (_optional_)
-
-<Tip>For more info on metadata, see [Metadata Filtering](/guides/data-operations/metadata-filtering).
-Note that metadata filtering will not be available until `v0.9.0`</Tip>
 
 ### Exceptions
 
@@ -47,15 +43,6 @@ index = client.load_index(index_name=index_name, index_key=index_key)
 
 # Single upsert (wrapped in a list)
 index.upsert([{"id": 1, "vector": [0.1, 0.2, 0.3]}])
-
-# Upsert with metadata
-# Note: not available until v0.9.0
-index.upsert([
-  {"id": 1,
-   "vector": [0.1, 0.2, 0.3],
-   "metadata": {"type": "dog", "temperament": "good boy"}
-  }
-])
 
 # Batch upsert
 index.upsert([

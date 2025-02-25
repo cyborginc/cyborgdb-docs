@@ -10,7 +10,7 @@ std::unique_ptr<cyborg::EncryptedIndex>
     CreateIndex(const std::string index_name,
                 const std::array<uint8_t, 32>& index_key,
                 const IndexConfig& index_config,
-                const std::optional<size_t>& max_cache_size);
+                const std::optional<size_t>& max_cache_size = 0);
 ```
 
 ### Parameters
@@ -41,8 +41,8 @@ std::unique_ptr<cyborg::EncryptedIndex>
 ### Example Usage
 
 ```cpp
-#include "cyborg_vector_search/client.hpp"
-#include "cyborg_vector_search/encrypted_index.hpp"
+#include "cyborgdb/client.hpp"
+#include "cyborgdb/encrypted_index.hpp"
 #include <array>
 
 // ... Initialize the client ...

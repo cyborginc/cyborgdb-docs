@@ -3,7 +3,7 @@ title: "Client"
 mode: "wide"
 ---
 
-`Client` is the main class exposed by `cyborg_vector_search_py`. It exposes the functionality necessary to create, load, list and delete indexes. Operations within encrypted indexes (such as `upsert` and `query`) are contained within the `EncryptedIndex` class returned by `create_index` and `load_index`.
+`Client` is the main class exposed by CyborgDB. It exposes the functionality necessary to create, load, list and delete indexes. Operations within encrypted indexes (such as `upsert` and `query`) are contained within the `EncryptedIndex` class returned by `create_index` and `load_index`.
 
 ## Constructor
 
@@ -15,7 +15,7 @@ Client(index_location: DBConfig,
        gpu_accelerate: bool = False)
 ```
 
-Initializes a new Cyborg Vector Search `Client` instance.
+Initializes a new CyborgDB `Client` instance.
 
 ### Parameters
 
@@ -44,14 +44,14 @@ Initializes a new Cyborg Vector Search `Client` instance.
 ### Example Usage
 
 ```python
-import cyborg_vector_search_py as cvs
+import cyborgdb
 
-index_location = cvs.DBConfig(location='redis', connection_string="redis://localhost")
-config_location = cvs.DBConfig(location='redis', connection_string="redis://localhost")
-items_location = cvs.DBConfig(location='postgres', table_name="items", connection_string="host=localhost dbname=postgres")
+index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+items_location = cyborgdb.DBConfig(location='postgres', table_name="items", connection_string="host=localhost dbname=postgres")
 
 # Construct the Client object
-client = cvs.Client(index_location=index_location,
+client = cyborgdb.Client(index_location=index_location,
                     config_location=config_location,
                     items_location=items_location,
                     cpu_threads=4,

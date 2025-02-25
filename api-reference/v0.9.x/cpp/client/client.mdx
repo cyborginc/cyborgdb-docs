@@ -8,9 +8,9 @@ The `cyborg::Client` class manages storage configurations and acts as a factory 
 ## Constructor
 
 ```cpp
-cyborg::Client(const LocationConfig& index_location,
-               const LocationConfig& config_location,
-               const LocationConfig& items_location,
+cyborg::Client(const DBConfig& index_location,
+               const DBConfig& config_location,
+               const DBConfig& items_location,
                const int cpu_threads,
                const bool gpu_accelerate);
 ```
@@ -20,9 +20,9 @@ Initializes a new instance of `Client`.
 
 | Parameter | Type | Description |
 |-------------------|-----------------------|------------------------------------------------------|
-| `index_location` | [`LocationConfig`](../types#locationconfig) | Configuration for index storage location. |
-| `config_location` | [`LocationConfig`](../types#locationconfig) | Configuration for index metadata storage. |
-| `items_location` | [`LocationConfig`](../types#locationconfig) | Configuration intended to be used in a future release. Pass in a LocationConfig with a Location of 'None'. |
+| `index_location` | [`DBConfig`](../types#DBConfig) | Configuration for index storage location. |
+| `config_location` | [`DBConfig`](../types#DBConfig) | Configuration for index metadata storage. |
+| `items_location` | [`DBConfig`](../types#DBConfig) | Configuration intended to be used in a future release. Pass in a DBConfig with a Location of 'None'. |
 | `cpu_threads` | `int` | Number of CPU threads to use (e.g., `0` to use all available cores).|
 | `gpu_accelerate` | `bool` | Whether to enable GPU acceleration (requires CUDA).|
 
@@ -31,7 +31,7 @@ Initializes a new instance of `Client`.
 <AccordionGroup>
     <Accordion title="std::invalid_argument">
         - Throws if the `cpu_threads` parameter is less than `0`.
-        - Throws if any [`LocationConfig`](../types#locationconfig) is invalid.
+        - Throws if any [`DBConfig`](../types#DBConfig) is invalid.
         - Throws if the GPU is not available when `gpu_accelerate` is `true`.
     </Accordion>
     <Accordion title="std::runtime_exception">
@@ -43,11 +43,11 @@ Initializes a new instance of `Client`.
 ### Example Usage
 
 ```cpp
-#include "cyborg_vector_search/client.hpp"
+#include "cyborgdb/client.hpp"
 
-cyborg::LocationConfig index_location(Location::kMemory);
-cyborg::LocationConfig config_location(Location::kRedis, "index_metadata", "redis://localhost");
-cyborg::LocationConfig items_location(Location::kNone); // No item storage
+cyborg::DBConfig index_location(Location::kMemory);
+cyborg::DBConfig config_location(Location::kRedis, "index_metadata", "redis://localhost");
+cyborg::DBConfig items_location(Location::kNone); // No item storage
 int cpu_threads = 4;
 bool use_gpu = true;
 

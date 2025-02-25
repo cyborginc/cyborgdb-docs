@@ -5,13 +5,17 @@ mode: "wide"
 
 <Warning>This action is irreversible. Proceed with caution.</Warning>
 
-Deletes the current index and all its associated data.  
+Deletes the specified encrypted items stored in the index, including all its associated fields (`vector`, `contents`, `metadata`).
 
 ```python
 def delete_index(self)
 ```
 
-Deletes the current index and its associated data. This action is irreversible, so proceed with caution.
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `ids` | `List[str]` | IDs to delete. |
 
 ### Exceptions
 
@@ -27,6 +31,6 @@ Deletes the current index and its associated data. This action is irreversible, 
 # Load index
 index = client.load_index(index_name=index_name, index_key=index_key)
 
-# Delete the index
-index.delete_index()
+# Delete "item_1" and "item_2"
+index.delete(["item_1", "item_2"])
 ```

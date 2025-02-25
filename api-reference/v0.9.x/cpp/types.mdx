@@ -4,7 +4,7 @@ title: "Types"
 
 ## Location
 
-The `Location` enum contains the supported index backing store locations for Cyborg Vector Search. These are:
+The `Location` enum contains the supported index backing store locations for CyborgDB. These are:
 
 ```cpp
 enum class Location {
@@ -17,15 +17,14 @@ enum class Location {
 
 ---
 
-## LocationConfig
-_(Equivalent to the Python `DBConfig`)_  
+## DBConfig
 
-`LocationConfig` defines the storage location for various index components.
+`DBConfig` defines the storage location for various index components.
 
 ### Constructor
 
 ```cpp
-LocationConfig(Location location,
+DBConfig(Location location,
                 const std::optional<std::string>& table_name,
                 const std::optional<std::string>& db_connection_string);
 ```
@@ -42,16 +41,16 @@ LocationConfig(Location location,
 ### Example Usage
 
 ```cpp
-cyborg::LocationConfig index_loc(Location::kRedis, std::nullopt, "redis://localhost");
-cyborg::LocationConfig config_loc(Location::kRedis, std::nullopt, "redis://localhost");
-cyborg::LocationConfig items_loc(Location::kPostgres, "items", "host=localhost dbname=postgres");
+cyborg::DBConfig index_loc(Location::kRedis, std::nullopt, "redis://localhost");
+cyborg::DBConfig config_loc(Location::kRedis, std::nullopt, "redis://localhost");
+cyborg::DBConfig items_loc(Location::kPostgres, "items", "host=localhost dbname=postgres");
 ```
 
 ---
 
 ## DistanceMetric
 
-The `DistanceMetric` enum contains the supported distance metrics for Cyborg Vector Search. These are:
+The `DistanceMetric` enum contains the supported distance metrics for CyborgDB. These are:
 
 ```cpp
 enum class DistanceMetric {
@@ -61,7 +60,6 @@ enum class DistanceMetric {
 ```
 
 ---
-
 
 ## IndexConfig
 
@@ -226,7 +224,10 @@ The `QueryParams` struct defines parameters for querying the index, controlling 
 
 ```cpp
 QueryParams(size_t top_k = 100,
-            size_t n_probes = 1);
+            size_t n_probes = 1,
+            bool greedy = false,
+            std::string filters = "",
+            std::vector<std::string> include = {"distances"});
 ```
 
 ### Parameters
@@ -235,11 +236,15 @@ QueryParams(size_t top_k = 100,
 |-------------------|----------|--------------------------------------------------------------------------|
 | `top_k` | `size_t` | _(Optional)_ Number of nearest neighbors to return. Defaults to `100`. |
 | `n_probes` | `size_t` | _(Optional)_ Number of lists to probe during query. Defaults to `1`. |
-| `return_items` | `bool` | _(Optional)_ Whether to return item contents along with the IDs. Defaults to `false`. |
-| `return_metadata` | `bool` | _(Optional)_ Whether to return metadata along with the IDs. Defaults to `false`. |
 | `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |
+| `filters` | `std::string` | _(Optional)_ A JSON string of filters to apply to vector metadata, limiting search scope to these vectors. |
+| `include` | `std::vector<std::string>` | _(Optional)_ List of item fields to return. Can include `distances`, `metadatas`, and `vectors` (`vector` only for `IVFFlat` indexes). Defaults to `"distances"` |
 
 Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs. For guidance on how to select the right `n_probes`, refer to the [query parameter tuning guide](/guides/tuning/query-params.md).
+
+<Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
+For instance: `filters: { "$and": [ { "label": "cat" }, { "confidence": { "$gte": 0.9 } } ] }` means that only vectors where `label == "cat"` and `confidence >= 0.9` will be considered for encrypted vector search.
+For more info on metadata, see [Metadata Filtering](/guides/data-operations/metadata-filtering).</Tip>
 
 ---
 
@@ -252,8 +257,10 @@ Higher n_probes values may improve recall but could slow down query time, so sel
 | Method | Return Type | Description |
 |--------------------------|------------------------------|------------------------------------------------------|
 | `Result operator[](size_t query_idx)` | `Result` | Returns read-write access to IDs and distances for a specific query. |
-| `const Array2D<uint64_t>& ids() const` | `const Array2D<uint64_t>&` | Get read-only access to all IDs. |
+| `const std::vector<std::vector<std::string>>& ids() const` | `std::vector<std::vector<std::string>>&` | Get read-only access to all IDs. |
 | `const Array2D<float>& distances() const` | `const Array2D<float>&` | Get read-only access to all distances. |
+| `const std::vector<float>& vectors() const` | `const std::vectorfloat>&` | Get read-only access to all vectors. |
+| `const std::vector<std::vector<std::string>>& metadatas() const` | `const std::vector<std::vector<std::string>>&` | Get read-only access to all metadatas. |
 | `size_t num_queries() const` | `size_t` | Returns the number of queries. |
 | `size_t top_k() const` | `size_t` | Returns the number of top-k items per query. |
 | `bool empty() const` | `bool` | Checks if the results are empty. |
@@ -275,3 +282,17 @@ for (size_t i = 0; i < num_queries; ++i) {
 auto all_ids = results.ids();
 auto all_distances = results.distances();
 ```
+
+---
+
+### `Item`
+
+`Item` class holds the individual results from a `Get` operation, including the requested fields.
+
+**Access Methods**:
+| Method | Return Type | Description |
+|--------------------------|------------------------------|------------------------------------------------------|
+| `const std::string id() const` | `const std::string` | Get read-only access to all IDs. |
+| `const std::vector<float>& vector() const` | `const std::vector<float>&` | Get read-only access to all distances. |
+| `const std::vector<uint8_t>& contents() const` | `const std::vector<uint8_t>&` | Get read-only access to all vectors. |
+| `const std::string& metadata() const` | `const std::string` | Get read-only access to all metadatas. |

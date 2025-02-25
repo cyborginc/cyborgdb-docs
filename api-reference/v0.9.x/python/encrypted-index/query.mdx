@@ -9,13 +9,13 @@ Retrieves the nearest neighbors for a given query vector.
 
 ```python
 def query(self,
-          query_vector: List[float],
+          query_vector: List[float] = None,
+          query_contents: Union[str, Image] = None,
           top_k: int = 100,
           n_probes: int = 1,
           greedy: bool = False,
-          filters: Optional[Dict[str, Any]] = None,
-          return_distances: bool = True,
-          return_metadata: bool = False)
+          filters: Dict[str, Any] = None,
+          include: List[str] = ["distances"])
 ```
 
 ### Parameters
@@ -30,13 +30,15 @@ def query(self,
 | `return_distances`| `bool` | `True` | _(Optional)_ If `True`, each result includes `distance`. |
 | `return_metadata` | `bool` | `False` | _(Optional)_ If `True`, each result includes `metadata` which contains the decrypted metadata fields, if available. |
 
+<Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index), then the `query_string` can be used instead of `query_vector`.</Note>
+
 <Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
 For instance: `filters: { "$and": [ { "label": "cat" }, { "confidence": { "$gte": 0.9 } } ] }` means that only vectors where `label == "cat"` and `confidence >= 0.9` will be considered for encrypted vector search.
-Note that metadata filtering will not be available until `v0.9.0`.</Tip>
+For more info on metadata, see [Metadata Filtering](/guides/data-operations/metadata-filtering).</Tip>
 
 ### Returns
 
-`List[Dict[str, Union[int, float, Dict[]]]]`: List of results for the query vector. Each dictionary contains `id` and optionally `distance` if `return_distances` is `True`, and `metadata` if `return_metadata` is `True`.
+`List[Dict[str, Union[int, float, Dict[]]]]`: List of results for the query vector. Each result is a list of `top_k` dictionaries, each containing `id`, as well as `distance`, `metadata`, and `vector` based on `include`.
 
 ### Exceptions
 
@@ -62,27 +64,26 @@ index = client.load_index(index_name=index_name, index_key=index_key)
 query_vector = [0.1, 0.2, 0.3]  # Single query vector of dimension 3
 
 # Perform a single query with distances
-results = index.query(query_vector=query_vector, top_k=2, n_probes=5, return_distances=True)
+results = index.query(query_vector=query_vector, top_k=2, n_probes=5, include=["distances"])
 # Example output:
-# [{"id": 101, "distance": 0.05}, {"id": 102, "distance": 0.1}]
+# [{"id": "101", "distance": 0.05}, {"id": "102", "distance": 0.1}]
 ```
 
 _Single Query without Distances_:
 
 ```python
-results = index.query(query_vector=query_vector, top_k=10, n_probes=5, return_distances=False)
+results = index.query(query_vector=query_vector, top_k=10, n_probes=5, include=[])
 # Example output:
-# [{"id": 101}, {"id": 102}]
+# [{"id": "101"}, {"id": "102"}]
 ```
 
 _Single Query with Metadata_:
-_(Not available until `v0.9.0`)_
 
 ```python
-results = search.query(query_vector=query_vector, top_k=10, n_probes=5, filters={"label": "dog"}, return_distances=False, return_metadata=True)
+results = index.query(query_vector=query_vector, top_k=10, n_probes=5, filters={"label": "dog"}, include=["metadata"])
 # Example output:
-# [{"id": 101, "metadata": {"label": "dog", "temperament": "good boy"}},
-#  {"id": 102, "metadata": {"label": "dog", "temperament": "hyper"})]]
+# [{"id": "101", "metadata": {"label": "dog", "temperament": "good boy"}},
+#  {"id": "102", "metadata": {"label": "dog", "temperament": "hyper"})]]
 ```
 
 ## Batched Queries
@@ -95,7 +96,8 @@ def query(self,
           top_k: int = 100,
           n_probes: int = 1,
           greedy: bool = False,
-          return_distances: bool = True)
+          filters: Dict[str, Any] = None,
+          include: List[str] = ["distances"])
 ```
 
 ### Parameters
@@ -106,12 +108,16 @@ def query(self,
 | `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
 | `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
-| `return_distances`| `bool` | `True` | _(Optional)_ If `True`, each result includes `(ID, distance)`. If `False`, only IDs are returned. |
-| `return_metadata` | `bool` | `False` | _(Optional)_ If `True`, each result includes `metadata` which contains the decrypted metadata fields, if available. |
+| `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
+| `include` | `List[str]` | `"distance"` | _(Optional)_ List of item fields to return. Can include `distance`, `metadata`, and `vector` (`vector` only for `IVFFlat` indexes). |
+
+<Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
+For instance: `filters: { "$and": [ { "label": "cat" }, { "confidence": { "$gte": 0.9 } } ] }` means that only vectors where `label == "cat"` and `confidence >= 0.9` will be considered for encrypted vector search.
+For more info on metadata, see [Metadata Filtering](/guides/data-operations/metadata-filtering).</Tip>
 
 ### Returns
 
-`List[List[Dict[str, Union[int, float, Dict[]]]]]`: List of results for each query vector. Each result is a list of `top_k` dictionaries, each containing `id` and optionally `distance` if `return_distances` is `True`, and `metadata` if `return_metadata` is `True`.
+`List[List[Dict[str, Union[int, float, Dict[]]]]]`: List of results for each query vector. Each result is a list of `top_k` dictionaries, each containing `id`, as well as `distance`, `metadata`, and `vector` based on `include`.
 
 ### Exceptions
 
@@ -140,9 +146,9 @@ query_vectors = np.array([
 
 # Query using default parameters and distances
 results = index.query(query_vectors=query_vectors)
-# Output example:
+# Example output:
 # [
-#     [{"id": 101, "distance": 0.05}, {"id": 102, "distance": 0.1}],
-#     [{"id": 201, "distance": 0.2}, {"id": 202, "distance": 0.3}]
+#     [{"id": "item_101", "distance": 0.05}, {"id": "item_202", "distance": 0.1}],
+#     [{"id": "item_202", "distance": 0.2}, {"id": "item_303", "distance": 0.3}]
 # ]
 ```

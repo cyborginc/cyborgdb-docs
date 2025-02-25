@@ -226,7 +226,9 @@ The `QueryParams` struct defines parameters for querying the index, controlling 
 
 ```cpp
 QueryParams(size_t top_k = 100,
-            size_t n_probes = 1);
+            size_t n_probes = 1,
+            bool return_items = false,
+            bool greedy = false);
 ```
 
 ### Parameters
@@ -236,7 +238,6 @@ QueryParams(size_t top_k = 100,
 | `top_k` | `size_t` | _(Optional)_ Number of nearest neighbors to return. Defaults to `100`. |
 | `n_probes` | `size_t` | _(Optional)_ Number of lists to probe during query. Defaults to `1`. |
 | `return_items` | `bool` | _(Optional)_ Whether to return item contents along with the IDs. Defaults to `false`. |
-| `return_metadata` | `bool` | _(Optional)_ Whether to return metadata along with the IDs. Defaults to `false`. |
 | `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |
 
 Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs. For guidance on how to select the right `n_probes`, refer to the [query parameter tuning guide](/guides/tuning/query-params.md).

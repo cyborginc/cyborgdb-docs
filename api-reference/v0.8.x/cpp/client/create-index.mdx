@@ -10,7 +10,7 @@ std::unique_ptr<cyborg::EncryptedIndex>
     CreateIndex(const std::string index_name,
                 const std::array<uint8_t, 32>& index_key,
                 const IndexConfig& index_config,
-                const std::optional<size_t>& max_cache_size);
+                const std::optional<size_t>& max_cache_size = 0);
 ```
 
 ### Parameters

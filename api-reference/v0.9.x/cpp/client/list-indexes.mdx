@@ -3,7 +3,7 @@ title: "List Indexes"
 mode: "wide"
 ---
 
-Returns a list of all encrypted index names accessible via the client at the set `LocationConfig`.
+Returns a list of all encrypted index names accessible via the client at the set `DBConfig`.
 
 ```cpp
 std::vector<std::string> ListIndexes();
@@ -24,7 +24,7 @@ std::vector<std::string> ListIndexes();
 ### Example Usage
 
 ```cpp
-#include "cyborg_vector_search/client.hpp"
+#include "cyborgdb/client.hpp"
 
 // ... Initialize the client ...
 

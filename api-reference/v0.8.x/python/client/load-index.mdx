@@ -48,9 +48,3 @@ index_key = my_index_key  # Use the same 32-byte encryption key used during inde
 # Load the existing index
 index = client.load_index(index_name=index_name, index_key=index_key)
 ```
-```cpp
-std::unique_ptr<cyborg::EncryptedIndex> 
-    LoadIndex(const std::string index_name,
-              const std::array<uint8_t, 32>& index_key,
-              const std::optional<size_t>& max_cache_size = 0);
-```

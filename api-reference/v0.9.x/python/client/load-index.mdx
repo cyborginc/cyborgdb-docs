@@ -35,22 +35,16 @@ def load_index(self, index_name: str, index_key: bytes, max_cache_size: int = 0)
 ### Example Usage
 
 ```python
-import cyborg_vector_search_py as cvs
+import cyborgdb
 
-index_location = cvs.DBConfig(location='redis', connection_string="redis://localhost")
-config_location = cvs.DBConfig(location='redis', connection_string="redis://localhost")
+index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
 
-client = cvs.Client(index_location=index_location, config_location=config_location)
+client = cyborgdb.Client(index_location=index_location, config_location=config_location)
 
 index_name = "my_index"
 index_key = my_index_key  # Use the same 32-byte encryption key used during index creation
 
 # Load the existing index
 index = client.load_index(index_name=index_name, index_key=index_key)
-```
-```cpp
-std::unique_ptr<cyborg::EncryptedIndex> 
-    LoadIndex(const std::string index_name,
-              const std::array<uint8_t, 32>& index_key,
-              const std::optional<size_t>& max_cache_size = 0);
 ```

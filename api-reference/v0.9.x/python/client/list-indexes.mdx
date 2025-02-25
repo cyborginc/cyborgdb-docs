@@ -24,12 +24,12 @@ def list_indexes(self)
 ### Example Usage
 
 ```python
-import cyborg_vector_search_py as cvs
+import cyborgdb
 
-index_location = cvs.DBConfig(location='redis', connection_string="redis://localhost")
-config_location = cvs.DBConfig(location='redis', connection_string="redis://localhost")
+index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
 
-client = cvs.Client(index_location=index_location, config_location=config_location)
+client = cyborgdb.Client(index_location=index_location, config_location=config_location)
 
 print(client.list_indexes())
 # Example output:
