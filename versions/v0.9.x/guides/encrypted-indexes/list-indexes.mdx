@@ -1,0 +1,51 @@
+---
+title: "List Encrypted Indexes"
+sidebarTitle: "List Indexes"
+mode: "wide"
+---
+
+To see which existing encrypted indexes are available to your CyborgDB client, you can use `list_indexes`:
+
+<CodeGroup>
+```python Python
+import cyborgdb
+
+# Set index location and config location beforehand...
+
+client = cyborgdb.Client(index_location=index_location, config_location=config_location)
+
+indexes = client.list_indexes()
+
+print(indexes)
+# Example output:
+# ["index_one", "index_two", "index_three"]
+```
+
+```cpp C++
+#include "cyborgdb/client.hpp"
+
+// Set index location and config location beforehand...
+
+cyborg::Client client(index_location, config_location);
+
+auto indexes = client.ListIndexes();
+
+// Print the indexes
+for (const auto& index_name : indexes) {
+    std::cout << index_name << std::endl;
+}
+```
+</CodeGroup>
+
+## API Reference
+
+For more information on creating encrypted indexes, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../api-reference/python/client/list-indexes" icon="python">
+        API reference for `list_indexes()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../api-reference/cpp/client/list-indexes" icon="brackets-curly">
+        API reference for `ListIndexes()` in C++
+    </Card>
+</CardGroup>

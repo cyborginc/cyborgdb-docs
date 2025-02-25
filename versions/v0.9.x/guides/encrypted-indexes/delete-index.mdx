@@ -1,0 +1,68 @@
+---
+title: "Delete an Encrypted Index"
+sidebarTitle: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+To delete an exiting encrypted index, you can [load it](../encrypted-index/load-index) and then call the `delete_index()` method.
+
+<CodeGroup>
+```python Python
+import cyborgdb
+
+# Using `memory` storage for this example
+index_location = cyborgdb.DBConfig("memory") 
+config_location = cyborgdb.DBConfig("memory")
+
+# Create a client
+client = cyborgdb.Client(index_location, config_location)
+
+# Provide the index key used when creating the index
+# Example key (32 bytes)
+index_key = bytes(32)
+
+# Create an encrypted index
+index = client.load_index("my_index", index_key)
+
+# Delete the index
+index.delete_index()
+```
+
+```cpp C++
+#include "cyborgdb/client.hpp"
+#include "cyborgdb/encrypted_index.hpp"
+#include <array>
+
+// Using `memory` storage for this example
+cyborg::DBConfig index_location(Location::kMemory); 
+cyborg::DBConfig config_location(Location::kMemory);
+
+// Create a client
+cyborg::Client client(index_location, config_location);
+
+// Provide the index key used when creating the index
+// Example key (32 bytes)
+std::array<uint8_t, 32> index_key;
+
+// Create an encrypted index
+cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key);
+
+// Delete the index
+index.DeleteIndex();
+```
+</CodeGroup>
+
+## API Reference
+
+For more information on creating encrypted indexes, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../api-reference/python/encrypted-index/delete-index" icon="python">
+        API reference for `delete_index()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../api-reference/cpp/encrypted-index/delete-index" icon="brackets-curly">
+        API reference for `DeleteIndex()` in C++
+    </Card>
+</CardGroup>

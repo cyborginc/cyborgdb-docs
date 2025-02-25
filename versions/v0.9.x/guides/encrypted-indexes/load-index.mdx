@@ -1,0 +1,119 @@
+---
+title: "Load an Existing Encrypted Index"
+sidebarTitle: "Load Existing Index"
+mode: "wide"
+---
+
+If you've previously created an encrypted index, you can connect to it to add, query or delete data from it. You will need to know the index's name as well as its key to do so:
+
+<CodeGroup>
+```python Python
+import cyborgdb
+
+# Using `memory` storage for this example
+index_location = cyborgdb.DBConfig("memory") 
+config_location = cyborgdb.DBConfig("memory")
+
+# Create a client
+client = cyborgdb.Client(index_location, config_location)
+
+# Provide the index key used when creating the index
+# Example key (32 bytes)
+index_key = bytes(32)
+
+# Create an encrypted index
+index = client.load_index("my_index", index_key)
+```
+
+```cpp C++
+#include "cyborgdb/client.hpp"
+#include "cyborgdb/encrypted_index.hpp"
+#include <array>
+
+// Using `memory` storage for this example
+cyborg::DBConfig index_location(Location::kMemory); 
+cyborg::DBConfig config_location(Location::kMemory);
+
+// Create a client
+cyborg::Client client(index_location, config_location);
+
+// Provide the index key used when creating the index
+// Example key (32 bytes)
+std::array<uint8_t, 32> index_key;
+
+// Create an encrypted index
+cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key);
+```
+</CodeGroup>
+
+This creates a new encrypted index with the IVFFlat type. For more details on IVFFlat and other index options, see [Configure an Encrypted Index](configure-index).
+
+<Warning>ou will need to replace `index_key` with your own index encryption key. 
+For production use, we recommend that you use an HSM or KMS solution.
+For more details, see [Managing Encryption Keys](../1.getting-started/5.0.managing-keys.md).</Warning>
+
+## Encrypted Index Caching
+
+For improved query performance, you can enable encrypted index caching by setting a `max_cache_size`:
+
+<CodeGroup>
+```python Python
+import cyborgdb
+import secrets
+
+# Using `memory` storage for this example
+index_location = cyborgdb.DBConfig("memory") 
+config_location = cyborgdb.DBConfig("memory")
+
+# Create a client
+client = cyborgdb.Client(index_location, config_location)
+
+# Generate an encryption key for the index
+index_key = secrets.token_bytes(32)
+
+# Set max cache size at 1MB
+max_cache_size = 1000000
+
+# Create an encrypted index
+index = client.load_index("my_index", index_key, max_cache_size)
+```
+
+```cpp C++
+#include "cyborgdb/client.hpp"
+#include "cyborgdb/encrypted_index.hpp"
+#include <array>
+#include <random>
+
+// Using `memory` storage for this example
+// `redis`, `postgres` and `mongodb` are also supported
+
+cyborg::DBConfig index_location(Location::kMemory); 
+cyborg::DBConfig config_location(Location::kMemory);
+
+// Create a client
+cyborg::Client client(index_location, config_location);
+
+// Generate a 32-byte random encryption key
+std::array<uint8_t, 32> index_key;
+std::random_device rd;
+std::generate(index_key.begin(), index_key.end(), [&]() { return rd() % 256; });
+
+// Set max cache size at 1MB
+std::size_t max_cache_size = 1000000;
+
+// Create an encrypted index
+cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key, max_cache_size);
+```
+</CodeGroup>
+## API Reference
+
+For more information on creating encrypted indexes, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../api-reference/python/client/load-index" icon="python">
+        API reference for `load_index()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../api-reference/cpp/client/load-index" icon="brackets-curly">
+        API reference for `LoadIndex()` in C++
+    </Card>
+</CardGroup>

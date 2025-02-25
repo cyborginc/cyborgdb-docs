@@ -24,7 +24,31 @@
                   "versions/v0.9.x/guides/get-started/quickstart",
                   "versions/v0.9.x/guides/get-started/about"
                 ]
+              },
+              {
+                "group": "Encrypted Indexes",
+                "pages": [
+                  "versions/v0.9.x/guides/encrypted-indexes/introduction",
+                  "versions/v0.9.x/guides/encrypted-indexes/create-client",
+                  "versions/v0.9.x/guides/encrypted-indexes/create-index",
+                  "versions/v0.9.x/guides/encrypted-indexes/configure-index",
+                  "versions/v0.9.x/guides/encrypted-indexes/load-index",
+                  "versions/v0.9.x/guides/encrypted-indexes/list-indexes",
+                  "versions/v0.9.x/guides/encrypted-indexes/delete-index"
+                ]
+              },
+              {
+                "group": "Data Operations",
+                "pages": [
+                  "versions/v0.9.x/guides/data-operations/add-items",
+                  "versions/v0.9.x/guides/data-operations/query",
+                  "versions/v0.9.x/guides/data-operations/metadata-filtering",
+                  "versions/v0.9.x/guides/data-operations/train-index",
+                  "versions/v0.9.x/guides/data-operations/get-items",
+                  "versions/v0.9.x/guides/data-operations/delete-items"
+                ]
               }
+
             ]
           },
           {
