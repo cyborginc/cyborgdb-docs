@@ -1,0 +1,79 @@
+---
+title: "Add Items to an Encrypted Index"
+sidebarTitle: "Add Items"
+mode: "wide"
+---
+
+Once you have created or loaded an encrypted index, you can add items to it. To do this, you can use the `upsert()` function:
+
+<CodeGroup>
+```python Python
+# Items to add to the encrypted index
+items = [
+    {"id": 1, "vector": [0.1, 0.2, 0.3, 0.4]},
+    {"id": 2, "vector": [0.5, 0.6, 0.7, 0.8]},
+    {"id": 3, "vector": [0.9, 0.10, 0.11, 0.12]}
+]
+
+# Add items to the encrypted index
+index.upsert(items)
+```
+
+```cpp C++
+// Items to add to the encrypted index
+std::vector<uint64_t> ids = {1, 2, 3};
+cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
+
+// Add items to the encrypted index
+index.Upsert(ids, vectors);
+```
+</CodeGroup>
+
+## Adding Items with Contents
+
+It's also possible to store item contents alongside vectors. To do this, simply add `item` (which must be bytes) to the `upsert()` call:
+
+<CodeGroup>
+```python Python
+# Items to add to the encrypted index
+items = [
+    {"id": 1, "vector": [0.1, 0.2, 0.3, 0.4], "item": "Hello!"},
+    {"id": 2, "vector": [0.5, 0.6, 0.7, 0.8], "item": "World!"},
+    {"id": 3, "vector": [0.9, 0.10, 0.11, 0.12], "item": "Cyborg!"}
+]
+
+# Add items to the encrypted index
+index.upsert(items)
+```
+
+```cpp C++
+// Items to add to the encrypted index
+std::vector<uint64_t> ids = {1, 2, 3};
+cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
+std::vector<std::vector<uint8_t>> items = {
+    std::vector<uint8_t>{'H', 'e', 'l', 'l', 'o', '!'},
+    std::vector<uint8_t>{'W', 'o', 'r', 'l', 'd', '!'},
+    std::vector<uint8_t>{'C', 'y', 'b', 'o', 'r', 'g', '!'}
+};
+
+// Add items to the encrypted index
+index.Upsert(ids, vectors, items);
+```
+</CodeGroup>
+
+## Understanding Conflicts & Updates
+
+Since Cyborg Vector Search is end-to-end encrypted, it cannot manage conflicts and updates in the way that "traditional" Vector DBs do. Since index contents can't be viewed server-side, conflicts are handled client-side. The way this works is simple: `upsert` calls on the same ID will logically "overwrite" the ID, but not via a deletion. Rather, the original entry is kept but ignored in favor of the second one during query operations.
+
+## API Reference
+
+For more information on creating encrypted indexes, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../api-reference/python/encrypted-index/upsert" icon="python">
+        API reference for `upsert()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../api-reference/cpp/encrypted-index/upsert" icon="brackets-curly">
+        API reference for `Upsert()` in C++
+    </Card>
+</CardGroup>

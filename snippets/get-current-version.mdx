@@ -1,0 +1,12 @@
+{
+    export const getCurrentVersion = () => {
+        mainVersion = 'v0.9.x' // Change this for each version change
+
+        if (typeof window !== 'undefined') {
+            const path = window.location.pathname;
+            const matches = path.match(/\/v([\d.]+x)/);
+            return matches ? `v${matches[1]}` : mainVersion; // Default fallback
+        }
+        return mainVersion; // Server-side fallback
+    }
+}

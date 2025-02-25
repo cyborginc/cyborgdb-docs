@@ -1,0 +1,278 @@
+---
+title: "Types"
+---
+
+## Location
+
+The `Location` enum contains the supported index backing store locations for Cyborg Vector Search. These are:
+
+```cpp
+enum class Location {
+    kRedis,      // In-memory storage via Redis
+    kMemory,     // Temporary in-memory storage
+    kPostgres,   // Relational database storage
+    kNone        // Undefined storage type
+};
+```
+
+---
+
+## LocationConfig
+_(Equivalent to the Python `DBConfig`)_  
+
+`LocationConfig` defines the storage location for various index components.
+
+### Constructor
+
+```cpp
+LocationConfig(Location location,
+                const std::optional<std::string>& table_name,
+                const std::optional<std::string>& db_connection_string);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|------------------------|-------------------------|-------------------------|
+| `location` | [`Location`](#location) | Specifies the type of storage location. |
+| `table_name` | `std::string` | _(Optional)_ Name of the table in the database, if applicable. |
+| `db_connection_string` | `std::string` | _(Optional)_ Connection string for database access, if applicable. |
+
+
+### Example Usage
+
+```cpp
+cyborg::LocationConfig index_loc(Location::kRedis, std::nullopt, "redis://localhost");
+cyborg::LocationConfig config_loc(Location::kRedis, std::nullopt, "redis://localhost");
+cyborg::LocationConfig items_loc(Location::kPostgres, "items", "host=localhost dbname=postgres");
+```
+
+---
+
+## DistanceMetric
+
+The `DistanceMetric` enum contains the supported distance metrics for Cyborg Vector Search. These are:
+
+```cpp
+enum class DistanceMetric {
+    Cosine,
+    Euclidean,
+    SquaredEuclidean};
+```
+
+---
+
+
+## IndexConfig
+
+`IndexConfig` is an abstract base class for configuring index types. The three derived classes can be used to configure indexes:
+
+<Tip>For guidance on how to select the right `IndexConfig` and params, refer to the [index configuration tuning guide](/guides/tuning/index-config.md).</Tip>
+### IndexIVF
+
+Ideal for large-scale datasets where fast retrieval is prioritized over high recall:
+
+|  Speed  | Recall | Index Size |
+| :-----: | :----: | :--------: |
+| Fastest | Lowest |  Smallest  |
+
+#### Constructor
+
+```cpp
+IndexIVF(size_t dimension,
+         size_t n_lists,
+         DistanceMetric metric = DistanceMetric::Euclidean);
+```
+
+#### Parameters
+| Parameter | Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `dimension` | `size_t` | Dimensionality of vector embeddings. |
+| `n_lists` | `size_t` | Number of inverted index lists to create in the index (recommended base-2 value).|
+| `metric` | [`DistanceMetric`](#distancemetric) | _(Optional)_ Distance metric to use for index build and queries. |
+
+### IndexIVFFlat
+
+Suitable for applications requiring high recall with less concern for memory usage:
+
+| Speed | Recall  | Index Size |
+| :---: | :-----: | :--------: |
+| Fast  | Highest |  Biggest   |
+
+#### Constructor
+
+```cpp
+IndexIVFFlat(size_t dimension,
+             size_t n_lists,
+             DistanceMetric metric = DistanceMetric::Euclidean);
+```
+
+#### Parameters
+| Parameter | Type | Description |
+|--------------|-------------------------------|-------------------------------------------------------------------------------|
+| `dimension` | `size_t` | Dimensionality of vector embeddings. |
+| `n_lists` | `size_t` | Number of inverted index lists to create in the index (recommended base-2 value).|
+| `metric` | [`DistanceMetric`](#distancemetric) | _(Optional)_ Distance metric to use for index build and queries. |
+
+### IndexIVFPQ
+
+Product Quantization compresses embeddings, making it suitable for balancing memory use and recall:
+
+| Speed | Recall | Index Size |
+| :---: | :----: | :--------: |
+| Fast  |  High  |   Medium   |
+
+#### Constructor
+
+```cpp
+IndexIVFPQ(size_t dimension,
+           size_t n_lists,
+           size_t pq_dim,
+           size_t pq_bits,
+           DistanceMetric metric = DistanceMetric::Euclidean);
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|--------------|-------------------------------|-------------------------------------------------------------------------------|
+| `dimension` | `size_t` | Dimensionality of vector embeddings. |
+| `n_lists` | `size_t` | Number of inverted index lists to create in the index (recommended base-2 value).|
+| `pq_dim` | `size_t` | Dimensionality of embeddings after quantization (less than or equal to `dimension`). |
+| `pq_bits` | `size_t` | Number of bits per dimension for PQ embeddings (between 1 and 16). |
+| `metric` | [`DistanceMetric`](#distancemetric) | _(Optional)_ Distance metric to use for index build and queries. |
+
+---
+
+## Array2D
+
+`Array2D` class provides a 2D container for data, which can be initialized with a specific number of rows and columns, or from an existing vector.
+
+### Constructors
+
+```cpp
+Array2D(size_t rows, size_t cols, const T& initial_value = T());
+Array2D(std::vector<T>&& data, size_t cols);
+Array2D(const std::vector<T>& data, size_t cols);
+```
+
+- **`Array2D(size_t rows, size_t cols, const T& initial_value = T())`**: Creates an empty 2D array with specified dimensions.
+- **`Array2D(std::vector<T>&& data, size_t cols)`**: Initializes the 2D array from a 1D vector.
+- **`Array2D(const std::vector<T>& data, size_t cols)`**: Initializes the 2D array from a 1D vector (copy).
+
+### Access Methods
+
+- **`operator()(size_t row, size_t col) const`**: Access an element at the specified row and column (read-only).
+- **`operator()(size_t row, size_t col)`**: Access an element at the specified row and column (read-write).
+- **`size_t rows() const`**: Returns the number of rows.
+- **`size_t cols() const`**: Returns the number of columns.
+- **`size_t size() const`**: Returns the total number of elements.
+
+### Example Usage
+
+```cpp
+// Converting a vector to an array
+std::vector<uint8_t> vec = {0, 1, 2, 3, 4, 5, 6, 7};
+cyborg::Array2D<uint8_t> arr(vec, 2);
+// arr is now a 2D array of 4 rows and 2 columns, with the contents from vec
+
+// Creating a 2D array with 3 rows and 2 columns, initialized to zero
+cyborg::Array2D<int> array(3, 2, 0);
+
+// Access and modify elements
+array(0, 0) = 1;
+array(0, 1) = 2;
+
+// Printing the array
+for (size_t i = 0; i < array.rows(); ++i) {
+    for (size_t j = 0; j < array.cols(); ++j) {
+        std::cout << array(i, j) << " ";
+    }
+    std::cout << std::endl;
+}
+```
+
+---
+
+## TrainingConfig
+
+The `TrainingConfig` struct defines parameters for training an index, allowing control over convergence and memory usage.
+
+### Constructor
+
+```cpp
+TrainingConfig(size_t batch_size = 0,
+                size_t max_iters = 0,
+                double tolerance = 1e-6,
+                size_t max_memory = 0);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|----------|---------------------------------------------------------------------------------------------|
+| `batch_size` | `size_t` | _(Optional)_ Size of each batch for training. Defaults to `0`, which auto-selects the batch size. |
+| `max_iters` | `size_t` | _(Optional)_ Maximum iterations for training. Defaults to `0`, which auto-selects iterations. |
+| `tolerance` | `double` | _(Optional)_ Convergence tolerance for training. Defaults to `1e-6`. |
+| `max_memory` | `size_t` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `0`, no limit. |
+
+---
+
+## QueryParams
+
+The `QueryParams` struct defines parameters for querying the index, controlling the number of results and probing behavior.
+
+### Constructor
+
+```cpp
+QueryParams(size_t top_k = 100,
+            size_t n_probes = 1,
+            bool return_distances = true,
+            bool greedy = false);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|----------|--------------------------------------------------------------------------|
+| `top_k` | `size_t` | _(Optional)_ Number of nearest neighbors to return. Defaults to `100`. |
+| `n_probes` | `size_t` | _(Optional)_ Number of lists to probe during query. Defaults to `1`. |
+| `return_distances` | `bool` | _(Optional)_ Whether to return distances with the IDs. Defaults to `true`. |
+| `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |
+
+Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs. For guidance on how to select the right `n_probes`, refer to the [query parameter tuning guide](/guides/tuning/query-params.md).
+
+---
+
+### QueryResults
+
+`QueryResults` class holds the results from a `Query` operation, including IDs and distances for the nearest neighbors of each query.
+
+### Access Methods
+
+| Method | Return Type | Description |
+|--------------------------|------------------------------|------------------------------------------------------|
+| `Result operator[](size_t query_idx)` | `Result` | Returns read-write access to IDs and distances for a specific query. |
+| `const Array2D<uint64_t>& ids() const` | `const Array2D<uint64_t>&` | Get read-only access to all IDs. |
+| `const Array2D<float>& distances() const` | `const Array2D<float>&` | Get read-only access to all distances. |
+| `size_t num_queries() const` | `size_t` | Returns the number of queries. |
+| `size_t top_k() const` | `size_t` | Returns the number of top-k items per query. |
+| `bool empty() const` | `bool` | Checks if the results are empty. |
+
+### Example Usage
+
+```cpp
+QueryResults results(num_queries, top_k);
+
+// Access the top-k results for each query
+for (size_t i = 0; i < num_queries; ++i) {
+    auto result = results[i];
+    for (size_t j = 0; j < result.num_results; ++j) {
+        std::cout << "ID: " << result.ids[j] << ", Distance: " << result.distances[j] << std::endl;
+    }
+}
+
+// Get the IDs and distances for all queries
+auto all_ids = results.ids();
+auto all_distances = results.distances();
+```

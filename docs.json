@@ -20,7 +20,9 @@
               {
                 "group": "Get Started",
                 "pages": [
-                  "guides/v0.9.x/get-started/introduction"
+                  "versions/v0.9.x/guides/get-started/introduction",
+                  "versions/v0.9.x/guides/get-started/quickstart",
+                  "versions/v0.9.x/guides/get-started/about"
                 ]
               }
             ]
@@ -31,31 +33,30 @@
               {
                 "group": "Get Started",
                 "pages": [
-                  "guides/v0.8.x/get-started/introduction",
-                  "guides/v0.8.x/get-started/quickstart",
-                  "guides/v0.8.x/get-started/about-cyborgdb"
+                  "versions/v0.8.x/guides/get-started/introduction",
+                  "versions/v0.8.x/guides/get-started/quickstart",
+                  "versions/v0.8.x/guides/get-started/about"
                 ]
               },
               {
                 "group": "Encrypted Indexes",
                 "pages": [
-                  "guides/v0.8.x/encrypted-indexes/introduction",
-                  "guides/v0.8.x/encrypted-indexes/create-client",
-                  "guides/v0.8.x/encrypted-indexes/create-index",
-                  "guides/v0.8.x/encrypted-indexes/configure-index",
-                  "guides/v0.8.x/encrypted-indexes/load-index",
-                  "guides/v0.8.x/encrypted-indexes/list-indexes",
-                  "guides/v0.8.x/encrypted-indexes/train-index",
-                  "guides/v0.8.x/encrypted-indexes/delete-index"
+                  "versions/v0.8.x/guides/encrypted-indexes/introduction",
+                  "versions/v0.8.x/guides/encrypted-indexes/create-client",
+                  "versions/v0.8.x/guides/encrypted-indexes/create-index",
+                  "versions/v0.8.x/guides/encrypted-indexes/configure-index",
+                  "versions/v0.8.x/guides/encrypted-indexes/load-index",
+                  "versions/v0.8.x/guides/encrypted-indexes/list-indexes",
+                  "versions/v0.8.x/guides/encrypted-indexes/delete-index"
                 ]
               },
               {
                 "group": "Data Operations",
                 "pages": [
-                  "guides/v0.8.x/data-operations/add-items",
-                  "guides/v0.8.x/data-operations/query",
-                  "guides/v0.8.x/data-operations/get-items",
-                  "guides/v0.8.x/data-operations/delete-items"
+                  "versions/v0.8.x/guides/data-operations/add-items",
+                  "versions/v0.8.x/guides/data-operations/query",
+                  "versions/v0.8.x/guides/data-operations/train-index",
+                  "versions/v0.8.x/guides/data-operations/get-items"
                 ]
               }
             ]
@@ -75,34 +76,34 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "api-reference/v0.9.x/python/introduction"
+                      "versions/v0.9.x/api-reference/python/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "api-reference/v0.9.x/python/client/client",
-                      "api-reference/v0.9.x/python/client/create-index",
-                      "api-reference/v0.9.x/python/client/load-index",
-                      "api-reference/v0.9.x/python/client/list-indexes"
+                      "versions/v0.9.x/api-reference/python/client/client",
+                      "versions/v0.9.x/api-reference/python/client/create-index",
+                      "versions/v0.9.x/api-reference/python/client/load-index",
+                      "versions/v0.9.x/api-reference/python/client/list-indexes"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "api-reference/v0.9.x/python/encrypted-index/upsert",
-                      "api-reference/v0.9.x/python/encrypted-index/query",
-                      "api-reference/v0.9.x/python/encrypted-index/train",
-                      "api-reference/v0.9.x/python/encrypted-index/get",
-                      "api-reference/v0.9.x/python/encrypted-index/delete",
-                      "api-reference/v0.9.x/python/encrypted-index/delete-index"
+                      "versions/v0.9.x/api-reference/python/encrypted-index/upsert",
+                      "versions/v0.9.x/api-reference/python/encrypted-index/query",
+                      "versions/v0.9.x/api-reference/python/encrypted-index/train",
+                      "versions/v0.9.x/api-reference/python/encrypted-index/get",
+                      "versions/v0.9.x/api-reference/python/encrypted-index/delete",
+                      "versions/v0.9.x/api-reference/python/encrypted-index/delete-index"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
-                      "api-reference/v0.9.x/python/getters",
-                      "api-reference/v0.9.x/python/types"
+                      "versions/v0.9.x/api-reference/python/getters",
+                      "versions/v0.9.x/api-reference/python/types"
                     ]
                   }
                 ]
@@ -114,34 +115,34 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "api-reference/v0.9.x/cpp/introduction"
+                      "versions/v0.9.x/api-reference/cpp/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "api-reference/v0.9.x/cpp/client/client",
-                      "api-reference/v0.9.x/cpp/client/create-index",
-                      "api-reference/v0.9.x/cpp/client/load-index",
-                      "api-reference/v0.9.x/cpp/client/list-indexes"
+                      "versions/v0.9.x/api-reference/cpp/client/client",
+                      "versions/v0.9.x/api-reference/cpp/client/create-index",
+                      "versions/v0.9.x/api-reference/cpp/client/load-index",
+                      "versions/v0.9.x/api-reference/cpp/client/list-indexes"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "api-reference/v0.9.x/cpp/encrypted-index/upsert",
-                      "api-reference/v0.9.x/cpp/encrypted-index/query",
-                      "api-reference/v0.9.x/cpp/encrypted-index/train",
-                      "api-reference/v0.9.x/cpp/encrypted-index/get",
-                      "api-reference/v0.9.x/cpp/encrypted-index/delete",
-                      "api-reference/v0.9.x/cpp/encrypted-index/delete-index"
+                      "versions/v0.9.x/api-reference/cpp/encrypted-index/upsert",
+                      "versions/v0.9.x/api-reference/cpp/encrypted-index/query",
+                      "versions/v0.9.x/api-reference/cpp/encrypted-index/train",
+                      "versions/v0.9.x/api-reference/cpp/encrypted-index/get",
+                      "versions/v0.9.x/api-reference/cpp/encrypted-index/delete",
+                      "versions/v0.9.x/api-reference/cpp/encrypted-index/delete-index"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
-                      "api-reference/v0.9.x/cpp/getters",
-                      "api-reference/v0.9.x/cpp/types"
+                      "versions/v0.9.x/api-reference/cpp/getters",
+                      "versions/v0.9.x/api-reference/cpp/types"
                     ]
                   }
                 ]
@@ -158,33 +159,33 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "api-reference/v0.8.x/python/introduction"
+                      "versions/v0.8.x/api-reference/python/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "api-reference/v0.8.x/python/client/client",
-                      "api-reference/v0.8.x/python/client/create-index",
-                      "api-reference/v0.8.x/python/client/load-index",
-                      "api-reference/v0.8.x/python/client/list-indexes"
+                      "versions/v0.8.x/api-reference/python/client/client",
+                      "versions/v0.8.x/api-reference/python/client/create-index",
+                      "versions/v0.8.x/api-reference/python/client/load-index",
+                      "versions/v0.8.x/api-reference/python/client/list-indexes"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "api-reference/v0.8.x/python/encrypted-index/upsert",
-                      "api-reference/v0.8.x/python/encrypted-index/query",
-                      "api-reference/v0.8.x/python/encrypted-index/train",
-                      "api-reference/v0.8.x/python/encrypted-index/get",
-                      "api-reference/v0.8.x/python/encrypted-index/delete-index"
+                      "versions/v0.8.x/api-reference/python/encrypted-index/upsert",
+                      "versions/v0.8.x/api-reference/python/encrypted-index/query",
+                      "versions/v0.8.x/api-reference/python/encrypted-index/train",
+                      "versions/v0.8.x/api-reference/python/encrypted-index/get",
+                      "versions/v0.8.x/api-reference/python/encrypted-index/delete-index"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
-                      "api-reference/v0.8.x/python/getters",
-                      "api-reference/v0.8.x/python/types"
+                      "versions/v0.8.x/api-reference/python/getters",
+                      "versions/v0.8.x/api-reference/python/types"
                     ]
                   }
                 ]
@@ -196,33 +197,33 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "api-reference/v0.8.x/cpp/introduction"
+                      "versions/v0.8.x/api-reference/cpp/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "api-reference/v0.8.x/cpp/client/client",
-                      "api-reference/v0.8.x/cpp/client/create-index",
-                      "api-reference/v0.8.x/cpp/client/load-index",
-                      "api-reference/v0.8.x/cpp/client/list-indexes"
+                      "versions/v0.8.x/api-reference/cpp/client/client",
+                      "versions/v0.8.x/api-reference/cpp/client/create-index",
+                      "versions/v0.8.x/api-reference/cpp/client/load-index",
+                      "versions/v0.8.x/api-reference/cpp/client/list-indexes"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "api-reference/v0.8.x/cpp/encrypted-index/upsert",
-                      "api-reference/v0.8.x/cpp/encrypted-index/query",
-                      "api-reference/v0.8.x/cpp/encrypted-index/train",
-                      "api-reference/v0.8.x/cpp/encrypted-index/get",
-                      "api-reference/v0.8.x/cpp/encrypted-index/delete-index"
+                      "versions/v0.8.x/api-reference/cpp/encrypted-index/upsert",
+                      "versions/v0.8.x/api-reference/cpp/encrypted-index/query",
+                      "versions/v0.8.x/api-reference/cpp/encrypted-index/train",
+                      "versions/v0.8.x/api-reference/cpp/encrypted-index/get",
+                      "versions/v0.8.x/api-reference/cpp/encrypted-index/delete-index"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
-                      "api-reference/v0.8.x/cpp/getters",
-                      "api-reference/v0.8.x/cpp/types"
+                      "versions/v0.8.x/api-reference/cpp/getters",
+                      "versions/v0.8.x/api-reference/cpp/types"
                     ]
                   }
                 ]

@@ -1,0 +1,127 @@
+---
+title: "Query Encrypted Index"
+mode: "wide"
+---
+
+Once you've added items to an encrypted index, you can query the index to retrieve the items that match a given query. This is done via `query()`:
+
+<CodeGroup>
+```python Python
+# Example query
+query_vector = [0.5, 0.9, 0.2, 0.7]
+top_k = 10
+
+# Perform query
+results = index.query(query_vector=query_vector, top_k=top_k)
+
+print(results)
+# Example results (IDs and distances)
+# [("id": 12, "distance": 0.01), ("id": 7, "distance": 0.04), ...]
+```
+
+```cpp C++
+// Example query
+std::vector<float> query_vector = {0.5, 0.9, 0.2, 0.7};
+size_t top_k = 10;
+
+// Perform query
+cyborg::QueryParams query_params(top_k);
+cyborg::QueryResults results = index.Query(query_vector, query_params);
+
+// Print the results
+for (const auto& result : results) {
+    std::cout << "ID: " << result.id << ", Distance: " << result.distance << std::endl;
+}
+```
+</CodeGroup>
+
+## Query Parameters
+
+You can specify additional parameters for the query, such as:
+
+- `top_k`: the number of results to return.
+- `n_probes`: the number of clusters to search for each query vector.
+- `return_distances`: whether to return distances with the IDs.
+- `greedy`: whether to perform a greedy search (higher recall but slower).
+
+<CodeGroup>
+```python Python
+# Example query
+query_vector = [0.5, 0.9, 0.2, 0.7]
+top_k = 10
+n_probes = 5
+return_distances = True
+greedy = False
+
+# Perform query
+results = index.query(query_vector=query_vector, top_k=top_k, n_probes=n_probes, return_distances=return_distances, greedy=greedy)
+
+print(results)
+# Example results (IDs and distances)
+# [("id": 12, "distance": 0.01), ("id": 7, "distance": 0.04), ...]
+```
+
+```cpp C++
+// Example query
+std::vector<float> query_vector = {0.5, 0.9, 0.2, 0.7};
+size_t top_k = 10;
+size_t n_probes = 5;
+bool return_distances = true;
+bool greedy = false;
+
+// Perform query
+cyborg::QueryParams query_params(top_k, n_probes, return_distances, greedy);
+cyborg::QueryResults results = index.Query(query_vector, query_params);
+
+// Print the results
+for (const auto& result : results) {
+    std::cout << "ID: " << result.id << ", Distance: " << result.distance << std::endl;
+}
+```
+</CodeGroup>
+
+## Batched Queries
+
+It's also possible to perform batch queries by passing a list of query vectors to `query()`:
+
+<CodeGroup>
+```python Python
+# Example batch query
+query_vectors = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]]
+top_k = 10
+
+# Perform batch query
+results = index.query(query_vectors=query_vectors, top_k=top_k)
+```
+
+```cpp C++
+// Example batch query
+std::vector<std::vector<float>> query_vectors = {{0.5, 0.9, 0.2, 0.7}, {0.1, 0.3, 0.8, 0.6}};
+size_t top_k = 10;
+
+// Perform batch query
+cyborg::QueryParams query_params(top_k);
+cyborg::QueryResults results = index.Query(query_vectors, query_params);
+```
+</CodeGroup>
+
+## Retrieving Items Post-Query
+
+In certain applications, such as RAG, it may be desirable to retrieve matching items after a query. This is possible via `get_item`, which retrieves and decrypts items contents (if they were added in `upsert`). For more details, see the [Get Items](./get-items) guide.
+
+## Note on Trained vs. Untrained Queries
+
+For the [embedded lib](../get-started/about#deployment-models) version of Cyborg Vector Search, queries will initially default to 'untrained' queries, which use an exhaustive search algorithm. This is fine for small datasets, but once you have more than `50,000` vectors in your index, you should train the index. Without doing so, queries will run slower. For more details, see [Training an Encrypted Index](./train-index).
+
+## API Reference
+
+For more information on creating encrypted indexes, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../api-reference/python/encrypted-index/query" icon="python">
+        API reference for `query()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../api-reference/cpp/encrypted-index/query" icon="brackets-curly">
+        API reference for `Query()` in C++
+    </Card>
+</CardGroup>

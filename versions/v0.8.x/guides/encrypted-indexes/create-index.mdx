@@ -1,0 +1,136 @@
+---
+title: "Create a New Encrypted Index"
+sidebarTitle: "Create New Index"
+mode: "wide"
+---
+
+To create an encrypted index, you need to specify an index name (must be unique), an index key, and an index configuration. Here's an example with an IVFFlat index type:
+
+<CodeGroup>
+```python Python
+import cyborg_vector_search_py as cvs
+import secrets
+
+# Using `memory` storage for this example
+index_location = cvs.DBConfig("memory") 
+config_location = cvs.DBConfig("memory")
+
+# Create a client
+client = cvs.Client(index_location, config_location)
+
+# Create an IVFFlat index config (can also be IVF/IVFPQ)
+# Using an example vector dimension of 128, and number of lists of 1024
+index_config = cvs.IndexIVFFlat(dimension=128, n_lists=1024)
+
+# Generate an encryption key for the index
+index_key = secrets.token_bytes(32)
+
+# Create an encrypted index
+index = client.create_index("my_index", index_key, index_config)
+```
+
+```cpp C++
+#include "cyborg_vector_search/client.hpp"
+#include "cyborg_vector_search/encrypted_index.hpp"
+#include <array>
+#include <random>
+
+// Using `memory` storage for this example
+cyborg::LocationConfig index_location(Location::kMemory); 
+cyborg::LocationConfig config_location(Location::kMemory);
+
+// Create a client
+cyborg::Client client(index_location, config_location);
+
+// Create an IVFFlat index config (can also be IVF/IVFPQ)
+// Using an example vector dimension of 128, and number of lists of 1024
+cyborg::IndexIVFFlat index_config(dimension=128, n_lists=1024);
+
+// Generate a 32-byte random encryption key
+std::array<uint8_t, 32> index_key;
+std::random_device rd;
+std::generate(index_key.begin(), index_key.end(), [&]() { return rd() % 256; });
+
+// Create an encrypted index
+cyborg::EncryptedIndex index = client.CreateIndex("my_index", index_key, index_config);
+```
+</CodeGroup>
+
+This creates a new encrypted index with the IVFFlat type. For more details on IVFFlat and other index options, see [Configure an Encrypted Index](configure-index).
+
+<Warning>The example above creates a random 32 byte (256-bit) index key.
+This is fine for evaluation purposes, but for production use, we recommend that you use an HSM or KMS solution.
+For more details, see [Managing Encryption Keys](../1.getting-started/5.0.managing-keys.md).</Warning>
+
+## Encrypted Index Caching
+
+For improved query performance, you can enable encrypted index caching by setting a `max_cache_size`:
+
+<CodeGroup>
+```python Python
+import cyborg_vector_search_py as cvs
+import secrets
+
+# Using `memory` storage for this example
+index_location = cvs.DBConfig("memory") 
+config_location = cvs.DBConfig("memory")
+
+# Create a client
+client = cvs.Client(index_location, config_location)
+
+# Example index config
+index_config = cvs.IndexIVFFlat(dimension=128, n_lists=1024)
+
+# Generate an encryption key for the index
+index_key = secrets.token_bytes(32)
+
+# Set max cache size at 1MB
+max_cache_size = 1000000
+
+# Create an encrypted index
+index = client.create_index("my_index", index_key, index_config, max_cache_size)
+```
+
+```cpp C++
+#include "cyborg_vector_search/client.hpp"
+#include "cyborg_vector_search/encrypted_index.hpp"
+#include <array>
+#include <random>
+
+// Using `memory` storage for this example
+// `redis`, `postgres` and `mongodb` are also supported
+
+cyborg::LocationConfig index_location(Location::kMemory); 
+cyborg::LocationConfig config_location(Location::kMemory);
+
+// Create a client
+cyborg::Client client(index_location, config_location);
+
+// Example index config
+cyborg::IndexIVFFlat index_config(dimension=128, n_lists=1024);
+
+// Generate a 32-byte random encryption key
+std::array<uint8_t, 32> index_key;
+std::random_device rd;
+std::generate(index_key.begin(), index_key.end(), [&]() { return rd() % 256; });
+
+// Set max cache size at 1MB
+std::size_t max_cache_size = 1000000;
+
+// Create an encrypted index
+cyborg::EncryptedIndex index = client.CreateIndex("my_index", index_key, index_config, max_cache_size);
+```
+</CodeGroup>
+
+## API Reference
+
+For more information on creating encrypted indexes, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../api-reference/python/client/create-index" icon="python">
+        API reference for `create_index()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../api-reference/cpp/client/create-index" icon="brackets-curly">
+        API reference for `CreateIndex()` in C++
+    </Card>
+</CardGroup>
