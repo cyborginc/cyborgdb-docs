@@ -8,29 +8,56 @@
     "light": "#5DC3CA",
     "dark": "#314656"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/images/favicon.svg",
   "navigation": {
     "tabs": [
       {
         "tab": "Guides",
-        "groups": [
+        "versions": [
           {
-            "group": "Get Started",
-            "pages": [
-              "introduction",
-              "quickstart",
-              "development"
+            "version": "v0.9.x",
+            "groups": [
+              {
+                "group": "Get Started",
+                "pages": [
+                  "guides/v0.9.x/get-started/introduction"
+                ]
+              }
             ]
           },
           {
-            "group": "Essentials",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
+            "version": "v0.8.x",
+            "groups": [
+              {
+                "group": "Get Started",
+                "pages": [
+                  "guides/v0.8.x/get-started/introduction",
+                  "guides/v0.8.x/get-started/quickstart",
+                  "guides/v0.8.x/get-started/about-cyborgdb"
+                ]
+              },
+              {
+                "group": "Encrypted Indexes",
+                "pages": [
+                  "guides/v0.8.x/encrypted-indexes/introduction",
+                  "guides/v0.8.x/encrypted-indexes/create-client",
+                  "guides/v0.8.x/encrypted-indexes/create-index",
+                  "guides/v0.8.x/encrypted-indexes/configure-index",
+                  "guides/v0.8.x/encrypted-indexes/load-index",
+                  "guides/v0.8.x/encrypted-indexes/list-indexes",
+                  "guides/v0.8.x/encrypted-indexes/train-index",
+                  "guides/v0.8.x/encrypted-indexes/delete-index"
+                ]
+              },
+              {
+                "group": "Data Operations",
+                "pages": [
+                  "guides/v0.8.x/data-operations/add-items",
+                  "guides/v0.8.x/data-operations/query",
+                  "guides/v0.8.x/data-operations/get-items",
+                  "guides/v0.8.x/data-operations/delete-items"
+                ]
+              }
             ]
           }
         ]
@@ -207,8 +234,8 @@
     ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/images/logo/light.svg",
+    "dark": "/images/logo/dark.svg"
   },
   "navbar": {
     "links": [
