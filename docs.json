@@ -47,8 +47,13 @@
                   "versions/v0.9.x/guides/data-operations/get-items",
                   "versions/v0.9.x/guides/data-operations/delete-items"
                 ]
+              },
+              {
+                "group": "Advanced",
+                "pages": [
+                  "versions/v0.9.x/guides/advanced/managing-keys"
+                ]
               }
-
             ]
           },
           {
