@@ -15,7 +15,7 @@ import cyborgdb
 import secrets
 
 # Using `memory` storage for this example
-# `redis`, `postgres` and `mongodb` are also supported
+# `redis` and `postgres` are also supported
 
 index_location = cyborgdb.DBConfig("memory")  # Where encrypted index is stored (for queries)
 config_location = cyborgdb.DBConfig("memory") # Where encrypted index config is stored (for config/loading)
@@ -31,7 +31,7 @@ client = cyborgdb.Client(index_location, config_location)
 #include <random>
 
 // Using `memory` storage for this example
-// `redis`, `postgres` and `mongodb` are also supported
+// `redis` and `postgres` are also supported
 
 cyborg::DBConfig index_location(Location::kMemory);  // Where encrypted index is stored (for queries)
 cyborg::DBConfig config_location(Location::kMemory); // Where encrypted index config is stored (for config/loading)

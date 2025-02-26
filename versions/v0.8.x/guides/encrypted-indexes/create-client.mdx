@@ -15,7 +15,7 @@ import cyborg_vector_search_py as cvs
 import secrets
 
 # Using `memory` storage for this example
-# `redis`, `postgres` and `mongodb` are also supported
+# `redis` and `postgres` are also supported
 
 index_location = cvs.DBConfig("memory")  # Where encrypted index is stored (for queries)
 config_location = cvs.DBConfig("memory") # Where encrypted index config is stored (for config/loading)
@@ -31,7 +31,7 @@ client = cvs.Client(index_location, config_location)
 #include <random>
 
 // Using `memory` storage for this example
-// `redis`, `postgres` and `mongodb` are also supported
+// `redis` and `postgres` are also supported
 
 cyborg::LocationConfig index_location(Location::kMemory);  // Where encrypted index is stored (for queries)
 cyborg::LocationConfig config_location(Location::kMemory); // Where encrypted index config is stored (for config/loading)
