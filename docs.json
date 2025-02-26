@@ -290,5 +290,11 @@
   },
   "search": {
     "prompt": "Search documentation..."
+  },
+  "integrations": {
+    "plausible": {
+      "domain": "docs.cyborg.co",
+      "server": "d1w0psmo3bkh8z.cloudfront.net"
+    }
   }
 }
