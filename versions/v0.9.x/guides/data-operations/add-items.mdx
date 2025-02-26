@@ -10,9 +10,9 @@ Once you have created or loaded an encrypted index, you can add items to it. To 
 ```python Python
 # Items to add to the encrypted index
 items = [
-    {"id": 1, "vector": [0.1, 0.2, 0.3, 0.4]},
-    {"id": 2, "vector": [0.5, 0.6, 0.7, 0.8]},
-    {"id": 3, "vector": [0.9, 0.10, 0.11, 0.12]}
+    {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4]},
+    {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8]},
+    {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12]}
 ]
 
 # Add items to the encrypted index
@@ -21,7 +21,7 @@ index.upsert(items)
 
 ```cpp C++
 // Items to add to the encrypted index
-std::vector<uint64_t> ids = {1, 2, 3};
+std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
 cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
 
 // Add items to the encrypted index
@@ -31,15 +31,17 @@ index.Upsert(ids, vectors);
 
 ## Adding Items with Contents
 
-It's also possible to store item contents alongside vectors. To do this, simply add `item` (which must be bytes) to the `upsert()` call:
+It's also possible to store item contents alongside vectors. To do this, include `contents` (which must be bytes) to the `upsert()` call. 
+
+The bytes in the `contents` field will be encrypted using the index key.
 
 <CodeGroup>
 ```python Python
 # Items to add to the encrypted index
 items = [
-    {"id": 1, "vector": [0.1, 0.2, 0.3, 0.4], "item": "Hello!"},
-    {"id": 2, "vector": [0.5, 0.6, 0.7, 0.8], "item": "World!"},
-    {"id": 3, "vector": [0.9, 0.10, 0.11, 0.12], "item": "Cyborg!"}
+    {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "contents": "Hello!"},
+    {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8], "contents": "World!"},
+    {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "contents": "Cyborg!"}
 ]
 
 # Add items to the encrypted index
@@ -48,22 +50,83 @@ index.upsert(items)
 
 ```cpp C++
 // Items to add to the encrypted index
-std::vector<uint64_t> ids = {1, 2, 3};
+std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
 cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
-std::vector<std::vector<uint8_t>> items = {
+std::vector<std::vector<uint8_t>> contents = {
     std::vector<uint8_t>{'H', 'e', 'l', 'l', 'o', '!'},
     std::vector<uint8_t>{'W', 'o', 'r', 'l', 'd', '!'},
     std::vector<uint8_t>{'C', 'y', 'b', 'o', 'r', 'g', '!'}
 };
 
 // Add items to the encrypted index
-index.Upsert(ids, vectors, items);
+index.Upsert(ids, vectors, contents);
 ```
 </CodeGroup>
 
+## Adding Items with Metadata
+
+CyborgDB also supports metadata storage, retrieval and filtering. To add metadata to an item, include `metadata` in the `upsert()` call.
+
+All metadata fields will be encrypted using the index key.
+
+<CodeGroup>
+```python Python
+# Items to add to the encrypted index
+items = [
+    {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "metadata": {"name": "Alice", "age": 30}},
+    {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8], "metadata": {"name": "Bob", "age": 40}},
+    {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "metadata": {"name": "Charlie", "age": 50}}
+]
+
+# Add items to the encrypted index
+index.upsert(items)
+```
+
+```cpp C++
+// Items to add to the encrypted index
+std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
+cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
+std::vector<std::string> metadata = {
+    R"({"name": "Alice", "age": 30})",
+    R"({"name": "Bob", "age": 40})",
+    R"({"name": "Charlie", "age": 50})"
+};
+
+// Add items to the encrypted index
+index.Upsert(ids, vectors, std::nullopt, metadata);
+```
+</CodeGroup>
+
+For more info on metadata storage and filtering, see [Metadata Filtering](./metadata-filtering).
+
+## Automatic Embedding Generation
+
+<Note>This feature is only available in Python.</Note>
+
+If you provided an `embedding_model` during index creation, you can automatically generate embeddings for items by providing `contents` to the `upsert()` call:
+
+```python Python
+# ... index creation and embedding model setup
+embedding_model = "all-MiniLM-L6-v2"
+index = client.create_index("my_index", index_key, index_config, embedding_model)
+
+# Items to add to the encrypted index
+items = [
+    {"id": "item_1", "contents": "Hello, World!"},
+    {"id": "item_2", "contents": "Hello, Cyborg!"}
+]
+
+# Add items to the encrypted index
+index.upsert(items)
+```
+
+In this example, the `embedding_model` will automatically generate embeddings for the `contents` field. Note that `contents` must be a string. It will also be converted to `bytes` for encrypted item storage.
+
+This feature uses [`sentence-transformers`](https://www.sbert.net/) for embedding generation. You can use any model from the [HuggingFace Model Hub](https://huggingface.co/models) that is compatible with `sentence-transformers`.
+
 ## API Reference
 
-For more information on creating encrypted indexes, refer to the API reference:
+For more information on adding items to an encrypted index, refer to the API reference:
 
 <CardGroup cols={2}>
     <Card title="Python API Reference" href="../../api-reference/python/encrypted-index/upsert" icon="python">

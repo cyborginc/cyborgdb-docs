@@ -1,0 +1,99 @@
+---
+title: "Metadata Filtering"
+mode: "wide"
+---
+
+CyborgDB supports metadata tagging and filtering, enabling fine-grained search filters in addition to encrypted vector search. Metadata, like vectors, are end-to-end encrypted and never exposed in plaintext outside of the client.
+
+## Supported Metadata
+
+The following metadata types are supported:
+
+- Boolean
+- String
+- List of strings
+- Numbers (will be stored as fp64)
+
+## Adding Items with Metadata
+
+To add items with metadata tags, you can pass a dictionary of key-value pairs to the `metadata` field during `upsert`:
+
+<CodeGroup>
+```python Python
+# Example data in the format:
+# [{id: int, vector: List[float], metadata: Dict)]
+data = [
+    {"id": "item_1", "vector": [0.1, 0.1, 0.1, 0.1], "metadata": {"category": "dog"}},
+    {"id": "item_2", "vector": [0.2, 0.2, 0.2, 0.2], "metadata": {"category": "cat"}}
+]
+
+# Upsert data with metadata
+index.upsert(data)
+```
+
+```cpp C++
+// Example data
+std::vector<std::string> ids = {"item_1", "item_2"};
+std::vector<std::vector<float>> vectors = {{0.1, 0.1, 0.1, 0.1}, {0.2, 0.2, 0.2, 0.2}};
+std::vector<std::string> metadata = {R"({"category": "dog"})", R"({"category": "cat"})"};
+
+// Upsert data with metadata
+index.upsert(ids, vectors, metadata);
+```
+</CodeGroup>
+
+This metadata will be encrypted and stored in the index.
+
+## Filtering Queries with Metadata
+
+CyborgDB supports a subset of [MongoDB's Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/). For more details, see [Metadata Query Operators](#metadata-query-operators)
+
+To filter a query with metadata, you can pass a dictionary of filters to the `filters` field during `query`:
+
+<CodeGroup>
+```python Python
+# Example query
+query_vector = [0.5, 0.9, 0.2, 0.7]
+top_k = 10
+
+# Example filters
+filters = {
+    "category": {"$in": ["dog", "cat"]} # Will match either 'dog' or 'cat'
+}
+
+# Perform query
+results = index.query(query_vector=query_vector, top_k=top_k, filters=filters)
+```
+
+```cpp C++
+// Example query
+std::vector<float> query_vector = {0.5, 0.9, 0.2, 0.7};
+int top_k = 10;
+
+// Example filters
+std::string filters = R"({"category": {"$in": ["dog", "cat"]}})";
+
+// Perform query
+std::vector<std::string> results = index.query(query_vector, top_k, filters);
+```
+</CodeGroup>
+
+## Metadata Indexing
+
+All metadata fields are indexed using encrypted indexing. This allows CyborgDB to securely exclude clusters which don't match the provided metadata filters. As a result, searches with metadata filter should be as fast or faster than those without.
+
+## Metadata Query Operators
+
+CyborgDB supports a subset of [MongoDB's Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/). Specifically, the following operators are supported:
+
+| Filter | Types | Description |
+| :---: | :---: | --- |
+| `$exists` | `any` | Matches vectors that have this field |
+| `$eq` | `Boolean`, `Number`, `String` | Matches vectors with the metadata that is equal to the filter value |
+| `$ne` | `Boolean`, `Number`, `String` | Matches vectors with the metadata that is not equal to the filter value |
+| `$in` | `Number`, `String` | Matches vectors with metadata that is in the filter array |
+| `$nin` | `Number`, `String` | Matches vectors with metadata that is not in the filter array |
+| `$gt` | `Number` | Matches vectors with metadata that is greater than the filter value |
+| `$gte` | `Number` | Matches vectors with metadata that is greater than or equal to the filter value |
+| `$lt` | `Number` | Matches vectors with metadata that is less than the filter value |
+| `$lte` | `Number` | Matches vectors with metadata that is less than or equal to the filter value |

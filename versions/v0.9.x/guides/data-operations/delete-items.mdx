@@ -4,9 +4,23 @@ sidebarTitle: "Delete Items"
 mode: "wide"
 ---
 
+You can delete items from an encrypted index using `delete()`:
+
+<CodeGroup>
+```python Python
+index.delete(["item1", "item2"])
+```
+
+```cpp C++
+index.Delete({"item1", "item2"});
+```
+</CodeGroup>
+
+<Warning>This operation is irreversible. Once you delete an item, you cannot recover it.</Warning>
+
 ## API Reference
 
-For more information on creating encrypted indexes, refer to the API reference:
+For more information on deleting items from an encrypted index, refer to the API reference:
 
 <CardGroup cols={2}>
     <Card title="Python API Reference" href="../../api-reference/python/encrypted-index/delete" icon="python">

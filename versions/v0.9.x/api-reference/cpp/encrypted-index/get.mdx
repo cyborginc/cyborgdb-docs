@@ -7,7 +7,7 @@ Retrieves and decrypts items associated with the specified IDs.
 
 ```cpp
 std::vector<cyborg::Item> 
-    GetItems(std::vector<std::string> ids,
+    Get(std::vector<std::string> ids,
              std::vector<std::string> include = {"vectors", "contents", "metadata"});
 ```
 
@@ -36,7 +36,7 @@ std::vector<cyborg::Item>
 
 ```cpp
 std::vector<std::string> item_ids = {"item_1", "item_2"};
-auto items = index->GetItems(item_ids, {"contents"});
+auto items = index->Get(item_ids, {"contents"});
 
 for (const auto& item : items) {
     // Process each decrypted item (IDs & contents)

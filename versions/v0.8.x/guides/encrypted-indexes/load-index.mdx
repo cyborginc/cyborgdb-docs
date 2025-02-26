@@ -48,7 +48,7 @@ cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key);
 
 This creates a new encrypted index with the IVFFlat type. For more details on IVFFlat and other index options, see [Configure an Encrypted Index](configure-index).
 
-<Warning>ou will need to replace `index_key` with your own index encryption key. 
+<Warning>You will need to replace `index_key` with your own index encryption key. 
 For production use, we recommend that you use an HSM or KMS solution.
 For more details, see [Managing Encryption Keys](../1.getting-started/5.0.managing-keys.md).</Warning>
 
@@ -107,7 +107,7 @@ cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key, max_cache
 </CodeGroup>
 ## API Reference
 
-For more information on creating encrypted indexes, refer to the API reference:
+For more information on loading encrypted indexes, refer to the API reference:
 
 <CardGroup cols={2}>
     <Card title="Python API Reference" href="../../api-reference/python/client/load-index" icon="python">
