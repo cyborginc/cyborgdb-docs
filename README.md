@@ -1,6 +1,6 @@
 # CyborgDB Docs
 
-Repository for all CyborgDB Docs, hosted live at [cyborg.mintlify.app](cyborg.mintlify.app).
+Repository for all CyborgDB Docs, hosted live at [docs.cyborg.co](https://docs.cyborg.co).
 
 ### Development
 
@@ -18,4 +18,4 @@ mintlify dev
 
 ### Publishing Changes
 
-Changes will be deployed to production automatically after pushing to the `main`.
+Changes will be deployed to production automatically after pushing to the `main`. You must work on a separate branch and create a PR for changes to be merged into `main`.
