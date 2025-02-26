@@ -46,11 +46,11 @@ cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key);
 ```
 </CodeGroup>
 
-This creates a new encrypted index with the IVFFlat type. For more details on IVFFlat and other index options, see [Configure an Encrypted Index](configure-index).
+This creates a new encrypted index with the IVFFlat type. For more details on IVFFlat and other index options, see [Configure an Encrypted Index](./configure-index).
 
 <Warning>You will need to replace `index_key` with your own index encryption key. 
 For production use, we recommend that you use an HSM or KMS solution.
-For more details, see [Managing Encryption Keys](../1.getting-started/5.0.managing-keys.md).</Warning>
+For more details, see [Managing Encryption Keys](../advanced/managing-keys).</Warning>
 
 ## Encrypted Index Caching
 

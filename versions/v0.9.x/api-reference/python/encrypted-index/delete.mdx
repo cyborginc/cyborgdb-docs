@@ -8,7 +8,7 @@ mode: "wide"
 Deletes the specified encrypted items stored in the index, including all its associated fields (`vector`, `contents`, `metadata`).
 
 ```python
-def delete_index(self)
+def delete(self, ids: List[str])
 ```
 
 ### Parameters
@@ -21,7 +21,7 @@ def delete_index(self)
 
 <AccordionGroup>
     <Accordion title="ValueError">
-        - Throws if the index could not be deleted.
+        - Throws if the items could not be deleted.
     </Accordion>
 </AccordionGroup>
 
