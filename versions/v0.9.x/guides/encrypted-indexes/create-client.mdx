@@ -11,7 +11,7 @@ To create the client, you must define the [backing store locations](../get-start
 
 <CodeGroup>
 ```python Python
-import cyborgdb
+import cyborgdb_core as cyborgdb
 import secrets
 
 # Using `memory` storage for this example
@@ -25,8 +25,8 @@ client = cyborgdb.Client(index_location, config_location)
 ```
 
 ```cpp C++
-#include "cyborgdb/client.hpp"
-#include "cyborgdb/encrypted_index.hpp"
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
 #include <array>
 #include <random>
 
@@ -49,7 +49,7 @@ If you wish to store encrypted items in the index, you will also need to set a `
 
 <CodeGroup>
 ```python Python
-import cyborgdb
+import cyborgdb_core as cyborgdb
 
 # Using `redis` storage for the index and config
 # Using `postgres` storage for the items
@@ -64,7 +64,7 @@ client = cyborgdb.Client(index_location=index_location,
 ```
 
 ```cpp C++
-#include "cyborgdb/client.hpp"
+#include "cyborgdb_core/client.hpp"
 
 // Using `redis` storage for the index and config
 // Using `postgres` storage for the items

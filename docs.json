@@ -22,7 +22,8 @@
                 "pages": [
                   "versions/v0.9.x/guides/get-started/introduction",
                   "versions/v0.9.x/guides/get-started/quickstart",
-                  "versions/v0.9.x/guides/get-started/about"
+                  "versions/v0.9.x/guides/get-started/about",
+                  "versions/changelog"
                 ]
               },
               {
@@ -64,7 +65,8 @@
                 "pages": [
                   "versions/v0.8.x/guides/get-started/introduction",
                   "versions/v0.8.x/guides/get-started/quickstart",
-                  "versions/v0.8.x/guides/get-started/about"
+                  "versions/v0.8.x/guides/get-started/about",
+                  "versions/changelog"
                 ]
               },
               {

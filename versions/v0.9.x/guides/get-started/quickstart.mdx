@@ -20,7 +20,7 @@ Get started with CyborgDB in minutes.
         conda activate cyborg-env
 
         # Install CyborgDB:
-        pip install cyborgdb -i https://dl.cloudsmith.io/<token>/cyborg/cyborgdb/python/simple/
+        pip install cyborgdb_core -i https://dl.cloudsmith.io/<token>/cyborg/cyborgdb/python/simple/
         ```
 
         ```bash C++
@@ -31,7 +31,7 @@ Get started with CyborgDB in minutes.
         conan remote login cyborgdb -p <token> cyborg
 
         # Install CyborgDB:
-        conan install cyborgdb -r cyborgdb
+        conan install cyborgdb_core -r cyborgdb
         ```
         </CodeGroup>
 
@@ -42,7 +42,7 @@ Get started with CyborgDB in minutes.
 
         <CodeGroup>
         ```python Python
-        import cyborgdb
+        import cyborgdb_core as cyborgdb
         import secrets
 
         # Using `memory` storage for this example
@@ -57,8 +57,8 @@ Get started with CyborgDB in minutes.
         ```
 
         ```cpp C++
-        #include "cyborgdb/client.hpp"
-        #include "cyborgdb/encrypted_index.hpp"
+        #include "cyborgdb_core/client.hpp"
+        #include "cyborgdb_core/encrypted_index.hpp"
         #include <array>
         #include <string>
         #include <random>

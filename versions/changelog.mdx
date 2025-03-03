@@ -1,0 +1,80 @@
+---
+title: CyborgDB Release Notes
+sidebarTitle: Release Notes
+mode: "wide"
+---
+
+CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
+
+---
+
+<Update label="v0.9.0" description="2025-02-28">
+
+## CyborgDB v0.9.0
+
+<Note>This release renamed Cyborg Vector Search to **CyborgDB**.</Note>
+
+**Deployment Model**: Core Library (Python & C++)
+
+### New Features
+
+- Added support for **metadata fields & query filtering**
+    - Metadata fields can be added to items during [`upsert()`](/versions/v0.9.x/guides/data-operations/add-items#adding-items-with-metadata) calls
+    - [`query()`](/versions/v0.9.x/guides/data-operations/metadata-filtering) calls can filter results based on metadata fields
+- Added support for **item deletion**
+    - [`delete()`](/versions/v0.9.x/guides/data-operations/delete-items) calls can remove items from the encrypted index
+    - [`upsert()`](/versions/v0.9.x/guides/data-operations/add-items) conflicts are now resolved by overwriting existing items
+- Added support for **automatic embedding generation**
+    - An embedding model can be specified during [index creation](/versions/v0.9.x/guides/encrypted-indexes/create-index#automatic-embedding-generation)
+    - [`upsert()`](/versions/v0.9.x/guides/data-operations/add-items#automatic-embedding-generation) calls can generate embeddings directly from index contents
+    - [`query()`](/versions/v0.9.x/guides/data-operations/query#automatic-embedding-generation) calls can use the model to generate embeddings for query vectors
+
+### Breaking Changes
+
+- IDs are now `string`-type (instead of `int`)
+    - This impacts `upsert()`, `get()` and `query()` function signatures
+- `get_item()` and `get_items()` have been replaced by [`get()`](/versions/v0.9.x/guides/data-operations/get-items)
+
+
+</Update>
+
+<Update label="v0.8.0" description="2024-12-19">
+
+## Cyborg Vector Search v0.8.0
+
+**Deployment Model**: Core Library (Python & C++)
+
+### New Features
+
+- Added support for **encrypted item storage & retrieval**
+    - Encrypted indexes can now handle item content storage
+    - [`upsert()`](/versions/v0.8.x/guides/data-operations/add-items) calls can take item content as bytes, encrypt and store them in the index
+    - [`get_item()`](/versions/v0.8.x/guides/data-operations/get-items) calls can retrieve encrypted item content and decrypt them
+- Client-side caching now available for encrypted indexes (via [`max_cache_size`](/versions/v0.8.x/guides/encrypted-indexes/create-index#encrypted-index-caching) parameter)
+- Client can now handle more than one index via multiple `EncryptedIndex` objects
+- Optimizations:
+    - Full-pipeline GPU acceleration for encrypted indexes
+    - Optimized quantization and ranking logic
+    - Backing store batch operations for improved performance
+
+### Breaking Changes
+
+- Python & C++ APIs now split into two classes:
+    - [`Client`](/versions/v0.8.x/guides/encrypted-indexes/create-client) class now handles DB backend connection, index creation and loading
+    - [`EncryptedIndex`](/versions/v0.8.x/guides/encrypted-indexes/create-index) class now handles data operations (e.g., `upsert()`, `query()`, etc.)
+
+</Update>
+
+<Update label="v0.7.0" description="2024-10-31">
+
+## Cyborg Vector Search v0.7.0
+
+**Deployment Model**: Core Library (Python & C++)
+
+### New Features
+
+- First *public* release of Cyborg Vector Search
+- Python API available through PyBind11
+- GPU acceleration with CUDA support
+
+</Update>
