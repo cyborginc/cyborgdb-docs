@@ -227,9 +227,9 @@ The `QueryParams` struct defines parameters for querying the index, controlling 
 ```cpp
 QueryParams(size_t top_k = 100,
             size_t n_probes = 1,
+            std::vector<ResultFields> include = {kDistance},
             bool greedy = false,
-            std::string filters = "",
-            std::vector<std::string> include = {"distances"});
+            std::string filters = "");
 ```
 
 ### Parameters
@@ -238,9 +238,9 @@ QueryParams(size_t top_k = 100,
 |-------------------|----------|--------------------------------------------------------------------------|
 | `top_k` | `size_t` | _(Optional)_ Number of nearest neighbors to return. Defaults to `100`. |
 | `n_probes` | `size_t` | _(Optional)_ Number of lists to probe during query. Defaults to `1`. |
+| `include` | `std::vector<ResultFields>` | _(Optional)_ List of item fields to return. Can include `kDistance` and `kMetadata`. Defaults to all. |
 | `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |
 | `filters` | `std::string` | _(Optional)_ A JSON string of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `std::vector<std::string>` | _(Optional)_ List of item fields to return. Can include `distance`, `metadata`, and `vector` (`vector` only for `IVFFlat` indexes). Defaults to `"distance"` |
 
 Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs. For guidance on how to select the right `n_probes`, refer to the [query parameter tuning guide](/guides/tuning/query-params.md).
 
