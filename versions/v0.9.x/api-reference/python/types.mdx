@@ -23,7 +23,7 @@ The supported `location` options are:
 ### Example Usage
 
 ```python
-import cyborgdb
+import cyborgdb_core as cyborgdb
 
 index_location = cyborgdb.DBConfig(location="redis",
                           connection_string="redis://localhost")
@@ -72,7 +72,7 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 #### Example Usage
 
 ```python
-import cyborgdb
+import cyborgdb_core as cyborgdb
 
 index_config = cyborgdb.IndexIVF(dimension=128, n_lists=1024, metric="euclidean")
 ```
@@ -96,7 +96,7 @@ Suitable for applications requiring high recall with less concern for memory usa
 #### Example Usage
 
 ```python
-import cyborgdb
+import cyborgdb_core as cyborgdb
 
 index_config = cyborgdb.IndexIVFFlat(dimension=128, n_lists=1024, metric="euclidean")
 ```
@@ -122,7 +122,7 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 #### Example Usage
 
 ```python
-import cyborgdb
+import cyborgdb_core as cyborgdb
 
 index_config = cyborgdb.IndexIVFPQ(dimension=128, n_lists=1024, pq_dim=64, pq_bits=8, metric="euclidean")
 ```

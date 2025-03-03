@@ -38,7 +38,7 @@ For local development and evaluation, you can generate a 256-bit encryption key 
     You can either load the key directly from the file and use it directly with CyborgDB.
 
     ```python
-    import cyborgdb
+    import cyborgdb_core as cyborgdb
 
     # Example setup
     index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
@@ -161,7 +161,7 @@ CyborgDB can integrate with popular KMS providers, such as:
     ```python
     import boto3
     import base64
-    import cyborgdb
+    import cyborgdb_core as cyborgdb
 
     # Example setup
     index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")

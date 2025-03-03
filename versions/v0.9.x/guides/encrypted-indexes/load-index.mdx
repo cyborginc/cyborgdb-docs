@@ -8,7 +8,7 @@ If you've previously created an encrypted index, you can connect to it to add, q
 
 <CodeGroup>
 ```python Python
-import cyborgdb
+import cyborgdb_core as cyborgdb
 
 # Using `memory` storage for this example
 index_location = cyborgdb.DBConfig("memory") 
@@ -58,7 +58,7 @@ For improved query performance, you can enable encrypted index caching by settin
 
 <CodeGroup>
 ```python Python
-import cyborgdb
+import cyborgdb_core as cyborgdb
 import secrets
 
 # Using `memory` storage for this example

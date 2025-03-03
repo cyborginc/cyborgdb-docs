@@ -8,7 +8,7 @@ Retrieves and decrypts items associated with the specified IDs.
 ```cpp
 std::vector<cyborg::Item> 
     Get(std::vector<std::string> ids,
-             std::vector<std::string> include = {"vectors", "contents", "metadata"});
+             std::vector<cyborg::ItemFields> include = {kVector, kContents, kMetadata});
 ```
 
 ### Parameters
@@ -16,7 +16,7 @@ std::vector<cyborg::Item>
 | Parameter | Type | Description |
 |-------------------|--------------------|-----------------------|
 | `ids` | `std::vector<std::string>` | IDs to retrieve. (For a single item, provide a `std::vector` with one element.)|
-| `include` | `std::vector<std::string>` | _(Optional)_ List of item fields to return. Can include `vectors`, `contents`, and `metadatas` (`vectors` only for [`IVFFlat`](../types#IndexIVFFlat) indexes). Defaults to include all. |
+| `include` | [`std::vector<cyborg::ItemFields>`](../types#itemfields) | _(Optional)_ List of item fields to return. Can include `kVector`, `kContents`, and `kMetadata` (`vector` only for [`IVFFlat`](../types#IndexIVFFlat) indexes). Defaults to include all. |
 
 ### Returns
 
@@ -36,7 +36,7 @@ std::vector<cyborg::Item>
 
 ```cpp
 std::vector<std::string> item_ids = {"item_1", "item_2"};
-auto items = index->Get(item_ids, {"contents"});
+auto items = index->Get(item_ids, {kContents});
 
 for (const auto& item : items) {
     // Process each decrypted item (IDs & contents)

@@ -13,9 +13,9 @@ def query(self,
           query_contents: Union[str, Image] = None,
           top_k: int = 100,
           n_probes: int = 1,
-          greedy: bool = False,
           filters: Dict[str, Any] = None,
-          include: List[str] = ["distances"])
+          include: List[str] = ["distances"],
+          greedy: bool = False)
 ```
 
 ### Parameters
@@ -25,10 +25,10 @@ def query(self,
 | `query_vector` | `List[float]` | - | A single query vector as a list of floats (for single query). |
 | `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
 | `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
-| `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `return_distances`| `bool` | `True` | _(Optional)_ If `True`, each result includes `distance`. |
 | `return_metadata` | `bool` | `False` | _(Optional)_ If `True`, each result includes `metadata` which contains the decrypted metadata fields, if available. |
+| `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 
 <Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index), then the `query_string` can be used instead of `query_vector`.</Note>
 
