@@ -262,6 +262,24 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Examples",
+        "groups": [
+          {
+            "group": "Python",
+            "pages": [
+              "versions/v0.9.x/examples/python/redis-example"
+            ]
+          },
+          {
+            "group": "C++",
+            "pages": [
+              "versions/v0.9.x/examples/cpp/redis-example"
+
+            ]
+          }
+        ]
       }
     ]
   },
