@@ -44,6 +44,8 @@ index.upsert(ids, vectors, metadata);
 
 This metadata will be encrypted and stored in the index.
 
+<Tip>Metadata field names and string values are **case-sensitive**. Ensure that the metadata field names and values are consistent when filtering queries.</Tip> 
+
 ## Filtering Queries with Metadata
 
 CyborgDB supports a subset of [MongoDB's Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/). For more details, see [Metadata Query Operators](#metadata-query-operators)

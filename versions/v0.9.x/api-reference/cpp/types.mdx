@@ -289,15 +289,16 @@ auto all_distances = results.distances();
 
 ### `Item`
 
-`Item` class holds the individual results from a `Get` operation, including the requested fields.
+`Item` struct holds the individual results from a `Get` operation, including the requested fields.
 
-**Access Methods**:
-| Method | Return Type | Description |
-|--------------------------|------------------------------|------------------------------------------------------|
-| `const std::string id() const` | `const std::string` | Get read-only access to all IDs. |
-| `const std::vector<float>& vector() const` | `const std::vector<float>&` | Get read-only access to all distances. |
-| `const std::vector<uint8_t>& contents() const` | `const std::vector<uint8_t>&` | Get read-only access to all vectors. |
-| `const std::string& metadata() const` | `const std::string` | Get read-only access to all metadatas. |
+```cpp
+struct Item {
+    const std::string id;                   // Item ID
+    const std::vector<float> vector;        // Vector embedding
+    const std::vector<uint8_t> contents;    // Decrypted contents
+    const std::string metadata;             // Metadata (JSON string)
+};
+```
 
 ---
 
