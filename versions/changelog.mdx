@@ -8,6 +8,23 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 
 ---
 
+<Update label="v0.9.1" description="2025-03-28">
+
+## CyborgDB v0.9.1
+
+### Bug Fixes
+
+- Fixed a bug where [automatic embedding generation](/versions/v0.9.x/guides/encrypted-indexes/create-index#automatic-embedding-generation) would not load the model correctly when using [`load_index()`](/versions/v0.9.x/guides/encrypted-indexes/load-index)
+- Fixed a bug which caused intermittent [`query()`](/versions/v0.9.x/guides/data-operations/query) recall issues on Linux
+- Fixed incorrect type returns for [`get()`](/versions/v0.9.x/guides/data-operations/get-items) in C++ and Python APIs
+
+### Improvements
+
+- Enabled pre-filtering on [metadata queries](/versions/v0.9.x/guides/data-operations/metadata-filtering) to improve performance
+- Added annotations and IDE auto-completion for the Python API
+
+</Update>
+
 <Update label="v0.9.0" description="2025-02-28">
 
 ## CyborgDB v0.9.0
@@ -34,7 +51,6 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 - IDs are now `string`-type (instead of `int`)
     - This impacts `upsert()`, `get()` and `query()` function signatures
 - `get_item()` and `get_items()` have been replaced by [`get()`](/versions/v0.9.x/guides/data-operations/get-items)
-
 
 </Update>
 
