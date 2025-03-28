@@ -24,7 +24,7 @@ print(item)
 ```cpp C++
 // IDs of items to retrieve
 std::vector<std::string> ids = {"item_20", "item_11"};
-std::vector<std::string> include = {"contents", "metadata"};
+std::vector<cyborg::ItemFields> include = {kContents, kMetadata};
 
 // Retrieve items from the encrypted index
 std::vector<cyborg::Item> items = index.Get(ids, include);

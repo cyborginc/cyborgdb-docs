@@ -7,19 +7,19 @@ Adds or updates vector embeddings in the index. If an item already exists at `id
 
 ```cpp
 void Upsert(Array2D<float>& vectors,
-            const std::vector<std::string> ids,
-            const std::vector<std::vector<uint8_t>> contents = {},
-            const std::vector<std::string> metadata = {});
+            const std::vector<std::string>& ids,
+            const std::vector<std::vector<uint8_t>>& contents = {},
+            const std::vector<std::string>& json_metadata_array = {});
 ```
 
 ### Parameters
 
 | Parameter | Type | Description |
 |---------------|-----------------------------|-----------------------------------------------------|
-| `ids` | `std::vector<std::string>` | Unique identifiers for each vector. |
+| `ids` | `std::vector<std::string>&` | Unique identifiers for each vector. |
 | `vectors` | [`Array2D<float>`](../types#array2d) | 2D container with vector embeddings to index. |
-| `contents` | `std::vector<std::vector<uint8_t>>` | _(Optional)_ Item contents in bytes. |
-| `metadata` | `std::vector<std::string>` | _(Optional)_ Item metadata in serialized JSON string. |
+| `contents` | `std::vector<std::vector<uint8_t>>&` | _(Optional)_ Item contents in bytes. |
+| `json_metadata_array` | `std::vector<std::string>&` | _(Optional)_ Item metadata in serialized JSON strings. |
 
 <Tip>For more info on metadata, see [Metadata Filtering](../../..../../../guides/data-operations/metadata-filtering).</Tip>
 

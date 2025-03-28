@@ -25,7 +25,7 @@ std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
 cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
 
 // Add items to the encrypted index
-index.Upsert(ids, vectors);
+index.Upsert(vectors, ids);
 ```
 </CodeGroup>
 
@@ -61,7 +61,7 @@ std::vector<std::vector<uint8_t>> contents = {
 };
 
 // Add items to the encrypted index
-index.Upsert(ids, vectors, contents);
+index.Upsert(vectors, ids, contents);
 ```
 </CodeGroup>
 
@@ -95,7 +95,7 @@ std::vector<std::string> metadata = {
 };
 
 // Add items to the encrypted index
-index.Upsert(ids, vectors, std::nullopt, metadata);
+index.Upsert(vectors, ids, std::nullopt, metadata);
 ```
 </CodeGroup>
 
