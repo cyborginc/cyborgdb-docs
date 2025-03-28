@@ -75,6 +75,10 @@ int top_k = 10;
 // Example filters
 std::string filters = R"({"category": {"$in": ["dog", "cat"]}})";
 
+// Create QueryParams
+cyborg::QueryParams query_params(top_k);
+query_params.filters = filters;
+
 // Perform query
 std::vector<std::string> results = index.query(query_vector, top_k, filters);
 ```

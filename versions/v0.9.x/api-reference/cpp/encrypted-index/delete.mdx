@@ -8,13 +8,13 @@ mode: "wide"
 Deletes the specified encrypted items stored in the index, including all its associated fields (`vector`, `contents`, `metadata`).
 
 ```cpp
-void Delete(std::vector<std::string> ids);
+void Delete(const std::vector<std::string>& ids);
 ```
 
 **Parameters**:
 | Parameter | Type | Description |
 |-------------------|--------------------|-----------------------|
-| `ids` | `std::vector<std::string>` | IDs to delete. |
+| `ids` | `const std::vector<std::string>&` | IDs to delete. |
 
 ### Exceptions
 

@@ -14,7 +14,7 @@ def query(self,
           top_k: int = 100,
           n_probes: int = 1,
           filters: Dict[str, Any] = None,
-          include: List[str] = ["distances"],
+          include: List[str] = ["distance"],
           greedy: bool = False)
 ```
 
@@ -26,8 +26,7 @@ def query(self,
 | `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
 | `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `return_distances`| `bool` | `True` | _(Optional)_ If `True`, each result includes `distance`. |
-| `return_metadata` | `bool` | `False` | _(Optional)_ If `True`, each result includes `metadata` which contains the decrypted metadata fields, if available. |
+| `include` | `List[str]` | `"distance"` | _(Optional)_ List of item fields to return. Can include `distance`, `metadata`, and `vector` (`vector` only for `IVFFlat` indexes). |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 
 <Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index), then the `query_string` can be used instead of `query_vector`.</Note>
@@ -64,7 +63,7 @@ index = client.load_index(index_name=index_name, index_key=index_key)
 query_vector = [0.1, 0.2, 0.3]  # Single query vector of dimension 3
 
 # Perform a single query with distances
-results = index.query(query_vector=query_vector, top_k=2, n_probes=5, include=["distances"])
+results = index.query(query_vector=query_vector, top_k=2, n_probes=5, include=["distance"])
 # Example output:
 # [{"id": "101", "distance": 0.05}, {"id": "102", "distance": 0.1}]
 ```
@@ -95,9 +94,9 @@ def query(self,
           query_vectors: Union[np.ndarray, List[List[float]]],
           top_k: int = 100,
           n_probes: int = 1,
-          greedy: bool = False,
           filters: Dict[str, Any] = None,
-          include: List[str] = ["distances"])
+          include: List[str] = ["distance"],
+          greedy: bool = False)
 ```
 
 ### Parameters
@@ -107,9 +106,9 @@ def query(self,
 | `query_vectors` | `np.ndarray` or `List[List[float]]` | - | A 2D NumPy array or list of lists, where each inner list represents a query vector (for batch query). |
 | `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
 | `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
-| `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `include` | `List[str]` | `"distance"` | _(Optional)_ List of item fields to return. Can include `distance`, `metadata`, and `vector` (`vector` only for `IVFFlat` indexes). |
+| `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 
 <Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
 For instance: `filters: { "$and": [ { "label": "cat" }, { "confidence": { "$gte": 0.9 } } ] }` means that only vectors where `label == "cat"` and `confidence >= 0.9` will be considered for encrypted vector search.
