@@ -61,14 +61,14 @@ Get started with CyborgDB in minutes.
         #include "cyborgdb_core/encrypted_index.hpp"
         #include <array>
         #include <string>
-        #include <random>
+        #include <openssl/rand.h>
 
         // Using `memory` storage for this example
         // `redis` and `postgres` are also supported
 
-        cyborg::DBConfig index_location(Location::kMemory);  // Where encrypted index is stored (for queries)
-        cyborg::DBConfig config_location(Location::kMemory); // Where encrypted index config is stored (for config/loading)
-        cyborg::DBConfig items_location(Location::kMemory);  // Where item contents are stored (for upsert/get)
+        cyborg::DBConfig index_location(cyborg::Location::kMemory);  // Where encrypted index is stored (for queries)
+        cyborg::DBConfig config_location(cyborg::Location::kMemory); // Where encrypted index config is stored (for config/loading)
+        cyborg::DBConfig items_location(cyborg::Location::kMemory);  // Where item contents are stored (for upsert/get)
 
         // Create a client
         cyborg::Client client(index_location, config_location, items_location);
@@ -85,8 +85,8 @@ Get started with CyborgDB in minutes.
         # ... Continuing from the previous step
         
         # Create an IVFFlat index config (can also be IVF/IVFPQ)
-        # Using an example vector dimension of 128, and number of lists of 1024
-        index_config = cyborgdb.IndexIVFFlat(dimension=128, n_lists=1024)
+        # Using an example vector dimension of 4, and number of lists of 1024
+        index_config = cyborgdb.IndexIVFFlat(dimension=4, n_lists=1024)
 
         # Generate an encryption key for the index
         index_key = secrets.token_bytes(32)
@@ -99,13 +99,14 @@ Get started with CyborgDB in minutes.
         /// ... Continuing from the previous step
 
         // Create an IVFFlat index config (can also be IVF/IVFPQ)
-        // Using an example vector dimension of 128, and number of lists of 1024
-        cyborg::IndexIVFFlat index_config(dimension=128, n_lists=1024);
+        // Using an example vector dimension of 4, and number of lists of 1024
+        cyborg::IndexIVFFlat index_config(4, 1024);
 
         // Generate a 32-byte random encryption key
         std::array<uint8_t, 32> index_key;
-        std::random_device rd;
-        std::generate(index_key.begin(), index_key.end(), [&]() { return rd() % 256; });
+        if (RAND_bytes(index_key.data(), index_key.size()) != 1) {
+            throw std::runtime_error("Failed to generate secure random key");
+        }
 
         // Create an encrypted index
         cyborg::EncryptedIndex index = client.CreateIndex("my_index", index_key, index_config);
@@ -195,7 +196,7 @@ Get started with CyborgDB in minutes.
 
         // Retrieve items from the encrypted index
         std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-        cyborg::Array2D<cyborg::Item> items = index.GetItems(ids);
+        cyborg::Array2D<cyborg::Item> items = index.Get(ids);
 
         // Print the items
         for (size_t i = 0; i < ids.size(); i++) {
