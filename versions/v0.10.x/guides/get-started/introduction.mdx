@@ -1,0 +1,40 @@
+---
+title: "CyborgDB Introduction"
+sidebarTitle: "Introduction"
+mode: "wide"
+---
+
+<Note>Cyborg Vector Search was renamed to CyborgDB in `v0.9.0`. This version of the docs will refer to the project as CyborgDB.</Note>
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.png"
+  alt="Hero Light"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.png"
+  alt="Hero Dark"
+/>
+
+**CyborgDB** is the first Confidential Vector DB:
+
+- Introduces a novel architecture to keep confidential inference data secure through **zero-trust design**.
+- Keeps vector embeddings **end-to-end encrypted** throughout their lifecycle (including at search time).
+- Exposes a familiar API, making it **easy to integrate** with existing AI workflows.
+- Provides **high-performance indexing and retrieval** which can be [GPU-accelerated with CUDA](https://developer.nvidia.com/blog/bringing-confidentiality-to-vector-search-with-cyborg-and-nvidia-cuvs/).
+- Works with DBs such as Postgres and Redis, **transforming traditional DBs into Confidential Vector DBs**.
+
+### Get started now
+
+<CardGroup cols={3}>
+    <Card title="Learn About CyborgDB" href="./about" icon="book-open-cover">
+        Learn about the architecture, design and deployment of CyborgDB.
+    </Card>
+    <Card title="Quickstart" href="./quickstart" icon="rocket-launch">
+        Get started with CyborgDB and start building your first Confidential AI application.
+    </Card>
+    <Card title="API Docs" href="../../api-reference" icon="code">
+        Explore the API reference to learn how to use CyborgDB in your applications.
+    </Card>
+</CardGroup>

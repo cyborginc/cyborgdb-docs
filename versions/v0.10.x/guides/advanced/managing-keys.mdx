@@ -1,0 +1,220 @@
+---
+title: "Managing Encryption Keys"
+---
+
+Encryption keys are one of the most critical elements that enable the security guarantees of CyborgDB. By default, one key is used for the entire index, and it is used to generate and secure other encryption keys, including:
+
+- Encrypted index tokens
+- Index centroid salted hashes
+- Index payload (embedding) encryption
+- Item content encryptions
+- Encrypted query tokens
+
+This main key, known in the code as the `index_key`, is a 256-bit symmetric cryptographic key—the same you would find when using AES-256 encryption. CyborgDB's cryptography is based entirely on well-established cryptographic standards, including AES, HMAC, and SHA-3 (Keccak). 
+
+Without the correct `index_key`, it is impossible to use a CyborgDB Encrypted Index. You cannot upsert vectors, query the index, or even delete it. Hence, it is critical to manage these encryption keys safely.
+
+---
+
+## Generating Key Locally (for Development)
+
+<Warning>**Do not store keys locally for production purposes.** For production environments, always use secure options such as Hardware Security Modules (HSMs) or a Key Management Service (KMS). See [Using Key Management Services (for Production)](#using-key-management-services-for-production).</Warning>
+
+For local development and evaluation, you can generate a 256-bit encryption key locally and use it in your calls to CyborgDB. Here’s how you can do this using OpenSSL and integrate it with CyborgDB in Python.
+
+<Steps>
+    <Step title="Generate a Key with OpenSSL">
+
+    Run the following command to generate a 256-bit encryption key, encoded in Base64:
+
+    ```bash
+    openssl rand -base64 32 > index_key.txt
+    ```
+
+    This saves the key to a file named `index_key.txt`. Ensure that this file is kept secure and not included in your source control.
+    </Step>
+    <Step title="Use the Key in Python">
+
+    You can either load the key directly from the file and use it directly with CyborgDB.
+
+    ```python
+    import cyborgdb_core as cyborgdb
+
+    # Example setup
+    index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+    config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+    client = cyborgdb.Client(index_location, config_location)
+
+    # Example index configuration
+    dimension = 128
+    n_lists = 4096
+    index_config = cyborgdb.IndexIVFFlat(dimension, n_lists)
+    index_name = "test_index"
+
+    # Load the encryption key
+    with open("index_key.txt", "rb") as key_file:
+        index_key = key_file.read().strip()
+
+    # Use the encryption key
+    client.create_index(index_name, index_key, index_config)
+    ```
+    </Step>
+</Steps>
+
+Again, this should only be used for development and evaluation purposes; do not store encryption keys locally for production use.
+
+---
+
+## Using Key Management Services (for Production)
+
+For production environments, a Key Management Service (KMS) or Hardware Security Module (HSM) is strongly recommended to securely store and manage encryption keys. This ensures the highest level of security by isolating the keys from application logic and providing robust access controls.
+
+### Overview of KMS
+
+A KMS is a managed service that provides centralized control over encryption keys, including:
+
+- **Key Generation:** Automatically generating keys with required levels of entropy.
+- **Secure Storage:** Storing keys in a tamper-proof environment.
+- **Access Control:** Enforcing strict role-based access control (RBAC) policies.
+- **Auditing:** Logging key usage for compliance and monitoring.
+
+### Supported KMS Providers
+
+CyborgDB can integrate with popular KMS providers, such as:
+
+- **AWS Key Management Service (AWS KMS)**
+- **Google Cloud Key Management (Google Cloud KMS)**
+- **Azure Key Vault**
+- **HashiCorp Vault**
+
+---
+
+## Step-by-Step Example: AWS KMS
+
+<Steps>
+    <Step title="Generate a Data Key Using AWS KMS">
+
+    **Option A: Command Line**
+
+    Use the AWS CLI to generate a data key:
+
+    ```bash
+    aws kms generate-data-key \
+        --key-id <Your-Key-Id> \
+        --key-spec AES_256 \
+        --output json
+    ```
+
+    - Replace `<Your-Key-Id>` with your KMS Key ID or ARN.
+    - The command outputs a JSON object containing both the plaintext key and the encrypted key.
+
+    **Example Output:**
+
+    ```json
+    {
+    "CiphertextBlob": "<Base64-encoded encrypted key>",
+    "Plaintext": "<Base64-encoded plaintext key>",
+    "KeyId": "arn:aws:kms:region:account-id:key/Your-Key-Id"
+    }
+    ```
+
+    **Note:** The `Plaintext` and `CiphertextBlob` are Base64-encoded binary data.
+
+    **Option B: Python**
+
+    ```python
+    import boto3
+
+    # Initialize AWS KMS client
+    kms_client = boto3.client('kms')
+
+    # Generate a data key
+    response = kms_client.generate_data_key(
+        KeyId='Your-Key-Id',  # Replace with your KMS Key ID or ARN
+        KeySpec='AES_256'
+    )
+
+    # Extract the plaintext and encrypted data key
+    plaintext_key = response['Plaintext']       # This is the raw binary key
+    encrypted_key = response['CiphertextBlob']  # This is the encrypted key
+    ```
+    </Step>
+    <Step title="Store the Encrypted Key">
+
+    - **Encrypted Key:** Since it's encrypted, you can safely store it in your application's configuration file, environment variable, or secure parameter store.
+
+    Example of storing the encrypted key in Base64-encoded format:
+
+    ```python
+    import base64
+
+    # Base64-encode the encrypted key for storage
+    encrypted_key_b64 = base64.b64encode(encrypted_key).decode('utf-8')
+
+    # Store 'encrypted_key_b64' in your application's configuration
+    ```
+    </Step>
+    <Step title="Use the Encrypted Key in Your Application at Runtime">
+
+    In your application code, decrypt the encrypted key at runtime using AWS KMS:
+
+    ```python
+    import boto3
+    import base64
+    import cyborgdb_core as cyborgdb
+
+    # Example setup
+    index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+    config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+    client = cyborgdb.Client(index_location, config_location)
+
+    # Initialize AWS KMS client
+    kms_client = boto3.client('kms')
+
+    # Load the encrypted key from your configuration
+    encrypted_key_b64 = '...'  # Replace with your stored encrypted key (Base64-encoded)
+
+    # Decode the Base64-encoded encrypted key
+    encrypted_key = base64.b64decode(encrypted_key_b64)
+
+    # Decrypt the key at runtime
+    response = kms_client.decrypt(
+        CiphertextBlob=encrypted_key
+    )
+    index_key = response['Plaintext']  # This is your 256-bit key
+
+    # Use the key with CyborgDB
+    client.create_index(index_name, index_key, index_config)
+    ```    
+
+    **Explanation:**
+
+    - **Encrypted Key Storage:** The encrypted key (`encrypted_key_b64`) is safe to store in configuration files since it's encrypted.
+    - **Runtime Decryption:** The `kms_client.decrypt` method securely retrieves the plaintext key at runtime.
+    </Step>
+    <Step title="Ensure IAM Permissions">
+
+    Your application needs permission to use the `kms:Decrypt` action. Attach a policy to your IAM role or user:
+
+    ```json
+    {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+        "Effect": "Allow",
+        "Action": "kms:Decrypt",
+        "Resource": "arn:aws:kms:your-region:your-account-id:key/Your-Key-Id"
+        }
+    ]
+    }
+    ```
+    </Step>
+</Steps>
+
+### Benefits of This Approach
+
+- **Security:** The plaintext key is never stored persistently. It's only available in memory during runtime.
+- **Simplicity:** You can generate and manage the key using AWS KMS and standard AWS tools.
+- **No Need for Secure Storage:** Since the encrypted key is safe to store in your application's configuration, you don't need additional secure storage solutions.
+
+By generating the data key using AWS KMS and storing only the encrypted key, you can securely manage your encryption key without needing to store it securely elsewhere. Your application decrypts the encrypted key at runtime using AWS KMS, ensuring that the plaintext key is only available in memory during execution.

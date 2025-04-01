@@ -1,0 +1,41 @@
+---
+title: "Train Index"
+mode: "wide"
+---
+
+<Note>This function is only present in the [core library](../../../guides/get-started/about#deployment-models) version of CyborgDB.
+In other versions (microservice, serverless), it is automatically called once enough vector embeddings have been indexed.</Note>
+
+Builds the index using the specified training configuration. Required before efficient querying.
+Prior to calling this, all queries will be conducted using encrypted exhaustive search.
+After, they will be conducted using encrypted ANN search.
+
+```cpp
+void TrainIndex(const TrainingConfig& training_config = TrainingConfig());
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|----------|------------|--------------------|
+| `training_config` | [`TrainingConfig`](../types#trainingconfig) | _(Optional)_ Training parameters (batch size, max iterations, etc.). |
+
+<Tip>There must be at least `2 * n_lists` vector embeddings in the index prior to to calling this function.</Tip>
+
+### Exceptions
+
+Throws if there are not enough vector embeddings in the index for training (must be at least `2 * n_lists`).
+
+<AccordionGroup>
+    <Accordion title="std::runtime_exception">
+        - Throws if there are not enough vector embeddings in the index for training (must be at least `2 * n_lists`).
+        - Throws if the index could not be trained.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+cyborg::TrainingConfig config(128, 10, 1e-4, 1024);
+index->TrainIndex(config);
+```
