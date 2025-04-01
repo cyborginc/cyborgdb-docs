@@ -1,0 +1,22 @@
+# TODO for v0.10.x
+
+- [X] Copy v0.9.x to v0.10.x
+- [X] Expose v0.10.x in navigation & defaults
+- [ ] Update CyborgDB logo
+- [ ] Update CyborgDB hero image
+- [ ] Update release notes
+- [ ] Add distinction between `lite`, `core`, `microservice` and `client-sdk`
+    - [ ] Decide on nomenclature for `lite`, `core`, `microservice`, etc.
+    - [ ] Update `introduction` to briefly mention distinctions, linking to `about` for more detail
+    - [ ] Update `quickstart` with distinctions
+    - [ ] Update `about` to explain the distinctions
+    - [ ] Update all guides with limits to `lite` and `core`
+    - [ ] Consider adding a dropdown to separate `Core Library` and `Microservice`
+    - [ ] Add new API Reference dropdowns:
+        - [ ] `Core - C++`
+        - [ ] `Core - Python`
+        - [ ] `Microservice - REST`
+        - [ ] `Microservice - Python`
+        - [ ] `Microservice - JS/TS` (or split `TS` and `JS`)
+    - [ ] Add logger to `core` library API reference
+    - [ ] Add section for `Orchestration Frameworks` and include `LangChain` and `LlamaIndex`
