@@ -11,7 +11,9 @@ To create the client, you must define the [backing store locations](../get-start
 
 <CodeGroup>
 ```python Python
+# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
+import cyborgdb_lite as cyborgdb
 import secrets
 
 # Using `memory` storage for this example
@@ -49,7 +51,9 @@ If you wish to store encrypted items in the index, you will also need to set a `
 
 <CodeGroup>
 ```python Python
+# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
+import cyborgdb_lite as cyborgdb
 
 # Using `redis` storage for the index and config
 # Using `postgres` storage for the items

@@ -8,7 +8,9 @@ To create an encrypted index, you need to specify an index name (must be unique)
 
 <CodeGroup>
 ```python Python
+# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
+import cyborgdb_lite as cyborgdb
 import secrets
 
 # Using `memory` storage for this example
@@ -68,7 +70,9 @@ For improved query performance, you can enable encrypted index caching by settin
 
 <CodeGroup>
 ```python Python
+# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
+import cyborgdb_lite as cyborgdb
 import secrets
 
 # Using `memory` storage for this example
@@ -127,7 +131,9 @@ cyborg::EncryptedIndex index = client.CreateIndex("my_index", index_key, index_c
 In the Python version of CyborgDB, you can enable automatic embedding generation for the encrypted index by setting `embedding_model` in `create_index()`:
 
 ```python Python
+# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
+import cyborgdb_lite as cyborgdb
 
 # Using `memory` storage for this example
 index_location = cyborgdb.DBConfig("memory")

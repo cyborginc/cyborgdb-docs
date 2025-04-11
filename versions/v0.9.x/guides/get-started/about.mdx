@@ -41,6 +41,8 @@ In addition, CyborgDB supports managed services such as:
 
 We are continuously adding support for more backing stores. If you have a specific backing store in mind, please [let us know](https://www.cyborg.co/contact).
 
+<Note>Only Redis & Memory are supported in `cyborgdb_lite`. For more details, see [CyborgDB Lite](#cyborgdb-lite).</Note>
+
 ### Deployment Models
 
 CyborgDB supports a variety of deployment models, including:
@@ -74,3 +76,18 @@ _Release Date TBD_
 The fully-managed CyborgDB offering will provide the lowest barrier to adoption - simply generate an API key and install a client SDK.
 
 Recommended for everything from evaluation to large-scale deployments.
+
+### CyborgDB Lite
+
+CyborgDB is a proprietary product, but we also offer a free version of the core library called `cyborgdb_lite`. This version is intended for evaluation and non-commercial use only, and comes with the following functional limitations:
+
+| Feature | `cyborgdb_lite` | `cyborgdb_core` |
+| ------- | :----------------: | :----------------: |
+| End-to-End Encryption | Yes | Yes |
+| Index Types | `ivfflat` | `ivfflat`, `ivfpq`, `ivf` |
+| Vector Limits | Up to 1M | Unlimited |
+| Backing Stores | `postgres`, `memory` | `postgres`, `redis`, `memory` |
+| CPU Threads | Up to 4 | Unlimited |
+| GPU Acceleration | No | Yes |
+| Languages | Python | Python, C++ |
+| Support | Community | Enterprise |

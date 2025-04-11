@@ -23,7 +23,9 @@ To create an `IVFFlat` index, you can use its configuration constructor:
 
 <CodeGroup>
 ```python Python
+# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
+import cyborgdb_lite as cyborgdb
 
 # Set index parameters
 dimension = 128  # Adjust according to your dataset (dimensionality)
@@ -62,6 +64,8 @@ cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_c
 - Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
 
 ## `IVFPQ` Index Type
+
+<Note>The `IVFPQ` index type is not supported in `cyborgdb_lite`. For more details, see [CyborgDB Lite](../get-started/about#cyborgdb-lite).</Note>
 
 The `IVFPQ` index type builds upon `IVFFlat` by applying Product Quantization (PQ) - a form of lossy compression - to reduce the index size. When applied correctly, `IVFPQ` indexes can maintain high recall (>95%) while reducing index size significantly (2-4x).
 
@@ -118,6 +122,8 @@ cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_c
 `pq_bits` is the number of bits that will be used to represent each dimension of the product-quantized vector embeddings. It must be between `1` and `16`, with lower values yielding smaller index sizes but lower recall.
 
 ## `IVF` Index Type
+
+<Note>The `IVF` index type is not supported in `cyborgdb_lite`. For more details, see [CyborgDB Lite](../get-started/about#cyborgdb-lite).</Note>
 
 The `IVF` index type (Inverted File Index) is the simplest offered by CyborgDB. It takes a single parameter, `n_lists`, which defines the number of lists, or clusters, into which the index is segmented. In other words, vectors that are close together will be clustered together into a single list. At retrieval time, vectors in the clusters closest to the query vector will be returned. This yields a very fast, but rather inaccurate, search.
 
