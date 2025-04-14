@@ -8,7 +8,7 @@
     "light": "#5DC3CA",
     "dark": "#314656"
   },
-  "favicon": "/images/favicon.svg",
+  "favicon": "/images/favicon-light.svg",
   "navigation": {
     "tabs": [
       {
@@ -266,8 +266,8 @@
     ]
   },
   "logo": {
-    "light": "/images/logo/light.svg",
-    "dark": "/images/logo/dark.svg"
+    "light": "/images/logo/cyborgdb-docs-light.svg",
+    "dark": "/images/logo/cyborgdb-docs-dark.svg"
   },
   "navbar": {
     "links": [

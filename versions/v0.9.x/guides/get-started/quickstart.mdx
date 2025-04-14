@@ -6,21 +6,26 @@ mode: "wide"
 
 Get started with CyborgDB in minutes.
 
+<Tip>CyborgDB is offered as two packages: `cyborgdb_core` and `cyborgdb_lite`. This guide shows how to get started with either. For more details on the difference between both packages, read more [here](./about#cyborgdb-lite).</Tip>
+
 <Steps>
     <Step title="Install CyborgDB">
         Install CyborgDB on your machine:
 
         <CodeGroup>
         ```bash Python
-        # Ensure that Python 3.11 or 3.12 is installed
-        # Or create a virtual environment with Python 3.11 or 3.12:
+        # Ensure that Python 3.9 - 3.13 is installed
+        # Or create a virtual environment with Python 3.9 - 3.13:
         conda create -n cyborg-env python=3.12
 
         # Activate the virtual environment:
         conda activate cyborg-env
 
         # Install CyborgDB:
-        pip install cyborgdb_core -i https://dl.cloudsmith.io/<token>/cyborg/cyborgdb/python/simple/
+        pip install cyborgdb-core -i https://dl.cloudsmith.io/<token>/cyborg/cyborgdb/python/simple/
+
+        # Or install CyborgDB Lite for evaluation/non-commercial use:
+        pip install cyborgdb-lite
         ```
 
         ```bash C++
@@ -42,7 +47,9 @@ Get started with CyborgDB in minutes.
 
         <CodeGroup>
         ```python Python
+        # Import cyborgdb_core or cyborgdb_lite:
         import cyborgdb_core as cyborgdb
+        import cyborgdb_lite as cyborgdb
         import secrets
 
         # Using `memory` storage for this example
