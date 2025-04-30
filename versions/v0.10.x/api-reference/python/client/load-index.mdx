@@ -6,7 +6,11 @@ mode: "wide"
 Loads an existing encrypted index and returns an instance of `EncryptedIndex`.
 
 ```python
-def load_index(self, index_name: str, index_key: bytes, max_cache_size: int = 0)
+def load_index(self, 
+               index_name: str, 
+               index_key: bytes, 
+               max_cache_size: int = 0,
+               logger: Logger = None)
 ```
 
 ### Parameters
@@ -16,6 +20,7 @@ def load_index(self, index_name: str, index_key: bytes, max_cache_size: int = 0)
 | `index_name` | `str` | Name of the index to load. |
 | `index_key` | `bytes` | 32-byte encryption key; must match the key used during [`create_index()`](./create-index). |
 | `max_cache_size` | `int` | _(Optional)_ Maximum size of local cache to keep for encrypted index. Defaults to `0`. |
+| `logger` | [`Logger`](./logger) | _(Optional)_ Logger instance for capturing operation logs. Defaults to `None`. |
 
 ### Returns
 
@@ -45,6 +50,14 @@ client = cyborgdb.Client(index_location=index_location, config_location=config_l
 index_name = "my_index"
 index_key = my_index_key  # Use the same 32-byte encryption key used during index creation
 
-# Load the existing index
-index = client.load_index(index_name=index_name, index_key=index_key)
+# Optional: Set up logging
+logger = cyborgdb.Logger.instance()
+logger.configure(level="debug", to_file=True, file_path="index_loading.log")
+
+# Load the existing index with logging enabled
+index = client.load_index(
+    index_name=index_name, 
+    index_key=index_key,
+    logger=logger
+)
 ```

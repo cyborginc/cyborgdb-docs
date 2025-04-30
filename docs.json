@@ -50,6 +50,12 @@
                 ]
               },
               {
+                "group": "Integrations",
+                "pages": [
+                  "versions/v0.10.x/guides/integrations/langchain"
+                ]
+              },
+              {
                 "group": "Advanced",
                 "pages": [
                   "versions/v0.10.x/guides/advanced/managing-keys"
@@ -144,7 +150,7 @@
             "version": "v0.10.x",
             "dropdowns": [
               {
-                "dropdown": "Python",
+                "dropdown": "Core Library - Python",
                 "icon": "python",
                 "groups": [
                   {
@@ -159,7 +165,8 @@
                       "versions/v0.10.x/api-reference/python/client/client",
                       "versions/v0.10.x/api-reference/python/client/create-index",
                       "versions/v0.10.x/api-reference/python/client/load-index",
-                      "versions/v0.10.x/api-reference/python/client/list-indexes"
+                      "versions/v0.10.x/api-reference/python/client/list-indexes",
+                      "versions/v0.10.x/api-reference/python/client/logger"
                     ]
                   },
                   {
@@ -183,7 +190,7 @@
                 ]
               },
               {
-                "dropdown": "C++",
+                "dropdown": "Core Library - C++",
                 "icon": "brackets-curly",
                 "groups": [
                   {
@@ -198,7 +205,8 @@
                       "versions/v0.10.x/api-reference/cpp/client/client",
                       "versions/v0.10.x/api-reference/cpp/client/create-index",
                       "versions/v0.10.x/api-reference/cpp/client/load-index",
-                      "versions/v0.10.x/api-reference/cpp/client/list-indexes"
+                      "versions/v0.10.x/api-reference/cpp/client/list-indexes",
+                      "versions/v0.10.x/api-reference/cpp/client/logger"
                     ]
                   },
                   {
@@ -217,6 +225,42 @@
                     "pages": [
                       "versions/v0.10.x/api-reference/cpp/getters",
                       "versions/v0.10.x/api-reference/cpp/types"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "Microservice - REST",
+                "icon": "server",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.10.x/api-reference/rest/introduction"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "Microservice - Python",
+                "icon": "python",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.10.x/api-reference/sdk-python/introduction"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "Microservice - JS/TS",
+                "icon": "js",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.10.x/api-reference/sdk-js-ts/introduction"
                     ]
                   }
                 ]

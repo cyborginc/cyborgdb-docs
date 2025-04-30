@@ -1,0 +1,33 @@
+---
+title: "LangChain"
+---
+
+**CyborgDB** has a LangChain integration that allows you to use CyborgDB as a vector store in your LangChain applications. This integration is available for both `cyborgdb-core` and `cyborgdb-lite`.
+
+The integration is available in the `cyborgdb_core.integration.langchain` and `cyborgdb_lite.integration.langchain` modules, respectively.
+
+## Installation
+
+To install CyborgDB with LangChain support, you must install either `cyborgdb-core` or `cyborgdb-lite` with the `langchain` extra. You can do this using pip:
+
+```bash
+# For cyborgdb-core
+pip install cyborgdb-core[langchain]
+
+# For cyborgdb-lite
+pip install cyborgdb-lite[langchain]
+```
+
+This will install the necessary dependencies for the LangChain integration.
+
+## Usage
+
+To use CyborgDB with LangChain, you can import the `CyborgVectorStore` class from the `cyborgdb_core.integration.langchain` or `cyborgdb_lite.integration.langchain` module, depending on which version you are using.
+
+```python
+from cyborgdb_core.integration.langchain import CyborgVectorStore
+# or
+from cyborgdb_lite.integration.langchain import CyborgVectorStore
+```
+
+You can then create a `CyborgVectorStore` instance and use it as a vector store in your LangChain applications.

@@ -10,7 +10,8 @@ std::unique_ptr<cyborg::EncryptedIndex>
     CreateIndex(const std::string index_name,
                 const std::array<uint8_t, 32>& index_key,
                 const IndexConfig& index_config,
-                const std::optional<size_t>& max_cache_size = 0);
+                const std::optional<size_t>& max_cache_size = 0,
+                cyborg::Logger* logger = nullptr);
 ```
 
 ### Parameters
@@ -20,7 +21,8 @@ std::unique_ptr<cyborg::EncryptedIndex>
 | `index_name` | `std::string` | Name of the index to create (must be unique). |
 | `index_key` | `std::array<uint8_t, 32>` | 32-byte encryption key for the index, used to secure index data. |
 | `index_config` | [`IndexConfig`](../types#indexconfig) | Configuration for the index type (e.g., IVFFlat, IVFPQ). |
-| `max_cache_size` | `size_t` | _(Optional)_ Maximum size for the local cache (default is `0`). |
+| `max_cache_size` | `std::optional<size_t>` | _(Optional)_ Maximum size for the local cache (default is `0`). |
+| `logger` | [`cyborg::Logger*`](./logger) | _(Optional)_ Pointer to a logger instance for capturing operation logs (default is `nullptr`). |
 
 ### Returns
 
@@ -43,6 +45,7 @@ std::unique_ptr<cyborg::EncryptedIndex>
 ```cpp
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
+#include "cyborgdb_core/logger.hpp"
 #include <array>
 
 // ... Initialize the client ...
@@ -57,5 +60,8 @@ const size_t num_lists = 128;
 // Create an index configuration (e.g., using an IVFFlat configuration)
 IndexIVFFlat index_config(vector_dim, num_lists, DistanceMetric::euclidean);
 
-auto index = client.CreateIndex("my_index", index_key, index_config);
-```
+// Optional: Create and configure a logger
+cyborg::Logger logger;
+logger.Configure(LogLevel::Info, true, "index_creation.log");
+
+auto index = client.CreateIndex("my_index", index_key, index_config, 1000, &logger);

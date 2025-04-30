@@ -8,7 +8,7 @@ Retrieves and decrypts items associated with the specified IDs.
 ```cpp
 std::vector<cyborg::Item> 
     Get(const std::vector<std::string>& ids,
-        const std::vector<cyborg::ItemFields> include = {kVector, kContents, kMetadata});
+        const std::vector<cyborg::ItemFields> include);
 ```
 
 ### Parameters
@@ -16,7 +16,7 @@ std::vector<cyborg::Item>
 | Parameter | Type | Description |
 |-------------------|--------------------|-----------------------|
 | `ids` | `const std::vector<std::string>&` | IDs to retrieve. (For a single item, provide a `std::vector` with one element.)|
-| `include` | [`std::vector<cyborg::ItemFields>`](../types#itemfields) | _(Optional)_ List of item fields to return. Can include `kVector`, `kContents`, and `kMetadata` (`vector` only for [`IVFFlat`](../types#IndexIVFFlat) indexes). Defaults to include all. |
+| `include` | [`std::vector<cyborg::ItemFields>`](../types#itemfields) | _(Optional)_ List of item fields to return. Can include `kVector`, `kContents`, and `kMetadata` (`vector` only for [`IVFFlat`](../types#IndexIVFFlat) indexes). |
 
 ### Returns
 

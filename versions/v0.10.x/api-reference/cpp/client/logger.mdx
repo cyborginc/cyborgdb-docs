@@ -1,0 +1,46 @@
+# C++ Logger Documentation
+
+```markdown
+---
+title: "Logger"
+mode: "wide"
+---
+
+The `cyborg::Logger` class provides thread-safe logging capabilities for CyborgDB C++ operations. It follows a singleton pattern, allowing you to configure and access the same logger instance across your application.
+
+## Configure Logger
+
+```cpp
+void Configure(LogLevel level, 
+               bool to_file, 
+               const std::string& file_path = "");
+```
+
+Configures the logger with the specified log level and output options.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `level` | `LogLevel` | - | Log level enum value: `LogLevel::Debug`, `LogLevel::Info`, `LogLevel::Warning`, `LogLevel::Error`, or `LogLevel::Critical`. |
+| `to_file` | `bool` | - | Whether to write logs to a file instead of stdout/stderr. |
+| `file_path` | `const std::string&` | `""` | _(Optional)_ Path to the log file. Only used when `to_file` is `true`. |
+
+### Exceptions
+
+- If the file cannot be opened, logs will be written to standard output instead, and an error message will be printed to `std::cerr`.
+
+### Example Usage
+
+```cpp
+// Get the logger instance
+cyborg::Logger& logger = cyborg::Logger::Instance();
+
+// Configure logger to write INFO level logs to console
+logger.Configure(LogLevel::Info, false);
+
+// Configure logger to write ERROR level logs to a file
+logger.Configure(LogLevel::Error, true, "/path/to/logs/cyborgdb.log");
+```
+
+<Tip>The `Debug` level is only available in debug builds of the library (compiled with the DEBUG flag).</Tip>
