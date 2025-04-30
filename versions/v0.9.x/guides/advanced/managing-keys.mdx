@@ -38,7 +38,9 @@ For local development and evaluation, you can generate a 256-bit encryption key 
     You can either load the key directly from the file and use it directly with CyborgDB.
 
     ```python
+    # Import cyborgdb_core or cyborgdb_lite:
     import cyborgdb_core as cyborgdb
+    import cyborgdb_lite as cyborgdb
 
     # Example setup
     index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
