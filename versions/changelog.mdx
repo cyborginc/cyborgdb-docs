@@ -8,6 +8,34 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 
 ---
 
+<Update label="v0.10.0" description="2025-04-30">
+
+## CyborgDB v0.10.0
+
+### Deployment Model
+
+- Core Library (Python & C++)
+- REST API (Microservice via Python or Docker - *early access*)
+- Client SDK (Python, JavaScript & TypeScript - *early access*)
+
+### New Features
+
+- CyborgDB is now available as a **REST API** microservice
+    - Available as a Python package (`cyborgdb-service`)
+    - Available as a Docker image (`cyborg/cyborgdb-service`)
+    - Currently in **early access** and not recommended for production use
+- CyborgDB Client SDKs now available for REST API microservice
+    - Python
+    - JavaScript
+    - TypeScript
+    - Currently in **early access** and not recommended for production use
+- LangChain integration for CyborgDB
+    - Available for `cyborgdb-core` via `cyborgdb_core.integration.langchain`
+    - Available for `cyborgdb-lite` via `cyborgdb_lite.integration.langchain`
+- Added configurable logging utility for core Library
+
+</Update>
+
 <Update label="v0.9.2" description="2025-04-14">
 
 ## CyborgDB v0.9.2
