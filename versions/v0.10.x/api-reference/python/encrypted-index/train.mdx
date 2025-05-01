@@ -1,0 +1,51 @@
+---
+title: "Train Index"
+mode: "wide"
+---
+
+<Note>This function is only present in the [core library](../../../guides/get-started/about#deployment-models) version of CyborgDB.
+In other versions (microservice, serverless), it is automatically called once enough vector embeddings have been indexed.</Note>
+
+Builds the index using the specified training configuration. Required before efficient querying.
+Prior to calling this, all queries will be conducted using encrypted exhaustive search.
+After, they will be conducted using encrypted ANN search.
+
+```python
+def train(self, batch_size: int = 2048, max_iters: int = 100, tolerance: float = 1e-6, max_memory: int = 0)
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|---------------|--------|---------|-------------------------------------------------------|
+| `batch_size` | `int` | `2048` | _(Optional)_ Size of each batch for training. |
+| `max_iters` | `int` | `100` | _(Optional)_ Maximum number of iterations for training. |
+| `tolerance` | `float`| `1e-6` | _(Optional)_ Convergence tolerance for training. |
+| `max_memory` | `int`| `0` | _(Optional)_ Maximum memory to use for training. `0` sets no limit. |
+
+<Tip>There must be at least `2 * n_lists` vector embeddings in the index prior to to calling this function.</Tip>
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Raises an exception if the index was not created or loaded yet.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Raises an exception if there are not enough vector embeddings in the index for training (must be at least `2 * n_lists`).
+        - Raises an exception if the index could not be trained.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# Load index
+index = client.load_index(index_name=index_name, index_key=index_key)
+
+# Train the index with custom settings
+index.train(batch_size=128, max_iters=10, tolerance=1e-4)
+
+# Train with default settings (auto-selected configuration)
+index.train()
+```
