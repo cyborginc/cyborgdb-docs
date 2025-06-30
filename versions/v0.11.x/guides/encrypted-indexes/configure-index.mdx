@@ -1,0 +1,207 @@
+---
+title: "Configure an Encrypted Index"
+sidebarTitle: "Configure Index"
+---
+
+CyborgDB offers three index types, all of which offer varying characteristics:
+
+|  Index Type  |  Speed  | Recall | Index Size |
+| :-----: | :-----: | :----: | :--------: |
+| [`IVFFlat`](#ivfflat-index-type) | Fast | Highest |  Biggest  |
+| [`IVFPQ`](#ivfpq-index-type) | Fast | High |  Medium  |
+| [`IVF`](#ivf-index-type) | Fastest | Lowest |  Smallest  |
+
+Generally-speaking, we recommend that you start with `IVFFlat`, which provides the highest recall (accuracy) with high indexing and retrieval speeds. For most use-cases, this index type will scale well. If minimizing index size is important, `IVFPQ` takes `IVFFlat` and applies Product-Quantization (PQ, a form of lossy compression) to the vector embeddings which can greatly reduce index size.
+
+## `IVFFlat` Index Type
+
+The `IVFFlat` index type improves `IVF` significantly by storing encrypted vector embeddings in the index. In addition to selecting the closest clusters for a query vector, the exact distance can be computed between each candidate vector and the query, yielding very high recall rates (up to >99%). This comes at the cost of index size and some search speed.
+
+We recommend `IVFFlat` indexes for most applications, as it provides the highest recall rates, and it's possible to mitigate index size constraints later via `IVFPQ`.
+
+To create an `IVFFlat` index, you can use its configuration constructor:
+
+<CodeGroup>
+```python Python
+# Import cyborgdb_core or cyborgdb_lite:
+import cyborgdb_core as cyborgdb
+import cyborgdb_lite as cyborgdb
+
+# Set index parameters
+dimension = 128  # Adjust according to your dataset (dimensionality)
+n_lists = 4096
+
+# Create the IVF index config
+index_config = cyborgdb.IndexIVFFlat(dimension, n_lists)
+
+# Create the index
+index_name = "test_index"
+index_key = bytes([0] * 32) # Set your private key here
+index = client.create_index(index_name=index_name, index_key=index_key, index_config=index_config)
+```
+
+```cpp C++
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
+
+// Set index parameters
+int dimension = 128;  // Adjust according to your dataset (dimensionality)
+int n_lists = 4096;
+
+// Create the IVF index config
+cyborg::IndexIVFFlat index_config(dimension, n_lists);
+
+// Create the index
+std::string index_name = "test_index";
+std::array<uint8_t, 32> index_key = {0}; // Set your private key here
+cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_config);
+```
+</CodeGroup>
+
+`n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
+
+- A base-2 number (e.g., `2,048`, `4,096`). Not a requirement, but yields performance optimizations.
+- Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
+
+## `IVFPQ` Index Type
+
+<Note>The `IVFPQ` index type is not supported in `cyborgdb_lite`. For more details, see [CyborgDB Lite](../get-started/about#cyborgdb-lite).</Note>
+
+The `IVFPQ` index type builds upon `IVFFlat` by applying Product Quantization (PQ) - a form of lossy compression - to reduce the index size. When applied correctly, `IVFPQ` indexes can maintain high recall (>95%) while reducing index size significantly (2-4x).
+
+We recommend `IVFPQ` indexes for mature applications, where the dataset and query distributions are well-established. This is because `IVFPQ` requires the most tuning to yield an ideal balance between recall and index size. It is possible to go from `IVFFlat` to `IVFPQ` on the same index, but not vice-versa.
+
+To create an `IVFPQ` index, you can use its configuration constructor:
+
+<CodeGroup>
+```python Python
+import cyborgdb_core as cyborgdb
+
+# Set index parameters
+dimension = 128  # Adjust according to your dataset (dimensionality)
+n_lists = 4096
+pq_dim = 32 # Dimension must be divisible by pq_dim
+pq_bits = 8 # Number of bits for each pq dimension
+
+# Create the IVF index config
+index_config = cyborgdb.IndexIVFPQ(dimension, n_lists, pq_dim, pq_bits)
+
+# Create the index
+index_name = "test_index"
+index_key = bytes([0] * 32) # Set your private key here
+index = client.create_index(index_name=index_name, index_key=index_key, index_config=index_config)
+```
+
+```cpp C++
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
+
+// Set index parameters
+int dimension = 128;  // Adjust according to your dataset (dimensionality)
+int n_lists = 4096;
+int pq_dim = 32; // Dimension must be divisible by pq_dim
+int pq_bits = 8; // Number of bits for each pq dimension
+
+// Create the IVF index config
+cyborg::IndexIVF index_config(dimension, n_lists, pq_dim, pq_bits);
+
+// Create the index
+std::string index_name = "test_index";
+std::array<uint8_t, 32> index_key = {0}; // Set your private key here
+cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_config);
+```
+</CodeGroup>
+
+`n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
+
+- A base-2 number (e.g., `2,048`, `4,096`). Not a requirement, but yields performance optimizations.
+- Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
+
+`pq_dim` is the number of dimensionality for each vector after product-quantization. It must be between `1` and `dimension`, and `dimension` must be cleanly divisible by `pq_dim`. Lower `pq_dim` will yield smaller index sizes but lower recall.
+
+`pq_bits` is the number of bits that will be used to represent each dimension of the product-quantized vector embeddings. It must be between `1` and `16`, with lower values yielding smaller index sizes but lower recall.
+
+## `IVF` Index Type
+
+<Note>The `IVF` index type is not supported in `cyborgdb_lite`. For more details, see [CyborgDB Lite](../get-started/about#cyborgdb-lite).</Note>
+
+The `IVF` index type (Inverted File Index) is the simplest offered by CyborgDB. It takes a single parameter, `n_lists`, which defines the number of lists, or clusters, into which the index is segmented. In other words, vectors that are close together will be clustered together into a single list. At retrieval time, vectors in the clusters closest to the query vector will be returned. This yields a very fast, but rather inaccurate, search.
+
+We recommend `IVF` indexes for applications which require high-speed, low-latency search with low recall requirements (or where `top_k` is rather large, i.e. >500).
+
+To create an `IVF` index, you can use its configuration constructor:
+
+<CodeGroup>
+```python Python
+import cyborgdb_core as cyborgdb
+
+# Set index parameters
+dimension = 128  # Adjust according to your dataset (dimensionality)
+n_lists = 4096
+
+# Create the IVF index config
+index_config = cyborgdb.IndexIVF(dimension, n_lists)
+
+# Create the index
+index_name = "test_index"
+index_key = bytes([0] * 32) # Set your private key here
+index = client.create_index(index_name=index_name, index_key=index_key, index_config=index_config)
+```
+
+```cpp C++
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
+
+// Set index parameters
+int dimension = 128;  // Adjust according to your dataset (dimensionality)
+int n_lists = 4096;
+
+// Create the IVF index config
+cyborg::IndexIVF index_config(dimension, n_lists);
+
+// Create the index
+std::string index_name = "test_index";
+std::array<uint8_t, 32> index_key = {0}; // Set your private key here
+cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_config);
+```
+</CodeGroup>
+
+`n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
+
+- A base-2 number (e.g., `2,048`, `4,096`). Not a requirement, but yields performance optimizations.
+- Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
+
+## Customizing Distance Metrics
+
+By default, CyborgDB uses `euclidean` distance as its metric for all index types. You can override this default by providing a `distance_metric` parameter to any of the index constructors. For example:
+
+<CodeGroup>
+```python Python
+# Existing setup
+index_config = cyborgdb.IndexIVFFlat(dimension, n_lists, distance_metric='cosine')
+```
+
+```cpp C++
+// Existing setup
+cyborg::IndexIVFFlat index_config(dimension, n_lists, "cosine");
+```
+</CodeGroup>
+
+The currently supported distance metrics are:
+
+- `"cosine"`: Cosine similarity.
+- `"euclidean"`: Euclidean distance.
+- `"squared_euclidean"`: Squared Euclidean distance.
+
+## API Reference
+
+For more information on the `IndexConfig` classes, refer to the API Reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../api-reference/python/types#indexconfig" icon="python">
+        API reference for `IndexConfig` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../api-reference/cpp/types#indexconfig" icon="brackets-curly">
+        API reference for `IndexConfig` in C++
+    </Card>
+</CardGroup>

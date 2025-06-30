@@ -1,0 +1,32 @@
+---
+title: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+Deletes the current index and all its associated data.  
+
+```python
+def delete_index(self)
+```
+
+Deletes the current index and its associated data. This action is irreversible, so proceed with caution.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the index could not be deleted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# Load index
+index = client.load_index(index_name=index_name, index_key=index_key)
+
+# Delete the index
+index.delete_index()
+```
