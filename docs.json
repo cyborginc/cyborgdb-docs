@@ -21,9 +21,17 @@
                 "group": "Get Started",
                 "pages": [
                   "versions/v0.11.x/guides/get-started/introduction",
-                  "versions/v0.11.x/guides/get-started/quickstart",
                   "versions/v0.11.x/guides/get-started/about",
                   "versions/changelog"
+                ]
+              },
+              {
+                "group": "Quickstart",
+                "pages": [
+                  "versions/v0.11.x/guides/quickstart/core-library",
+                  "versions/v0.11.x/guides/quickstart/docker-service",
+                  "versions/v0.11.x/guides/quickstart/rest-api",
+                  "versions/v0.11.x/guides/quickstart/client-sdks"
                 ]
               },
               {
