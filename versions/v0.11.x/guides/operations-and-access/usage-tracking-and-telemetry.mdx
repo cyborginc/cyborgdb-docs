@@ -2,7 +2,28 @@
 title: "Usage Tracking and Telemetry"
 ---
 
-TO DO:
+**CyborgDB** collects minimal telemetry data to support usage monitoring, billing, and system reliability. This page outlines what data is tracked, how it’s used, and how it aligns with our privacy principles.
 
-- Document available telemetry and billing-related data
-- Add a disclosure about telemetry, that we don’t record any data or anything sensitive just usage counts for billing. And that it’s compliant to our privacy policy on the website
+## What We Track
+CyborgDB records basic operation counts for your account. This includes:
+- Number of **queries**, **adds**, and **deletes** per index
+- API key-level usage for tracking access patterns
+- Aggregated usage volume over time (e.g. per day or per billing cycle)
+
+This data powers the Usage and Billing sections of the [Admin Dashboard](https://cyborgdb.co/), helping you monitor activity and understand consumption.
+
+## What We Don't Track
+We do **NOT** log or store:
+- Raw query text
+- Item content or vectors
+- Index names or metadata
+- Personally identifiable information (PII)
+
+CyborgDB is designed for confidential workloads. All indexing and query operations are encrypted, and telemetry is limited strictly to operation counts for billing and observability.
+
+## Privacy Compliance
+
+Our telemetry implementation complies with our published [Privacy Policy](https://www.cyborg.co/privacy-policy). It ensures:
+- No access to sensitive data
+- No retention of application-level content
+- Transparent and minimal logging focused only on operational metrics

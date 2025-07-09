@@ -2,9 +2,42 @@
 title: "Admin Dashboard Overview"
 ---
 
-TO DO:
+The [CyborgDB Admin Dashboard](https://cyborgdb.co/) is a web-based interface for managing your account, monitoring usage, securing access, and handling billing. It is designed for users running CyborgDB in production environments who need visibility and control without touching infrastructure.
 
-- Document API key management
-- Document usage statistics
-- Document billing features
-- Document MFA, password management, and support features
+This page provides an overview of the key features available in the dashboard.
+
+## API Key Management
+You can create and manage API keys directly from the dashboard. Each key is used to authenticate requests to CyborgDB via the SDKs or REST API.
+
+From the **API Keys** section, you can:
+- Create new API keys with a descriptive label
+- View existing keys and their creation dates
+- Revoke keys that are no longer needed
+
+All changes take effect immediately, and revoked keys are immediately invalidated.
+
+## Usage Statistics
+The dashboard includes a usage view that shows:
+- Total number of queries, additions, and deletions
+- Request volume over time
+- Breakdown by operation type and index
+
+These metrics help you track performance, monitor cost-related activity, and debug unusual patterns of use.
+
+## Billing Features
+In the **Billing** section of the dashboard, you can:
+- View your current plan and usage limits
+- Upgrade or downgrade your subscription
+- Access invoices and billing history
+- Switch between monthly and annual plans
+
+All billing is handled securely and updated in real time as usage changes.
+
+## MFA, Password Management, and Support
+The **Account Settings** area includes controls for account-level security and support:
+- Enable or disable multi-factor authentication (MFA)
+- Change your password
+- Submit support requests directly from the dashboard
+- Access links to documentation and additional resources
+
+These features ensure your account is secure and your team has access to help when needed.

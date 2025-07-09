@@ -72,8 +72,8 @@
               {
                 "group": "Operations & Access",
                 "pages": [
-                  "versions/v0.11.x/guides/operations-and-access/authentication-and-api-keys",
                   "versions/v0.11.x/guides/operations-and-access/admin-dashboard-overview",
+                  "versions/v0.11.x/guides/operations-and-access/authentication-and-api-keys",
                   "versions/v0.11.x/guides/operations-and-access/usage-tracking-and-telemetry"
                 ]
               }
@@ -211,6 +211,127 @@
       {
         "tab": "API Reference",
         "versions": [
+                    {
+            "version": "v0.11.x",
+            "dropdowns": [
+              {
+                "dropdown": "Core Library - Python",
+                "icon": "python",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/python/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/python/client/client",
+                      "versions/v0.11.x/api-reference/python/client/create-index",
+                      "versions/v0.11.x/api-reference/python/client/load-index",
+                      "versions/v0.11.x/api-reference/python/client/list-indexes",
+                      "versions/v0.11.x/api-reference/python/client/logger"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/python/encrypted-index/upsert",
+                      "versions/v0.11.x/api-reference/python/encrypted-index/query",
+                      "versions/v0.11.x/api-reference/python/encrypted-index/train",
+                      "versions/v0.11.x/api-reference/python/encrypted-index/get",
+                      "versions/v0.11.x/api-reference/python/encrypted-index/delete",
+                      "versions/v0.11.x/api-reference/python/encrypted-index/delete-index"
+                    ]
+                  },
+                  {
+                    "group": "Types & Getters",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/python/getters",
+                      "versions/v0.11.x/api-reference/python/types"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "Core Library - C++",
+                "icon": "brackets-curly",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/cpp/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/cpp/client/client",
+                      "versions/v0.11.x/api-reference/cpp/client/create-index",
+                      "versions/v0.11.x/api-reference/cpp/client/load-index",
+                      "versions/v0.11.x/api-reference/cpp/client/list-indexes",
+                      "versions/v0.11.x/api-reference/cpp/client/logger"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/cpp/encrypted-index/upsert",
+                      "versions/v0.11.x/api-reference/cpp/encrypted-index/query",
+                      "versions/v0.11.x/api-reference/cpp/encrypted-index/train",
+                      "versions/v0.11.x/api-reference/cpp/encrypted-index/get",
+                      "versions/v0.11.x/api-reference/cpp/encrypted-index/delete",
+                      "versions/v0.11.x/api-reference/cpp/encrypted-index/delete-index"
+                    ]
+                  },
+                  {
+                    "group": "Types & Getters",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/cpp/getters",
+                      "versions/v0.11.x/api-reference/cpp/types"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "Microservice - REST",
+                "icon": "server",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/rest/introduction"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "Microservice - Python",
+                "icon": "python",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/sdk-python/introduction"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "Microservice - JS/TS",
+                "icon": "js",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/sdk-js-ts/introduction"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
           {
             "version": "v0.10.x",
             "dropdowns": [
