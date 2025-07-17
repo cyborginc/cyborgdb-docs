@@ -1,0 +1,26 @@
+---
+title: "CyborgDB Usage Telemetry"
+sidebarTitle: "Usage Telemetry"
+mode: "wide"
+---
+
+Since version `v0.11.0`, CyborgDB uses privacy-preserving telemetry to track usage. This usage data is used in order to:
+
+- Bill paying customers based on their usage
+- Improve the product by understanding how it is used
+
+No private data is ever collected or shared, and all telemetry data is encrypted before being sent to the server. Below you can find a comprehensive list of the telemetry events that are collected:
+
+| Event Name | Description |
+|------------|-------------|
+| `initialize` | Triggered when the CyborgDB library is initialized. |
+| `create_index` | Triggered when a new index is created. |
+| `delete_index` | Triggered when an index is deleted. |
+| `upsert` | Triggered when items are added to an index. A count of the items added is also included. |
+| `query` | Triggered when a query is performed on an index. Includes the top-k value. |
+| `delete` | Triggered when items are deleted from an index. A count of the items deleted is also included. |
+| `get` | Triggered when an item is retrieved from an index. |
+
+CyborgDB's usage telemetry was built from the ground up to be privacy-preserving, with data minimization and no third-party sharing. We do **NOT** collect any private data, such as raw content, embeddings, or queries. All telemetry is compliant with our [Privacy Policy](https://www.cyborg.co/privacy-policy).
+
+Should you have any questions, please [contact us](https://www.cyborg.co/contact).

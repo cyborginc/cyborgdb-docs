@@ -8,11 +8,11 @@ Once you've added items to an encrypted index, you can query the index to retrie
 <CodeGroup>
 ```python Python
 # Example query
-query_vector = [0.5, 0.9, 0.2, 0.7]
+query_vectors = [0.5, 0.9, 0.2, 0.7]
 top_k = 10
 
 # Perform query
-results = index.query(query_vector=query_vector, top_k=top_k)
+results = index.query(query_vectors=query_vectors, top_k=top_k)
 
 print(results)
 # Example results (IDs and distances)
@@ -21,12 +21,12 @@ print(results)
 
 ```cpp C++
 // Example query
-std::vector<float> query_vector = {0.5, 0.9, 0.2, 0.7};
+std::vector<float> query_vectors = {0.5, 0.9, 0.2, 0.7};
 size_t top_k = 10;
 
 // Perform query
 cyborg::QueryParams query_params(top_k);
-cyborg::QueryResults results = index.Query(query_vector, query_params);
+cyborg::QueryResults results = index.Query(query_vectors, query_params);
 
 // Print the results
 for (const auto& result : results) {
@@ -48,14 +48,14 @@ You can specify additional parameters for the query, such as:
 <CodeGroup>
 ```python Python
 # Example query
-query_vector = [0.5, 0.9, 0.2, 0.7]
+query_vectors = [0.5, 0.9, 0.2, 0.7]
 top_k = 10
 n_probes = 5
 filters = [{"age": {"$gt": 18}}]
 include = ["distance", "metadata"]
 
 # Perform query
-results = index.query(query_vector=query_vector, top_k=top_k, n_probes=n_probes, filters=filters, include=include)
+results = index.query(query_vectors=query_vectors, top_k=top_k, n_probes=n_probes, filters=filters, include=include)
 
 print(results)
 # Example results (IDs and distances)
@@ -64,7 +64,7 @@ print(results)
 
 ```cpp C++
 // Example query
-std::vector<float> query_vector = {0.5, 0.9, 0.2, 0.7};
+std::vector<float> query_vectors = {0.5, 0.9, 0.2, 0.7};
 size_t top_k = 10;
 size_t n_probes = 5;
 bool greedy = false;
@@ -73,7 +73,7 @@ std::vector<std::string> include = {"distance", "metadata"};
 
 // Perform query
 cyborg::QueryParams query_params(top_k, n_probes, include, greedy, filters);
-cyborg::QueryResults results = index.Query(query_vector, query_params);
+cyborg::QueryResults results = index.Query(query_vectors, query_params);
 
 // Print the results
 for (const auto& result : results) {
@@ -141,7 +141,6 @@ results = index.query(query_contents=query_contents, top_k=top_k)
 ```
 
 This feature uses [`sentence-transformers`](https://www.sbert.net/) for embedding generation. You can use any model from the [HuggingFace Model Hub](https://huggingface.co/models) that is compatible with `sentence-transformers`.
-
 
 ## Retrieving Items Post-Query
 

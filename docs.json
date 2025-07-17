@@ -18,7 +18,7 @@
             "version": "v0.11.x",
             "groups": [
               {
-                "group": "Get Started",
+                "group": "About CyborgDB",
                 "pages": [
                   "versions/v0.11.x/guides/get-started/introduction",
                   "versions/v0.11.x/guides/get-started/about",
@@ -29,9 +29,7 @@
                 "group": "Quickstart",
                 "pages": [
                   "versions/v0.11.x/guides/quickstart/core-library",
-                  "versions/v0.11.x/guides/quickstart/docker-service",
-                  "versions/v0.11.x/guides/quickstart/rest-api",
-                  "versions/v0.11.x/guides/quickstart/client-sdks"
+                  "versions/v0.11.x/guides/quickstart/microservice"
                 ]
               },
               {
@@ -66,15 +64,8 @@
               {
                 "group": "Advanced",
                 "pages": [
-                  "versions/v0.11.x/guides/advanced/managing-keys"
-                ]
-              },
-              {
-                "group": "Operations & Access",
-                "pages": [
-                  "versions/v0.11.x/guides/operations-and-access/admin-dashboard-overview",
-                  "versions/v0.11.x/guides/operations-and-access/authentication-and-api-keys",
-                  "versions/v0.11.x/guides/operations-and-access/usage-tracking-and-telemetry"
+                  "versions/v0.11.x/guides/advanced/managing-keys",
+                  "versions/v0.11.x/guides/advanced/usage-telemetry"
                 ]
               }
             ]
@@ -635,7 +626,7 @@
     "primary": {
       "type": "button",
       "label": "Get Started",
-      "href": "https://www.cyborg.co"
+      "href": "https://cyborgdb.co"
     }
   },
   "footer": {
