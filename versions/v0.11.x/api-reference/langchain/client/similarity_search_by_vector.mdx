@@ -1,0 +1,47 @@
+
+---
+
+# similarity_search_by_vector.mdx
+
+---
+title: "similarity_search_by_vector"
+mode: "wide"
+---
+
+Returns documents most similar to an embedding vector.
+
+```python
+similarity_search_by_vector(
+    embedding: Union[List[float], np.ndarray],
+    k: int = 4,
+    filter: Optional[Dict[str, Any]] = None,
+    **kwargs
+) -> List[Document]
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `embedding` | `Union[List[float], np.ndarray]` | Embedding vector to search with |
+| `k` | `int` | Number of documents to return (default: 4) |
+| `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
+| `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
+
+### Returns
+
+`List[Document]`: List of most similar Document objects
+
+### Example Usage
+
+```python
+# Get embedding for a query
+query_embedding = store.get_embeddings("data science concepts")
+
+# Search using the embedding
+results = store.similarity_search_by_vector(query_embedding, k=5)
+
+# Search with custom embedding
+custom_embedding = np.random.rand(384)  # Example 384-dim embedding
+results = store.similarity_search_by_vector(custom_embedding, k=3)
+```

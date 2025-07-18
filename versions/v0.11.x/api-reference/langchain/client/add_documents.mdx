@@ -1,0 +1,52 @@
+---
+
+# add_documents.mdx
+
+---
+title: "add_documents"
+mode: "wide"
+---
+
+Adds LangChain Document objects to the vector store.
+
+```python
+add_documents(
+    documents: List[Document],
+    ids: Optional[List[str]] = None,
+    **kwargs
+) -> List[str]
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `documents` | `List[Document]` | List of LangChain Document objects to add |
+| `ids` | `Optional[List[str]]` | _(Optional)_ List of IDs for the documents (auto-generated if not provided) |
+| `**kwargs` | `Any` | Additional keyword arguments passed to add_texts |
+
+### Returns
+
+`List[str]`: List of IDs for the added documents
+
+### Example Usage
+
+```python
+from langchain_core.documents import Document
+
+# Create documents with metadata
+documents = [
+    Document(
+        page_content="Introduction to machine learning",
+        metadata={"chapter": 1, "topic": "ML basics"}
+    ),
+    Document(
+        page_content="Deep learning fundamentals",
+        metadata={"chapter": 2, "topic": "Neural networks"}
+    )
+]
+
+# Add documents to the store
+ids = store.add_documents(documents)
+print(f"Added {len(ids)} documents")
+```

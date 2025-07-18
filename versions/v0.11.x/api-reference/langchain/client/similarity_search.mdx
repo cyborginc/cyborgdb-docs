@@ -1,0 +1,51 @@
+
+---
+
+# similarity_search.mdx
+
+---
+title: "similarity_search"
+mode: "wide"
+---
+
+Returns documents most similar to the query text.
+
+```python
+similarity_search(
+    query: str,
+    k: int = 4,
+    filter: Optional[Dict[str, Any]] = None,
+    **kwargs
+) -> List[Document]
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query` | `str` | Query text to search for |
+| `k` | `int` | Number of documents to return (default: 4) |
+| `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
+| `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
+
+### Returns
+
+`List[Document]`: List of most similar Document objects
+
+### Example Usage
+
+```python
+# Basic similarity search
+results = store.similarity_search("machine learning algorithms", k=5)
+for doc in results:
+    print(f"Content: {doc.page_content[:100]}...")
+    print(f"Metadata: {doc.metadata}")
+
+# Search with metadata filter
+filter_dict = {"language": "python", "level": "beginner"}
+results = store.similarity_search(
+    "python tutorial",
+    k=3,
+    filter=filter_dict
+)
+```

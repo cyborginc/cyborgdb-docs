@@ -1,0 +1,53 @@
+
+---
+
+# similarity_search_with_relevance_scores.mdx
+
+---
+title: "_similarity_search_with_relevance_scores"
+mode: "wide"
+---
+
+Returns documents with relevance scores in the range [0, 1], with optional score filtering.
+
+```python
+_similarity_search_with_relevance_scores(
+    query: str,
+    k: int,
+    **kwargs
+) -> List[Tuple[Document, float]]
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query` | `str` | Query text to search for |
+| `k` | `int` | Number of documents to return |
+| `**kwargs` | `Any` | Additional arguments including `filter` and `score_threshold` |
+
+### Keyword Arguments
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `filter` | `Dict[str, Any]` | _(Optional)_ Metadata filters to apply |
+| `score_threshold` | `float` | _(Optional)_ Minimum score threshold for results |
+
+### Returns
+
+`List[Tuple[Document, float]]`: List of (Document, score) tuples with scores in [0, 1]
+
+### Example Usage
+
+```python
+# Search with relevance scores and threshold
+results = store._similarity_search_with_relevance_scores(
+    "machine learning",
+    k=10,
+    score_threshold=0.5
+)
+
+print(f"Found {len(results)} documents above threshold")
+for doc, score in results:
+    print(f"Relevance: {score:.2%} - {doc.page_content[:50]}...")
+```

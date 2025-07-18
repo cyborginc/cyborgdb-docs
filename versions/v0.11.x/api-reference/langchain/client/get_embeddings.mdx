@@ -1,0 +1,50 @@
+---
+
+# get_embeddings.mdx
+
+---
+title: "get_embeddings"
+mode: "wide"
+---
+
+Generates embeddings for the given texts using the configured embedding model.
+
+```python
+get_embeddings(texts: Union[str, List[str]]) -> np.ndarray
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `texts` | `Union[str, List[str]]` | Single text string or list of text strings to embed |
+
+### Returns
+
+`np.ndarray`: NumPy array of embeddings
+- If single text: 1-D array of shape `(dimension,)`
+- If list of texts: 2-D array of shape `(num_texts, dimension)`
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="RuntimeError">
+        - Throws if no embedding model is available
+    </Accordion>
+    <Accordion title="TypeError">
+        - Throws if embedding model type is not supported
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# Single text embedding
+embedding = store.get_embeddings("Hello, world!")
+print(f"Embedding shape: {embedding.shape}")  # (384,)
+
+# Multiple text embeddings
+texts = ["First document", "Second document", "Third document"]
+embeddings = store.get_embeddings(texts)
+print(f"Embeddings shape: {embeddings.shape}")  # (3, 384)
+```

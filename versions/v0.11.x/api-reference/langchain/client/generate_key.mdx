@@ -1,0 +1,49 @@
+
+---
+
+# generate_key.mdx
+
+---
+title: "generate_key"
+mode: "wide"
+---
+
+Generates a secure random 32-byte encryption key for index encryption.
+
+```python
+@staticmethod
+generate_key() -> bytes
+```
+
+### Returns
+
+`bytes`: Cryptographically secure 32-byte key
+
+### Example Usage
+
+```python
+# Generate a new encryption key
+index_key = CyborgVectorStore.generate_key()
+print(f"Key length: {len(index_key)} bytes")
+
+# Use the key to create a store
+store = CyborgVectorStore(
+    index_name="secure_index",
+    index_key=index_key,
+    api_key="your-api-key",
+    embedding="all-MiniLM-L6-v2",
+    index_location=DBConfig("s3", bucket="secure-bucket"),
+    config_location=DBConfig("s3", bucket="secure-bucket")
+)
+
+# Store the key securely for future use
+import base64
+encoded_key = base64.b64encode(index_key).decode('utf-8')
+print(f"Base64 encoded key: {encoded_key}")
+```
+
+### Security Notes
+
+<Warning>
+Store encryption keys securely! Never commit keys to version control or expose them in logs. Consider using a key management service for production deployments.
+</Warning>

@@ -246,6 +246,37 @@
                 ]
               },
               {
+                "dropdown": "Langchain - Python",
+                "icon": "python",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/langchain/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/langchain/client/init",
+                      "versions/v0.11.x/api-reference/langchain/client/get_embeddings",
+                      "versions/v0.11.x/api-reference/langchain/client/add_texts",
+                      "versions/v0.11.x/api-reference/langchain/client/add_documents",
+                      "versions/v0.11.x/api-reference/langchain/client/delete",
+                      "versions/v0.11.x/api-reference/langchain/client/similarity_search",
+                      "versions/v0.11.x/api-reference/langchain/client/similarity_search_by_vector",
+                      "versions/v0.11.x/api-reference/langchain/client/similarity_search_with_score",
+                      "versions/v0.11.x/api-reference/langchain/client/_similarity_search_with_relevance_scores",
+                      "versions/v0.11.x/api-reference/langchain/client/max_marginal_relevance_search",
+                      "versions/v0.11.x/api-reference/langchain/client/max_marginal_relevance_search_by_vector",
+                      "versions/v0.11.x/api-reference/langchain/client/from_texts",
+                      "versions/v0.11.x/api-reference/langchain/client/from_documents",
+                      "versions/v0.11.x/api-reference/langchain/client/generate_key"
+                    ]
+                  }
+                ]
+              },
+              {
                 "dropdown": "Core Library - C++",
                 "icon": "brackets-curly",
                 "groups": [

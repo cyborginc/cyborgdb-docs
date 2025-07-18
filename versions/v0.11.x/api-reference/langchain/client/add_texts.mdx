@@ -1,0 +1,59 @@
+
+---
+
+# add_texts.mdx
+
+---
+title: "add_texts"
+mode: "wide"
+---
+
+Adds text documents to the vector store with optional metadata.
+
+```python
+add_texts(
+    texts: Iterable[str],
+    metadatas: Optional[List[dict]] = None,
+    ids: Optional[List[str]] = None,
+    **kwargs
+) -> List[str]
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `texts` | `Iterable[str]` | Iterable of text strings to add |
+| `metadatas` | `Optional[List[dict]]` | _(Optional)_ List of metadata dictionaries for each text |
+| `ids` | `Optional[List[str]]` | _(Optional)_ List of IDs for the texts (auto-generated if not provided) |
+| `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
+
+### Returns
+
+`List[str]`: List of IDs for the added texts
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if length of ids doesn't match length of texts
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# Add texts with auto-generated IDs
+texts = ["Document about AI", "Document about ML", "Document about NLP"]
+ids = store.add_texts(texts)
+print(f"Added {len(ids)} documents")
+
+# Add texts with metadata and custom IDs
+texts = ["Python tutorial", "JavaScript guide"]
+metadatas = [
+    {"language": "python", "level": "beginner"},
+    {"language": "javascript", "level": "intermediate"}
+]
+custom_ids = ["doc1", "doc2"]
+ids = store.add_texts(texts, metadatas=metadatas, ids=custom_ids)
+```

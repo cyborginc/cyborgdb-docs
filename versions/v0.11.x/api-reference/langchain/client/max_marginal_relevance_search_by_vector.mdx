@@ -1,0 +1,60 @@
+
+---
+
+# max_marginal_relevance_search_by_vector.mdx
+
+---
+title: "max_marginal_relevance_search_by_vector"
+mode: "wide"
+---
+
+Returns documents selected using maximal marginal relevance with an embedding vector.
+
+```python
+max_marginal_relevance_search_by_vector(
+    embedding: Union[List[float], np.ndarray],
+    k: int = 4,
+    fetch_k: int = 20,
+    lambda_mult: float = 0.5,
+    filter: Optional[Dict[str, Any]] = None,
+    **kwargs
+) -> List[Document]
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `embedding` | `Union[List[float], np.ndarray]` | Query embedding vector |
+| `k` | `int` | Number of documents to return (default: 4) |
+| `fetch_k` | `int` | Number of documents to fetch before reranking (default: 20) |
+| `lambda_mult` | `float` | Diversity control: 0 = max diversity, 1 = min diversity (default: 0.5) |
+| `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
+| `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
+
+### Returns
+
+`List[Document]`: List of diverse, relevant Document objects
+
+### Example Usage
+
+```python
+# Get query embedding
+query_embedding = store.get_embeddings("machine learning algorithms")
+
+# MMR search with embedding
+results = store.max_marginal_relevance_search_by_vector(
+    query_embedding,
+    k=5,
+    fetch_k=30,
+    lambda_mult=0.3  # Favor diversity
+)
+
+# With metadata filter
+filtered_results = store.max_marginal_relevance_search_by_vector(
+    query_embedding,
+    k=4,
+    filter={"category": "tutorial"},
+    lambda_mult=0.7  # Favor relevance
+)
+```

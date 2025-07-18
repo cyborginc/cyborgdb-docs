@@ -1,0 +1,63 @@
+
+---
+
+# max_marginal_relevance_search.mdx
+
+---
+title: "max_marginal_relevance_search"
+mode: "wide"
+---
+
+Returns documents selected using maximal marginal relevance to balance relevance and diversity.
+
+```python
+max_marginal_relevance_search(
+    query: str,
+    k: int = 4,
+    fetch_k: int = 20,
+    lambda_mult: float = 0.5,
+    filter: Optional[Dict[str, Any]] = None,
+    **kwargs
+) -> List[Document]
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query` | `str` | Query text to search for |
+| `k` | `int` | Number of documents to return (default: 4) |
+| `fetch_k` | `int` | Number of documents to fetch before reranking (default: 20) |
+| `lambda_mult` | `float` | Diversity control: 0 = max diversity, 1 = min diversity (default: 0.5) |
+| `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
+| `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
+
+### Returns
+
+`List[Document]`: List of diverse, relevant Document objects
+
+### Example Usage
+
+```python
+# Search with balanced relevance and diversity
+results = store.max_marginal_relevance_search(
+    "Python programming concepts",
+    k=5,
+    fetch_k=20,
+    lambda_mult=0.5  # Balance relevance and diversity
+)
+
+# Maximum diversity (avoid similar documents)
+diverse_results = store.max_marginal_relevance_search(
+    "data structures",
+    k=5,
+    lambda_mult=0.0  # Maximum diversity
+)
+
+# Maximum relevance (similar to standard search)
+relevant_results = store.max_marginal_relevance_search(
+    "algorithms",
+    k=5,
+    lambda_mult=1.0  # Maximum relevance
+)
+```
