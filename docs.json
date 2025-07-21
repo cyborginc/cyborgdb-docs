@@ -29,7 +29,7 @@
                 "group": "Quickstart",
                 "pages": [
                   "versions/v0.11.x/guides/quickstart/core-library",
-                  "versions/v0.11.x/guides/quickstart/microservice"
+                  "versions/v0.11.x/guides/quickstart/docker-service"
                 ]
               },
               {
