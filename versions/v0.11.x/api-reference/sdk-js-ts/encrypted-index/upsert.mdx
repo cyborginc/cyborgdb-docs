@@ -1,0 +1,578 @@
+---
+title: "Upsert"
+mode: "wide"
+---
+
+Adds new vectors to the encrypted index or updates existing vectors if they have the same ID. This operation is the primary method for populating an index with vector data.
+
+```typescript
+async upsert(items: VectorItem[]): Promise<CyborgdbServiceApiSchemasVectorsSuccessResponseModel>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `items` | [`VectorItem[]`](../types#vectoritem) | Array of vector items to insert or update in the index |
+
+#### VectorItem Structure
+
+Each `VectorItem` must contain an `id` and may optionally include `vector`, `contents`, and `metadata`:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Unique identifier for the vector item |
+| `vector` | `number[]` | Optional | The vector representation (required if no embedding model configured) |
+| `contents` | `string` \| `Buffer` | Optional | Original text or binary content associated with the vector |
+| `metadata` | `object` | Optional | Additional structured data associated with the vector |
+
+### Returns
+
+`Promise<CyborgdbServiceApiSchemasVectorsSuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message with the count of upserted vectors.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors preventing the upsert.
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Throws if the `items` array is empty or contains invalid data.
+        - Throws if vector dimensions don't match the index configuration.
+        - Throws if required fields are missing from vector items.
+        - Throws if item IDs contain invalid characters or are too long.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Basic Vector Upsert
+
+```typescript
+import { Client, IndexIVFModel, VectorItem } from '@cyborgdb/sdk-js-ts';
+
+const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+
+// Create index
+const indexKey = crypto.getRandomValues(new Uint8Array(32));
+const config: IndexIVFModel = {
+    type: 'ivf',
+    dimension: 768,
+    nLists: 1024,
+    metric: 'cosine'
+};
+
+const index = await client.createIndex('my-vectors', indexKey, config);
+
+// Prepare vector items
+const vectorItems: VectorItem[] = [
+    {
+        id: 'doc1',
+        vector: [0.1, 0.2, 0.3, /* ... 768 dimensions */],
+        contents: 'This is the content of the first document',
+        metadata: {
+            title: 'Introduction to Machine Learning',
+            author: 'Dr. Smith',
+            category: 'education',
+            tags: ['ml', 'ai', 'tutorial'],
+            published_date: '2024-01-15'
+        }
+    },
+    {
+        id: 'doc2',
+        vector: [0.4, 0.5, 0.6, /* ... 768 dimensions */],
+        contents: 'This is the content of the second document',
+        metadata: {
+            title: 'Advanced Neural Networks',
+            author: 'Dr. Jones',
+            category: 'research',
+            tags: ['neural-networks', 'deep-learning'],
+            published_date: '2024-01-20'
+        }
+    }
+];
+
+// Upsert vectors
+try {
+    const result = await index.upsert(vectorItems);
+    console.log('Upsert result:', result.message);
+    // Output: "Upserted 2 vectors"
+    
+    console.log(`Successfully added ${vectorItems.length} vectors to the index`);
+} catch (error) {
+    console.error('Upsert failed:', error.message);
+}
+```
+
+#### Updating Existing Vectors
+
+```typescript
+// Add initial vector
+const initialVector: VectorItem = {
+    id: 'updatable_doc',
+    vector: [0.1, 0.2, 0.3, /* ... */],
+    contents: 'Original content',
+    metadata: { version: 1, status: 'draft' }
+};
+
+await index.upsert([initialVector]);
+
+// Update the same vector with new data
+const updatedVector: VectorItem = {
+    id: 'updatable_doc', // Same ID - will update existing
+    vector: [0.15, 0.25, 0.35, /* ... */], // Updated vector
+    contents: 'Updated content with more information',
+    metadata: { version: 2, status: 'published', updated_date: '2024-01-25' }
+};
+
+try {
+    const updateResult = await index.upsert([updatedVector]);
+    console.log('Update result:', updateResult.message);
+    
+    // Verify the update
+    const retrievedVector = await index.get(['updatable_doc']);
+    console.log('Updated vector:', retrievedVector[0]);
+} catch (error) {
+    console.error('Update failed:', error.message);
+}
+```
+
+#### Batch Upsert with Content Processing
+
+```typescript
+interface DocumentData {
+    id: string;
+    title: string;
+    content: string;
+    author: string;
+    category: string;
+    vector: number[];
+}
+
+async function processBatchDocuments(
+    index: EncryptedIndex, 
+    documents: DocumentData[]
+) {
+    // Convert documents to VectorItem format
+    const vectorItems: VectorItem[] = documents.map(doc => ({
+        id: doc.id,
+        vector: doc.vector,
+        contents: doc.content,
+        metadata: {
+            title: doc.title,
+            author: doc.author,
+            category: doc.category,
+            word_count: doc.content.split(' ').length,
+            char_count: doc.content.length,
+            processed_date: new Date().toISOString()
+        }
+    }));
+    
+    try {
+        console.log(`Processing batch of ${vectorItems.length} documents`);
+        
+        const result = await index.upsert(vectorItems);
+        console.log('Batch upsert completed:', result.message);
+        
+        return {
+            success: true,
+            count: vectorItems.length,
+            message: result.message
+        };
+    } catch (error) {
+        console.error('Batch upsert failed:', error.message);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Usage
+const documents: DocumentData[] = [
+    {
+        id: 'article_001',
+        title: 'Getting Started with TypeScript',
+        content: 'TypeScript is a powerful superset of JavaScript...',
+        author: 'Jane Developer',
+        category: 'programming',
+        vector: [0.1, 0.2, /* ... */]
+    },
+    {
+        id: 'article_002',
+        title: 'React Best Practices',
+        content: 'When building React applications, it is important...',
+        author: 'John React',
+        category: 'frontend',
+        vector: [0.3, 0.4, /* ... */]
+    }
+];
+
+const batchResult = await processBatchDocuments(index, documents);
+```
+
+#### Large Dataset Processing
+
+```typescript
+async function processLargeDataset(
+    index: EncryptedIndex, 
+    allItems: VectorItem[], 
+    batchSize: number = 100
+) {
+    const results = [];
+    const totalBatches = Math.ceil(allItems.length / batchSize);
+    
+    console.log(`Processing ${allItems.length} items in ${totalBatches} batches`);
+    
+    for (let i = 0; i < allItems.length; i += batchSize) {
+        const batch = allItems.slice(i, i + batchSize);
+        const batchNumber = Math.floor(i / batchSize) + 1;
+        
+        try {
+            console.log(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} items)`);
+            
+            const startTime = Date.now();
+            const result = await index.upsert(batch);
+            const duration = Date.now() - startTime;
+            
+            results.push({
+                batchNumber,
+                itemCount: batch.length,
+                duration,
+                success: true,
+                message: result.message
+            });
+            
+            console.log(`Batch ${batchNumber} completed in ${duration}ms`);
+            
+            // Small delay between batches to avoid overwhelming the server
+            if (batchNumber < totalBatches) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+        } catch (error) {
+            console.error(`Batch ${batchNumber} failed:`, error.message);
+            results.push({
+                batchNumber,
+                itemCount: batch.length,
+                success: false,
+                error: error.message
+            });
+        }
+    }
+    
+    // Summary
+    const successful = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+    const totalProcessed = results
+        .filter(r => r.success)
+        .reduce((sum, r) => sum + r.itemCount, 0);
+    
+    console.log(`\nProcessing Summary:`);
+    console.log(`Successful batches: ${successful}/${totalBatches}`);
+    console.log(`Failed batches: ${failed}`);
+    console.log(`Total items processed: ${totalProcessed}/${allItems.length}`);
+    
+    return {
+        successful,
+        failed,
+        totalProcessed,
+        results
+    };
+}
+
+// Usage with large dataset
+const largeDataset: VectorItem[] = generateLargeDataset(10000); // Your data generation function
+const processingResult = await processLargeDataset(index, largeDataset, 50);
+```
+
+#### Handling Binary Content
+
+```typescript
+async function upsertWithBinaryContent(index: EncryptedIndex) {
+    // Example with different content types
+    const binaryItems: VectorItem[] = [
+        {
+            id: 'text_doc',
+            vector: [0.1, 0.2, /* ... */],
+            contents: 'Plain text content',
+            metadata: { type: 'text', format: 'plain' }
+        },
+        {
+            id: 'binary_doc',
+            vector: [0.3, 0.4, /* ... */],
+            contents: Buffer.from('Binary content data', 'utf8'), // Will be base64 encoded
+            metadata: { type: 'binary', format: 'custom' }
+        },
+        {
+            id: 'json_doc',
+            vector: [0.5, 0.6, /* ... */],
+            contents: JSON.stringify({ 
+                title: 'Structured Data',
+                data: [1, 2, 3, 4, 5]
+            }),
+            metadata: { type: 'json', format: 'structured' }
+        }
+    ];
+    
+    try {
+        const result = await index.upsert(binaryItems);
+        console.log('Binary content upsert:', result.message);
+        
+        // Retrieve and verify content handling
+        const retrieved = await index.get(['text_doc', 'binary_doc', 'json_doc'], ['contents', 'metadata']);
+        
+        retrieved.forEach(item => {
+            console.log(`${item.id} (${item.metadata?.type}):`);
+            if (Buffer.isBuffer(item.contents)) {
+                console.log('  Content: Binary data,', item.contents.length, 'bytes');
+            } else {
+                console.log('  Content:', typeof item.contents, item.contents?.toString().substring(0, 50) + '...');
+            }
+        });
+        
+    } catch (error) {
+        console.error('Binary content upsert failed:', error.message);
+    }
+}
+
+await upsertWithBinaryContent(index);
+```
+
+#### Upsert with Validation
+
+```typescript
+function validateVectorItem(item: VectorItem, expectedDimension: number): string[] {
+    const errors: string[] = [];
+    
+    // Validate ID
+    if (!item.id || typeof item.id !== 'string') {
+        errors.push('ID is required and must be a string');
+    } else if (item.id.length > 255) {
+        errors.push('ID must be 255 characters or less');
+    }
+    
+    // Validate vector dimensions
+    if (item.vector) {
+        if (!Array.isArray(item.vector)) {
+            errors.push('Vector must be an array of numbers');
+        } else if (item.vector.length !== expectedDimension) {
+            errors.push(`Vector must have exactly ${expectedDimension} dimensions, got ${item.vector.length}`);
+        } else if (item.vector.some(v => typeof v !== 'number' || isNaN(v))) {
+            errors.push('All vector components must be valid numbers');
+        }
+    }
+    
+    // Validate metadata
+    if (item.metadata && typeof item.metadata !== 'object') {
+        errors.push('Metadata must be an object');
+    }
+    
+    // Validate contents
+    if (item.contents && typeof item.contents !== 'string' && !Buffer.isBuffer(item.contents)) {
+        errors.push('Contents must be a string or Buffer');
+    }
+    
+    return errors;
+}
+
+async function safeUpsert(
+    index: EncryptedIndex, 
+    items: VectorItem[], 
+    expectedDimension: number = 768
+) {
+    // Validate all items first
+    const validationErrors: { id: string, errors: string[] }[] = [];
+    
+    items.forEach(item => {
+        const errors = validateVectorItem(item, expectedDimension);
+        if (errors.length > 0) {
+            validationErrors.push({ id: item.id, errors });
+        }
+    });
+    
+    if (validationErrors.length > 0) {
+        console.error('Validation errors found:');
+        validationErrors.forEach(({ id, errors }) => {
+            console.error(`  ${id}: ${errors.join(', ')}`);
+        });
+        throw new Error(`Validation failed for ${validationErrors.length} items`);
+    }
+    
+    // All items valid, proceed with upsert
+    try {
+        const result = await index.upsert(items);
+        console.log(`Safe upsert completed: ${result.message}`);
+        return result;
+    } catch (error) {
+        console.error('Safe upsert failed:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+const itemsToValidate: VectorItem[] = [
+    { id: 'valid_item', vector: new Array(768).fill(0.1), contents: 'Valid content' },
+    { id: 'invalid_item', vector: new Array(100).fill(0.1), contents: 'Wrong dimensions' }
+];
+
+try {
+    await safeUpsert(index, itemsToValidate, 768);
+} catch (error) {
+    console.error('Validation or upsert failed:', error.message);
+}
+```
+
+#### Incremental Data Loading
+
+```typescript
+class IncrementalLoader {
+    private index: EncryptedIndex;
+    private batchSize: number;
+    private processed: number = 0;
+    private errors: any[] = [];
+    
+    constructor(index: EncryptedIndex, batchSize: number = 100) {
+        this.index = index;
+        this.batchSize = batchSize;
+    }
+    
+    async loadData(items: VectorItem[]) {
+        console.log(`Starting incremental load of ${items.length} items`);
+        
+        for (let i = 0; i < items.length; i += this.batchSize) {
+            const batch = items.slice(i, i + this.batchSize);
+            
+            try {
+                await this.processBatch(batch, Math.floor(i / this.batchSize) + 1);
+            } catch (error) {
+                this.errors.push({
+                    batchStart: i,
+                    batchSize: batch.length,
+                    error: error.message
+                });
+            }
+        }
+        
+        return this.getLoadingSummary();
+    }
+    
+    private async processBatch(batch: VectorItem[], batchNumber: number) {
+        const startTime = Date.now();
+        
+        const result = await this.index.upsert(batch);
+        
+        this.processed += batch.length;
+        const duration = Date.now() - startTime;
+        
+        console.log(`Batch ${batchNumber}: ${batch.length} items in ${duration}ms`);
+        console.log(`Progress: ${this.processed} items processed`);
+        
+        return result;
+    }
+    
+    private getLoadingSummary() {
+        return {
+            totalProcessed: this.processed,
+            errorCount: this.errors.length,
+            errors: this.errors,
+            success: this.errors.length === 0
+        };
+    }
+    
+    async trainAfterLoading() {
+        if (this.processed > 0 && this.errors.length === 0) {
+            console.log('All data loaded successfully, starting training...');
+            try {
+                const trainResult = await this.index.train();
+                console.log('Training completed:', trainResult.message);
+                return trainResult;
+            } catch (error) {
+                console.error('Training failed:', error.message);
+                throw error;
+            }
+        } else {
+            console.log('Skipping training due to loading errors or no data processed');
+        }
+    }
+}
+
+// Usage
+const loader = new IncrementalLoader(index, 75);
+const loadingResult = await loader.loadData(largeDataset);
+
+if (loadingResult.success) {
+    await loader.trainAfterLoading();
+}
+
+console.log('Loading summary:', loadingResult);
+```
+
+### Response Format
+
+The method returns a success response object with the following structure:
+
+```typescript
+// Standard upsert completion response
+{
+    "status": "success",
+    "message": "Upserted 5 vectors"
+}
+```
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Operation status (typically "success") |
+| `message` | `string` | Descriptive message including the count of upserted vectors |
+
+### Content Encoding
+
+The SDK automatically handles content encoding:
+
+- **String content**: Transmitted as-is
+- **Buffer content**: Automatically base64 encoded for transmission
+- **Binary data**: Converted to Buffer then base64 encoded
+
+### Performance Considerations
+
+#### Batch Size Optimization
+
+- **Small batches (10-50 items)**: Lower memory usage, more API calls
+- **Medium batches (100-200 items)**: Balanced performance and resource usage
+- **Large batches (500+ items)**: Fewer API calls but higher memory usage and longer processing time
+
+#### Vector Dimensions
+
+- Ensure all vectors have the exact same dimensions as specified in index configuration
+- Higher dimensional vectors consume more memory and processing time
+- Consider dimensionality reduction for very high-dimensional data
+
+#### Metadata Efficiency
+
+- Keep metadata objects reasonably sized to minimize storage and transfer overhead
+- Use consistent metadata schemas across all vectors for better query performance
+- Consider indexing frequently queried metadata fields
+
+### Best Practices
+
+- **Batch Processing**: Process large datasets in appropriately sized batches
+- **Validation**: Validate vector dimensions and data types before upserting
+- **Error Handling**: Implement proper error handling and retry logic for network failures
+- **Progress Monitoring**: Provide progress feedback for long-running upsert operations
+- **Memory Management**: Monitor memory usage when processing large datasets
+- **Training**: Train the index after significant data additions for optimal query performance
+- **ID Consistency**: Use consistent and meaningful ID naming conventions
+- **Content Types**: Handle different content types appropriately (text, binary, structured data)
+
+### Important Notes
+
+- Upserting vectors with existing IDs will overwrite the previous data
+- All vector data is automatically encrypted before storage
+- The operation is atomic per batch - either all vectors in a batch are processed or none are
+- Large upsert operations may take significant time depending on the dataset size
+- Training the index after upserting large amounts of data will improve query performance
