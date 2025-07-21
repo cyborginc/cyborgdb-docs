@@ -188,6 +188,50 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         - **Redis**: `host=hostname,port=6379,db=0`
     </Step>
 
+    <Step title="SSL/HTTPS Configuration (Production)">
+        For production deployments, configure HTTPS by providing SSL certificates:
+
+        **Environment Variables:**
+        ```bash
+        SSL_CERT_PATH=/path/to/certificate.crt
+        SSL_KEY_PATH=/path/to/private.key
+        ```
+
+        **Docker Run Example:**
+        ```bash
+        sudo docker run -it -p 8000:8000 \
+          -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+          -e CYBORGDB_DB_TYPE=postgres \
+          -e CYBORGDB_CONNECTION_STRING="host=host.docker.internal port=5432 dbname=postgres user=postgres password=your_password" \
+          -e SSL_CERT_PATH=/certs/server.crt \
+          -e SSL_KEY_PATH=/certs/server.key \
+          -v /host/path/to/certs:/certs \
+          cyborginc/cyborgdb-service:latest
+        ```
+
+        **Docker Compose with SSL:**
+        ```yaml
+        version: '3.8'
+        services:
+          cyborgdb:
+            image: cyborginc/cyborgdb-service:latest
+            ports:
+              - "8000:8000"
+            environment:
+              - CYBORGDB_DB_TYPE=postgres
+              - CYBORGDB_CONNECTION_STRING=host=postgres port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
+              - CYBORGDB_API_KEY=cyborg_your_api_key_here
+              - SSL_CERT_PATH=/certs/server.crt
+              - SSL_KEY_PATH=/certs/server.key
+            volumes:
+              - ./certs:/certs
+            depends_on:
+              - postgres
+        ```
+
+        <Note>The server automatically switches to HTTPS when both certificate files are provided and exist. Without certificates, it starts in HTTP mode.</Note>
+    </Step>
+
     <Step title="Next Steps">
         Now that your CyborgDB service is running, you can:
 
