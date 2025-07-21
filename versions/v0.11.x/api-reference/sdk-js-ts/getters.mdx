@@ -1,0 +1,196 @@
+---
+title: "Getters"
+---
+
+## getIndexName
+
+```typescript
+getIndexName(): string
+```
+
+Returns the name of the encrypted index.
+
+### Returns
+
+`string`: The unique name identifier of the index.
+
+### Example Usage
+
+```typescript
+const indexName = index.getIndexName();
+console.log('Index name:', indexName);
+// Output: "my-vectors"
+```
+
+---
+
+## getIndexType
+
+```typescript
+getIndexType(): string | undefined
+```
+
+Returns the type of the index (for example, `'ivf'`, `'ivfpq'`, or `'ivfflat'`).
+
+### Returns
+
+`string | undefined`: The index type, or `undefined` if not set.
+
+### Example Usage
+
+```typescript
+const indexType = index.getIndexType();
+console.log('Index type:', indexType);
+// Output: "ivf"
+
+if (indexType === 'ivfpq') {
+    console.log('Using IVFPQ index for memory efficiency');
+} else if (indexType === 'ivfflat') {
+    console.log('Using IVFFlat index for high accuracy');
+}
+```
+
+---
+
+## isTrained
+
+```typescript
+isTrained(): boolean
+```
+
+Returns whether the index has been trained. Training is required for optimal query performance on IVF-based indexes.
+
+### Returns
+
+`boolean`: `true` if the index has been trained, `false` otherwise.
+
+### Example Usage
+
+```typescript
+const trained = index.isTrained();
+console.log('Index trained:', trained);
+
+if (!trained) {
+    console.log('Index needs training for optimal performance');
+    await index.train();
+}
+```
+
+---
+
+## getIndexConfig
+
+```typescript
+getIndexConfig(): IndexIVFFlatModel | IndexIVFModel | IndexIVFPQModel
+```
+
+Returns a copy of the index configuration object, preventing external modification of the internal state. The return type depends on the index type.
+
+### Returns
+
+- `IndexIVFFlatModel`: For IVFFlat indexes
+- `IndexIVFModel`: For IVF indexes  
+- `IndexIVFPQModel`: For IVFPQ indexes
+
+### Example Usage
+
+```typescript
+const config = index.getIndexConfig();
+console.log('Index configuration:', config);
+
+// Access common properties
+console.log('Dimension:', config.dimension);
+console.log('Metric:', config.metric);
+console.log('Number of lists:', config.nLists);
+
+// Type-specific properties
+if (config.type === 'ivfpq') {
+    const pqConfig = config as IndexIVFPQModel;
+    console.log('PQ dimension:', pqConfig.pqDim);
+    console.log('PQ bits:', pqConfig.pqBits);
+}
+```
+
+### Configuration Properties
+
+#### Common Properties (All Index Types)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `type` | `string` | Index type (`'ivf'`, `'ivfflat'`, or `'ivfpq'`) |
+| `dimension` | `number` | Vector dimensionality |
+| `metric` | `string` | Distance metric (`'cosine'`, `'euclidean'`, etc.) |
+| `nLists` | `number` | Number of inverted lists for clustering |
+
+#### IVFPQ-Specific Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `pqDim` | `number` | Product quantization dimension |
+| `pqBits` | `number` | Number of bits for quantization |
+
+### Advanced Usage
+
+```typescript
+// Check index capabilities based on configuration
+function analyzeIndexCapabilities(index: EncryptedIndex) {
+    const config = index.getIndexConfig();
+    const indexName = index.getIndexName();
+    const indexType = index.getIndexType();
+    const trained = index.isTrained();
+    
+    console.log(`\nIndex Analysis: ${indexName}`);
+    console.log('='.repeat(40));
+    console.log(`Type: ${indexType}`);
+    console.log(`Dimensions: ${config.dimension}`);
+    console.log(`Metric: ${config.metric}`);
+    console.log(`Lists: ${config.nLists}`);
+    console.log(`Trained: ${trained ? 'Yes' : 'No'}`);
+    
+    // Performance characteristics
+    if (indexType === 'ivfflat') {
+        console.log('\nCharacteristics:');
+        console.log('- Highest accuracy');
+        console.log('- Slower queries');
+        console.log('- Higher memory usage');
+    } else if (indexType === 'ivfpq') {
+        const pqConfig = config as IndexIVFPQModel;
+        console.log('\nCharacteristics:');
+        console.log('- Memory efficient');
+        console.log('- Compressed vectors');
+        console.log(`- PQ dimension: ${pqConfig.pqDim}`);
+        console.log(`- Quantization bits: ${pqConfig.pqBits}`);
+    } else {
+        console.log('\nCharacteristics:');
+        console.log('- Balanced performance');
+        console.log('- Good accuracy/speed tradeoff');
+    }
+    
+    // Recommendations
+    console.log('\nRecommendations:');
+    if (!trained) {
+        console.log('- Train the index for optimal performance');
+    }
+    if (config.nLists && config.nLists < 100) {
+        console.log('- Consider more lists for larger datasets');
+    }
+}
+
+// Usage
+analyzeIndexCapabilities(index);
+```
+
+### Immutability Note
+
+The `getIndexConfig()` method returns a copy of the configuration to prevent external modification:
+
+```typescript
+const config = index.getIndexConfig();
+
+// This will not affect the internal index configuration
+config.dimension = 512; // Changes only the returned copy
+
+// The internal configuration remains unchanged
+const originalConfig = index.getIndexConfig();
+console.log(originalConfig.dimension); // Still the original value
+```
