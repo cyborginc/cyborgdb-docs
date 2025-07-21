@@ -1,13 +1,13 @@
 ---
-title: "CyborgDB Microservice Quickstart"
-sidebarTitle: "Microservice"
+title: "CyborgDB Python Service Quickstart"
+sidebarTitle: "Python Service"
 mode: "wide"
 ---
 
-**CyborgDB** can be deployed as a standalone microservice using Docker. This allows you to run a fully self-contained encrypted vector search service on your own infrastructure with minimal setup. The service exposes a REST API for integration with any stack.
+**CyborgDB** can be deployed as a Python service using pip installation. This approach provides a lightweight alternative to Docker, allowing you to run the CyborgDB service directly in your Python environment with full control over dependencies and configuration.
 
 ## Overview
-The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on-prem, or containerized environments. It supports encrypted index operations, API key authentication, and concurrent access out of the box.
+The Python service is ideal for developers who prefer managing Python environments directly, need custom dependency management, or want to integrate CyborgDB service into existing Python applications. It provides the same REST API functionality as the Docker version.
 
 <Steps>
     <Step title="Get an API Key">
@@ -16,141 +16,117 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         Make sure to keep your API key secure and do not share it publicly.
     </Step>
 
+    <Step title="Check Prerequisites">
+        Ensure you have the required Python version and environment tools:
+
+        - **Python**: 3.9, 3.10, 3.11, 3.12, or 3.13
+        - **Package Manager**: conda (recommended) or pip with virtual environment
+        - **Database**: PostgreSQL or Redis instance (local or managed)
+
+        <Note>While conda is mentioned in the build instructions, the wheel works with any Python environment manager including pip, pipenv, poetry, etc.</Note>
+    </Step>
+
     <Step title="Choose Your Database Backend">
-        CyborgDB service supports two database backends:
+        CyborgDB service supports two database backends - choose based on your existing infrastructure:
         
-        - **PostgreSQL**: Recommended for production workloads, complex queries, and ACID compliance
-        - **Redis**: Ideal for high-speed caching and simple key-value operations with ultra-fast read performance
+        - **PostgreSQL**: Compatible with your existing PostgreSQL infrastructure
+          - Managed services: AWS RDS, Azure Database for PostgreSQL, Google Cloud SQL, DigitalOcean Managed Databases
+          - Self-hosted PostgreSQL instances
+        - **Redis**: Compatible with your existing Redis infrastructure
+          - Managed services: AWS ElastiCache, Azure Cache for Redis, Google Cloud Memorystore, Redis Cloud
+          - Self-hosted Redis instances
+
+        Both backends provide identical CyborgDB functionality and performance.
 
         <Note>Make sure you have your chosen database running and accessible before proceeding.</Note>
     </Step>
 
-    <Step title="Run with Docker (Quick Start)">
+    <Step title="Install CyborgDB Service">
+        Install the CyborgDB service package using conda and pip:
+
+        <CodeGroup>
+        ```bash Conda Environment (Recommended)
+        # Create conda environment
+        conda create -n cyborgdb-service python=3.12
+        conda activate cyborgdb-service
+
+        # Install the service
+        pip install cyborgdb-service
+        ```
+
+        ```bash Virtual Environment
+        # Create a virtual environment
+        python -m venv cyborgdb-env
+        source cyborgdb-env/bin/activate
+
+        # Install the service
+        pip install cyborgdb-service
+        ```
+
+        ```bash System Python
+        # Install directly (not recommended for production)
+        pip install cyborgdb-service
+        ```
+        </CodeGroup>
+
+        <Warning>Using conda or a virtual environment is strongly recommended to avoid dependency conflicts with other Python packages.</Warning>
+    </Step>
+
+    <Step title="Configure Environment Variables">
+        Set the required environment variables for your database backend:
+
         <Tabs>
             <Tab title="PostgreSQL Backend">
                 <CodeGroup>
-                ```bash Linux
-                sudo docker run -it --network host \
-                  -e CYBORGDB_DB_TYPE=postgres \
-                  -e "CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=postgres user=postgres password=your_password" \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
-                  cyborginc/cyborgdb-service:latest
+                ```bash Linux/macOS
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=postgres
+                export CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=postgres user=postgres password=your_password"
                 ```
 
-                ```bash macOS
-                sudo docker run -it -p 8000:8000 \
-                  -e CYBORGDB_DB_TYPE=postgres \
-                  -e 'CYBORGDB_CONNECTION_STRING=host=host.docker.internal port=5432 dbname=postgres user=postgres password=your_password' \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
-                  cyborginc/cyborgdb-service:latest
+                ```bash .env File
+                # Create a .env file in your working directory
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=postgres
+                CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=postgres user=postgres password=your_password
                 ```
                 </CodeGroup>
             </Tab>
             
             <Tab title="Redis Backend">
                 <CodeGroup>
-                ```bash Linux
-                sudo docker run -it --network host \
-                  -e CYBORGDB_DB_TYPE=redis \
-                  -e "CYBORGDB_CONNECTION_STRING=host=localhost,port=6379,db=0" \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
-                  cyborginc/cyborgdb-service:latest
+                ```bash Linux/macOS
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=redis
+                export CYBORGDB_CONNECTION_STRING="host=localhost,port=6379,db=0"
                 ```
 
-                ```bash macOS
-                sudo docker run -it -p 8000:8000 \
-                  -e CYBORGDB_DB_TYPE=redis \
-                  -e 'CYBORGDB_CONNECTION_STRING=host=host.docker.internal,port=6379,db=0' \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
-                  cyborginc/cyborgdb-service:latest
+                ```bash .env File
+                # Create a .env file in your working directory
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=redis
+                CYBORGDB_CONNECTION_STRING=host=localhost,port=6379,db=0
                 ```
                 </CodeGroup>
             </Tab>
         </Tabs>
 
-        <Note>
-        **Platform Differences:** 
-        - **Linux** uses `--network host` because Docker runs natively and can directly access the host network
-        - **macOS** uses `-p 8000:8000` and `host.docker.internal` because Docker runs in a VM and needs port mapping
-        </Note>
+        <Tip>Using a `.env` file is the most convenient method as it persists your configuration and keeps sensitive data out of your shell history.</Tip>
     </Step>
 
-    <Step title="Run with Docker Compose (Recommended)">
-        For a complete setup with database included, use Docker Compose:
+    <Step title="Start the Service">
+        Run the CyborgDB service using the installed command:
 
-        <Tabs>
-            <Tab title="With PostgreSQL">
-                Create a `docker-compose.yml` file:
+        ```bash
+        cyborgdb-service
+        ```
 
-                ```yaml
-                version: '3.8'
-                services:
-                  cyborgdb:
-                    image: cyborginc/cyborgdb-service:latest
-                    ports:
-                      - "8000:8000"
-                    environment:
-                      - CYBORGDB_DB_TYPE=postgres
-                      - CYBORGDB_CONNECTION_STRING=host=postgres port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
-                      - CYBORGDB_API_KEY=cyborg_your_api_key_here
-                    depends_on:
-                      - postgres
-                  
-                  postgres:
-                    image: postgres:15
-                    environment:
-                      - POSTGRES_DB=cyborgdb
-                      - POSTGRES_USER=cyborgdb
-                      - POSTGRES_PASSWORD=secure_password
-                    volumes:
-                      - postgres_data:/var/lib/postgresql/data
-                    ports:
-                      - "5432:5432"
+        The service will start and display startup information including:
+        - Database connection status
+        - Server URL (default: `http://localhost:8000`)
+        - Available API endpoints
 
-                volumes:
-                  postgres_data:
-                ```
-
-                Then run:
-                ```bash
-                docker-compose up -d
-                ```
-            </Tab>
-            
-            <Tab title="With Redis">
-                Create a `docker-compose.yml` file:
-
-                ```yaml
-                version: '3.8'
-                services:
-                  cyborgdb:
-                    image: cyborginc/cyborgdb-service:latest
-                    ports:
-                      - "8000:8000"
-                    environment:
-                      - CYBORGDB_DB_TYPE=redis
-                      - CYBORGDB_CONNECTION_STRING=host=redis,port=6379,db=0
-                      - CYBORGDB_API_KEY=cyborg_your_api_key_here
-                    depends_on:
-                      - redis
-                  
-                  redis:
-                    image: redis:7-alpine
-                    ports:
-                      - "6379:6379"
-                    volumes:
-                      - redis_data:/data
-
-                volumes:
-                  redis_data:
-                ```
-
-                Then run:
-                ```bash
-                docker-compose up -d
-                ```
-            </Tab>
-        </Tabs>
+        <Note>For additional configuration options, run `cyborgdb-service --help` to see all available command-line arguments and connection string examples.</Note>
     </Step>
 
     <Step title="Verify Installation">
@@ -167,19 +143,35 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         You should see a response indicating the service is healthy and ready to accept requests.
     </Step>
 
-    <Step title="Environment Configuration">
-        The service requires these environment variables:
+    <Step title="Advanced Configuration">
+        For production deployments, consider these additional configurations:
 
-        | Variable | Description | Required | Example |
-        |----------|-------------|----------|---------|
-        | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
-        | `CYBORGDB_DB_TYPE` | Database backend type | ✅ | `postgres` or `redis` |
-        | `CYBORGDB_CONNECTION_STRING` | Database connection details | ✅ | See connection formats below |
-        | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
+        <Tabs>
+            <Tab title="Environment Variables">
+                | Variable | Description | Required | Example |
+                |----------|-------------|----------|---------|
+                | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
+                | `CYBORGDB_DB_TYPE` | Database backend type | ✅ | `postgres` or `redis` |
+                | `CYBORGDB_CONNECTION_STRING` | Database connection details | ✅ | See connection formats |
+                | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
+                | `HOST` | Service host binding | ❌ | `0.0.0.0` |
+                | `PORT` | Service port | ❌ | `8000` |
+            </Tab>
 
-        **Connection String Formats:**
-        - **PostgreSQL**: `host=hostname port=5432 dbname=database user=username password=password`
-        - **Redis**: `host=hostname,port=6379,db=0`
+            <Tab title="Production Deployment">
+                For production environments, consider using a process manager:
+
+                ```bash
+                # Using gunicorn (install separately)
+                pip install gunicorn
+                gunicorn cyborgdb_service.main:app --host 0.0.0.0 --port 8000
+
+                # Using systemd service (Linux)
+                sudo systemctl enable cyborgdb-service
+                sudo systemctl start cyborgdb-service
+                ```
+            </Tab>
+        </Tabs>
     </Step>
 
     <Step title="Next Steps">
@@ -189,29 +181,34 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
             <Card title="API Reference" href="../../api-reference" icon="code">
                 Explore the REST API endpoints for creating indexes, upserting data, and querying vectors.
             </Card>
+            <Card title="Docker Alternative" href="./microservice" icon="docker">
+                Learn about the Docker deployment option for containerized environments.
+            </Card>
             <Card title="Core Library Guide" href="./core-library" icon="book">
                 Learn how to use the Python/C++ SDK for direct integration.
-            </Card>
-            <Card title="Production Deployment" href="../deployment" icon="server">
-                Best practices for deploying CyborgDB in production environments.
             </Card>
         </CardGroup>
     </Step>
 </Steps>
 
 ## Use Cases
-- **Cloud-Native Deployments**: Deploy CyborgDB to Kubernetes, AWS ECS, or other container orchestration platforms
-- **REST API Integration**: Integrate with client applications in any programming language via HTTP
-- **Secure Workloads**: Run encrypted vector operations without embedding CyborgDB directly in your application
-- **Concurrent Access**: Support multiple clients querying and managing indexes simultaneously
-- **Microservices Architecture**: Use as a dedicated vector search service in your microservices ecosystem
+- **Development Environments**: Quick setup for local development and testing
+- **Custom Python Integration**: Embed CyborgDB service within larger Python applications
+- **Dependency Management**: Full control over Python dependencies and versions
+- **CI/CD Pipelines**: Easy integration into Python-based deployment workflows
+- **Lightweight Deployment**: Minimal overhead compared to containerized solutions
+- **Custom Configuration**: Advanced configuration options through Python environment
 
-## Technical Specifications
-- **Base Image**: `continuumio/miniconda3:latest`
-- **Python Version**: 3.12
-- **PyTorch**: CPU-optimized for maximum compatibility
-- **Docker Image Size**: ~1.8GB
-- **Platform**: linux/amd64 linux
-- **Default Port**: 8000
+## Comparison with Docker Approach
 
-<Tip>The service includes sentence transformers and CPU-optimized PyTorch for high-performance vector operations and semantic search capabilities out of the box.</Tip>
+| Aspect | Python Service | Docker Service |
+|--------|---------------|----------------|
+| **Installation** | `pip install` | `docker run` |
+| **Dependencies** | Managed by pip/conda | Bundled in container |
+| **Resource Usage** | Lower overhead | Higher overhead |
+| **Environment Isolation** | Python virtualenv | Container isolation |
+| **Deployment Complexity** | Simple Python deployment | Container orchestration |
+| **Configuration** | Environment variables/files | Environment variables |
+| **Best For** | Development, Python-heavy workflows | Production, cloud deployment |
+
+<Tip>Both approaches provide identical CyborgDB functionality. Choose based on your deployment preferences and infrastructure requirements.</Tip>

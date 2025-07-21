@@ -29,7 +29,8 @@
                 "group": "Quickstart",
                 "pages": [
                   "versions/v0.11.x/guides/quickstart/core-library",
-                  "versions/v0.11.x/guides/quickstart/docker-service"
+                  "versions/v0.11.x/guides/quickstart/docker-service",
+                  "versions/v0.11.x/guides/quickstart/python-service"
                 ]
               },
               {
