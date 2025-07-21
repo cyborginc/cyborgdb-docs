@@ -154,7 +154,6 @@ The Python service is ideal for developers who prefer managing Python environmen
                 | `CYBORGDB_DB_TYPE` | Database backend type | ✅ | `postgres` or `redis` |
                 | `CYBORGDB_CONNECTION_STRING` | Database connection details | ✅ | See connection formats |
                 | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
-                | `HOST` | Service host binding | ❌ | `0.0.0.0` |
                 | `PORT` | Service port | ❌ | `8000` |
             </Tab>
 
@@ -164,7 +163,7 @@ The Python service is ideal for developers who prefer managing Python environmen
                 ```bash
                 # Using gunicorn (install separately)
                 pip install gunicorn
-                gunicorn cyborgdb_service.main:app --host 0.0.0.0 --port 8000
+                gunicorn cyborgdb_service.main:app --port 8000
 
                 # Using systemd service (Linux)
                 sudo systemctl enable cyborgdb-service
