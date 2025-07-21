@@ -349,6 +349,34 @@
                     "pages": [
                       "versions/v0.11.x/api-reference/sdk-js-ts/introduction"
                     ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/sdk-js-ts/client/client",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/client/create-index",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/client/load-index",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/client/list-indexes",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/client/logger"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/sdk-js-ts/encrypted-index/upsert",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/encrypted-index/query",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/encrypted-index/train",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/encrypted-index/get",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/encrypted-index/delete",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/encrypted-index/delete-index"
+                    ]
+                  },
+                  {
+                    "group": "Types & Getters",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/sdk-js-ts/getters",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/types"
+                    ]
                   }
                 ]
               }
