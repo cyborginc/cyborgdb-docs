@@ -6,7 +6,7 @@ mode: "wide"
 Checks the health status of the CyborgDB microservice to verify connectivity and service availability.
 
 ```typescript
-async getHealth(): Promise<any>
+async getHealth(): Promise<{ status: string; api_version: string; version: string }>
 ```
 
 ### Parameters
@@ -15,7 +15,7 @@ This method takes no parameters.
 
 ### Returns
 
-`Promise<{ [key: string]: string }>`: A Promise that resolves to the health status response from the CyborgDB service. The response is a dictionary containing string key-value pairs with service health information.
+`Promise<{ status: string; api_version: string; version: string }>`: A Promise that resolves to the health status response from the CyborgDB service containing the service status, API version, and application version.
 
 ### Exceptions
 
@@ -33,8 +33,6 @@ This method takes no parameters.
 
 ### Example Usage
 
-#### Basic Health Check
-
 ```typescript
 import { Client } from '@cyborgdb/sdk-js-ts';
 
@@ -49,246 +47,6 @@ try {
 }
 ```
 
-#### Application Startup Health Check
-
-```typescript
-import { Client } from '@cyborgdb/sdk-js-ts';
-
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
-
-async function waitForServiceReady(timeoutMs = 30000) {
-    const startTime = Date.now();
-    
-    while (Date.now() - startTime < timeoutMs) {
-        try {
-            const health = await client.getHealth();
-            console.log('CyborgDB service is ready:', health);
-            return true;
-        } catch (error) {
-            console.log('Service not ready yet, retrying in 2 seconds...');
-            await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-    }
-    
-    throw new Error(`Service did not become ready within ${timeoutMs}ms`);
-}
-
-// Usage during application startup
-try {
-    await waitForServiceReady();
-    console.log('Application can proceed - CyborgDB is healthy');
-    // Continue with application initialization
-} catch (error) {
-    console.error('Cannot start application:', error.message);
-    process.exit(1);
-}
-```
-
-#### Health Check with Detailed Status Parsing
-
-```typescript
-import { Client } from '@cyborgdb/sdk-js-ts';
-
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
-
-interface HealthResponse {
-    status: string;
-    api_version: string;
-    version: string;
-}
-
-async function checkServiceHealth(): Promise<HealthResponse> {
-    try {
-        const health = await client.getHealth() as HealthResponse;
-        
-        console.log('=== CyborgDB Health Check ===');
-        console.log(`Status: ${health.status}`);
-        console.log(`API Version: ${health.api_version}`);
-        console.log(`App Version: ${health.version}`);
-        
-        return health;
-        
-    } catch (error) {
-        console.error('Health check failed:', error.message);
-        throw error;
-    }
-}
-
-// Usage
-try {
-    const status = await checkServiceHealth();
-    if (status.status !== 'healthy') {
-        console.warn('Service is not in healthy state:', status.status);
-    }
-} catch (error) {
-    console.error('Cannot determine service health');
-}
-```
-
-#### Monitoring and Alerting Integration
-
-```typescript
-import { Client } from '@cyborgdb/sdk-js-ts';
-
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
-
-class HealthMonitor {
-    private intervalId: NodeJS.Timeout | null = null;
-    private consecutiveFailures = 0;
-    private readonly maxFailures = 3;
-    
-    startMonitoring(intervalMs = 30000) {
-        console.log(`Starting health monitoring every ${intervalMs}ms`);
-        
-        this.intervalId = setInterval(async () => {
-            await this.performHealthCheck();
-        }, intervalMs);
-        
-        // Perform initial check
-        this.performHealthCheck();
-    }
-    
-    stopMonitoring() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-            console.log('Health monitoring stopped');
-        }
-    }
-    
-    private async performHealthCheck() {
-        try {
-            const health = await client.getHealth();
-            console.log(`Health check passed at ${new Date().toISOString()}`);
-            
-            // Reset failure counter on success
-            this.consecutiveFailures = 0;
-            
-            // Optional: Send metrics to monitoring system
-            // this.sendMetrics('cyborgdb.health.status', 1);
-            
-        } catch (error) {
-            this.consecutiveFailures++;
-            console.error(`Health check failed (${this.consecutiveFailures}/${this.maxFailures}):`, error.message);
-            
-            if (this.consecutiveFailures >= this.maxFailures) {
-                await this.handleCriticalFailure();
-            }
-            
-            // Optional: Send alert to monitoring system
-            // this.sendAlert('cyborgdb.health.failure', error.message);
-        }
-    }
-    
-    private async handleCriticalFailure() {
-        console.error('CRITICAL: CyborgDB service has failed health checks multiple times');
-        
-        // Implement your alerting logic here:
-        // - Send email/SMS alerts
-        // - Update status page
-        // - Trigger auto-scaling
-        // - Failover to backup service
-        
-        // Example: Simple webhook notification
-        // await this.sendWebhookAlert({
-        //     service: 'CyborgDB',
-        //     status: 'CRITICAL',
-        //     message: `Service failed ${this.maxFailures} consecutive health checks`
-        // });
-    }
-}
-
-// Usage
-const monitor = new HealthMonitor();
-monitor.startMonitoring(60000); // Check every minute
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-    monitor.stopMonitoring();
-});
-```
-
-#### Load Balancer Integration
-
-```typescript
-import { Client } from '@cyborgdb/sdk-js-ts';
-
-class CyborgDBCluster {
-    private clients: Client[] = [];
-    private healthyClients: Set<number> = new Set();
-    
-    constructor(endpoints: string[], apiKey: string) {
-        this.clients = endpoints.map(endpoint => new Client(endpoint, apiKey));
-    }
-    
-    async updateHealthStatus() {
-        const healthChecks = this.clients.map(async (client, index) => {
-            try {
-                await client.getHealth();
-                this.healthyClients.add(index);
-                return { index, healthy: true };
-            } catch (error) {
-                this.healthyClients.delete(index);
-                return { index, healthy: false, error: error.message };
-            }
-        });
-        
-        const results = await Promise.allSettled(healthChecks);
-        
-        console.log(`Health check complete: ${this.healthyClients.size}/${this.clients.length} services healthy`);
-        
-        return results;
-    }
-    
-    getHealthyClient(): Client {
-        if (this.healthyClients.size === 0) {
-            throw new Error('No healthy CyborgDB services available');
-        }
-        
-        // Simple round-robin selection
-        const healthyIndexes = Array.from(this.healthyClients);
-        const randomIndex = Math.floor(Math.random() * healthyIndexes.length);
-        const clientIndex = healthyIndexes[randomIndex];
-        
-        return this.clients[clientIndex];
-    }
-}
-
-// Usage
-const cluster = new CyborgDBCluster([
-    'https://cyborgdb-1.example.com',
-    'https://cyborgdb-2.example.com',
-    'https://cyborgdb-3.example.com'
-], 'your-api-key');
-
-// Regular health checks
-setInterval(async () => {
-    await cluster.updateHealthStatus();
-}, 15000);
-
-// Use healthy client for operations
-try {
-    const client = cluster.getHealthyClient();
-    const indexes = await client.listIndexes();
-    console.log('Retrieved indexes from healthy service:', indexes);
-} catch (error) {
-    console.error('No healthy services available:', error.message);
-}
-```
-
-### Health Response Format
-
-The health endpoint returns a structured response with specific fields:
-
-```typescript
-// Actual health response structure
-{
-    "status": "healthy",
-    "api_version": "v1", 
-    "version": "1.2.3"
-}
-```
-
 #### Response Fields
 
 | Field | Type | Description |
@@ -296,13 +54,3 @@ The health endpoint returns a structured response with specific fields:
 | `status` | `string` | Current health status of the service (typically "healthy") |
 | `api_version` | `string` | Version of the API interface (e.g., "v1") |
 | `version` | `string` | Version of the CyborgDB application/service |
-```
-
-### Best Practices
-
-- **Startup Checks**: Always verify service health before performing critical operations
-- **Monitoring**: Implement regular health checks for production deployments
-- **Alerting**: Set up notifications for health check failures
-- **Circuit Breaker**: Stop making requests to unhealthy services to prevent cascading failures
-- **Load Balancing**: Use health status to route traffic only to healthy instances
-- **Timeout Configuration**: Set appropriate timeouts for health checks to avoid blocking operations
