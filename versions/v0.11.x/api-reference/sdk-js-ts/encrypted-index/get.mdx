@@ -1,0 +1,434 @@
+---
+title: "Get"
+mode: "wide"
+---
+
+Retrieves vectors from the encrypted index by their IDs, with options to specify which fields to include in the results.
+
+```typescript
+async get(
+    ids: string[],
+    include: string[] = ["vector", "contents", "metadata"]
+): Promise<Array<{ id: string; vector?: number[]; contents?: Buffer | string; metadata?: any }>>
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ids` | `string[]` | - | Array of vector IDs to retrieve from the index |
+| `include` | `string[]` | `["vector", "contents", "metadata"]` | _(Optional)_ Fields to include in the response. Valid options: `"vector"`, `"contents"`, `"metadata"` |
+
+### Returns
+
+`Promise<Array<GetResultItem>>`: A Promise that resolves to an array of retrieved vector items, each containing the requested fields based on the `include` parameter.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors preventing the retrieval.
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Throws if the `ids` parameter is null, undefined, or empty.
+        - Throws if the `include` parameter contains invalid field names.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Basic Vector Retrieval
+
+```typescript
+import { Client, IndexIVFModel } from '@cyborgdb/sdk-js-ts';
+
+const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+
+// Create and populate index
+const indexKey = crypto.getRandomValues(new Uint8Array(32));
+const config: IndexIVFModel = {
+    type: 'ivf',
+    dimension: 768,
+    nLists: 1024,
+    metric: 'cosine'
+};
+
+const index = await client.createIndex('my-vectors', indexKey, config);
+
+// Add some vectors first
+await index.upsert([
+    { 
+        id: 'doc1', 
+        vector: [0.1, 0.2, 0.3, /* ... 768 dimensions */], 
+        contents: 'This is the first document content',
+        metadata: { title: 'Document 1', category: 'research', date: '2024-01-15' }
+    },
+    { 
+        id: 'doc2', 
+        vector: [0.4, 0.5, 0.6, /* ... 768 dimensions */], 
+        contents: 'This is the second document content',
+        metadata: { title: 'Document 2', category: 'tutorial', date: '2024-01-16' }
+    }
+]);
+
+// Retrieve vectors with all fields
+try {
+    const vectors = await index.get(['doc1', 'doc2']);
+    
+    vectors.forEach(item => {
+        console.log(`ID: ${item.id}`);
+        console.log(`Vector dimensions: ${item.vector?.length}`);
+        console.log(`Contents: ${item.contents}`);
+        console.log(`Metadata: ${JSON.stringify(item.metadata)}`);
+        console.log('---');
+    });
+    
+} catch (error) {
+    console.error('Failed to retrieve vectors:', error.message);
+}
+```
+
+#### Selective Field Retrieval
+
+```typescript
+// Retrieve only metadata (efficient for checking existence and properties)
+const metadataOnly = await index.get(['doc1', 'doc2', 'doc3'], ['metadata']);
+
+metadataOnly.forEach(item => {
+    console.log(`${item.id}: ${item.metadata?.title} (${item.metadata?.category})`);
+    // Note: vector and contents will be undefined
+});
+
+// Retrieve only vectors (for similarity calculations)
+const vectorsOnly = await index.get(['doc1', 'doc2'], ['vector']);
+
+vectorsOnly.forEach(item => {
+    console.log(`${item.id}: ${item.vector?.length} dimensions`);
+    // Note: contents and metadata will be undefined
+});
+
+// Retrieve vectors and metadata (skip contents for efficiency)
+const vectorsAndMeta = await index.get(['doc1'], ['vector', 'metadata']);
+
+console.log('Vector with metadata:', {
+    id: vectorsAndMeta[0].id,
+    dimensions: vectorsAndMeta[0].vector?.length,
+    title: vectorsAndMeta[0].metadata?.title
+    // contents is undefined
+});
+```
+
+#### Batch Retrieval with Error Handling
+
+```typescript
+async function safeBatchGet(index: EncryptedIndex, allIds: string[], batchSize: number = 50) {
+    const results = [];
+    const failedIds = [];
+    
+    for (let i = 0; i < allIds.length; i += batchSize) {
+        const batch = allIds.slice(i, i + batchSize);
+        
+        try {
+            console.log(`Retrieving batch ${Math.floor(i / batchSize) + 1}: ${batch.length} vectors`);
+            const batchResults = await index.get(batch);
+            
+            results.push(...batchResults);
+            
+            // Add small delay between batches
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+        } catch (error) {
+            console.error(`Batch ${Math.floor(i / batchSize) + 1} failed:`, error.message);
+            failedIds.push(...batch);
+        }
+    }
+    
+    return {
+        results: results,
+        retrieved: results.length,
+        failed: failedIds.length,
+        failedIds: failedIds
+    };
+}
+
+// Usage
+const allIds = ['doc1', 'doc2', 'doc3', /* ... many more IDs */];
+const batchResults = await safeBatchGet(index, allIds, 25);
+
+console.log(`Retrieved ${batchResults.retrieved} vectors successfully`);
+if (batchResults.failed > 0) {
+    console.log(`Failed to retrieve ${batchResults.failed} vectors:`, batchResults.failedIds);
+}
+```
+
+#### Content Processing
+
+```typescript
+async function processVectorContents(index: EncryptedIndex, ids: string[]) {
+    try {
+        // Retrieve vectors with contents
+        const vectors = await index.get(ids, ['contents', 'metadata']);
+        
+        const processedResults = vectors.map(item => {
+            let processedContent = '';
+            
+            if (item.contents) {
+                if (typeof item.contents === 'string') {
+                    processedContent = item.contents;
+                } else if (Buffer.isBuffer(item.contents)) {
+                    // Convert buffer to string
+                    processedContent = item.contents.toString('utf8');
+                } else {
+                    processedContent = String(item.contents);
+                }
+            }
+            
+            return {
+                id: item.id,
+                processedContent: processedContent,
+                contentLength: processedContent.length,
+                metadata: item.metadata,
+                hasContent: !!item.contents
+            };
+        });
+        
+        return processedResults;
+        
+    } catch (error) {
+        console.error('Error processing vector contents:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+const processed = await processVectorContents(index, ['doc1', 'doc2']);
+processed.forEach(item => {
+    console.log(`${item.id}: ${item.contentLength} characters, has content: ${item.hasContent}`);
+});
+```
+
+#### Vector Existence Check
+
+```typescript
+async function checkVectorExistence(index: EncryptedIndex, ids: string[]) {
+    try {
+        // Efficient check - only retrieve metadata
+        const results = await index.get(ids, ['metadata']);
+        
+        const existingIds = new Set(results.map(item => item.id));
+        const existenceMap = new Map();
+        
+        ids.forEach(id => {
+            existenceMap.set(id, existingIds.has(id));
+        });
+        
+        return {
+            total: ids.length,
+            existing: results.length,
+            missing: ids.length - results.length,
+            existenceMap: existenceMap,
+            existingVectors: results
+        };
+        
+    } catch (error) {
+        console.error('Error checking vector existence:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+const existenceCheck = await checkVectorExistence(index, ['doc1', 'doc2', 'nonexistent', 'doc3']);
+
+console.log(`Found ${existenceCheck.existing} out of ${existenceCheck.total} vectors`);
+console.log('Existence status:');
+existenceCheck.existenceMap.forEach((exists, id) => {
+    console.log(`  ${id}: ${exists ? 'exists' : 'missing'}`);
+});
+```
+
+#### Integration with Search Results
+
+```typescript
+async function enrichSearchResults(index: EncryptedIndex, queryVector: number[]) {
+    try {
+        // First perform a search
+        const searchResults = await index.query(queryVector, 10);
+        
+        // Extract IDs from search results
+        const foundIds: string[] = [];
+        searchResults.results?.forEach(batch => {
+            batch.forEach(item => {
+                if (item.id) foundIds.push(item.id);
+            });
+        });
+        
+        if (foundIds.length === 0) {
+            return { searchResults, enrichedResults: [] };
+        }
+        
+        // Retrieve full content for the found vectors
+        const fullVectors = await index.get(foundIds, ['vector', 'contents', 'metadata']);
+        
+        // Create a map for easy lookup
+        const vectorMap = new Map();
+        fullVectors.forEach(v => vectorMap.set(v.id, v));
+        
+        // Enrich search results with full data
+        const enrichedResults = searchResults.results?.map(batch => 
+            batch.map(item => ({
+                ...item,
+                fullVector: vectorMap.get(item.id)?.vector,
+                contents: vectorMap.get(item.id)?.contents,
+                fullMetadata: vectorMap.get(item.id)?.metadata
+            }))
+        );
+        
+        return {
+            searchResults,
+            enrichedResults: enrichedResults || []
+        };
+        
+    } catch (error) {
+        console.error('Error enriching search results:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+const enriched = await enrichSearchResults(index, [0.1, 0.2, 0.3, /* query vector */]);
+
+enriched.enrichedResults.forEach(batch => {
+    batch.forEach(item => {
+        console.log(`Result: ${item.id} (distance: ${item.distance})`);
+        console.log(`Content: ${item.contents}`);
+        console.log(`Full metadata: ${JSON.stringify(item.fullMetadata)}`);
+    });
+});
+```
+
+#### Data Export and Backup
+
+```typescript
+async function exportVectors(index: EncryptedIndex, ids: string[], format: 'json' | 'csv' = 'json') {
+    try {
+        const vectors = await index.get(ids);
+        
+        if (format === 'json') {
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                totalVectors: vectors.length,
+                vectors: vectors.map(v => ({
+                    id: v.id,
+                    vector: v.vector,
+                    contents: Buffer.isBuffer(v.contents) ? v.contents.toString('base64') : v.contents,
+                    metadata: v.metadata
+                }))
+            };
+            
+            return JSON.stringify(exportData, null, 2);
+        } else {
+            // Simple CSV export (metadata as JSON string)
+            const csvHeader = 'id,vector_dimensions,contents_length,metadata\n';
+            const csvRows = vectors.map(v => {
+                const contentLength = v.contents ? 
+                    (Buffer.isBuffer(v.contents) ? v.contents.length : String(v.contents).length) : 0;
+                
+                return [
+                    v.id,
+                    v.vector?.length || 0,
+                    contentLength,
+                    JSON.stringify(v.metadata || {}).replace(/"/g, '""')
+                ].join(',');
+            }).join('\n');
+            
+            return csvHeader + csvRows;
+        }
+        
+    } catch (error) {
+        console.error('Error exporting vectors:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+const jsonExport = await exportVectors(index, ['doc1', 'doc2'], 'json');
+console.log('JSON Export:', jsonExport);
+
+const csvExport = await exportVectors(index, ['doc1', 'doc2'], 'csv');
+console.log('CSV Export:', csvExport);
+```
+
+### Response Format
+
+The method returns an array of objects with the following structure:
+
+```typescript
+// Example response with all fields
+[
+    {
+        "id": "doc1",
+        "vector": [0.1, 0.2, 0.3, /* ... */],
+        "contents": "Document content as string or Buffer",
+        "metadata": {
+            "title": "Document 1",
+            "category": "research",
+            "date": "2024-01-15"
+        }
+    },
+    {
+        "id": "doc2",
+        "vector": [0.4, 0.5, 0.6, /* ... */],
+        "contents": "Another document content",
+        "metadata": {
+            "title": "Document 2", 
+            "category": "tutorial",
+            "date": "2024-01-16"
+        }
+    }
+]
+```
+
+#### Response Item Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique identifier of the vector (always included) |
+| `vector` | `number[]` | The vector data (included if `"vector"` in include array) |
+| `contents` | `Buffer` \| `string` | The content data, automatically decoded from base64 if needed (included if `"contents"` in include array) |
+| `metadata` | `any` | Associated metadata object (included if `"metadata"` in include array) |
+
+### Field Selection Benefits
+
+Choosing specific fields can significantly improve performance:
+
+- **Metadata only**: Fast existence checks and property inspection
+- **Vectors only**: Efficient for similarity calculations and mathematical operations  
+- **Contents only**: Quick content retrieval without vector overhead
+- **Custom combinations**: Optimize data transfer for specific use cases
+
+### Best Practices
+
+- **Field Selection**: Only request the fields you need to minimize data transfer and processing time
+- **Batch Size**: When retrieving many vectors, process them in reasonable batches (25-50 vectors)
+- **Error Handling**: Implement proper error handling for network failures and missing vectors
+- **Content Processing**: Handle both string and Buffer content types appropriately
+- **Caching**: Consider caching frequently accessed vectors locally
+- **Existence Checks**: Use metadata-only retrieval for efficient existence verification
+
+### Performance Considerations
+
+- **Network Transfer**: Limiting fields reduces bandwidth usage and improves response times
+- **Memory Usage**: Large vectors and content can consume significant memory - process in batches
+- **Index Type**: Retrieval performance may vary based on the index configuration
+- **Concurrent Requests**: Multiple simultaneous get operations are supported and encouraged
+
+### Important Notes
+
+- Non-existent vector IDs are silently ignored (no error thrown)
+- The order of results may not match the order of input IDs
+- Content is automatically decoded from base64 storage format when retrieved
+- All data is decrypted automatically using the index's encryption key
+- Fields not included in the `include` parameter will be `undefined` in the response
