@@ -274,6 +274,12 @@
                       "versions/v0.11.x/api-reference/langchain/client/from_documents",
                       "versions/v0.11.x/api-reference/langchain/client/generate_key"
                     ]
+                  },
+                  {
+                    "group": "Types",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/langchain/types"
+                    ]
                   }
                 ]
               },
