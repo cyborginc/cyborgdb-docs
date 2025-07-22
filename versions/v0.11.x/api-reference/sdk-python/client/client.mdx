@@ -1,0 +1,33 @@
+---
+title: "Client"
+mode: "wide"
+---
+
+`Client` is the main class exposed by the CyborgDB Python SDK. It provides an interface to interact with the CyborgDB vector database service, allowing you to create and manage encrypted indexes.
+
+## Constructor
+
+```python
+Client(api_url, api_key, verify_ssl)
+```
+
+Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
+
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `api_url` | `str` | - | Base URL of the CyborgDB microservice endpoint |
+| `api_key` | `str` | `None` | _(Optional)_ API key for authentication with the microservice |
+| `verify_ssl` | `bool` | `None` | _(Optional)_ SSL verification (auto-detected for localhost) |
+
+### Example Usage
+
+```python
+from cyborgdb import Client
+
+# Create client with API key
+client = Client('https://your-cyborgdb-service.com', 'your-api-key')
+
+# Create client without API key (for local development)
+local_client = Client('http://localhost:8000')
+```

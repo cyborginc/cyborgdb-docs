@@ -1,0 +1,46 @@
+---
+title: "Get"
+mode: "wide"
+---
+
+Retrieves vectors from the encrypted index by their IDs, with options to specify which fields to include in the results.
+
+```python
+index.get(ids, include=["vector", "contents", "metadata"])
+```
+
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ids` | `List[str]` | - | List of vector IDs to retrieve |
+| `include` | `List[str]` | `["vector", "contents", "metadata"]` | Fields to include in the response |
+
+### Returns
+
+`List[Dict]` - List of dictionaries containing the requested vector data.
+
+```python
+[
+  {
+    "id": str, # Vector identifier (always included)
+    "vector": List[float], # Vector data (if included)
+    "contents": str, # Vector contents (if included)
+    "metadata": Dict # Vector metadata (if included)
+  },
+  ...
+]
+```
+
+### Example Usage
+
+```python
+# Get vectors with all data
+vector_ids = ['doc1', 'doc2', 'doc3']
+results = index.get(vector_ids)
+
+for item in results:
+    print(f"ID: {item['id']}")
+    print(f"Vector: {item['vector'][:5]}...")  # Show first 5 dimensions
+    print(f"Content: {item.get('contents', 'N/A')}")
+    print("---")
+```

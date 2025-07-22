@@ -1,0 +1,60 @@
+---
+title: "Index IVF PQ"
+mode: "wide"
+---
+
+Creates a configuration for an Inverted File with Product Quantization (IVF-PQ) index.
+
+|  Speed  | Accuracy | Memory Usage |
+|---------|----------|--------------|
+| Fast | Good | Low |
+
+```python
+IndexIVFPQ(
+    dimension,
+    n_lists,
+    n_subquantizers,
+    n_bits_per_code,
+    metric="euclidean"
+)
+```
+
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dimension` | `int` | - | The dimensionality of the vectors to be indexed |
+| `n_lists` | `int` | - | Number of clusters (centroids) for the inverted file structure |
+| `n_subquantizers` | `int` | - | - | Number of subquantizers for product quantization |
+| `n_bits_per_code` | `int` | - | - | Number of bits per quantization code (typically 8) |
+| `metric` | `str` | `"euclidean"` | Distance metric for similarity calculations |
+
+Supported metrics:
+- `"euclidean"`: Euclidean distance
+- `"cosine"`: Cosine similarity
+- `"l2"`: L2 distance
+
+### Returns
+
+An `IndexIVFPQ` configuration object that can be passed to `client.create_index()`.
+
+### Example Usage
+
+```python
+from cyborgdb import IndexIVFPQ
+
+# Create a memory-efficient IVF-PQ configuration
+config = IndexIVFPQ(
+    dimension=1536,
+    n_lists=1000,
+    n_subquantizers=32,
+    n_bits_per_code=8,
+    metric="cosine"
+)
+
+# Create an IVF-PQ index with the specified configuration
+index = client.create_index(
+    index_name=index_name,
+    index_key=index_key,
+    index_config=config
+)
+```
