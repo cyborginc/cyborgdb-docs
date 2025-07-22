@@ -1,12 +1,62 @@
 ---
-title: "CyborgDB - Microservice REST API Reference"
+title: "CyborgDB REST API Reference"
 sidebarTitle: "REST API Introduction"
 description: "`v0.11.x`"
 mode: "wide"
 ---
 
-This section describes the endpoints available in the **CyborgDB** microservice when deployed via Docker or Python. Each endpoint allows you to perform encrypted vector operations over HTTP using standard request formats.
+The CyborgDB REST API provides HTTP endpoints for all encrypted vector database operations. The API is organized into two main categories:
 
+- **Index Management** – Handles creation, configuration, training, and deletion of encrypted indexes.
+- **Vector Operations** – Provides data operations within indexes such as upserting vectors, querying, and retrieving stored items.
 
-'''REST
-'''
+This API is accessible via both [Docker Service](../../guides/quickstart/docker-service) and [Python Service](../../guides/quickstart/python-service) deployment methods.
+
+## Base URL
+
+The API is available at different URLs depending on your setup:
+
+**Development (HTTP):**
+```
+http://localhost:8000/v1
+```
+
+**Production (HTTPS):**
+```
+https://your-domain.com:8000/v1
+```
+
+<Note>HTTPS is automatically enabled when SSL certificates are configured in the service. See the Docker Service or Python Service guides for SSL setup instructions.</Note>
+
+## Authentication
+
+All API endpoints (except `/v1/health`) require authentication via API key in the request header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+## Error Responses
+
+All endpoints return errors in this format:
+
+```json
+{
+  "status_code": 400,
+  "detail": "Detailed error message describing what went wrong"
+}
+```
+
+Common status codes:
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `409`: Index name conflict
+- `422`: Validation error (malformed request)
+- `500`: Internal server error
+
+## Interactive Documentation
+
+Once your service is running, explore the complete API documentation with try-it-out functionality:
+
+- **Development:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Production:** `https://your-domain.com:8000/docs`

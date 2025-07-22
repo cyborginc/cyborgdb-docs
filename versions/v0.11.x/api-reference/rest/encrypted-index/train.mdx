@@ -1,0 +1,90 @@
+---
+title: "Train Index"
+mode: "wide"
+---
+
+Train an index for efficient querying. Required before optimal performance.
+
+**`POST /v1/indexes/train`**
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "batch_size": 2048,
+  "max_iters": 100,
+  "tolerance": 0.000001,
+  "max_memory": 0
+}
+```
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `index_name` | `string` | - | Name of the index to train |
+| `index_key` | `string` | - | 32-byte encryption key as hex string |
+| `batch_size` | `integer` | `2048` | Size of each training batch |
+| `max_iters` | `integer` | `100` | Maximum training iterations |
+| `tolerance` | `number` | `1e-6` | Convergence tolerance |
+| `max_memory` | `integer` | `0` | Max memory usage (0 = no limit) |
+
+## Response
+
+```json
+{
+  "status": "success",
+  "message": "Index 'my_index' trained successfully"
+}
+```
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters or insufficient vectors
+- `500`: Internal server error
+
+## Example Usage
+
+**Basic Training:**
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/train" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+
+**Custom Training Parameters:**
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/train" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "batch_size": 1024,
+       "max_iters": 50,
+       "tolerance": 0.0001
+     }'
+```
+
+<Tip>There must be at least `2 * n_lists` vector embeddings in the index prior to training.</Tip>
+
+## Training Requirements
+
+- **Minimum vectors**: At least `2 × n_lists` vectors must be present in the index
+- **Memory**: Training may require significant memory depending on `batch_size` and dataset size
+- **Time**: Training duration varies based on dataset size and convergence parameters
+
+## Use Cases
+
+- **Performance optimization**: Enable fast approximate nearest neighbor search
+- **Production preparation**: Train indexes before deploying to production
+- **Batch processing**: Train indexes after bulk data ingestion
+- **Index maintenance**: Retrain indexes after significant data updates

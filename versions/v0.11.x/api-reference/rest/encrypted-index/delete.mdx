@@ -1,0 +1,134 @@
+---
+title: "Delete Vectors"
+mode: "wide"
+---
+
+Delete specific vectors from the index by their IDs.
+
+**`POST /v1/vectors/delete`**
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "ids": ["item_1", "item_2", "item_3"]
+}
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `index_name` | `string` | ✅ | Name of the target index |
+| `index_key` | `string` | ✅ | 32-byte encryption key as hex string |
+| `ids` | `array[string]` | ✅ | List of item IDs to delete |
+
+## Response
+
+```json
+{
+  "status": "success",
+  "message": "3 items deleted successfully"
+}
+```
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters
+- `500`: Internal server error
+
+<Note>If some IDs don't exist in the index, they will be silently ignored and the operation will continue with the existing IDs.</Note>
+
+## Example Usage
+
+**Delete Single Item:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/delete" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["item_1"]
+     }'
+```
+
+**Delete Multiple Items:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/delete" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["item_1", "item_2", "item_3", "item_4", "item_5"]
+     }'
+```
+
+**Batch Delete:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/delete" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "cleanup_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": [
+         "old_1", "old_2", "old_3", "old_4", "old_5",
+         "temp_1", "temp_2", "temp_3", "temp_4", "temp_5",
+         "test_1", "test_2", "test_3", "test_4", "test_5"
+       ]
+     }'
+```
+
+## Safe Delete Pattern
+
+```bash
+# First, verify items exist
+curl -X POST "http://localhost:8000/v1/vectors/get" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["item_to_delete"],
+       "include": ["metadata"]
+     }'
+
+# Then delete if confirmed
+curl -X POST "http://localhost:8000/v1/vectors/delete" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["item_to_delete"]
+     }'
+```
+
+## Data Removal
+
+When vectors are deleted, the following data is permanently removed:
+
+- **Vector embeddings**: The stored vector representation
+- **Item contents**: Any associated text or binary content
+- **Metadata**: All key-value metadata pairs for the item
+- **Index references**: Internal index pointers to the deleted items
+
+## Performance Considerations
+
+- **Batch operations**: Delete multiple items in single requests for better performance
+- **Index impact**: Large deletions may affect index efficiency; consider retraining after significant deletions
+- **Memory**: Deleted items may not immediately free memory until index optimization occurs
+
+## Use Cases
+
+- **Data cleanup**: Remove outdated or invalid items
+- **Content moderation**: Delete inappropriate or flagged content
+- **User management**: Remove user-associated data upon account deletion
+- **Testing cleanup**: Clean up test data after development
+- **Data governance**: Remove data that exceeds retention policies

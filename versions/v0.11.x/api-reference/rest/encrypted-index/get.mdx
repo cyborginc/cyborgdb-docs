@@ -1,0 +1,176 @@
+---
+title: "Get Vectors"
+mode: "wide"
+---
+
+Retrieve specific vectors from the index by their IDs.
+
+**`POST /v1/vectors/get`**
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "ids": ["item_1", "item_2", "item_3"],
+  "include": ["vector", "contents", "metadata"]
+}
+```
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `index_name` | `string` | - | Name of the target index |
+| `index_key` | `string` | - | 32-byte encryption key as hex string |
+| `ids` | `array[string]` | - | List of item IDs to retrieve |
+| `include` | `array[string]` | `["vector", "contents", "metadata"]` | Fields to include in response |
+
+## Include Fields
+
+- `"vector"`: Original vector embeddings (IVFFlat indexes only)
+- `"contents"`: Text content associated with the vector
+- `"metadata"`: Item metadata key-value pairs
+
+## Response
+
+```json
+{
+  "results": [
+    {
+      "id": "item_1",
+      "vector": [0.1, 0.2, 0.3, 0.4],
+      "contents": "Hello world!",
+      "metadata": {"category": "greeting", "language": "en"}
+    },
+    {
+      "id": "item_2",
+      "vector": [0.5, 0.6, 0.7, 0.8],
+      "contents": "Bonjour monde!",
+      "metadata": {"category": "greeting", "language": "fr"}
+    }
+  ]
+}
+```
+
+If an item ID doesn't exist, it will be omitted from the results.
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters
+- `500`: Internal server error
+
+## Example Usage
+
+**Get All Fields:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/get" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["item_1", "item_2", "item_3"]
+     }'
+```
+
+**Get Only Contents:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/get" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["doc_1", "doc_2", "doc_3"],
+       "include": ["contents"]
+     }'
+```
+
+**Get Metadata Only:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/get" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["user_1", "user_2"],
+       "include": ["metadata"]
+     }'
+```
+
+**Batch Retrieval:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/get" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": [
+         "batch_1", "batch_2", "batch_3", "batch_4", "batch_5",
+         "batch_6", "batch_7", "batch_8", "batch_9", "batch_10"
+       ],
+       "include": ["contents", "metadata"]
+     }'
+```
+
+**Example Response (Contents Only):**
+```json
+{
+  "results": [
+    {
+      "id": "doc_1",
+      "contents": "First document content here..."
+    },
+    {
+      "id": "doc_2",
+      "contents": "Second document content here..."
+    },
+    {
+      "id": "doc_3",
+      "contents": "Third document content here..."
+    }
+  ]
+}
+```
+
+**Example Response (Metadata Only):**
+```json
+{
+  "results": [
+    {
+      "id": "user_1",
+      "metadata": {
+        "name": "Alice Smith",
+        "role": "admin",
+        "department": "engineering",
+        "created": "2024-01-01"
+      }
+    },
+    {
+      "id": "user_2",
+      "metadata": {
+        "name": "Bob Johnson",
+        "role": "user",
+        "department": "marketing",
+        "created": "2024-01-02"
+      }
+    }
+  ]
+}
+```
+
+<Note>For IVF and IVFPQ index types, the `vector` field cannot be included in the response as these index types use compression techniques that don't preserve original vectors.</Note>
+
+## Use Cases
+
+- **Content retrieval**: Get original text content by ID
+- **Metadata lookup**: Retrieve item metadata for display
+- **Data validation**: Verify stored data integrity
+- **Bulk operations**: Retrieve multiple items efficiently
+- **Content management**: Extract specific items for editing or processing

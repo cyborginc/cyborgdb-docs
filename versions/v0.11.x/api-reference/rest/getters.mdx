@@ -1,0 +1,262 @@
+---
+title: "Information Functions"
+---
+
+These endpoints provide information about indexes and their current state, similar to getter functions in the core library.
+
+## Get Index Information
+
+Returns detailed information about a specific index, including its training status and configuration.
+
+**`POST /v1/indexes/describe`**
+
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+
+### Returns
+
+```json
+{
+  "index_name": "my_index",
+  "index_type": "ivfflat", 
+  "is_trained": true,
+  "index_config": {
+    "type": "ivfflat",
+    "dimension": 384,
+    "n_lists": 1024,
+    "metric": "euclidean"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `index_name` | `string` | Name of the index |
+| `index_type` | `string` | Type of index (ivf, ivfflat, ivfpq) |
+| `is_trained` | `boolean` | Whether the index has been trained |
+| `index_config` | `object` | Complete index configuration |
+
+### Example Usage
+
+```bash
+# Check if index is trained
+response=$(curl -s -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index", 
+       "index_key": "your_64_character_hex_key_here"
+     }')
+
+is_trained=$(echo $response | jq -r '.is_trained')
+
+if [ "$is_trained" = "true" ]; then
+    echo "The index is ready for efficient querying."
+else
+    echo "The index is not trained; consider calling train()."
+fi
+```
+
+---
+
+## Get Index Name
+
+The index name is returned as part of the describe response.
+
+### Returns
+
+`string`: Name of the currently described index.
+
+### Example Usage
+
+```bash
+# Retrieve the index name
+index_name=$(curl -s -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"  
+     }' | jq -r '.index_name')
+
+echo "Current index name: $index_name"
+```
+
+---
+
+## Get Index Type
+
+The index type is returned as part of the describe response.
+
+### Returns
+
+| Return Type | Description |
+|-------------|-------------------------------------|
+| `string` | Type of the current index (ivf, ivfflat, ivfpq) |
+
+### Example Usage
+
+```bash
+# Retrieve the type of index
+index_type=$(curl -s -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }' | jq -r '.index_type')
+
+echo "Index type: $index_type"
+```
+
+---
+
+## Get Index Configuration
+
+The complete index configuration is returned as part of the describe response.
+
+### Returns
+
+`object`: Dictionary of index configuration parameters including type, dimension, n_lists, and metric.
+
+### Example Usage
+
+```bash
+# Retrieve index config
+config=$(curl -s -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }' | jq '.index_config')
+
+echo "Index configuration: $config"
+```
+
+---
+
+## Get Vector Count
+
+Returns the total number of vectors stored in an index.
+
+**`POST /v1/vectors/num_vectors`**
+
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/num_vectors" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+
+### Returns
+
+```json
+{
+  "status": "success", 
+  "message": "1500"
+}
+```
+
+The `message` field contains the vector count as a string.
+
+### Example Usage
+
+```bash
+# Get vector count
+count=$(curl -s -X POST "http://localhost:8000/v1/vectors/num_vectors" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }' | jq -r '.message')
+
+echo "Index contains $count vectors"
+```
+
+---
+
+## Get All Indexes
+
+Returns a list of all available index names.
+
+**`GET /v1/indexes/list`**
+
+```bash
+curl -X GET "http://localhost:8000/v1/indexes/list" \
+     -H "X-API-Key: cyborg_your_api_key_here"
+```
+
+### Returns
+
+```json
+{
+  "indexes": ["my_index", "another_index", "demo_index"]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `indexes` | `array[string]` | List of available index names |
+
+### Example Usage
+
+```bash
+# List all indexes
+indexes=$(curl -s -X GET "http://localhost:8000/v1/indexes/list" \
+     -H "X-API-Key: cyborg_your_api_key_here" | jq -r '.indexes[]')
+
+echo "Available indexes:"
+for index in $indexes; do
+    echo "  - $index"
+done
+```
+
+## Combined Information Script
+
+```bash
+#!/bin/bash
+
+# Function to get complete index information
+get_index_info() {
+    local index_name="$1"
+    local index_key="$2"
+    
+    echo "=== Index Information: $index_name ==="
+    
+    # Get detailed information
+    info=$(curl -s -X POST "http://localhost:8000/v1/indexes/describe" \
+         -H "X-API-Key: cyborg_your_api_key_here" \
+         -H "Content-Type: application/json" \
+         -d "{\"index_name\": \"$index_name\", \"index_key\": \"$index_key\"}")
+    
+    # Get vector count
+    count=$(curl -s -X POST "http://localhost:8000/v1/vectors/num_vectors" \
+         -H "X-API-Key: cyborg_your_api_key_here" \
+         -H "Content-Type: application/json" \
+         -d "{\"index_name\": \"$index_name\", \"index_key\": \"$index_key\"}" | \
+         jq -r '.message')
+    
+    # Extract and display information
+    echo "Name: $(echo $info | jq -r '.index_name')"
+    echo "Type: $(echo $info | jq -r '.index_type')" 
+    echo "Trained: $(echo $info | jq -r '.is_trained')"
+    echo "Vector Count: $count"
+    echo "Configuration: $(echo $info | jq '.index_config')"
+    echo ""
+}
+
+# Usage
+get_index_info "my_index" "your_64_character_hex_key_here"
+```

@@ -1,0 +1,208 @@
+---
+title: "Query Vectors"
+mode: "wide"
+---
+
+Search for similar vectors in the index.
+
+**`POST /v1/vectors/query`**
+
+## Single Query
+
+**Request Body:**
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "query_vectors": [0.1, 0.2, 0.3, 0.4],
+  "top_k": 10,
+  "n_probes": 1,
+  "greedy": false,
+  "filters": {"category": "greeting"},
+  "include": ["distance", "metadata"]
+}
+```
+
+## Batch Query
+
+**Request Body:**
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "query_vectors": [
+    [0.1, 0.2, 0.3, 0.4],
+    [0.5, 0.6, 0.7, 0.8]
+  ],
+  "top_k": 10,
+  "n_probes": 1,
+  "include": ["distance", "metadata"]
+}
+```
+
+## Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `index_name` | `string` | - | Name of the target index |
+| `index_key` | `string` | - | 32-byte encryption key as hex string |
+| `query_vectors` | `array` | - | Single vector or array of vectors for batch query |
+| `query_contents` | `string` | - | Text content for semantic search (if embedding_model set) |
+| `top_k` | `integer` | `100` | Number of nearest neighbors to return |
+| `n_probes` | `integer` | `1` | Number of index lists to probe |
+| `greedy` | `boolean` | `false` | Use greedy search for higher recall |
+| `filters` | `object` | `{}` | MongoDB-style metadata filters |
+| `include` | `array[string]` | `["distance", "metadata"]` | Fields to include in response |
+
+## Include Fields
+
+- `"distance"`: Similarity distance to query vector
+- `"metadata"`: Item metadata key-value pairs
+- `"vector"`: Original vector (IVFFlat indexes only)
+
+## Response
+
+**Single Query:**
+```json
+{
+  "results": [
+    {
+      "id": "item_1",
+      "distance": 0.123,
+      "metadata": {"category": "greeting", "language": "en"}
+    },
+    {
+      "id": "item_3",
+      "distance": 0.245,
+      "metadata": {"category": "greeting", "language": "es"}
+    }
+  ]
+}
+```
+
+**Batch Query:**
+```json
+{
+  "results": [
+    [
+      {"id": "item_1", "distance": 0.123, "metadata": {"category": "greeting"}},
+      {"id": "item_2", "distance": 0.245, "metadata": {"category": "farewell"}}
+    ],
+    [
+      {"id": "item_3", "distance": 0.156, "metadata": {"category": "question"}},
+      {"id": "item_4", "distance": 0.298, "metadata": {"category": "answer"}}
+    ]
+  ]
+}
+```
+
+## Metadata Filtering
+
+Use MongoDB-style query operators:
+
+```json
+{
+  "filters": {
+    "$and": [
+      {"category": "greeting"},
+      {"confidence": {"$gte": 0.9}}
+    ]
+  }
+}
+```
+
+**Supported operators:** `$and`, `$or`, `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$nin`
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters or vector dimensions
+- `500`: Internal server error
+
+## Example Usage
+
+**Basic Query:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.1, 0.2, 0.3, 0.4],
+       "top_k": 5
+     }'
+```
+
+**With Filters:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.1, 0.2, 0.3, 0.4],
+       "top_k": 10,
+       "filters": {
+         "$and": [
+           {"category": "document"},
+           {"priority": {"$gte": 3}}
+         ]
+       },
+       "include": ["distance", "metadata"]
+     }'
+```
+
+**Semantic Search:**
+```bash
+# For indexes with embedding_model
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "semantic_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_contents": "Find documents about machine learning",
+       "top_k": 10,
+       "filters": {"type": "research"}
+     }'
+```
+
+**Batch Query:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [
+         [0.1, 0.2, 0.3, 0.4],
+         [0.5, 0.6, 0.7, 0.8],
+         [0.9, 0.1, 0.2, 0.3]
+       ],
+       "top_k": 5,
+       "include": ["distance"]
+     }'
+```
+
+**High Recall Query:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.1, 0.2, 0.3, 0.4],
+       "top_k": 20,
+       "n_probes": 10,
+       "greedy": true
+     }'
+```
+
+<Note>If `embedding_model` is configured for the index, you can use either `query_vectors` for direct vector search or `query_contents` for text-based semantic search.</Note>
+
+<Tip>Higher `n_probes` values and `greedy=true` increase recall but may reduce query performance. Start with default values and adjust based on your recall requirements.</Tip>
