@@ -336,29 +336,25 @@
                   {
                     "group": "Client",
                     "pages": [
-                      "versions/v0.11.x/api-reference/cpp/client/client",
-                      "versions/v0.11.x/api-reference/cpp/client/create-index",
-                      "versions/v0.11.x/api-reference/cpp/client/load-index",
-                      "versions/v0.11.x/api-reference/cpp/client/list-indexes",
-                      "versions/v0.11.x/api-reference/cpp/client/logger"
+                      "versions/v0.11.x/api-reference/rest/client/create-index",
+                      "versions/v0.11.x/api-reference/rest/client/list-indexes"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "versions/v0.11.x/api-reference/cpp/encrypted-index/upsert",
-                      "versions/v0.11.x/api-reference/cpp/encrypted-index/query",
-                      "versions/v0.11.x/api-reference/cpp/encrypted-index/train",
-                      "versions/v0.11.x/api-reference/cpp/encrypted-index/get",
-                      "versions/v0.11.x/api-reference/cpp/encrypted-index/delete",
-                      "versions/v0.11.x/api-reference/cpp/encrypted-index/delete-index"
+                      "versions/v0.11.x/api-reference/rest/encrypted-index/upsert",
+                      "versions/v0.11.x/api-reference/rest/encrypted-index/query",
+                      "versions/v0.11.x/api-reference/rest/encrypted-index/train",
+                      "versions/v0.11.x/api-reference/rest/encrypted-index/get",
+                      "versions/v0.11.x/api-reference/rest/encrypted-index/delete",
+                      "versions/v0.11.x/api-reference/rest/encrypted-index/delete-index"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
-                      "versions/v0.11.x/api-reference/cpp/getters",
-                      "versions/v0.11.x/api-reference/cpp/types"
+                      "versions/v0.11.x/api-reference/rest/getters"
                     ]
                   }
                 ]

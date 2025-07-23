@@ -5,58 +5,42 @@ description: "`v0.11.x`"
 mode: "wide"
 ---
 
-The CyborgDB REST API provides HTTP endpoints for all encrypted vector database operations. The API is organized into two main categories:
+The CyborgDB REST API provides HTTP endpoints for all encrypted vector database operations using standard RESTful principles and JSON responses.
 
-- **Index Management** – Handles creation, configuration, training, and deletion of encrypted indexes.
-- **Vector Operations** – Provides data operations within indexes such as upserting vectors, querying, and retrieving stored items.
-
-This API is accessible via both [Docker Service](../../guides/quickstart/docker-service) and [Python Service](../../guides/quickstart/python-service) deployment methods.
+**API Version:** `v0.11.0`  
+**Base Path:** `/v1`
 
 ## Base URL
 
-The API is available at different URLs depending on your setup:
-
-**Development (HTTP):**
-```
-http://localhost:8000/v1
-```
-
-**Production (HTTPS):**
-```
-https://your-domain.com:8000/v1
-```
-
-<Note>HTTPS is automatically enabled when SSL certificates are configured in the service. See the Docker Service or Python Service guides for SSL setup instructions.</Note>
+**Development:** `http://localhost:8000/v1`  
+**Production:** `https://your-domain.com:8000/v1`
 
 ## Authentication
 
-All API endpoints (except `/v1/health`) require authentication via API key in the request header:
+All endpoints (except `/v1/health`) require an API key header:
 
 ```http
 X-API-Key: cyborg_your_api_key_here
 ```
 
-## Error Responses
+## Response Format
 
-All endpoints return errors in this format:
-
+**Success:**
 ```json
 {
-  "status_code": 400,
-  "detail": "Detailed error message describing what went wrong"
+  "status": "success",
+  "message": "Operation completed successfully"
 }
 ```
 
-Common status codes:
-- `401`: Authentication failed (invalid API key)
-- `404`: Index not found
-- `409`: Index name conflict
-- `422`: Validation error (malformed request)
-- `500`: Internal server error
+**Error:**
+```json
+{
+  "status_code": 400,
+  "detail": "Error description"
+}
+```
 
 ## Interactive Documentation
 
-Once your service is running, explore the complete API documentation with try-it-out functionality:
-
-- **Development:** [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Production:** `https://your-domain.com:8000/docs`
+Explore the complete API at: [http://localhost:8000/docs](http://localhost:8000/docs)

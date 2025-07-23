@@ -180,19 +180,6 @@ The Python service is ideal for developers who prefer managing Python environmen
         cyborgdb-service
         ```
 
-        **Generate Self-Signed Certificate (Development):**
-        ```bash
-        # Generate certificate
-        openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes
-
-        # Set environment variables
-        export SSL_CERT_PATH=./server.crt
-        export SSL_KEY_PATH=./server.key
-
-        # Start service with HTTPS
-        cyborgdb-service
-        ```
-
         **Using Let's Encrypt (Production):**
         ```bash
         # Install certbot (Ubuntu/Debian)
@@ -249,13 +236,15 @@ The Python service is ideal for developers who prefer managing Python environmen
 
         **Install Client SDKs:**
         
-        ```bash
-        # Python SDK
+        <CodeGroup>
+        ```bash Python
         pip install cyborgdb
-        
-        # JavaScript/TypeScript SDK  
+        ```
+
+        ```bash JavaScript/TypeScript
         npm install cyborgdb
         ```
+        </CodeGroup>
 
         **Learn More:**
 
