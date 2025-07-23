@@ -1,0 +1,122 @@
+---
+title: "Query"
+mode: "wide"
+---
+
+Searches for nearest neighbors in the encrypted index using vector similarity search. Supports single vector queries, batch queries, and semantic search with text content.
+
+```python
+# Single vector query
+index.query(query_vector=vector, top_k=10)
+
+# Batch vector queries
+index.query(query_vectors=vectors, top_k=10)
+
+# Semantic search with text
+index.query(query_contents=text, top_k=10)
+```
+
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query_vector` | `List[float]` or `np.ndarray` | `None` | Single query vector |
+| `query_vectors` | `List[List[float]]` or `np.ndarray` | `None` | 	Multiple query vectors for batch search |
+| `query_contents` | `str` | `None` | Text content for semantic search |
+| `top_k` | `int` | `100` | Number of results to return per query |
+| `n_probes` | `int` | `1` | Number of clusters to probe for search |
+| `filters` | `Dict` | `None` | _(Optional)_ Metadata filters to apply |
+| `include` | `List[str]` | `["distance", "metadata"]` | Fields to include in results |
+| `greedy` | `bool` | `False` | Use greedy search algorithm |
+
+### Returns
+
+`List[List[Dict]]` - List of result lists. For single queries, returns a list with one result list. For batch queries, returns multiple result lists.
+
+#### Result Format
+
+```python
+[
+  [
+    {
+      "id": str, # Vector identifier
+      "distance": float, # Similarity distance
+      "metadata": Dict, # Vector metadata (if included)
+      "contents": str, # Vector contents (if included)
+      "vector": List[float] # Vector data (if included)
+    },
+    ...
+  ],
+  ...
+]
+```
+
+### Example Usage
+
+Single vector query:
+
+```python
+# Basic similarity search
+query_vector = [0.1, 0.2, 0.3, 0.4]
+results = index.query(query_vector=query_vector, top_k=5)
+
+# Access results (single query returns list with one result list)
+for result in results[0]:
+    print(f"ID: {result['id']}, Distance: {result['distance']}")
+```
+
+Batch vector queries:
+
+```python
+import numpy as np
+
+# Query multiple vectors at once
+query_vectors = [
+    [0.1, 0.2, 0.3, 0.4],
+    [0.5, 0.6, 0.7, 0.8],
+    [0.9, 1.0, 1.1, 1.2]
+]
+
+batch_results = index.query(query_vectors=query_vectors, top_k=3)
+
+# Process each query's results
+for i, query_results in enumerate(batch_results):
+    print(f"Results for query {i+1}:")
+    for result in query_results:
+        print(f"  ID: {result['id']}, Distance: {result['distance']}")
+```
+
+Semantic search with text:
+
+```python
+# Search using text content
+results = index.query(
+    query_contents="machine learning healthcare applications",
+    top_k=10
+)
+
+for result in results[0]:
+    print(f"Found: {result['id']}")
+    if 'contents' in result:
+        print(f"Content: {result['contents'][:100]}...")
+```
+
+Advanced filtering and options:
+
+```python
+# Query with metadata filters and custom options
+results = index.query(
+    query_vector=[0.1] * 384,
+    top_k=20,
+    n_probes=5,  # Search more clusters for better recall
+    filters={'category': 'healthcare', 'priority': 'high'},
+    include=['distance', 'metadata', 'contents'],  # Include content in results
+    greedy=True  # Use greedy search for potentially better results
+)
+
+for result in results[0]:
+    print(f"ID: {result['id']}")
+    print(f"Distance: {result['distance']:.4f}")
+    print(f"Category: {result['metadata']['category']}")
+    print(f"Content preview: {result['contents'][:50]}...")
+    print("---")
+```

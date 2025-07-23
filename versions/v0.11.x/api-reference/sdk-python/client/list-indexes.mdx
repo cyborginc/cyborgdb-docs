@@ -1,0 +1,34 @@
+---
+title: "List Indexes"
+mode: "wide"
+---
+
+Retrieves a list of all available indexes from the CyborgDB microservice.
+
+```python
+client.list_indexes()
+```
+
+### Parameters
+
+This method does not require any parameters.
+
+### Returns
+
+A list of strings containing the names of all available indexes.
+
+**Return Type**: `List[str]`
+
+### Example Usage
+
+```python
+from cyborgdb import Client
+
+# Initialize client
+client = Client('https://localhost:8000', 'your-api-key')
+
+# Get list of all indexes
+indexes = client.list_indexes()
+print(f"Available indexes: {indexes}")
+# Output: ['documents', 'embeddings', 'semantic-search']
+```

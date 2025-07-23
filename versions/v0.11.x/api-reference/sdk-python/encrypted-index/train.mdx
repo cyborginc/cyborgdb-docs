@@ -1,0 +1,53 @@
+---
+title: "Train"
+mode: "wide"
+---
+
+Trains the index to optimize it for efficient similarity search queries. Training is essential for IVF-based indexes to achieve optimal query performance and accuracy.
+
+```python
+index.train(
+    batch_size=2048,
+    max_iters=100,
+    tolerance=1e-6,
+    max_memory=0
+)
+```
+
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `batch_size` | `int` | `2048` | Number of vectors to process per training batch |
+| `max_iters` | `int` | `100` | Maximum number of training iterations |
+| `tolerance` | `float` | `1e-6` | Convergence tolerance for training completion |
+| `max_memory` | `int` | `0` | Maximum memory usage in MB (0 = unlimited) |
+
+### Returns
+`None`
+
+### Example Usage
+
+Basic training with default parameters:
+
+```python
+# Train the index after adding the data
+index.train()
+```
+
+Custom training parameters:
+
+```python
+# Train with custom parameters for large dataset
+index.train(
+    batch_size=4096,     # Larger batches for better performance
+    max_iters=200,       # More iterations for better convergence
+    tolerance=1e-7,      # Stricter convergence criteria
+    max_memory=2048      # Limit memory usage to 2GB
+)
+```
+
+### Best Practices
+- **When to train**: Always train after adding your initial dataset
+- **Batch size**: Use larger batches (4096-8192) for datasets > 100K vectors
+- **Memory limits**: Set max_memory on memory-constrained systems
+- **Re-training**: Consider re-training if you add significant amounts of new data

@@ -1,0 +1,27 @@
+---
+title: "Delete"
+mode: "wide"
+---
+
+Removes vectors from the index by their IDs. This operation permanently deletes the specified vectors and their associated data.
+
+```python
+index.delete(ids)
+```
+
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ids` | `List[str]` | - | List of vector IDs to delete |
+
+### Returns
+
+`None`
+
+### Example Usage
+
+```python
+# Delete vectors by ID
+vector_ids = ['doc1', 'doc2', 'doc3']
+index.delete(vector_ids)
+```

@@ -274,6 +274,12 @@
                       "versions/v0.11.x/api-reference/langchain/client/from_documents",
                       "versions/v0.11.x/api-reference/langchain/client/generate_key"
                     ]
+                  },
+                  {
+                    "group": "Types",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/langchain/types"
+                    ]
                   }
                 ]
               },
@@ -365,6 +371,35 @@
                     "group": "Introduction",
                     "pages": [
                       "versions/v0.11.x/api-reference/sdk-python/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/sdk-python/client/client",
+                      "versions/v0.11.x/api-reference/sdk-python/client/create-index",
+                      "versions/v0.11.x/api-reference/sdk-python/client/list-indexes"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/sdk-python/encrypted-index/upsert",
+                      "versions/v0.11.x/api-reference/sdk-python/encrypted-index/query",
+                      "versions/v0.11.x/api-reference/sdk-python/encrypted-index/train",
+                      "versions/v0.11.x/api-reference/sdk-python/encrypted-index/get",
+                      "versions/v0.11.x/api-reference/sdk-python/encrypted-index/delete",
+                      "versions/v0.11.x/api-reference/sdk-python/encrypted-index/is-trained",
+                      "versions/v0.11.x/api-reference/sdk-python/encrypted-index/delete-index",
+                      "versions/v0.11.x/api-reference/sdk-python/encrypted-index/properties"
+                    ]
+                  },
+                  {
+                    "group": "Index Configuration",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/sdk-python/index-configuration/index-ivf",
+                      "versions/v0.11.x/api-reference/sdk-python/index-configuration/index-ivf-flat",
+                      "versions/v0.11.x/api-reference/sdk-python/index-configuration/index-ivf-pq"
                     ]
                   }
                 ]
