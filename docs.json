@@ -9,6 +9,20 @@
     "dark": "#314656"
   },
   "favicon": "/images/favicon-light.svg",
+  "contextual": {
+   "options": [
+     "copy",
+     "view",
+     "chatgpt",
+     "claude"
+   ]
+  },
+  "redirects": [
+    {
+      "source": "/versions/about",
+      "destination": "/versions/v0.11.x/guides/get-started/about"
+    }
+  ],
   "navigation": {
     "tabs": [
       {
@@ -18,9 +32,9 @@
             "version": "v0.11.x",
             "groups": [
               {
-                "group": "About CyborgDB",
+                "group": "CyborgDB",
                 "pages": [
-                  "versions/v0.11.x/guides/get-started/introduction",
+                  "versions/introduction",
                   "versions/v0.11.x/guides/get-started/about",
                   "versions/changelog"
                 ]
@@ -77,7 +91,7 @@
               {
                 "group": "Get Started",
                 "pages": [
-                  "versions/v0.10.x/guides/get-started/introduction",
+                  "versions/introduction",
                   "versions/v0.10.x/guides/get-started/quickstart",
                   "versions/v0.10.x/guides/get-started/about",
                   "versions/changelog"
