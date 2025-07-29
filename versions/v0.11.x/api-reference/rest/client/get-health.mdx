@@ -1,11 +1,11 @@
 ---
 title: "Health Check"
 mode: "wide"
+api: "GET /v1/health"
+playground: "simple"
 ---
 
 Check if the API service is running and accessible.
-
-**`GET /v1/health`**
 
 ## Parameters
 
@@ -28,10 +28,8 @@ Not required
 
 ```bash
 curl http://localhost:8000/v1/health
-```
 
-```bash
-# With HTTPS
+# Or with HTTPS
 curl https://your-domain.com:8000/v1/health
 ```
 

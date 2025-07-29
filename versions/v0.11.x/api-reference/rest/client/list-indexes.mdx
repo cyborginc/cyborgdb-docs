@@ -1,11 +1,11 @@
 ---
 title: "List Indexes"
 mode: "wide"
+api: "GET /v1/indexes/list"
+playground: "simple"
 ---
 
 Retrieve a list of all available encrypted indexes.
-
-**`GET /v1/indexes/list`**
 
 ## Parameters
 
@@ -13,7 +13,13 @@ None
 
 ## Authentication
 
-Required - API key via `X-API-Key` header
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../guides/get-started/api-key).
 
 ## Response
 
@@ -37,10 +43,8 @@ Required - API key via `X-API-Key` header
 ```bash
 curl -X GET "http://localhost:8000/v1/indexes/list" \
      -H "X-API-Key: cyborg_your_api_key_here"
-```
 
-```bash
-# With HTTPS
+# Or with HTTPS
 curl -X GET "https://your-domain.com:8000/v1/indexes/list" \
      -H "X-API-Key: cyborg_your_api_key_here"
 ```

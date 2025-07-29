@@ -1,11 +1,11 @@
 ---
 title: "Get Vectors"
 mode: "wide"
+api: "POST /v1/vectors/get"
+playground: "simple"
 ---
 
 Retrieve specific vectors from the index by their IDs.
-
-**`POST /v1/vectors/get`**
 
 ## Request Body
 
@@ -18,20 +18,31 @@ Retrieve specific vectors from the index by their IDs.
 }
 ```
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `index_name` | `string` | - | Name of the target index |
-| `index_key` | `string` | - | 32-byte encryption key as hex string |
-| `ids` | `array[string]` | - | List of item IDs to retrieve |
-| `include` | `array[string]` | `["vector", "contents", "metadata"]` | Fields to include in response |
-
-## Include Fields
-
-- `"vector"`: Original vector embeddings (IVFFlat indexes only)
-- `"contents"`: Text content associated with the vector
-- `"metadata"`: Item metadata key-value pairs
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the target index
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="ids" type="array[string]" required="true">
+    List of item IDs to retrieve
+  </ParamField>
+  <ParamField body="include" type="array[string]" default={["vector", "contents", "metadata"]}>
+    Fields to include in response:
+    <Expandable title="include options">
+      <ParamField body="vector" type="string">
+        Include original vector (only for IVFFlat indexes)
+      </ParamField>
+      <ParamField body="contents" type="string">
+        Include text content associated with the vector
+      </ParamField>
+      <ParamField body="metadata" type="string">
+        Include item metadata key-value pairs
+      </ParamField>
+    </Expandable>
+  </ParamField>
+</Expandable>
 
 ## Response
 

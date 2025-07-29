@@ -1,11 +1,11 @@
 ---
 title: "Create Index"
 mode: "wide"
+api: "POST /v1/indexes/create"
+playground: "simple"
 ---
 
 Create a new encrypted index with the specified configuration.
-
-**`POST /v1/indexes/create`**
 
 ## Request Body
 
@@ -23,14 +23,26 @@ Create a new encrypted index with the specified configuration.
 }
 ```
 
-## Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `index_name` | `string` | ✅ | Unique name for the index |
-| `index_key` | `string` | ✅ | 32-byte encryption key as hex string |
-| `index_config` | `object` | ✅ | Index configuration (see [Index Types](#index-types)) |
-| `embedding_model` | `string` | ❌ | Sentence-transformers model for auto-generation |
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Unique name for the index
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="index_config" type="object" required="true">
+    Index configuration object containing:
+    - `type`: Index type (`ivfflat`, `ivf`, `ivfpq`)
+    - `dimension`: Embedding dimension (required for `ivfflat` and `ivf`)
+    - `n_lists`: Number of inverted lists (required for `ivfflat` and `ivf`)
+    - `metric`: Distance metric (`euclidean`, `cosine`, `squared_euclidean`)
+    
+    See [Index Types](#index-types) for details.
+  </ParamField>
+  <ParamField body="embedding_model" type="string">
+    Optional sentence-transformers model for automatic embedding generation
+  </ParamField>
+</Expandable>
 
 ## Index Types
 

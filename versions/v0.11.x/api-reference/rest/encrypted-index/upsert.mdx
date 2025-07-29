@@ -1,11 +1,11 @@
 ---
 title: "Upsert Vectors"
 mode: "wide"
+api: "POST /v1/vectors/upsert"
+playground: "simple"
 ---
 
-Add new vectors or update existing ones in the index.
-
-**`POST /v1/vectors/upsert`**
+Add new vectors or update existing ones in the encrypted index.
 
 ## Request Body
 
@@ -30,24 +30,32 @@ Add new vectors or update existing ones in the index.
 }
 ```
 
-## Parameters
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the target index
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="items" type="array[object]" required="true">
+    List of items to upsert, each containing:
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `index_name` | `string` | ✅ | Name of the target index |
-| `index_key` | `string` | ✅ | 32-byte encryption key as hex string |
-| `items` | `array[object]` | ✅ | List of items to upsert |
-
-## Item Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | `string` | ✅ | Unique identifier for the item |
-| `vector` | `array[number]` | ❌* | Vector embedding |
-| `contents` | `string` | ❌ | Text content associated with the vector |
-| `metadata` | `object` | ❌ | Key-value metadata pairs |
-
-*Required unless index was created with an `embedding_model`
+    <Expandable title="items parameters">
+      <ParamField body="id" type="string" required="true">
+        Unique identifier for the item
+      </ParamField>
+      <ParamField body="vector" type="array[number]" required="false">
+        Vector embedding (required if index does not use automatic embedding generation)
+      </ParamField>
+      <ParamField body="contents" type="string">
+        Text content associated with the vector
+      </ParamField>
+      <ParamField body="metadata" type="object">
+        Key-value pairs for additional metadata
+      </ParamField>
+    </Expandable>
+  </ParamField>
+</Expandable>
 
 ## Response
 

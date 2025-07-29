@@ -1,13 +1,13 @@
 ---
 title: "Delete Index"
 mode: "wide"
+api: "POST /v1/indexes/delete"
+playground: "simple"
 ---
 
-<Warning>This action is irreversible. All vectors and metadata will be permanently lost.</Warning>
+<Warning>This action is irreversible. All items, vectors and metadata will be permanently lost.</Warning>
 
 Permanently delete an index and all its data.
-
-**`POST /v1/indexes/delete`**
 
 ## Request Body
 
@@ -18,12 +18,14 @@ Permanently delete an index and all its data.
 }
 ```
 
-## Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `index_name` | `string` | ✅ | Name of the index to delete |
-| `index_key` | `string` | ✅ | 32-byte encryption key as hex string |
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to delete
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+</Expandable>
 
 ## Response
 

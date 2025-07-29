@@ -7,9 +7,6 @@ mode: "wide"
 
 The CyborgDB REST API provides HTTP/HTTPS endpoints for all encrypted vector database operations using standard RESTful principles and JSON responses.
 
-**API Version:** `v0.11.0`  
-**Base Path:** `/v1`
-
 ## Base URL
 
 **Development:** `http://localhost:8000/v1`  
@@ -22,6 +19,8 @@ All endpoints (except `/v1/health`) require an API key header:
 ```http
 X-API-Key: cyborg_your_api_key_here
 ```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../guides/get-started/api-key).
 
 ## Response Format
 
@@ -43,4 +42,4 @@ X-API-Key: cyborg_your_api_key_here
 
 ## Interactive Documentation
 
-Explore the complete API at: [http://localhost:8000/docs](http://localhost:8000/docs)
+Explore the complete API at: [http://localhost:8000/docs](http://localhost:8000/docs) after starting the service.

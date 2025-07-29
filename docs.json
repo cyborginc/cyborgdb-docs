@@ -261,43 +261,6 @@
                 ]
               },
               {
-                "dropdown": "Langchain - Python",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.11.x/api-reference/langchain/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.11.x/api-reference/langchain/client/init",
-                      "versions/v0.11.x/api-reference/langchain/client/get_embeddings",
-                      "versions/v0.11.x/api-reference/langchain/client/add_texts",
-                      "versions/v0.11.x/api-reference/langchain/client/add_documents",
-                      "versions/v0.11.x/api-reference/langchain/client/delete",
-                      "versions/v0.11.x/api-reference/langchain/client/similarity_search",
-                      "versions/v0.11.x/api-reference/langchain/client/similarity_search_by_vector",
-                      "versions/v0.11.x/api-reference/langchain/client/similarity_search_with_score",
-                      "versions/v0.11.x/api-reference/langchain/client/_similarity_search_with_relevance_scores",
-                      "versions/v0.11.x/api-reference/langchain/client/max_marginal_relevance_search",
-                      "versions/v0.11.x/api-reference/langchain/client/max_marginal_relevance_search_by_vector",
-                      "versions/v0.11.x/api-reference/langchain/client/from_texts",
-                      "versions/v0.11.x/api-reference/langchain/client/from_documents",
-                      "versions/v0.11.x/api-reference/langchain/client/generate_key"
-                    ]
-                  },
-                  {
-                    "group": "Types",
-                    "pages": [
-                      "versions/v0.11.x/api-reference/langchain/types"
-                    ]
-                  }
-                ]
-              },
-              {
                 "dropdown": "Core Library - C++",
                 "icon": "brackets-curly",
                 "groups": [
@@ -350,6 +313,7 @@
                   {
                     "group": "Client",
                     "pages": [
+                      "versions/v0.11.x/api-reference/rest/client/get-health",
                       "versions/v0.11.x/api-reference/rest/client/create-index",
                       "versions/v0.11.x/api-reference/rest/client/list-indexes"
                     ]
@@ -368,7 +332,11 @@
                   {
                     "group": "Types & Getters",
                     "pages": [
-                      "versions/v0.11.x/api-reference/rest/getters"
+                      "versions/v0.11.x/api-reference/rest/getters/describe-index",
+                      "versions/v0.11.x/api-reference/rest/getters/get-index-name",
+                      "versions/v0.11.x/api-reference/rest/getters/get-index-type",
+                      "versions/v0.11.x/api-reference/rest/getters/get-index-config",
+                      "versions/v0.11.x/api-reference/rest/getters/get-vector-count"
                     ]
                   }
                 ]
@@ -387,6 +355,7 @@
                     "group": "Client",
                     "pages": [
                       "versions/v0.11.x/api-reference/sdk-python/client/client",
+                      "versions/v0.11.x/api-reference/sdk-python/client/get-health",
                       "versions/v0.11.x/api-reference/sdk-python/client/create-index",
                       "versions/v0.11.x/api-reference/sdk-python/client/list-indexes"
                     ]
@@ -428,9 +397,9 @@
                     "group": "Client",
                     "pages": [
                       "versions/v0.11.x/api-reference/sdk-js-ts/client/client",
+                      "versions/v0.11.x/api-reference/sdk-js-ts/client/get-health",
                       "versions/v0.11.x/api-reference/sdk-js-ts/client/create-index",
-                      "versions/v0.11.x/api-reference/sdk-js-ts/client/list-indexes",
-                      "versions/v0.11.x/api-reference/sdk-js-ts/client/get-health"
+                      "versions/v0.11.x/api-reference/sdk-js-ts/client/list-indexes"
                     ]
                   },
                   {
@@ -449,6 +418,43 @@
                     "pages": [
                       "versions/v0.11.x/api-reference/sdk-js-ts/getters",
                       "versions/v0.11.x/api-reference/sdk-js-ts/types"
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "Langchain - Python",
+                "icon": "python",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/langchain/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/langchain/client/init",
+                      "versions/v0.11.x/api-reference/langchain/client/get_embeddings",
+                      "versions/v0.11.x/api-reference/langchain/client/add_texts",
+                      "versions/v0.11.x/api-reference/langchain/client/add_documents",
+                      "versions/v0.11.x/api-reference/langchain/client/delete",
+                      "versions/v0.11.x/api-reference/langchain/client/similarity_search",
+                      "versions/v0.11.x/api-reference/langchain/client/similarity_search_by_vector",
+                      "versions/v0.11.x/api-reference/langchain/client/similarity_search_with_score",
+                      "versions/v0.11.x/api-reference/langchain/client/_similarity_search_with_relevance_scores",
+                      "versions/v0.11.x/api-reference/langchain/client/max_marginal_relevance_search",
+                      "versions/v0.11.x/api-reference/langchain/client/max_marginal_relevance_search_by_vector",
+                      "versions/v0.11.x/api-reference/langchain/client/from_texts",
+                      "versions/v0.11.x/api-reference/langchain/client/from_documents",
+                      "versions/v0.11.x/api-reference/langchain/client/generate_key"
+                    ]
+                  },
+                  {
+                    "group": "Types",
+                    "pages": [
+                      "versions/v0.11.x/api-reference/langchain/types"
                     ]
                   }
                 ]

@@ -1,11 +1,11 @@
 ---
 title: "Delete Vectors"
 mode: "wide"
+api: "POST /v1/vectors/delete"
+playground: "simple"
 ---
 
-Delete specific vectors from the index by their IDs.
-
-**`POST /v1/vectors/delete`**
+Delete specific items from the index by their IDs.
 
 ## Request Body
 
@@ -17,13 +17,17 @@ Delete specific vectors from the index by their IDs.
 }
 ```
 
-## Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `index_name` | `string` | ✅ | Name of the target index |
-| `index_key` | `string` | ✅ | 32-byte encryption key as hex string |
-| `ids` | `array[string]` | ✅ | List of item IDs to delete |
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the target index
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="ids" type="array[string]" required="true">
+    List of item IDs to delete
+  </ParamField>
+</Expandable>
 
 ## Response
 

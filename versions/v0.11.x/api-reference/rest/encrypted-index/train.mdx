@@ -1,11 +1,11 @@
 ---
 title: "Train Index"
 mode: "wide"
+api: "POST /v1/indexes/train"
+playground: "simple"
 ---
 
 Train an index for efficient querying. Required before optimal performance.
-
-**`POST /v1/indexes/train`**
 
 ## Request Body
 
@@ -20,16 +20,26 @@ Train an index for efficient querying. Required before optimal performance.
 }
 ```
 
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `index_name` | `string` | - | Name of the index to train |
-| `index_key` | `string` | - | 32-byte encryption key as hex string |
-| `batch_size` | `integer` | `2048` | Size of each training batch |
-| `max_iters` | `integer` | `100` | Maximum training iterations |
-| `tolerance` | `number` | `1e-6` | Convergence tolerance |
-| `max_memory` | `integer` | `0` | Max memory usage (0 = no limit) |
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to train
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="batch_size" type="integer" default={2048}>
+    Size of each training batch
+  </ParamField>
+  <ParamField body="max_iters" type="integer" default={100}>
+    Maximum training iterations
+  </ParamField>
+  <ParamField body="tolerance" type="number" default={1e-6}>
+    Convergence tolerance
+  </ParamField>
+  <ParamField body="max_memory" type="integer" default={0}>
+    Maximum memory usage (0 = no limit)
+  </ParamField>
+</Expandable>
 
 ## Response
 
