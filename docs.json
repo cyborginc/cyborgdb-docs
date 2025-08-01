@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "aspen",
   "name": "CyborgDB Docs",
   "description": "Documentation for CyborgDB, the Confidential Vector Database.",
   "colors": {
