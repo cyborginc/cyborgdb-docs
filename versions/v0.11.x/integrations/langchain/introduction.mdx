@@ -7,30 +7,41 @@ mode: "wide"
 
 CyborgDB provides a seamless integration with [LangChain](https://www.langchain.com/), enabling developers to leverage encrypted vector search for large language models (LLMs) and RAG pipelines. This integration is implemented via the `CyborgVectorStore` class, which conforms to the `VectorStore` interface from `langchain-core`.
 
-> **Installation**  
-> You must install the corresponding CyborgDB package with the `[langchain]` extra:  
-> ```bash
-> # For full version:
-> pip install cyborgdb-core[langchain]
->
-> # Or for the lite version (in-memory):
-> pip install cyborgdb-lite[langchain]
-> ```
+## Installation (Python Client SDK)
 
-## Overview
+To use the LangChain integration with the CyborgDB Python Client SDK, you need to install the `cyborgdb-client` package with the `langchain` extra:
 
-The LangChain integration supports both **core** and **lite** modes:
+```bash
+pip install cyborgdb[langchain]
+```
 
-- `cyborgdb-core`: Supports disk-backed, Redis, and Postgres storage with advanced index types like `IVF` and `IVFPQ`.
-- `cyborgdb-lite`: Pure in-memory mode, only supports `IVFFlat`.
+This will install the necessary dependencies for the LangChain integration.
 
-The `CyborgVectorStore` class provides:
+## Installation (Embedded Library)
 
-- Encrypted index creation and retrieval
-- Support for all LangChain embedding interfaces and SentenceTransformers
-- Fast similarity search and MMR reranking
-- Metadata filtering
-- Async support
+To install CyborgDB with LangChain support, you must install either `cyborgdb-core` or `cyborgdb-lite` with the `langchain` extra. You can do this using pip:
+
+```bash
+# For cyborgdb-core
+pip install cyborgdb-core[langchain]
+
+# For cyborgdb-lite
+pip install cyborgdb-lite[langchain]
+```
+
+<Tip>To learn more about the differences between `cyborgdb`, `cyborgdb-core`, and `cyborgdb-lite`, refer to the [Deployment Models Guide](../../intro/deployment-models.mdx).</Tip>
+
+## Usage
+
+To use CyborgDB with LangChain, you can import the `CyborgVectorStore` class from the `cyborgdb_core.integration.langchain` or `cyborgdb_lite.integration.langchain` module, depending on which version you are using.
+
+```python
+from cyborgdb.integrations.langchain import CyborgVectorStore
+# or
+from cyborgdb_core.integrations.langchain import CyborgVectorStore
+# or
+from cyborgdb_lite.integrations.langchain import CyborgVectorStore
+```
 
 ## Key Classes
 
