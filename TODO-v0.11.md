@@ -1,0 +1,25 @@
+# v0.11 TODO
+
+- [X] Restructure docs for `v0.11.x` with new separation of concners
+- [X] Fix broken links
+- [X] Remove REST API & SDK from `v0.10.x`
+- [X] Write `v0.11.x` changelog
+- [ ] Update `v0.11.x/intro/intro` page
+- [ ] Update `v0.11.x/intro/about` page (update, remove backing stores & deployment models, remove `cyborgdb-lite` and add context)
+- [ ] Write `v0.11.x/intro/deployment-models` page
+- [ ] Write `v0.11.x/intro/backing-stores` page
+- [ ] Write `v0.11.x/intro/quickstart` page
+- [ ] Write `v0.11.x/intro/using-docs` page
+- [ ] Write `v0.11.x/embedded/guides/intro` page
+- [ ] Update all `v0.11.x/embedded/guides/*` pages (API key, code examples, core -> embdedded)
+- [ ] Update all `v0.11.x/embedded/python/*` pages (API key, code examples, core -> embdedded)
+- [ ] Update all `v0.11.x/embedded/cpp/*` pages (API key, code examples, core -> embdedded)
+- [ ] Write `v0.11.x/service/guides/intro` page
+- [ ] Review all `v0.11.x/service/guides/*` pages (content, code examples, links)
+- [X] Review all `v0.11.x/service/rest-api/*` pages (content, code examples, links)
+- [ ] Review all `v0.11.x/service/python-sdk/*` pages (content, code examples, links)
+- [ ] Review all `v0.11.x/service/js-ts-sdk/*` pages (content, code examples, links)
+- [ ] Compare SDK references for consistency
+- [ ] Write `v0.11.x/integrations/integrations/about` page
+- [ ] Write `v0.11.x/integrations/langchain/introduction` page
+- [ ] Review all `v0.11.x/integrations/langchain/*` pages (content, code examples, links)
