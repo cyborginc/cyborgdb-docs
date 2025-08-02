@@ -36,13 +36,15 @@
                 "pages": [
                   "versions/v0.11.x/intro/intro",
                   "versions/v0.11.x/intro/about",
-                  "versions/v0.11.x/intro/deployment-models"
+                  "versions/v0.11.x/intro/deployment-models",
+                  "versions/v0.11.x/intro/backing-stores"
                 ]
               },
               {
                 "group": "Getting Started",
                 "pages": [
                   "versions/v0.11.x/intro/quickstart",
+                  "versions/v0.11.x/intro/get-api-key",
                   "versions/v0.11.x/intro/using-docs"
                 ]
               },
@@ -78,6 +80,7 @@
                       "versions/v0.11.x/service/guides/encrypted-indexes/configure-index",
                       "versions/v0.11.x/service/guides/encrypted-indexes/load-index",
                       "versions/v0.11.x/service/guides/encrypted-indexes/list-indexes",
+                      "versions/v0.11.x/service/guides/encrypted-indexes/train-index",
                       "versions/v0.11.x/service/guides/encrypted-indexes/delete-index"
                     ]
                   },
@@ -87,7 +90,6 @@
                       "versions/v0.11.x/service/guides/data-operations/add-items",
                       "versions/v0.11.x/service/guides/data-operations/query",
                       "versions/v0.11.x/service/guides/data-operations/metadata-filtering",
-                      "versions/v0.11.x/service/guides/data-operations/train-index",
                       "versions/v0.11.x/service/guides/data-operations/get-items",
                       "versions/v0.11.x/service/guides/data-operations/delete-items"
                     ]
@@ -158,6 +160,7 @@
                       "versions/v0.11.x/service/python-sdk/client/client",
                       "versions/v0.11.x/service/python-sdk/client/get-health",
                       "versions/v0.11.x/service/python-sdk/client/create-index",
+                      "versions/v0.11.x/service/python-sdk/client/load-index",
                       "versions/v0.11.x/service/python-sdk/client/list-indexes"
                     ]
                   },
@@ -169,17 +172,14 @@
                       "versions/v0.11.x/service/python-sdk/encrypted-index/train",
                       "versions/v0.11.x/service/python-sdk/encrypted-index/get",
                       "versions/v0.11.x/service/python-sdk/encrypted-index/delete",
-                      "versions/v0.11.x/service/python-sdk/encrypted-index/is-trained",
-                      "versions/v0.11.x/service/python-sdk/encrypted-index/delete-index",
-                      "versions/v0.11.x/service/python-sdk/encrypted-index/properties"
+                      "versions/v0.11.x/service/python-sdk/encrypted-index/delete-index"
                     ]
                   },
                   {
                     "group": "Index Configuration",
                     "pages": [
-                      "versions/v0.11.x/service/python-sdk/index-configuration/index-ivf",
-                      "versions/v0.11.x/service/python-sdk/index-configuration/index-ivf-flat",
-                      "versions/v0.11.x/service/python-sdk/index-configuration/index-ivf-pq"
+                      "versions/v0.11.x/service/python-sdk/getters",
+                      "versions/v0.11.x/service/python-sdk/types"
                     ]
                   }
                 ]
@@ -200,6 +200,7 @@
                       "versions/v0.11.x/service/js-ts-sdk/client/client",
                       "versions/v0.11.x/service/js-ts-sdk/client/get-health",
                       "versions/v0.11.x/service/js-ts-sdk/client/create-index",
+                      "versions/v0.11.x/service/js-ts-sdk/client/load-index",
                       "versions/v0.11.x/service/js-ts-sdk/client/list-indexes"
                     ]
                   },
@@ -248,6 +249,7 @@
                       "versions/v0.11.x/embedded/guides/encrypted-indexes/configure-index",
                       "versions/v0.11.x/embedded/guides/encrypted-indexes/load-index",
                       "versions/v0.11.x/embedded/guides/encrypted-indexes/list-indexes",
+                      "versions/v0.11.x/embedded/guides/encrypted-indexes/train-index",
                       "versions/v0.11.x/embedded/guides/encrypted-indexes/delete-index"
                     ]
                   },
@@ -257,7 +259,6 @@
                       "versions/v0.11.x/embedded/guides/data-operations/add-items",
                       "versions/v0.11.x/embedded/guides/data-operations/query",
                       "versions/v0.11.x/embedded/guides/data-operations/metadata-filtering",
-                      "versions/v0.11.x/embedded/guides/data-operations/train-index",
                       "versions/v0.11.x/embedded/guides/data-operations/get-items",
                       "versions/v0.11.x/embedded/guides/data-operations/delete-items"
                     ]
@@ -458,9 +459,9 @@
           },
           {
             "tab": "API Reference",
-                        "dropdowns": [
+            "dropdowns": [
               {
-                "dropdown": "Core Library - Python",
+                "dropdown": "Python",
                 "icon": "python",
                 "groups": [
                   {
@@ -500,7 +501,7 @@
                 ]
               },
               {
-                "dropdown": "Core Library - C++",
+                "dropdown": "C++",
                 "icon": "brackets-curly",
                 "groups": [
                   {
@@ -535,42 +536,6 @@
                     "pages": [
                       "versions/v0.10.x/api-reference/cpp/getters",
                       "versions/v0.10.x/api-reference/cpp/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Microservice - REST",
-                "icon": "server",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/rest/introduction"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Microservice - Python",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/sdk-python/introduction"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Microservice - JS/TS",
-                "icon": "js",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/sdk-js-ts/introduction"
                     ]
                   }
                 ]

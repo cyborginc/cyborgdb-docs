@@ -247,26 +247,19 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         ```
         </CodeGroup>
 
-        <CardGroup>
-            <Card title="API Reference" href="../../api-reference" icon="code">
-                Explore the REST API endpoints for creating indexes, upserting data, and querying vectors.
+        <CardGroup cols={3}>
+            <Card title="REST API Reference" href="../../rest-api/introduction" icon="python">
+                Learn how to use the REST API for direct integration
             </Card>
-            <Card title="Core Library Guide" href="./core-library" icon="book">
-                Learn how to use the Python/C++ SDK for direct integration.
+            <Card title="Python SDK Reference" href="../../python-sdk/introduction" icon="python">
+                Learn how to use the Python SDK for direct integration
             </Card>
-            <Card title="Production Deployment" href="../deployment" icon="server">
-                Best practices for deploying CyborgDB in production environments.
+            <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/introduction" icon="js">
+                Learn how to use the JavaScript/TypeScript SDK for direct integration
             </Card>
         </CardGroup>
     </Step>
 </Steps>
-
-## Use Cases
-- **Cloud-Native Deployments**: Deploy CyborgDB to Kubernetes, AWS ECS, or other container orchestration platforms
-- **REST API Integration**: Integrate with client applications in any programming language via HTTP
-- **Secure Workloads**: Run encrypted vector operations without embedding CyborgDB directly in your application
-- **Concurrent Access**: Support multiple clients querying and managing indexes simultaneously
-- **Microservices Architecture**: Use as a dedicated vector search service in your microservices ecosystem
 
 ## Technical Specifications
 - **Base Image**: `continuumio/miniconda3:latest`

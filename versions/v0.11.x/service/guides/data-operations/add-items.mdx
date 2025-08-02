@@ -29,7 +29,6 @@ index.Upsert(vectors, ids);
 ```
 </CodeGroup>
 
-For more info on `Array2D` in C++, see the [API Reference](../../api-reference/cpp/types#array2d).
 
 ## Adding Items with Contents
 
@@ -128,13 +127,16 @@ This feature uses [`sentence-transformers`](https://www.sbert.net/) for embeddin
 
 ## API Reference
 
-For more information on adding items to an encrypted index, refer to the API reference:
+For more information on adding items to an encrypted index, refer to the API reference:[](../../rest-api/)
 
-<CardGroup cols={2}>
-    <Card title="Python API Reference" href="../../api-reference/python/encrypted-index/upsert" icon="python">
+<CardGroup cols={3}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/upsert" icon="server">
+        REST API reference for `/v1/vectors/upsert`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/upsert" icon="python">
         API reference for `upsert()` in Python
     </Card>
-    <Card title="C++ API Reference" href="../../api-reference/cpp/encrypted-index/upsert" icon="brackets-curly">
-        API reference for `Upsert()` in C++
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/upsert" icon="js">
+        API reference for `upsert()` in JavaScript/TypeScript
     </Card>
 </CardGroup>

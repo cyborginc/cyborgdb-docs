@@ -65,7 +65,7 @@ cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_c
 
 ## `IVFPQ` Index Type
 
-<Note>The `IVFPQ` index type is not supported in `cyborgdb_lite`. For more details, see [CyborgDB Lite](../get-started/about#cyborgdb-lite).</Note>
+<Note>The `IVFPQ` index type is only supported in paid plans.</Note>
 
 The `IVFPQ` index type builds upon `IVFFlat` by applying Product Quantization (PQ) - a form of lossy compression - to reduce the index size. When applied correctly, `IVFPQ` indexes can maintain high recall (>95%) while reducing index size significantly (2-4x).
 
@@ -123,7 +123,7 @@ cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_c
 
 ## `IVF` Index Type
 
-<Note>The `IVF` index type is not supported in `cyborgdb_lite`. For more details, see [CyborgDB Lite](../get-started/about#cyborgdb-lite).</Note>
+<Note>The `IVF` index type is only supported in paid plans.</Note>
 
 The `IVF` index type (Inverted File Index) is the simplest offered by CyborgDB. It takes a single parameter, `n_lists`, which defines the number of lists, or clusters, into which the index is segmented. In other words, vectors that are close together will be clustered together into a single list. At retrieval time, vectors in the clusters closest to the query vector will be returned. This yields a very fast, but rather inaccurate, search.
 
@@ -198,10 +198,10 @@ The currently supported distance metrics are:
 For more information on the `IndexConfig` classes, refer to the API Reference:
 
 <CardGroup cols={2}>
-    <Card title="Python API Reference" href="../../api-reference/python/types#indexconfig" icon="python">
+    <Card title="Python SDK Reference" href="../../python-sdk/types#indexconfig" icon="python">
         API reference for `IndexConfig` in Python
     </Card>
-    <Card title="C++ API Reference" href="../../api-reference/cpp/types#indexconfig" icon="brackets-curly">
-        API reference for `IndexConfig` in C++
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/types#indexconfig" icon="js">
+        API reference for `IndexConfig` in JavaScript/TypeScript
     </Card>
 </CardGroup>

@@ -148,17 +148,20 @@ In certain applications, such as RAG, it may be desirable to retrieve matching i
 
 ## Note on Trained vs. Untrained Queries
 
-For the [embedded lib](../get-started/about#deployment-models) version of CyborgDB, queries will initially default to 'untrained' queries, which use an exhaustive search algorithm. This is fine for small datasets, but once you have more than `50,000` vectors in your index, you should train the index. Without doing so, queries will run slower. For more details, see [Training an Encrypted Index](./train-index).
+For the [embedded lib](../../../intro/deployment-models) version of CyborgDB, queries will initially default to 'untrained' queries, which use an exhaustive search algorithm. This is fine for small datasets, but once you have more than `50,000` vectors in your index, you should train the index. Without doing so, queries will run slower. For more details, see [Training an Encrypted Index](../encrypted-indexes/train-index).
 
 ## API Reference
 
 For more information on querying encrypted indexes, refer to the API reference:
 
-<CardGroup cols={2}>
-    <Card title="Python API Reference" href="../../api-reference/python/encrypted-index/query" icon="python">
+<CardGroup cols={3}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/query" icon="server">
+        REST API reference for `/v1/vectors/query`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/query" icon="python">
         API reference for `query()` in Python
     </Card>
-    <Card title="C++ API Reference" href="../../api-reference/cpp/encrypted-index/query" icon="brackets-curly">
-        API reference for `Query()` in C++
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/query" icon="js">
+        API reference for `query()` in JavaScript/TypeScript
     </Card>
 </CardGroup>

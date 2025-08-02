@@ -32,7 +32,7 @@ config_location = cyborgdb.DBConfig(location="postgres",
                            table_name="config_table", connection_string="host=localhost dbname=postgres")
 ```
 
-For more info, you can read about supported backing stores [here](../../guides/get-started/about#backing-stores).
+For more info, you can read about supported backing stores [here](../../intro/backing-stores).
 
 ---
 
@@ -50,7 +50,6 @@ For more info, you can read about supported backing stores [here](../../guides/g
 
 The `IndexConfig` class defines the parameters for the type of index to be created. Each index type (e.g., `ivf`, `ivfflat`, `ivfpq`) has unique configuration options:
 
-<Tip>For guidance on how to select the right `IndexConfig` and params, refer to the [index configuration tuning guide](/guides/tuning/index-config.md).</Tip>
 
 ### IndexIVF
 

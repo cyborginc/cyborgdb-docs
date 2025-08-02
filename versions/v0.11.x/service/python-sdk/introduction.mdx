@@ -1,7 +1,6 @@
 ---
 title: "CyborgDB - Python SDK Reference"
 sidebarTitle: "Python SDK Introduction"
-description: "`v0.11.x`"
 mode: "wide"
 ---
 
@@ -19,12 +18,19 @@ pip install cyborgdb
 
 Before using the CyborgDB Python SDK, you need to have the CyborgDB service running:
 
-```Python
+```bash
 # Install the CyborgDB service
 pip install cyborgdb-service
 
+# Or pull the Docker image
+docker pull cyborginc/cyborgdb-service
+
 # Start the service
 cyborgdb-service
+
+# Or run the Docker container
+docker run -p 8000:8000 cyborginc/cyborgdb-service
+```
 ```
 
-For detailed service setup instructions, see our quickstart guides for [Docker](../../guides/quickstart/docker-service) and [python](../../guides/quickstart/python-service).
+For detailed service setup instructions, see our quickstart guides for [Docker](../guides/intro/quickstart-docker.mdx) and [Python](../guides/intro/quickstart-python.mdx).

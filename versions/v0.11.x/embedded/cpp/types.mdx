@@ -46,7 +46,7 @@ cyborg::DBConfig config_loc(Location::kRedis, std::nullopt, "redis://localhost")
 cyborg::DBConfig items_loc(Location::kPostgres, "items", "host=localhost dbname=postgres");
 ```
 
-For more info, you can read about supported backing stores [here](../../guides/get-started/about#backing-stores).
+For more info, you can read about supported backing stores [here](../../intro/backing-stores).
 
 ---
 
@@ -67,7 +67,6 @@ enum class DistanceMetric {
 
 `IndexConfig` is an abstract base class for configuring index types. The three derived classes can be used to configure indexes:
 
-<Tip>For guidance on how to select the right `IndexConfig` and params, refer to the [index configuration tuning guide](/guides/tuning/index-config.md).</Tip>
 ### IndexIVF
 
 Ideal for large-scale datasets where fast retrieval is prioritized over high recall:
@@ -242,11 +241,11 @@ QueryParams(size_t top_k = 100,
 | `filters` | `std::string` | _(Optional)_ A JSON string of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |
 
-Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs. For guidance on how to select the right `n_probes`, refer to the [query parameter tuning guide](/guides/tuning/query-params.md).
+Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs.
 
 <Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
 For instance: `filters: { "$and": [ { "label": "cat" }, { "confidence": { "$gte": 0.9 } } ] }` means that only vectors where `label == "cat"` and `confidence >= 0.9` will be considered for encrypted vector search.
-For more info on metadata, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).</Tip>
+For more info on metadata, see [Metadata Filtering](../guides/data-operations/metadata-filtering).</Tip>
 
 ---
 

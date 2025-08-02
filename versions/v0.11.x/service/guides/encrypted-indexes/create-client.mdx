@@ -7,7 +7,7 @@ The `Client` class provides an interface to initialize, create, load and list En
 
 ## Creating the Client
 
-To create the client, you must define the [backing store locations](../get-started/about#backing-stores) which it will use. At minimum, you must set an `index_location` (where the index will reside) and a `config_location` (where the index metadata will reside). For example:
+To create the client, you must define the [backing store locations](../../../intro/backing-stores) which it will use. At minimum, you must set an `index_location` (where the index will reside) and a `config_location` (where the index metadata will reside). For example:
 
 <CodeGroup>
 ```python Python
@@ -117,10 +117,10 @@ By default, `cpu_threads` will use all available cores, and `gpu_accelerate` wil
 For more information on the `Client` class, refer to the API Reference:
 
 <CardGroup cols={2}>
-    <Card title="Python API Reference" href="../../api-reference/python/client" icon="python">
+    <Card title="Python SDK Reference" href="../../python-sdk/client/client" icon="python">
         API reference for `Client` in Python
     </Card>
-    <Card title="C++ API Reference" href="../../api-reference/cpp/client" icon="brackets-curly">
-        API reference for `cyborg::Client` in C++
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/client" icon="js">
+        API reference for `Client` in JavaScript/TypeScript
     </Card>
 </CardGroup>
