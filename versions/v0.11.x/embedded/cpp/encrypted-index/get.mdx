@@ -16,7 +16,7 @@ std::vector<cyborg::Item>
 | Parameter | Type | Description |
 |-------------------|--------------------|-----------------------|
 | `ids` | `const std::vector<std::string>&` | IDs to retrieve. (For a single item, provide a `std::vector` with one element.)|
-| `include` | [`std::vector<cyborg::ItemFields>`](../types#itemfields) | _(Optional)_ List of item fields to return. Can include `kVector`, `kContents`, and `kMetadata` (`vector` only for [`IVFFlat`](../types#IndexIVFFlat) indexes). |
+| `include` | [`std::vector<cyborg::ItemFields>`](../types#itemfields) | List of item fields to return. Can include `kVector`, `kContents`, and `kMetadata` (`vector` only for [`IVFFlat`](../types#IndexIVFFlat) indexes). |
 
 ### Returns
 
@@ -36,10 +36,10 @@ std::vector<cyborg::Item>
 
 ```cpp
 std::vector<std::string> item_ids = {"item_1", "item_2"};
-auto items = index->Get(item_ids, {kContents});
+auto items = index->Get(item_ids, {cyborg::ItemFields::kContents});
 
 for (const auto& item : items) {
     // Process each decrypted item (IDs & contents)
-    std::string id = item.id
+    std::string id = item.id;
 }
 ```

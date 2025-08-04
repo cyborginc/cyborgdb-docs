@@ -50,6 +50,40 @@ For more info, you can read about supported backing stores [here](../../intro/ba
 
 ---
 
+## DeviceConfig
+
+`DeviceConfig` class holds the configuration details for the device used in vector search operations, such as the number of CPU threads and whether to accelerate computations using a GPU.
+
+### Constructor
+
+```cpp
+DeviceConfig(const int cpu_threads = 0, const bool gpu_accelerate = false);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|------------------------|-------------------------|-------------------------|
+| `cpu_threads` | `int` | _(Optional)_ Number of CPU threads to use. Defaults to `0` (use all available cores). |
+| `gpu_accelerate` | `bool` | _(Optional)_ Whether to use GPU acceleration. Defaults to `false`. |
+
+### Methods
+
+| Method | Return Type | Description |
+|------------------------|-------------------------|-------------------------|
+| `cpu_threads() const` | `int` | Get the number of CPU threads configured. |
+| `gpu_accelerate() const` | `bool` | Check if GPU acceleration is enabled. |
+
+### Example Usage
+
+```cpp
+cyborg::DeviceConfig device_config(4, true);  // 4 CPU threads, GPU enabled
+int threads = device_config.cpu_threads();    // Returns 4
+bool use_gpu = device_config.gpu_accelerate(); // Returns true
+```
+
+---
+
 ## DistanceMetric
 
 The `DistanceMetric` enum contains the supported distance metrics for CyborgDB. These are:
@@ -226,9 +260,9 @@ The `QueryParams` struct defines parameters for querying the index, controlling 
 ```cpp
 QueryParams(size_t top_k = 100,
             size_t n_probes = 1,
-            std::vector<ResultFields> include = {kDistance},
-            bool greedy = false,
-            std::string filters = "");
+            std::string filters = "",
+            std::vector<ResultFields> include = {},
+            bool greedy = false);
 ```
 
 ### Parameters
@@ -237,8 +271,8 @@ QueryParams(size_t top_k = 100,
 |-------------------|----------|--------------------------------------------------------------------------|
 | `top_k` | `size_t` | _(Optional)_ Number of nearest neighbors to return. Defaults to `100`. |
 | `n_probes` | `size_t` | _(Optional)_ Number of lists to probe during query. Defaults to `1`. |
-| `include` | `std::vector<ResultFields>` | _(Optional)_ List of item fields to return. Can include `kDistance` and `kMetadata`. Defaults to all. |
 | `filters` | `std::string` | _(Optional)_ A JSON string of filters to apply to vector metadata, limiting search scope to these vectors. |
+| `include` | `std::vector<ResultFields>` | _(Optional)_ List of result fields to return. Can include `kDistance` and `kMetadata`. Defaults to empty. |
 | `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |
 
 Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs.
@@ -301,15 +335,28 @@ struct Item {
 
 ---
 
+## ResultFields
+
+`ResultFields` enum specifies which fields to include in query results.
+
+```cpp
+enum class ResultFields {
+    kDistance,    // Include distance scores in query results
+    kMetadata     // Include metadata in query results
+};
+```
+
+---
+
 ### ItemFields
 
 `ItemFields` enum defines the fields that can be requested for an `Item` object.
 
 ```cpp
 enum class ItemFields {
-    kVector,
-    kContents,
-    kMetadata
+    kVector,       // Include vector in returned items
+    kMetadata,     // Include metadata in returned items
+    kContents      // Include content data in returned items
 };
 ```
 

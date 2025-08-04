@@ -58,7 +58,7 @@ const size_t vector_dim = 1024;
 const size_t num_lists = 128;
 
 // Create an index configuration (e.g., using an IVFFlat configuration)
-IndexIVFFlat index_config(vector_dim, num_lists, DistanceMetric::euclidean);
+IndexIVFFlat index_config(vector_dim, num_lists, DistanceMetric::Euclidean);
 
 // Optional: Create and configure a logger
 cyborg::Logger logger;

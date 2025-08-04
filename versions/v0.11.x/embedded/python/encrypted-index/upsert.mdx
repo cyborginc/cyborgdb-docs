@@ -89,8 +89,8 @@ def upsert(self, ids: np.ndarray, vectors: np.ndarray)
 
 Accepts two NumPy arrays:
 
-- A 2D array of floats for the vector embeddings.
-- A 1D array of integers for the unique IDs.
+- A 1D array of identifiers (strings or integers) for the unique IDs.
+- A 2D array of float32 values for the vector embeddings.
 
 This structure is suited for efficient handling of large batches, with type safety for IDs and embeddings.
 
@@ -98,8 +98,8 @@ This structure is suited for efficient handling of large batches, with type safe
 
 | Parameter | Type | Description |
 |------------|-----------------|--------------------------------------------------------------------------------------------------|
-| `ids` | `np.ndarray` | 1D NumPy array of shape `(num_items,)` with `dtype=int`, containing unique integer identifiers for each vector. Length must match `vectors`. |
-| `vectors` | `np.ndarray` | 2D NumPy array of shape `(num_items, vector_dim)` with `dtype=float`, representing vector embeddings. |
+| `ids` | `np.ndarray` | 1D NumPy array of shape `(num_items,)` containing unique identifiers for each vector. Can be string or integer dtype. Length must match `vectors`. |
+| `vectors` | `np.ndarray` | 2D NumPy array of shape `(num_items, vector_dim)` with `dtype=float32`, representing vector embeddings. |
 
 ### Exceptions
 
@@ -122,8 +122,8 @@ import numpy as np
 index = client.load_index(index_name=index_name, index_key=index_key)
 
 # NumPy-based upsert with two arrays
-vectors = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=float)  # 2 vectors of dimension 3
-ids = np.array([101, 102], dtype=int)  # Unique integer IDs for each vector
+vectors = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=np.float32)  # 2 vectors of dimension 3
+ids = np.array(["item_101", "item_102"])  # Unique string IDs for each vector
 
-index.upsert(vectors=vectors, ids=ids)
+index.upsert(ids, vectors)
 ```

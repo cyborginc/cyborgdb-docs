@@ -4,12 +4,10 @@ sidebarTitle: "Train Index"
 mode: "wide"
 ---
 
-<Note>This functionality is only present in the [core library](../../../intro/deployment-models) version of CyborgDB.
-In other versions (microservice, serverless), it is automatically called once enough vector embeddings have been indexed.</Note>
 
 CyborgDB uses `IVF*` index types, which leverage clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
 
-In the core library version of CyborgDB, this training must be explicitly called once enough vectors have been added:
+In the embedded library version of CyborgDB, this training must be explicitly called once enough vectors have been added:
 
 <CodeGroup>
 ```python Python

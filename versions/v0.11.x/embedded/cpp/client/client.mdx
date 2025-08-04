@@ -8,7 +8,8 @@ The `cyborg::Client` class manages storage configurations and acts as a factory 
 ## Constructor
 
 ```cpp
-cyborg::Client(const DBConfig& index_location,
+cyborg::Client(const std::string& api_key,
+               const DBConfig& index_location,
                const DBConfig& config_location,
                const DBConfig& items_location,
                const int cpu_threads,
@@ -20,6 +21,7 @@ Initializes a new instance of `Client`.
 
 | Parameter | Type | Description |
 |-------------------|-----------------------|------------------------------------------------------|
+| `api_key` | `std::string` | API key for your CyborgDB account. |
 | `index_location` | [`DBConfig`](../types#DBConfig) | Configuration for index storage location. |
 | `config_location` | [`DBConfig`](../types#DBConfig) | Configuration for index metadata storage. |
 | `items_location` | [`DBConfig`](../types#DBConfig) | Configuration intended to be used in a future release. Pass in a DBConfig with a Location of 'None'. |
@@ -45,11 +47,12 @@ Initializes a new instance of `Client`.
 ```cpp
 #include "cyborgdb_core/client.hpp"
 
+std::string api_key = "your_api_key_here";
 cyborg::DBConfig index_location(Location::kMemory);
 cyborg::DBConfig config_location(Location::kRedis, "index_metadata", "redis://localhost");
 cyborg::DBConfig items_location(Location::kNone); // No item storage
 int cpu_threads = 4;
 bool use_gpu = true;
 
-cyborg::Client client(index_loc, config_loc, items_loc, cpu_threads, use_gpu);
+cyborg::Client client(api_key, index_location, config_location, items_location, cpu_threads, use_gpu);
 ```

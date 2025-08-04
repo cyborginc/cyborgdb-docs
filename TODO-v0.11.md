@@ -12,8 +12,8 @@
 - [ ] Write `v0.11.x/intro/using-docs` page
 - [ ] Write `v0.11.x/embedded/guides/intro` page
 - [ ] Update all `v0.11.x/embedded/guides/*` pages (API key, code examples, core -> embdedded)
-- [ ] Update all `v0.11.x/embedded/python/*` pages (API key, code examples, core -> embdedded)
-- [ ] Update all `v0.11.x/embedded/cpp/*` pages (API key, code examples, core -> embdedded)
+- [X] Update all `v0.11.x/embedded/python/*` pages (API key, code examples, core -> embdedded)
+- [X] Update all `v0.11.x/embedded/cpp/*` pages (API key, code examples, core -> embdedded)
 - [ ] Write `v0.11.x/service/guides/intro` page
 - [ ] Review all `v0.11.x/service/guides/*` pages (content, code examples, links)
 - [X] Review all `v0.11.x/service/rest-api/*` pages (content, code examples, links)
