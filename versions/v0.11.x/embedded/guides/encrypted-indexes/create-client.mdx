@@ -10,7 +10,7 @@ The `Client` class provides an interface to initialize, create, load and list En
 To create the client, you must define the [backing store locations](../../../intro/backing-stores) which it will use. At minimum, you must set an `index_location` (where the index will reside) and a `config_location` (where the index metadata will reside). For example:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
 import cyborgdb_lite as cyborgdb
@@ -29,7 +29,7 @@ api_key = "your_api_key_here"  # Replace with your actual API key
 client = cyborgdb.Client(api_key, index_location, config_location)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>
@@ -58,7 +58,7 @@ Bear in mind that all contents stored in the backing stores is end-to-end encryp
 If you wish to store encrypted items in the index, you will also need to set a `item_location`:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
 import cyborgdb_lite as cyborgdb
@@ -79,7 +79,7 @@ client = cyborgdb.Client(api_key,
                         items_location=item_location)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 
 // Using `redis` storage for the index and config
@@ -108,7 +108,7 @@ CyborgDB can be accelerated in two ways:
 You can control either of these with the optional `cpu_threads` and `gpu_accelerate` flags:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # ... existing setup (with api_key defined above)
 client = cyborgdb.Client(api_key,
                         index_location=index_location, 
@@ -118,7 +118,7 @@ client = cyborgdb.Client(api_key,
                         gpu_accelerate=False)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 // ... existing setup (with api_key defined above)
 cyborg::Client client(api_key, index_location, config_location, item_location, 4, false);
 ```

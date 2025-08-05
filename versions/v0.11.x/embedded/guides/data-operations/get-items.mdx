@@ -7,7 +7,7 @@ mode: "wide"
 If you have added items to the index with the `item` field, you can retrieve them via `get()`:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # IDs of items to retrieve
 ids = ["item_20, item_11"]
 include = ["contents", "metadata"]
@@ -21,7 +21,7 @@ print(item)
 #  {"id": "item_11", "contents": "Hello, Cyborg!", "metadata": {"type": "md"}}]
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 // IDs of items to retrieve
 std::vector<std::string> ids = {"item_20", "item_11"};
 std::vector<cyborg::ItemFields> include = {kContents, kMetadata};

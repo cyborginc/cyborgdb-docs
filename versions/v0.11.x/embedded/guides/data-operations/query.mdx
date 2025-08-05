@@ -6,7 +6,7 @@ mode: "wide"
 Once you've added items to an encrypted index, you can query the index to retrieve the items that match a given query. This is done via `query()`:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Example query
 query_vectors = [0.5, 0.9, 0.2, 0.7]
 top_k = 10
@@ -19,7 +19,7 @@ print(results)
 # [("id": "item_12", "distance": 0.01), ("id": "item_7", "distance": 0.04), ...]
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 // Example query
 std::vector<float> query_vectors = {0.5, 0.9, 0.2, 0.7};
 size_t top_k = 10;
@@ -46,7 +46,7 @@ You can specify additional parameters for the query, such as:
 - `greedy`: whether to perform a greedy search (higher recall but slower).
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Example query
 query_vectors = [0.5, 0.9, 0.2, 0.7]
 top_k = 10
@@ -62,7 +62,7 @@ print(results)
 # [("id": "item_12", "distance": 0.01, "metadata": {"age": 25}), ...]
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 // Example query
 std::vector<float> query_vectors = {0.5, 0.9, 0.2, 0.7};
 size_t top_k = 10;
@@ -87,7 +87,7 @@ for (const auto& result : results) {
 It's also possible to perform batch queries by passing a list of query vectors to `query()`:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Example batch query
 query_vectors = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]]
 top_k = 10
@@ -96,7 +96,7 @@ top_k = 10
 results = index.query(query_vectors=query_vectors, top_k=top_k)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 // Example batch query
 std::vector<std::vector<float>> query_vectors = {{0.5, 0.9, 0.2, 0.7}, {0.1, 0.3, 0.8, 0.6}};
 size_t top_k = 10;
@@ -125,7 +125,7 @@ For more details on metadata filters, see the [Metadata Filtering](./metadata-fi
 
 If you provided an `embedding_model` during index creation, you can automatically generate embeddings for queries by providing `query_contents` to the `query()` call:
 
-```python Python
+```python Python icon="python"
 # ... index creation and embedding model setup
 embedding_model = "all-MiniLM-L6-v2"
 index = client.create_index("my_index", index_key, index_config, embedding_model)

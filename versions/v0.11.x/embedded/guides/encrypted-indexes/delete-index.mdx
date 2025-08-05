@@ -9,7 +9,7 @@ mode: "wide"
 To delete an exiting encrypted index, you can [load it](./load-index) and then call the `delete_index()` method.
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
 import cyborgdb_lite as cyborgdb
@@ -35,7 +35,7 @@ index = client.load_index("my_index", index_key)
 index.delete_index()
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>

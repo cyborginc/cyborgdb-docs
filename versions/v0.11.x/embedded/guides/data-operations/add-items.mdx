@@ -7,7 +7,7 @@ mode: "wide"
 Once you have created or loaded an encrypted index, you can add items to it. To do this, you can use the `upsert()` function:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Items to add to the encrypted index
 items = [
     {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4]},
@@ -19,7 +19,7 @@ items = [
 index.upsert(items)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly" icon="brackets-curly"
 // Items to add to the encrypted index
 std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
 cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
@@ -38,7 +38,7 @@ It's also possible to store item contents alongside vectors. To do this, include
 The bytes in the `contents` field will be encrypted using the index key.
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Items to add to the encrypted index
 items = [
     {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "contents": "Hello!"},
@@ -50,7 +50,7 @@ items = [
 index.upsert(items)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 // Items to add to the encrypted index
 std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
 cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
@@ -72,7 +72,7 @@ CyborgDB also supports metadata storage, retrieval and filtering. To add metadat
 All metadata fields will be encrypted using the index key.
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Items to add to the encrypted index
 items = [
     {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "metadata": {"name": "Alice", "age": 30}},
@@ -84,7 +84,7 @@ items = [
 index.upsert(items)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 // Items to add to the encrypted index
 std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
 cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
@@ -107,7 +107,7 @@ For more info on metadata storage and filtering, see [Metadata Filtering](./meta
 
 If you provided an `embedding_model` during index creation, you can automatically generate embeddings for items by providing `contents` to the `upsert()` call:
 
-```python Python
+```python Python icon="python"
 # ... index creation and embedding model setup
 embedding_model = "all-MiniLM-L6-v2"
 index = client.create_index("my_index", index_key, index_config, embedding_model)

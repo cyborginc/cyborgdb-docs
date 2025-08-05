@@ -51,7 +51,7 @@ Get started with CyborgDB in minutes.
         Create a CyborgDB client:
 
         <CodeGroup>
-        ```python Python
+        ```python Python icon="python"
         # Import cyborgdb_core or cyborgdb_lite:
         import cyborgdb_core as cyborgdb
         import cyborgdb_lite as cyborgdb
@@ -71,7 +71,7 @@ Get started with CyborgDB in minutes.
         client = cyborgdb.Client(api_key, index_location, config_location, items_location)
         ```
 
-        ```cpp C++
+        ```cpp C++ icon="brackets-curly"
         #include "cyborgdb_core/client.hpp"
         #include "cyborgdb_core/encrypted_index.hpp"
         #include <array>
@@ -99,7 +99,7 @@ Get started with CyborgDB in minutes.
         Create an encrypted index with CyborgDB:
 
         <CodeGroup>
-        ```python Python
+        ```python Python icon="python"
         # ... Continuing from the previous step
         
         # Create an IVFFlat index config (can also be IVF/IVFPQ)
@@ -113,7 +113,7 @@ Get started with CyborgDB in minutes.
         index = client.create_index("my_index", index_key, index_config)
         ```
 
-        ```cpp C++
+        ```cpp C++ icon="brackets-curly"
         /// ... Continuing from the previous step
 
         // Create an IVFFlat index config (can also be IVF/IVFPQ)
@@ -137,7 +137,7 @@ Get started with CyborgDB in minutes.
         Add data to the encrypted index via Upsert:
 
         <CodeGroup>
-        ```python Python
+        ```python Python icon="python"
         # ... Continuing from the previous step
 
         # Add items to the encrypted index
@@ -150,7 +150,7 @@ Get started with CyborgDB in minutes.
         index.upsert(items)
         ```
 
-        ```cpp C++
+        ```cpp C++ icon="brackets-curly"
         // ... Continuing from the previous step
 
         // Add items to the encrypted index
@@ -172,7 +172,7 @@ Get started with CyborgDB in minutes.
         Query the encrypted index for similar vectors.
 
         <CodeGroup>
-        ```python Python
+        ```python Python icon="python"
         # ... Continuing from the previous step
 
         # Query the encrypted index
@@ -184,7 +184,7 @@ Get started with CyborgDB in minutes.
             print(f"ID: {result.id}, Distance: {result.distance}")
         ```
 
-        ```cpp C++
+        ```cpp C++ icon="brackets-curly"
         // ... Continuing from the previous step
         std::vector<float> query_vector = {0.1, 0.2, 0.3, 0.4};
         
@@ -204,7 +204,7 @@ Get started with CyborgDB in minutes.
         Retrieve data from the encrypted index:
 
         <CodeGroup>
-        ```python Python
+        ```python Python icon="python"
         # ... Continuing from the previous step
 
         # Retrieve items from the encrypted index
@@ -216,7 +216,7 @@ Get started with CyborgDB in minutes.
             print(f"ID: {item.id}, Vector: {item.vector}, Contents: {item.contents}")
         ```
 
-        ```cpp C++
+        ```cpp C++ icon="brackets-curly"
         // ... Continuing from the previous step
 
         // Retrieve items from the encrypted index

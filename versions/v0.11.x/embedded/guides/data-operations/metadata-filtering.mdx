@@ -19,7 +19,7 @@ The following metadata types are supported:
 To add items with metadata tags, you can pass a dictionary of key-value pairs to the `metadata` field during `upsert`:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Example data in the format:
 # [{id: int, vector: List[float], metadata: Dict)]
 data = [
@@ -31,7 +31,7 @@ data = [
 index.upsert(data)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 // Example data
 std::vector<std::string> ids = {"item_1", "item_2"};
 std::vector<std::vector<float>> vectors = {{0.1, 0.1, 0.1, 0.1}, {0.2, 0.2, 0.2, 0.2}};
@@ -53,7 +53,7 @@ CyborgDB supports a subset of [MongoDB's Query and Projection Operators](https:/
 To filter a query with metadata, you can pass a dictionary of filters to the `filters` field during `query`:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Example query
 query_vectors = [0.5, 0.9, 0.2, 0.7]
 top_k = 10
@@ -67,7 +67,7 @@ filters = {
 results = index.query(query_vectors=query_vectors, top_k=top_k, filters=filters)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 // Example query
 std::vector<float> query_vectors = {0.5, 0.9, 0.2, 0.7};
 int top_k = 10;

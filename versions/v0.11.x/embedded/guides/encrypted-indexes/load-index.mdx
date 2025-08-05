@@ -7,7 +7,7 @@ mode: "wide"
 If you've previously created an encrypted index, you can connect to it to add, query or delete data from it. You will need to know the index's name as well as its key to do so:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
 import cyborgdb_lite as cyborgdb
@@ -30,7 +30,7 @@ index_key = bytes(32)
 index = client.load_index("my_index", index_key)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>
@@ -65,7 +65,7 @@ For more details, see [Managing Encryption Keys](../advanced/managing-keys).</Wa
 For improved query performance, you can enable encrypted index caching by setting a `max_cache_size`:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
 import cyborgdb_lite as cyborgdb
@@ -91,7 +91,7 @@ max_cache_size = 1000000
 index = client.load_index("my_index", index_key, max_cache_size)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>

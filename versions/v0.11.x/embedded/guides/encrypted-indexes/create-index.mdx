@@ -7,7 +7,7 @@ mode: "wide"
 To create an encrypted index, you need to specify an index name (must be unique), an index key, and an index configuration. Here's an example with an IVFFlat index type:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
 import cyborgdb_lite as cyborgdb
@@ -34,7 +34,7 @@ index_key = secrets.token_bytes(32)
 index = client.create_index("my_index", index_key, index_config)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>
@@ -75,7 +75,7 @@ For more details, see [Managing Encryption Keys](../advanced/managing-keys).</Wa
 For improved query performance, you can enable encrypted index caching by setting a `max_cache_size`:
 
 <CodeGroup>
-```python Python
+```python Python icon="python"
 # Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
 import cyborgdb_lite as cyborgdb
@@ -104,7 +104,7 @@ max_cache_size = 1000000
 index = client.create_index("my_index", index_key, index_config, max_cache_size)
 ```
 
-```cpp C++
+```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>
@@ -142,7 +142,7 @@ auto index = client.CreateIndex("my_index", index_key, index_config, max_cache_s
 
 In the Python version of CyborgDB, you can enable automatic embedding generation for the encrypted index by setting `embedding_model` in `create_index()`:
 
-```python Python
+```python Python icon="python"
 # Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
 import cyborgdb_lite as cyborgdb
