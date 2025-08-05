@@ -4,44 +4,80 @@ sidebarTitle: "Get Items"
 mode: "wide"
 ---
 
-If you have added items to the index with the `item` field, you can retrieve them via `get()`:
+You can retrieve specific items from the index by their IDs using the `get()` method:
 
 <CodeGroup>
-```python Python
+```python Python SDK icon="python"
 # IDs of items to retrieve
-ids = ["item_20, item_11"]
+ids = ["item_20", "item_11"]
 include = ["contents", "metadata"]
 
 # Retrieve items from the encrypted index
-item = index.get(ids, include)
+items = index.get(ids, include)
 
-print(item)
-# Example item
+print(items)
+# Example items
 # [{"id": "item_20", "contents": "Hello, World!", "metadata": {"type": "txt"}},
 #  {"id": "item_11", "contents": "Hello, Cyborg!", "metadata": {"type": "md"}}]
 ```
 
-```cpp C++
+```javascript JavaScript SDK icon="js"
 // IDs of items to retrieve
-std::vector<std::string> ids = {"item_20", "item_11"};
-std::vector<cyborg::ItemFields> include = {kContents, kMetadata};
+const ids = ["item_20", "item_11"];
+const include = ["contents", "metadata"];
 
 // Retrieve items from the encrypted index
-std::vector<cyborg::Item> items = index.Get(ids, include);
+const items = await index.get(ids, include);
 
-// Print the item fields
-for (const auto& items : items) {
-    std::cout << "ID: " << item.id << ", Contents: " << item.contents << ", Metadata: " << item.metadata << std::endl;
-}
+console.log(items);
+// Example items
+// [{id: "item_20", contents: "Hello, World!", metadata: {type: "txt"}},
+//  {id: "item_11", contents: "Hello, Cyborg!", metadata: {type: "md"}}]
+```
+
+```typescript TypeScript SDK icon="code"
+// IDs of items to retrieve
+const ids: string[] = ["item_20", "item_11"];
+const include: string[] = ["contents", "metadata"];
+
+// Retrieve items from the encrypted index
+const items = await index.get(ids, include);
+
+console.log(items);
+// Example items
+// [{id: "item_20", contents: "Hello, World!", metadata: {type: "txt"}},
+//  {id: "item_11", contents: "Hello, Cyborg!", metadata: {type: "md"}}]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/get" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["item_20", "item_11"],
+       "include": ["contents", "metadata"]
+     }'
 ```
 </CodeGroup>
+
+## Include Fields
+
+You can specify which fields to include in the response:
+
+- **`vector`**: The vector data itself
+- **`contents`**: Text or binary content associated with the vector
+- **`metadata`**: Structured metadata object
+
+If you don't specify `include`, the default is `["vector", "contents", "metadata"]`.
 
 ## API Reference
 
 For more information on getting items from an encrypted index, refer to the API reference:
 
 <CardGroup cols={3}>
-    <Card title="REST API Reference" href="../../rest-api/encrypted-index/get" icon="server">
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/get" icon="rectangle-terminal">
         REST API reference for `/v1/vectors/get`
     </Card>
     <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/get" icon="python">

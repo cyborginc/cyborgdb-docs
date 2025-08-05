@@ -16,7 +16,7 @@
 - [X] Update all `v0.11.x/embedded/cpp/*` pages (API key, code examples, core -> embdedded)
 - [ ] Write `v0.11.x/service/guides/intro` page
 - [ ] Write `v0.11.x/service/guides/env-vars` page
-- [ ] Review all `v0.11.x/service/guides/*` pages (content, code examples, links)
+- [X] Review all `v0.11.x/service/guides/*` pages (content, code examples, links)
 - [X] Review all `v0.11.x/service/rest-api/*` pages (content, code examples, links)
 - [X] Review all `v0.11.x/service/python-sdk/*` pages (content, code examples, links)
 - [X] Review all `v0.11.x/service/js-ts-sdk/*` pages (content, code examples, links)

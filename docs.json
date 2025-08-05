@@ -105,7 +105,7 @@
               },
               {
                 "dropdown": "REST API Reference",
-                "icon": "server",
+                "icon": "rectangle-terminal",
                 "groups": [
                   {
                     "group": "Introduction",

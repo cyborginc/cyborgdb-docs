@@ -26,9 +26,19 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
           - Managed services: AWS ElastiCache, Azure Cache for Redis, Google Cloud Memorystore, Redis Cloud
           - Self-hosted Redis instances
 
-        All backends provide identical CyborgDB functionality.
+        All backends provide identical CyborgDB functionality. For more info, refer to [this guide](../../../intro/backing-stores).
 
         <Note>Make sure you have your chosen database running and accessible before proceeding.</Note>
+    </Step>
+
+    <Step title="Pull the Docker Image">
+        The CyborgDB service is available as a Docker image. You can pull it from Docker Hub:
+
+        ```bash
+        docker pull cyborginc/cyborgdb-service:latest
+        ```
+
+        This image contains everything you need to run the CyborgDB service, including all dependencies and configurations.
     </Step>
 
     <Step title="Run with Docker (Quick Start)">
@@ -173,63 +183,70 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         You should see a response indicating the service is healthy and ready to accept requests.
     </Step>
 
-    <Step title="Environment Configuration">
-        The service requires these environment variables:
+        <Step title="Advanced Configuration">
+        For production deployments, consider these additional configurations:
 
-        | Variable | Description | Required | Example |
-        |----------|-------------|----------|---------|
-        | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
-        | `CYBORGDB_DB_TYPE` | Database backend type | ✅ | `postgres` or `redis` |
-        | `CYBORGDB_CONNECTION_STRING` | Database connection details | ✅ | See connection formats below |
-        | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
+        <Tabs>
+            <Tab title="Environment Variables">
+                | Variable | Description | Required | Example |
+                |----------|-------------|----------|---------|
+                | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
+                | `CYBORGDB_DB_TYPE` | Database backend type | ✅ | `postgres` or `redis` |
+                | `CYBORGDB_CONNECTION_STRING` | Database connection details | ✅ | See connection formats |
+                | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
+                | `PORT` | Service port | ❌ | `8000` |
+                | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
+                | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
 
-        **Connection String Formats:**
-        - **PostgreSQL**: `host=hostname port=5432 dbname=database user=username password=password`
-        - **Redis**: `host=hostname,port=6379,db=0`
-    </Step>
+                <Note>For more information on environment variables, refer to the [this guide](../advanced/env-vars).</Note>
 
-    <Step title="SSL/HTTPS Configuration (Production)">
-        For production deployments, configure HTTPS by providing SSL certificates:
+            </Tab>
 
-        **Environment Variables:**
-        ```bash
-        SSL_CERT_PATH=/path/to/certificate.crt
-        SSL_KEY_PATH=/path/to/private.key
-        ```
 
-        **Docker Run Example:**
-        ```bash
-        sudo docker run -it -p 8000:8000 \
-          -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
-          -e CYBORGDB_DB_TYPE=postgres \
-          -e CYBORGDB_CONNECTION_STRING="host=host.docker.internal port=5432 dbname=postgres user=postgres password=your_password" \
-          -e SSL_CERT_PATH=/certs/server.crt \
-          -e SSL_KEY_PATH=/certs/server.key \
-          -v /host/path/to/certs:/certs \
-          cyborginc/cyborgdb-service:latest
-        ```
+            <Tab title="HTTPS Configuration">
+                For production deployments, configure HTTPS by providing SSL certificates:
 
-        **Docker Compose with SSL:**
-        ```yaml
-        version: '3.8'
-        services:
-          cyborgdb:
-            image: cyborginc/cyborgdb-service:latest
-            ports:
-              - "8000:8000"
-            environment:
-              - CYBORGDB_DB_TYPE=postgres
-              - CYBORGDB_CONNECTION_STRING=host=postgres port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
-              - CYBORGDB_API_KEY=cyborg_your_api_key_here
-              - SSL_CERT_PATH=/certs/server.crt
-              - SSL_KEY_PATH=/certs/server.key
-            volumes:
-              - ./certs:/certs
-            depends_on:
-              - postgres
-        ```
+                **Environment Variables:**
+                ```bash
+                SSL_CERT_PATH=/path/to/certificate.crt
+                SSL_KEY_PATH=/path/to/private.key
+                ```
 
-        <Note>The server automatically switches to HTTPS when both certificate files are provided and exist. Without certificates, it starts in HTTP mode.</Note>
+                **Docker Run Example:**
+                ```bash
+                sudo docker run -it -p 8000:8000 \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -e CYBORGDB_DB_TYPE=postgres \
+                  -e CYBORGDB_CONNECTION_STRING="host=host.docker.internal port=5432 dbname=postgres user=postgres password=your_password" \
+                  -e SSL_CERT_PATH=/certs/server.crt \
+                  -e SSL_KEY_PATH=/certs/server.key \
+                  -v /host/path/to/certs:/certs \
+                  cyborginc/cyborgdb-service:latest
+                ```
+
+                **Docker Compose with SSL:**
+                ```yaml
+                version: '3.8'
+                services:
+                  cyborgdb:
+                    image: cyborginc/cyborgdb-service:latest
+                    ports:
+                      - "8000:8000"
+                    environment:
+                      - CYBORGDB_DB_TYPE=postgres
+                      - CYBORGDB_CONNECTION_STRING=host=postgres port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
+                      - CYBORGDB_API_KEY=cyborg_your_api_key_here
+                      - SSL_CERT_PATH=/certs/server.crt
+                      - SSL_KEY_PATH=/certs/server.key
+                    volumes:
+                      - ./certs:/certs
+                    depends_on:
+                      - postgres
+                ```
+
+                <Note>The server automatically switches to HTTPS when both certificate files are provided and exist. Without certificates, it starts in HTTP mode.</Note>
+            </Tab>
+        </Tabs>
     </Step>
 
     <Step title="Next Steps">
@@ -248,7 +265,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         </CodeGroup>
 
         <CardGroup cols={3}>
-            <Card title="REST API Reference" href="../../rest-api/introduction" icon="python">
+            <Card title="REST API Reference" href="../../rest-api/introduction" icon="rectangle-terminal">
                 Learn how to use the REST API for direct integration
             </Card>
             <Card title="Python SDK Reference" href="../../python-sdk/introduction" icon="python">
@@ -262,6 +279,9 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 </Steps>
 
 ## Technical Specifications
+
+<Expandable title="Technical Specifications">
+
 - **Base Image**: `continuumio/miniconda3:latest`
 - **Python Version**: 3.12
 - **PyTorch**: CPU-optimized for maximum compatibility
@@ -269,4 +289,22 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 - **Platform**: linux/amd64, linux/arm64
 - **Default Port**: 8000
 
-<Tip>The service includes sentence transformers and CPU-optimized PyTorch for high-performance vector operations and semantic search capabilities out of the box.</Tip>
+</Expandable>
+
+## Comparison with Python Service Approach
+
+<Expandable title="Python Service vs Docker Service">
+
+| Aspect | Python Service | Docker Service |
+|--------|---------------|----------------|
+| **Installation** | `pip install` | `docker run` |
+| **Dependencies** | Managed by pip/conda | Bundled in container |
+| **Resource Usage** | Lower overhead | Higher overhead |
+| **Environment Isolation** | Python virtualenv | Container isolation |
+| **Deployment Complexity** | Simple Python deployment | Container orchestration |
+| **Configuration** | Environment variables/files | Environment variables |
+| **Best For** | Development, Python-heavy workflows | Production, cloud deployment |
+
+<Tip>Both approaches provide identical CyborgDB functionality. Choose based on your deployment preferences and infrastructure requirements.</Tip>
+
+</Expandable>

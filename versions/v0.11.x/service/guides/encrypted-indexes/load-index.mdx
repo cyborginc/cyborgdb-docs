@@ -6,107 +6,102 @@ mode: "wide"
 
 If you've previously created an encrypted index, you can connect to it to add, query or delete data from it. You will need to know the index's name as well as its key to do so:
 
+<Note>This is only applicable to the CyborgDB SDKs. The REST API is stateless, so you don't need to load indexes explicitly.</Note>
 <CodeGroup>
-```python Python
-# Import cyborgdb_core or cyborgdb_lite:
-import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
-
-# Using `memory` storage for this example
-index_location = cyborgdb.DBConfig("memory") 
-config_location = cyborgdb.DBConfig("memory")
+```python Python SDK icon="python"
+from cyborgdb import Client, IndexIVF
 
 # Create a client
-client = cyborgdb.Client(index_location, config_location)
+client = Client('http://localhost:8000', 'your-api-key')
 
-# Provide the index key used when creating the index
-# Example key (32 bytes)
-index_key = bytes(32)
+# Provide the same index key and config used when creating the index
+index_key = your_existing_32_byte_key  # Must be the same key used originally
+index_config = IndexIVF(
+    type='ivf',
+    dimension=768,
+    n_lists=1024,
+    metric='cosine'
+)
 
-# Create an encrypted index
-index = client.load_index("my_index", index_key)
+# Connect to existing index (or create if it doesn't exist)
+index = client.create_index("my_index", index_key, index_config)
 ```
 
-```cpp C++
-#include "cyborgdb_core/client.hpp"
-#include "cyborgdb_core/encrypted_index.hpp"
-#include <array>
-
-// Using `memory` storage for this example
-cyborg::DBConfig index_location(Location::kMemory); 
-cyborg::DBConfig config_location(Location::kMemory);
+```javascript JavaScript SDK icon="js"
+import { Client, IndexIVFModel } from 'cyborgdb';
 
 // Create a client
-cyborg::Client client(index_location, config_location);
+const client = new Client('http://localhost:8000', 'your-api-key');
 
-// Provide the index key used when creating the index
-// Example key (32 bytes)
-std::array<uint8_t, 32> index_key;
+// Provide the same index key and config used when creating the index  
+const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
+const indexConfig = {
+    type: 'ivf',
+    dimension: 768,
+    nLists: 1024,
+    metric: 'cosine'
+};
 
-// Create an encrypted index
-cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key);
+// Connect to existing index (or create if it doesn't exist)
+const index = await client.createIndex("my_index", indexKey, indexConfig);
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client, IndexIVFModel } from 'cyborgdb';
+
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Provide the same index key and config used when creating the index
+const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
+const indexConfig: IndexIVFModel = {
+    type: 'ivf',
+    dimension: 768,
+    nLists: 1024,
+    metric: 'cosine'
+};
+
+// Connect to existing index (or create if it doesn't exist)
+const index = await client.createIndex("my_index", indexKey, indexConfig);
+```
+
+```bash cURL icon="rectangle-terminal"
+# The REST API is stateless - no explicit "load" needed
+# Simply use the index_name and index_key in subsequent operations
+
+# Example: Query an existing index directly
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.1, 0.2, 0.3, 0.4],
+       "top_k": 5
+     }'
 ```
 </CodeGroup>
 
-This creates a new encrypted index with the IVFFlat type. For more details on IVFFlat and other index options, see [Configure an Encrypted Index](./configure-index).
+This connects to an existing encrypted index on the service. For more details on index types and configurations, see [Configure an Encrypted Index](./configure-index).
 
-<Warning>You will need to replace `index_key` with your own index encryption key. 
-For production use, we recommend that you use an HSM or KMS solution.
+<Warning>You must provide the exact same index key and configuration that was used when the index was originally created. 
+For production use, we recommend that you use an HSM or KMS solution for key management.
 For more details, see [Managing Encryption Keys](../advanced/managing-keys).</Warning>
 
-## Encrypted Index Caching
+## Key Points
 
-For improved query performance, you can enable encrypted index caching by setting a `max_cache_size`:
+- **Same Method**: Service SDKs use `createIndex()` for both creating new indexes and connecting to existing ones
+- **Exact Match Required**: The index key and configuration must exactly match the original
+- **Automatic Detection**: The service automatically determines whether to create or connect based on the index name
+- **No Separate Load Method**: Unlike embedded SDKs, service SDKs don't have a separate `loadIndex()` method
 
-<CodeGroup>
-```python Python
-# Import cyborgdb_core or cyborgdb_lite:
-import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
-import secrets
+## Index Caching
 
-# Using `memory` storage for this example
-index_location = cyborgdb.DBConfig("memory") 
-config_location = cyborgdb.DBConfig("memory")
+Index caching is handled automatically by the CyborgDB service. The service optimizes performance through:
 
-# Create a client
-client = cyborgdb.Client(index_location, config_location)
-
-# Generate an encryption key for the index
-index_key = secrets.token_bytes(32)
-
-# Set max cache size at 1MB
-max_cache_size = 1000000
-
-# Create an encrypted index
-index = client.load_index("my_index", index_key, max_cache_size)
-```
-
-```cpp C++
-#include "cyborgdb_core/client.hpp"
-#include "cyborgdb_core/encrypted_index.hpp"
-#include <array>
-#include <random>
-
-// Using `memory` storage for this example
-cyborg::DBConfig index_location(Location::kMemory); 
-cyborg::DBConfig config_location(Location::kMemory);
-
-// Create a client
-cyborg::Client client(index_location, config_location);
-
-// Generate a 32-byte random encryption key
-std::array<uint8_t, 32> index_key;
-std::random_device rd;
-std::generate(index_key.begin(), index_key.end(), [&]() { return rd() % 256; });
-
-// Set max cache size at 1MB
-std::size_t max_cache_size = 1000000;
-
-// Create an encrypted index
-cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key, max_cache_size);
-```
-</CodeGroup>
+- **Automatic Caching**: Frequently accessed indexes are cached automatically
+- **Smart Eviction**: Least recently used indexes are evicted when memory is needed  
+- **Server-Side Optimization**: No client-side cache configuration required
 
 ## API Reference
 

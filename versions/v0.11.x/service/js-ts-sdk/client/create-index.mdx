@@ -52,7 +52,7 @@ async createIndex(
 ```typescript
 import { Client, IndexIVFFlatModel } from 'cyborgdb';
 
-const client = new Client('http://localhost:3000', 'your-api-key');
+const client = new Client('http://localhost:8000', 'your-api-key');
 
 const indexName = "my_vector_index";
 const indexKey = crypto.getRandomValues(new Uint8Array(32)); // Generate secure 32-byte key
@@ -80,7 +80,7 @@ try {
 ```typescript
 import { Client, IndexIVFPQModel } from 'cyborgdb';
 
-const client = new Client('http://localhost:3000', 'your-api-key');
+const client = new Client('http://localhost:8000', 'your-api-key');
 
 const indexName = "semantic_search_index";
 const indexKey = crypto.getRandomValues(new Uint8Array(32));

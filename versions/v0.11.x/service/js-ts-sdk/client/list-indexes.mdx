@@ -32,7 +32,7 @@ async listIndexes(): Promise<string[]>
 ```typescript
 import { Client } from 'cyborgdb';
 
-const client = new Client('http://localhost:3000', 'your-api-key');
+const client = new Client('http://localhost:8000', 'your-api-key');
 
 try {
     const indexes = await client.listIndexes();

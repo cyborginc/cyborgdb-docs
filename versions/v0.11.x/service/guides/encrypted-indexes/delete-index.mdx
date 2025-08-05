@@ -6,53 +6,68 @@ mode: "wide"
 
 <Warning>This action is irreversible. Proceed with caution.</Warning>
 
-To delete an exiting encrypted index, you can [load it](./load-index) and then call the `delete_index()` method.
+To delete an existing encrypted index, you can connect to it and then call the `delete_index()` method.
 
 <CodeGroup>
-```python Python
-# Import cyborgdb_core or cyborgdb_lite:
-import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
-
-# Using `memory` storage for this example
-index_location = cyborgdb.DBConfig("memory") 
-config_location = cyborgdb.DBConfig("memory")
+```python Python SDK icon="python"
+from cyborgdb import Client
 
 # Create a client
-client = cyborgdb.Client(index_location, config_location)
+client = Client('http://localhost:8000', 'your-api-key')
 
-# Provide the index key used when creating the index
-# Example key (32 bytes)
-index_key = bytes(32)
+# Provide the same index key and config used when creating the index
+index_key = your_existing_32_byte_key  # Must be the same key used originally
+index_config = your_existing_index_config  # Must match original config
 
-# Create an encrypted index
-index = client.load_index("my_index", index_key)
+# Connect to the existing index
+index = client.create_index("my_index", index_key, index_config)
 
 # Delete the index
 index.delete_index()
 ```
 
-```cpp C++
-#include "cyborgdb_core/client.hpp"
-#include "cyborgdb_core/encrypted_index.hpp"
-#include <array>
-
-// Using `memory` storage for this example
-cyborg::DBConfig index_location(Location::kMemory); 
-cyborg::DBConfig config_location(Location::kMemory);
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
 
 // Create a client
-cyborg::Client client(index_location, config_location);
+const client = new Client('http://localhost:8000', 'your-api-key');
 
-// Provide the index key used when creating the index
-// Example key (32 bytes)
-std::array<uint8_t, 32> index_key;
+// Provide the same index key and config used when creating the index
+const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
+const indexConfig = yourExistingIndexConfig;  // Must match original config
 
-// Create an encrypted index
-cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key);
+// Connect to the existing index
+const index = await client.createIndex("my_index", indexKey, indexConfig);
 
 // Delete the index
-index.DeleteIndex();
+await index.deleteIndex();
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client } from 'cyborgdb';
+
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Provide the same index key and config used when creating the index
+const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
+const indexConfig = yourExistingIndexConfig;  // Must match original config
+
+// Connect to the existing index
+const index = await client.createIndex("my_index", indexKey, indexConfig);
+
+// Delete the index
+await index.deleteIndex();
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X DELETE "http://localhost:8000/v1/indexes/delete" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
 ```
 </CodeGroup>
 
@@ -61,7 +76,7 @@ index.DeleteIndex();
 For more information on deleting an encrypted index, refer to the API reference:
 
 <CardGroup cols={3}>
-    <Card title="REST API Reference" href="../../rest-api/encrypted-index/delete-index" icon="server">
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/delete-index" icon="rectangle-terminal">
         REST API reference for `/v1/indexes/delete`
     </Card>
     <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/delete-index" icon="python">

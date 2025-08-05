@@ -16,7 +16,7 @@ To connect to an existing index using the service JavaScript/TypeScript SDK, use
 ```typescript
 import { Client, IndexIVFModel } from 'cyborgdb';
 
-const client = new Client('http://localhost:3000', 'your-api-key');
+const client = new Client('http://localhost:8000', 'your-api-key');
 
 // Connect to existing index (or create if it doesn't exist)
 const indexKey = yourExisting32ByteKey; // Must be the same key used originally

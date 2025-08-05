@@ -36,7 +36,7 @@ The Python service is ideal for developers who prefer managing Python environmen
           - Managed services: AWS ElastiCache, Azure Cache for Redis, Google Cloud Memorystore, Redis Cloud
           - Self-hosted Redis instances
 
-        Both backends provide identical CyborgDB functionality and performance.
+        All backends provide identical CyborgDB functionality. For more info, refer to [this guide](../../../intro/backing-stores).
 
         <Note>Make sure you have your chosen database running and accessible before proceeding.</Note>
     </Step>
@@ -112,6 +112,8 @@ The Python service is ideal for developers who prefer managing Python environmen
         </Tabs>
 
         <Tip>Using a `.env` file is the most convenient method as it persists your configuration and keeps sensitive data out of your shell history.</Tip>
+
+        For more information on environment variables, refer to the [this guide](../advanced/env-vars).
     </Step>
 
     <Step title="Start the Service">
@@ -143,62 +145,6 @@ The Python service is ideal for developers who prefer managing Python environmen
         You should see a response indicating the service is healthy and ready to accept requests.
     </Step>
 
-    <Step title="SSL/HTTPS Configuration (Production)">
-        For production deployments, configure HTTPS by providing SSL certificates:
-
-        **Environment Variables:**
-        ```bash
-        export SSL_CERT_PATH=/path/to/certificate.crt
-        export SSL_KEY_PATH=/path/to/private.key
-        ```
-
-        **Complete Production Example:**
-        ```bash
-        # Set all required environment variables including SSL
-        export CYBORGDB_API_KEY=cyborg_your_api_key_here
-        export CYBORGDB_DB_TYPE=postgres
-        export CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=postgres user=postgres password=your_password"
-        export SSL_CERT_PATH=/etc/ssl/certs/server.crt
-        export SSL_KEY_PATH=/etc/ssl/private/server.key
-
-        # Start service (will automatically use HTTPS)
-        cyborgdb-service
-        ```
-
-        **Using .env File with SSL:**
-        ```bash
-        # Create a .env file with SSL configuration
-        cat > .env << EOF
-        CYBORGDB_API_KEY=cyborg_your_api_key_here
-        CYBORGDB_DB_TYPE=postgres
-        CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=postgres user=postgres password=your_password
-        SSL_CERT_PATH=/path/to/certificate.crt
-        SSL_KEY_PATH=/path/to/private.key
-        EOF
-
-        # Start service
-        cyborgdb-service
-        ```
-
-        **Using Let's Encrypt (Production):**
-        ```bash
-        # Install certbot (Ubuntu/Debian)
-        sudo apt-get install certbot
-
-        # Generate certificate for your domain
-        sudo certbot certonly --standalone -d your-domain.com
-
-        # Set environment variables to Let's Encrypt certificates
-        export SSL_CERT_PATH=/etc/letsencrypt/live/your-domain.com/fullchain.pem
-        export SSL_KEY_PATH=/etc/letsencrypt/live/your-domain.com/privkey.pem
-
-        # Start service with HTTPS
-        cyborgdb-service
-        ```
-
-        <Note>The server automatically switches to HTTPS when both certificate files are provided and exist. Without certificates, it starts in HTTP mode.</Note>
-    </Step>
-
     <Step title="Advanced Configuration">
         For production deployments, consider these additional configurations:
 
@@ -213,6 +159,9 @@ The Python service is ideal for developers who prefer managing Python environmen
                 | `PORT` | Service port | ❌ | `8000` |
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
                 | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
+
+                <Note>For more information on environment variables, refer to the [this guide](../advanced/env-vars).</Note>
+
             </Tab>
 
             <Tab title="Production Deployment">
@@ -227,6 +176,62 @@ The Python service is ideal for developers who prefer managing Python environmen
                 sudo systemctl enable cyborgdb-service
                 sudo systemctl start cyborgdb-service
                 ```
+            </Tab>
+
+            <Tab title="HTTPS Configuration">
+                For production deployments, configure HTTPS by providing SSL certificates:
+
+                **Environment Variables:**
+                ```bash
+                export SSL_CERT_PATH=/path/to/certificate.crt
+                export SSL_KEY_PATH=/path/to/private.key
+                ```
+
+                **Complete Production Example:**
+                ```bash
+                # Set all required environment variables including SSL
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=postgres
+                export CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=postgres user=postgres password=your_password"
+                export SSL_CERT_PATH=/etc/ssl/certs/server.crt
+                export SSL_KEY_PATH=/etc/ssl/private/server.key
+
+                # Start service (will automatically use HTTPS)
+                cyborgdb-service
+                ```
+
+                **Using .env File with SSL:**
+                ```bash
+                # Create a .env file with SSL configuration
+                cat > .env << EOF
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=postgres
+                CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=postgres user=postgres password=your_password
+                SSL_CERT_PATH=/path/to/certificate.crt
+                SSL_KEY_PATH=/path/to/private.key
+                EOF
+
+                # Start service
+                cyborgdb-service
+                ```
+
+                **Using Let's Encrypt (Production):**
+                ```bash
+                # Install certbot (Ubuntu/Debian)
+                sudo apt-get install certbot
+
+                # Generate certificate for your domain
+                sudo certbot certonly --standalone -d your-domain.com
+
+                # Set environment variables to Let's Encrypt certificates
+                export SSL_CERT_PATH=/etc/letsencrypt/live/your-domain.com/fullchain.pem
+                export SSL_KEY_PATH=/etc/letsencrypt/live/your-domain.com/privkey.pem
+
+                # Start service with HTTPS
+                cyborgdb-service
+                ```
+
+                <Note>The server automatically switches to HTTPS when both certificate files are provided and exist. Without certificates, it starts in HTTP mode.</Note>
             </Tab>
         </Tabs>
     </Step>
@@ -247,7 +252,7 @@ The Python service is ideal for developers who prefer managing Python environmen
         </CodeGroup>
 
         <CardGroup cols={3}>
-            <Card title="REST API Reference" href="../../rest-api/introduction" icon="python">
+            <Card title="REST API Reference" href="../../rest-api/introduction" icon="rectangle-terminal">
                 Learn how to use the REST API for direct integration
             </Card>
             <Card title="Python SDK Reference" href="../../python-sdk/introduction" icon="python">
@@ -262,6 +267,8 @@ The Python service is ideal for developers who prefer managing Python environmen
 
 ## Comparison with Docker Approach
 
+<Expandable title="Python Service vs Docker Service">
+
 | Aspect | Python Service | Docker Service |
 |--------|---------------|----------------|
 | **Installation** | `pip install` | `docker run` |
@@ -273,3 +280,5 @@ The Python service is ideal for developers who prefer managing Python environmen
 | **Best For** | Development, Python-heavy workflows | Production, cloud deployment |
 
 <Tip>Both approaches provide identical CyborgDB functionality. Choose based on your deployment preferences and infrastructure requirements.</Tip>
+
+</Expandable>

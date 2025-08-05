@@ -9,17 +9,32 @@ In other versions (microservice, serverless), it is automatically called once en
 
 CyborgDB uses `IVF*` index types, which leverage clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
 
-In the core library version of CyborgDB, this training must be explicitly called once enough vectors have been added:
+In the service-based SDKs, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added:
 
 <CodeGroup>
-```python Python
+```python Python SDK icon="python"
 # Train the encrypted index
 index.train()
 ```
 
-```cpp C++
+```javascript JavaScript SDK icon="js"
 // Train the encrypted index
-index.Train();
+await index.train();
+```
+
+```typescript TypeScript SDK icon="code"
+// Train the encrypted index
+await index.train();
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/train" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
 ```
 </CodeGroup>
 
@@ -34,7 +49,6 @@ Parameters are available to customize the training process:
 | `batch_size` | `int` | `0` | _(Optional)_ Size of each batch for training. `0` auto-selects the batch size. |
 | `max_iters` | `int` | `0` | _(Optional)_ Maximum number of iterations for training. `0` auto-selects the iteration count. |
 | `tolerance` | `float`| `1e-6` | _(Optional)_ Convergence tolerance for training. |
-| `max_memory` | `int`| `0` | _(Optional)_ Maximum memory to use for training. `0` sets no limit. |
 
 ## Warnings with Large Untrained Queries
 
@@ -49,7 +63,7 @@ Warning: querying untrained index with more than 50000 indexed vectors.
 For more information on training an encrypted index, refer to the API reference:
 
 <CardGroup cols={3}>
-    <Card title="REST API Reference" href="../../rest-api/encrypted-index/train" icon="server">
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/train" icon="rectangle-terminal">
         REST API reference for `/v1/indexes/train`
     </Card>
     <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/train" icon="python">

@@ -16,7 +16,7 @@ To connect to an existing index using the service Python SDK, use `create_index(
 ```python
 from cyborgdb import Client, IndexIVF
 
-client = Client('http://localhost:3000', 'your-api-key')
+client = Client('http://localhost:8000', 'your-api-key')
 
 # Connect to existing index (or create if it doesn't exist)
 index_key = your_existing_32_byte_key  # Must be the same key used originally

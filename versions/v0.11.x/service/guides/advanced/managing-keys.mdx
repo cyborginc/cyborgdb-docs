@@ -35,31 +35,105 @@ For local development and evaluation, you can generate a 256-bit encryption key 
     </Step>
     <Step title="Use the Key in Python">
 
-    You can either load the key directly from the file and use it directly with CyborgDB.
+    You can either load the key directly from the file and use it with CyborgDB service SDKs.
 
-    ```python
-    # Import cyborgdb_core or cyborgdb_lite:
-    import cyborgdb_core as cyborgdb
-    import cyborgdb_lite as cyborgdb
+<CodeGroup>
+```python Python SDK icon="python"
+from cyborgdb import Client, IndexIVFFlat
+import base64
 
-    # Example setup
-    index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-    config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-    client = cyborgdb.Client(index_location, config_location)
+# Create a client
+client = Client('http://localhost:8000', 'your-api-key')
 
-    # Example index configuration
-    dimension = 128
-    n_lists = 4096
-    index_config = cyborgdb.IndexIVFFlat(dimension, n_lists)
-    index_name = "test_index"
+# Example index configuration
+dimension = 128
+n_lists = 4096
+index_config = IndexIVFFlat(
+    type='ivf_flat',
+    dimension=dimension,
+    n_lists=n_lists
+)
+index_name = "test_index"
 
-    # Load the encryption key
-    with open("index_key.txt", "rb") as key_file:
-        index_key = key_file.read().strip()
+# Load the encryption key
+with open("index_key.txt", "r") as key_file:
+    key_b64 = key_file.read().strip()
+    index_key = base64.b64decode(key_b64)
 
-    # Use the encryption key
-    client.create_index(index_name, index_key, index_config)
-    ```
+# Use the encryption key
+index = client.create_index(index_name, index_key, index_config)
+```
+
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
+import fs from 'fs';
+
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Example index configuration
+const dimension = 128;
+const nLists = 4096;
+const indexConfig = {
+    type: 'ivf_flat',
+    dimension: dimension,
+    nLists: nLists
+};
+const indexName = "test_index";
+
+// Load the encryption key
+const keyB64 = fs.readFileSync("index_key.txt", 'utf8').trim();
+const indexKey = new Uint8Array(Buffer.from(keyB64, 'base64'));
+
+// Use the encryption key
+const index = await client.createIndex(indexName, indexKey, indexConfig);
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client, IndexIVFFlatModel } from 'cyborgdb';
+import fs from 'fs';
+
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Example index configuration
+const dimension = 128;
+const nLists = 4096;
+const indexConfig: IndexIVFFlatModel = {
+    type: 'ivf_flat',
+    dimension: dimension,
+    nLists: nLists
+};
+const indexName = "test_index";
+
+// Load the encryption key
+const keyB64 = fs.readFileSync("index_key.txt", 'utf8').trim();
+const indexKey = new Uint8Array(Buffer.from(keyB64, 'base64'));
+
+// Use the encryption key
+const index = await client.createIndex(indexName, indexKey, indexConfig);
+```
+
+```bash cURL icon="rectangle-terminal"
+# Load the base64 key from file and use in REST API
+KEY_B64=$(cat index_key.txt)
+
+# Convert base64 to hex format for REST API
+# Note: REST API expects 64-character hex string
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d "{
+       \"index_name\": \"test_index\",
+       \"index_key\": \"$(echo $KEY_B64 | base64 -d | xxd -p -c 32)\",
+       \"index_config\": {
+         \"type\": \"ivfflat\",
+         \"dimension\": 128,
+         \"n_lists\": 4096
+       }
+     }"
+```
+</CodeGroup>
     </Step>
 </Steps>
 
@@ -160,34 +234,131 @@ CyborgDB can integrate with popular KMS providers, such as:
 
     In your application code, decrypt the encrypted key at runtime using AWS KMS:
 
-    ```python
-    import boto3
-    import base64
-    import cyborgdb_core as cyborgdb
+<CodeGroup>
+```python Python SDK icon="python"
+import boto3
+import base64
+from cyborgdb import Client, IndexIVFFlat
 
-    # Example setup
-    index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-    config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-    client = cyborgdb.Client(index_location, config_location)
+# Create a client
+client = Client('http://localhost:8000', 'your-api-key')
 
-    # Initialize AWS KMS client
-    kms_client = boto3.client('kms')
+# Initialize AWS KMS client
+kms_client = boto3.client('kms')
 
-    # Load the encrypted key from your configuration
-    encrypted_key_b64 = '...'  # Replace with your stored encrypted key (Base64-encoded)
+# Load the encrypted key from your configuration
+encrypted_key_b64 = '...'  # Replace with your stored encrypted key (Base64-encoded)
 
-    # Decode the Base64-encoded encrypted key
-    encrypted_key = base64.b64decode(encrypted_key_b64)
+# Decode the Base64-encoded encrypted key
+encrypted_key = base64.b64decode(encrypted_key_b64)
 
-    # Decrypt the key at runtime
-    response = kms_client.decrypt(
-        CiphertextBlob=encrypted_key
-    )
-    index_key = response['Plaintext']  # This is your 256-bit key
+# Decrypt the key at runtime
+response = kms_client.decrypt(
+    CiphertextBlob=encrypted_key
+)
+index_key = response['Plaintext']  # This is your 256-bit key
 
-    # Use the key with CyborgDB
-    client.create_index(index_name, index_key, index_config)
-    ```    
+# Example index configuration
+index_config = IndexIVFFlat(
+    type='ivf_flat',
+    dimension=768,
+    n_lists=1024
+)
+
+# Use the key with CyborgDB
+index = client.create_index("my_index", index_key, index_config)
+```
+
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
+const AWS = require('aws-sdk');
+
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Initialize AWS KMS client
+const kms = new AWS.KMS();
+
+// Load the encrypted key from your configuration
+const encryptedKeyB64 = '...';  // Replace with your stored encrypted key (Base64-encoded)
+
+// Decode the Base64-encoded encrypted key
+const encryptedKey = Buffer.from(encryptedKeyB64, 'base64');
+
+// Decrypt the key at runtime
+const response = await kms.decrypt({
+    CiphertextBlob: encryptedKey
+}).promise();
+const indexKey = new Uint8Array(response.Plaintext);  // This is your 256-bit key
+
+// Example index configuration
+const indexConfig = {
+    type: 'ivf_flat',
+    dimension: 768,
+    nLists: 1024
+};
+
+// Use the key with CyborgDB
+const index = await client.createIndex("my_index", indexKey, indexConfig);
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client, IndexIVFFlatModel } from 'cyborgdb';
+const AWS = require('aws-sdk');
+
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Initialize AWS KMS client
+const kms = new AWS.KMS();
+
+// Load the encrypted key from your configuration
+const encryptedKeyB64 = '...';  // Replace with your stored encrypted key (Base64-encoded)
+
+// Decode the Base64-encoded encrypted key
+const encryptedKey = Buffer.from(encryptedKeyB64, 'base64');
+
+// Decrypt the key at runtime
+const response = await kms.decrypt({
+    CiphertextBlob: encryptedKey
+}).promise();
+const indexKey = new Uint8Array(response.Plaintext);  // This is your 256-bit key
+
+// Example index configuration
+const indexConfig: IndexIVFFlatModel = {
+    type: 'ivf_flat',
+    dimension: 768,
+    nLists: 1024
+};
+
+// Use the key with CyborgDB
+const index = await client.createIndex("my_index", indexKey, indexConfig);
+```
+
+```bash cURL icon="rectangle-terminal"
+# Decrypt key using AWS CLI and use with REST API
+ENCRYPTED_KEY_B64="your_encrypted_key_here"
+
+# Decrypt the key using AWS KMS
+DECRYPTED_KEY=$(aws kms decrypt \
+    --ciphertext-blob "$(echo $ENCRYPTED_KEY_B64 | base64 -d | base64)" \
+    --output text --query Plaintext | base64 -d | xxd -p -c 32)
+
+# Use the decrypted key with CyborgDB REST API
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d "{
+       \"index_name\": \"my_index\",
+       \"index_key\": \"$DECRYPTED_KEY\",
+       \"index_config\": {
+         \"type\": \"ivfflat\",
+         \"dimension\": 768,
+         \"n_lists\": 1024
+       }
+     }"
+```
+</CodeGroup>    
 
     **Explanation:**
 

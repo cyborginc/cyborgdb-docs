@@ -7,15 +7,13 @@ mode: "wide"
 To see which existing encrypted indexes are available to your CyborgDB client, you can use `list_indexes`:
 
 <CodeGroup>
-```python Python
-# Import cyborgdb_core or cyborgdb_lite:
-import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
+```python Python SDK icon="python"
+from cyborgdb import Client
 
-# Set index location and config location beforehand...
+# Create a client
+client = Client('http://localhost:8000', 'your-api-key')
 
-client = cyborgdb.Client(index_location=index_location, config_location=config_location)
-
+# List all available indexes
 indexes = client.list_indexes()
 
 print(indexes)
@@ -23,30 +21,48 @@ print(indexes)
 # ["index_one", "index_two", "index_three"]
 ```
 
-```cpp C++
-#include "cyborgdb_core/client.hpp"
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
 
-// Set index location and config location beforehand...
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
 
-cyborg::Client client(index_location, config_location);
+// List all available indexes
+const indexes = await client.listIndexes();
 
-auto indexes = client.ListIndexes();
+console.log(indexes);
+// Example output:
+// ["index_one", "index_two", "index_three"]
+```
 
-// Print the indexes
-for (const auto& index_name : indexes) {
-    std::cout << index_name << std::endl;
-}
+```typescript TypeScript SDK icon="code"
+import { Client } from 'cyborgdb';
+
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// List all available indexes
+const indexes: string[] = await client.listIndexes();
+
+console.log(indexes);
+// Example output:
+// ["index_one", "index_two", "index_three"]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X GET "http://localhost:8000/v1/indexes/list" \
+     -H "X-API-Key: your-api-key"
 ```
 </CodeGroup>
 
-<Note>`list_indexes` is not available for `memory` locations.</Note>
+This returns an array of index names that are available to your API key.
 
 ## API Reference
 
 For more information on listing encrypted indexes, refer to the API reference:
 
 <CardGroup cols={3}>
-    <Card title="REST API Reference" href="../../rest-api/client/list-indexes" icon="server">
+    <Card title="REST API Reference" href="../../rest-api/client/list-indexes" icon="rectangle-terminal">
         REST API reference for `/v1/indexes/list`
     </Card>
     <Card title="Python SDK Reference" href="../../python-sdk/client/list-indexes" icon="python">

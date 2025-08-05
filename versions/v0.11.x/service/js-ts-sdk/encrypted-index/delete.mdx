@@ -39,7 +39,7 @@ async delete(ids: string[]): Promise<SuccessResponseModel>
 ```typescript
 import { Client, IndexIVFModel } from 'cyborgdb';
 
-const client = new Client('http://localhost:3000', 'your-api-key');
+const client = new Client('http://localhost:8000', 'your-api-key');
 
 // Create and populate index
 const indexKey = crypto.getRandomValues(new Uint8Array(32));
