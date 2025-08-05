@@ -9,7 +9,7 @@ Retrieves vectors from the encrypted index by their IDs, with options to specify
 async get(
     ids: string[],
     include: string[] = ["vector", "contents", "metadata"]
-): Promise<Array<{ id: string; vector?: number[]; contents?: Buffer | string; metadata?: any }>>
+): Promise<Array<GetResultItem>>
 ```
 
 ### Parameters
@@ -41,14 +41,13 @@ async get(
 ### Example Usage
 
 ```typescript
-import { Client, IndexIVFModel } from '@cyborgdb/sdk-js-ts';
+import { Client, IndexIVFModel } from 'cyborgdb';
 
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+const client = new Client('http://localhost:3000', 'your-api-key');
 
 // Create and populate index
 const indexKey = crypto.getRandomValues(new Uint8Array(32));
 const config: IndexIVFModel = {
-    type: 'ivf',
     dimension: 768,
     nLists: 1024,
     metric: 'cosine'
@@ -127,36 +126,3 @@ The method returns an array of objects with the following structure:
 | `vector` | `number[]` | The vector data (included if `"vector"` in include array) |
 | `contents` | `Buffer` \| `string` | The content data, automatically decoded from base64 if needed (included if `"contents"` in include array) |
 | `metadata` | `any` | Associated metadata object (included if `"metadata"` in include array) |
-
-### Field Selection Benefits
-
-Choosing specific fields can significantly improve performance:
-
-- **Metadata only**: Fast existence checks and property inspection
-- **Vectors only**: Efficient for similarity calculations and mathematical operations  
-- **Contents only**: Quick content retrieval without vector overhead
-- **Custom combinations**: Optimize data transfer for specific use cases
-
-### Best Practices
-
-- **Field Selection**: Only request the fields you need to minimize data transfer and processing time
-- **Batch Size**: When retrieving many vectors, process them in reasonable batches (25-50 vectors)
-- **Error Handling**: Implement proper error handling for network failures and missing vectors
-- **Content Processing**: Handle both string and Buffer content types appropriately
-- **Caching**: Consider caching frequently accessed vectors locally
-- **Existence Checks**: Use metadata-only retrieval for efficient existence verification
-
-### Performance Considerations
-
-- **Network Transfer**: Limiting fields reduces bandwidth usage and improves response times
-- **Memory Usage**: Large vectors and content can consume significant memory - process in batches
-- **Index Type**: Retrieval performance may vary based on the index configuration
-- **Concurrent Requests**: Multiple simultaneous get operations are supported and encouraged
-
-### Important Notes
-
-- Non-existent vector IDs are silently ignored (no error thrown)
-- The order of results may not match the order of input IDs
-- Content is automatically decoded from base64 storage format when retrieved
-- All data is decrypted automatically using the index's encryption key
-- Fields not included in the `include` parameter will be `undefined` in the response

@@ -22,19 +22,39 @@ index.train(
 | `tolerance` | `float` | `1e-6` | Convergence tolerance for training completion |
 | `max_memory` | `int` | `0` | Maximum memory usage in MB (0 = unlimited) |
 
+<Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
+
 ### Returns
+
 `None`
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are insufficient resources to complete training.
+    </Accordion>
+    <Accordion title="Training Errors">
+        - Throws if the index has no vectors to train on.
+        - Throws if the index configuration is incompatible with training.
+        - Throws if training parameters are out of valid ranges.
+        - Throws if training fails to converge within the specified parameters.
+    </Accordion>
+</AccordionGroup>
 
 ### Example Usage
 
-Basic training with default parameters:
+#### Basic Index Training
 
 ```python
 # Train the index after adding the data
 index.train()
 ```
 
-Custom training parameters:
+#### Custom Training Parameters
 
 ```python
 # Train with custom parameters for large dataset
@@ -45,9 +65,3 @@ index.train(
     max_memory=2048      # Limit memory usage to 2GB
 )
 ```
-
-### Best Practices
-- **When to train**: Always train after adding your initial dataset
-- **Batch size**: Use larger batches (4096-8192) for datasets > 100K vectors
-- **Memory limits**: Set max_memory on memory-constrained systems
-- **Re-training**: Consider re-training if you add significant amounts of new data

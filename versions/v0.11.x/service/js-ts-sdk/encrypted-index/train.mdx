@@ -10,7 +10,7 @@ async train(
     batchSize: number = 2048,
     maxIters: number = 100,
     tolerance: number = 1e-6
-): Promise<CyborgdbServiceApiSchemasIndexSuccessResponseModel>
+): Promise<SuccessResponseModel>
 ```
 
 ### Parameters
@@ -25,7 +25,7 @@ async train(
 
 ### Returns
 
-`Promise<CyborgdbServiceApiSchemasIndexSuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and training completion message.
+`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and training completion message.
 
 ### Exceptions
 
@@ -49,14 +49,13 @@ async train(
 #### Basic Index Training
 
 ```typescript
-import { Client, IndexIVFModel } from '@cyborgdb/sdk-js-ts';
+import { Client, IndexIVFModel } from 'cyborgdb';
 
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+const client = new Client('http://localhost:3000', 'your-api-key');
 
 // Create and populate index
 const indexKey = crypto.getRandomValues(new Uint8Array(32));
 const config: IndexIVFModel = {
-    type: 'ivf',
     dimension: 768,
     nLists: 1024,
     metric: 'cosine'
@@ -157,50 +156,3 @@ The method returns a success response object with the following structure:
 |-------|------|-------------|
 | `status` | `string` | Operation status (typically "success") |
 | `message` | `string` | Descriptive message about the training completion |
-
-### When to Train
-
-Training is required in the following scenarios:
-
-- **After Index Creation**: New indexes need training before efficient querying
-- **After Bulk Data Addition**: When adding large amounts of new data
-- **Performance Degradation**: When query performance noticeably decreases
-- **Index Modifications**: After significant changes to the vector dataset
-
-### Performance Considerations
-
-#### Parameter Selection
-
-- **Small datasets (< 1,000 vectors)**: Use default parameters or smaller batch sizes
-- **Medium datasets (1,000-10,000 vectors)**: Use default parameters
-- **Large datasets (> 10,000 vectors)**: Consider larger batch sizes and more iterations
-
-#### Index Type Impact
-
-- **IVF**: Requires training for optimal performance
-- **IVFFlat**: Benefits significantly from training
-- **IVFPQ**: May require more iterations due to quantization complexity
-
-#### Memory Considerations
-
-- Larger batch sizes use more memory but may improve training quality
-- Monitor memory usage during training of very large indexes
-- Consider training in off-peak hours for production systems
-
-### Best Practices
-
-- **Train After Data Loading**: Always train after adding significant amounts of data
-- **Monitor Training Time**: Set appropriate timeouts for training operations
-- **Parameter Tuning**: Adjust parameters based on your accuracy vs speed requirements
-- **Progress Monitoring**: Implement progress tracking for long-running training operations
-- **Error Handling**: Implement retry logic with progressive parameter relaxation
-- **Testing**: Verify query performance after training completion
-- **Documentation**: Document optimal training parameters for your specific use case
-
-### Important Notes
-
-- Training is a blocking operation that may take significant time
-- The index remains queryable during training but with potentially suboptimal performance
-- Training parameters significantly affect both training time and resulting query performance
-- Larger datasets generally benefit from larger batch sizes and more iterations
-- Training failure doesn't corrupt the index - you can retry with different parameters

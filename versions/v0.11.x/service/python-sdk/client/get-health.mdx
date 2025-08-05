@@ -3,4 +3,41 @@ title: "Get Health"
 mode: "wide"
 ---
 
-<Warning> This page is under construction </Warning>
+<Warning>
+This method is not currently implemented in the Python SDK. The health check endpoint exists in the CyborgDB service API, but the Python client does not expose a `get_health()` method.
+
+To check service health, you can make a direct HTTP request to the `/v1/health` endpoint or use the JavaScript/TypeScript SDK which includes this functionality.
+
+This will be fixed in the `v0.12.0` release of the Python SDK.
+</Warning>
+
+Checks the health status of the CyborgDB microservice to verify connectivity and service availability.
+
+```python
+def get_health() -> Dict[str, str]
+```
+
+### Returns
+
+`Dict[str, str]`: Health status information from the service.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the health check request fails due to network connectivity issues.
+        - Throws if the server is unreachable or times out.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unhealthy or experiencing issues.
+        - Throws if there are internal server errors preventing health reporting.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+health = client.get_health()
+print(f"Service status: {health}")
+```

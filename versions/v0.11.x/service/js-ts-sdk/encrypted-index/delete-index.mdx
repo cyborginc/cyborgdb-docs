@@ -8,16 +8,12 @@ mode: "wide"
 Deletes the current index and all its associated data from the CyborgDB service.
 
 ```typescript
-async deleteIndex(): Promise<{ status: string; message?: string }>
+async deleteIndex(): Promise<SuccessResponseModel>
 ```
-
-### Parameters
-
-This method takes no parameters.
 
 ### Returns
 
-`Promise<CyborgdbServiceApiSchemasIndexSuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message.
+`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message.
 
 ### Exceptions
 
@@ -36,26 +32,6 @@ This method takes no parameters.
 ### Example Usage
 
 ```typescript
-import { Client, IndexIVFModel } from '@cyborgdb/sdk-js-ts';
-
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
-
-// Create an index
-const indexKey = crypto.getRandomValues(new Uint8Array(32));
-const config: IndexIVFModel = {
-    type: 'ivf',
-    dimension: 768,
-    nLists: 1024,
-    metric: 'cosine'
-};
-
-const index = await client.createIndex('temporary-index', indexKey, config);
-
-// Use the index for operations
-await index.upsert([
-    { id: '1', vector: [0.1, 0.2, 0.3, ...], metadata: { temp: true } }
-]);
-
 // Delete the index when no longer needed
 try {
     const result = await index.deleteIndex();

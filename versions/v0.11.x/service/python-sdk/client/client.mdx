@@ -28,8 +28,23 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 from cyborgdb import Client
 
 # Create client with API key
-client = Client('https://your-cyborgdb-service.com', 'your-api-key')
-
-# Create client without API key (for local development)
-local_client = Client('http://localhost:8000')
+client = Client('http://localhost:3000', 'your-api-key')
 ```
+
+## Error Handling
+
+The `Client` class includes comprehensive error handling that processes different types of API errors:
+
+- **HTTP Errors**: Status codes and response details are logged and converted to meaningful error messages
+- **Validation Errors**: Field validation failures are formatted with detailed information
+- **Network Errors**: Connection and timeout issues are handled gracefully
+
+All methods throw standard Python exceptions with descriptive messages for easier debugging and error handling in your application.
+
+## Type Safety
+
+The Python SDK provides type hints for better development experience:
+
+- Type annotations for all method parameters and return values
+- IDE support with autocomplete and type checking
+- Runtime validation of critical parameters

@@ -31,6 +31,21 @@ index.get(ids, include=["vector", "contents", "metadata"])
 ]
 ```
 
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors preventing the retrieval.
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Throws if the `ids` parameter is null, undefined, or empty.
+        - Throws if the `include` parameter contains invalid field names.
+    </Accordion>
+</AccordionGroup>
+
 ### Example Usage
 
 ```python

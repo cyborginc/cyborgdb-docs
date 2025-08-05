@@ -17,9 +17,9 @@
 - [ ] Write `v0.11.x/service/guides/intro` page
 - [ ] Review all `v0.11.x/service/guides/*` pages (content, code examples, links)
 - [X] Review all `v0.11.x/service/rest-api/*` pages (content, code examples, links)
-- [ ] Review all `v0.11.x/service/python-sdk/*` pages (content, code examples, links)
-- [ ] Review all `v0.11.x/service/js-ts-sdk/*` pages (content, code examples, links)
-- [ ] Compare SDK references for consistency
+- [X] Review all `v0.11.x/service/python-sdk/*` pages (content, code examples, links)
+- [X] Review all `v0.11.x/service/js-ts-sdk/*` pages (content, code examples, links)
+- [X] Compare SDK references for consistency
 - [ ] Write `v0.11.x/integrations/integrations/about` page
 - [ ] Write `v0.11.x/integrations/langchain/introduction` page
 - [ ] Review all `v0.11.x/integrations/langchain/*` pages (content, code examples, links)

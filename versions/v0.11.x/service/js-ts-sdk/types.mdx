@@ -18,7 +18,7 @@ The `CreateIndexRequest` interface defines the parameters for creating a new enc
 ### Example Usage
 
 ```typescript
-import { CreateIndexRequest, IndexIVF } from '@cyborgdb/sdk-js-ts';
+import { CreateIndexRequest, IndexIVF } from 'cyborgdb';
 
 const createRequest: CreateIndexRequest = {
     indexConfig: {
@@ -49,7 +49,7 @@ Base interface for operations that require index identification and authenticati
 ### Example Usage
 
 ```typescript
-import { IndexOperationRequest } from '@cyborgdb/sdk-js-ts';
+import { IndexOperationRequest } from 'cyborgdb';
 
 const operationRequest: IndexOperationRequest = {
     indexKey: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -74,7 +74,7 @@ Interface for adding or updating vectors in an encrypted index.
 ### Example Usage
 
 ```typescript
-import { UpsertRequest, VectorItem } from '@cyborgdb/sdk-js-ts';
+import { UpsertRequest, VectorItem } from 'cyborgdb';
 
 const upsertRequest: UpsertRequest = {
     indexKey: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -113,7 +113,7 @@ Interface for performing similarity search in the encrypted index.
 ### Example Usage
 
 ```typescript
-import { QueryRequest } from '@cyborgdb/sdk-js-ts';
+import { QueryRequest } from 'cyborgdb';
 
 const queryRequest: QueryRequest = {
     indexKey: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -149,7 +149,7 @@ Interface for performing batch similarity searches with multiple vectors.
 ### Example Usage
 
 ```typescript
-import { BatchQueryRequest } from '@cyborgdb/sdk-js-ts';
+import { BatchQueryRequest } from 'cyborgdb';
 
 const batchQueryRequest: BatchQueryRequest = {
     indexKey: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -186,7 +186,7 @@ Interface for training an index to optimize query performance.
 ### Example Usage
 
 ```typescript
-import { TrainRequest } from '@cyborgdb/sdk-js-ts';
+import { TrainRequest } from 'cyborgdb';
 
 const trainRequest: TrainRequest = {
     indexKey: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -215,7 +215,7 @@ Interface for deleting vectors from the encrypted index.
 ### Example Usage
 
 ```typescript
-import { DeleteRequest } from '@cyborgdb/sdk-js-ts';
+import { DeleteRequest } from 'cyborgdb';
 
 const deleteRequest: DeleteRequest = {
     indexKey: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -242,7 +242,7 @@ Interface for retrieving specific vectors from the index.
 ### Example Usage
 
 ```typescript
-import { GetRequest } from '@cyborgdb/sdk-js-ts';
+import { GetRequest } from 'cyborgdb';
 
 const getRequest: GetRequest = {
     indexKey: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -270,7 +270,7 @@ Interface representing a vectorized item for storage in the encrypted index.
 ### Example Usage
 
 ```typescript
-import { VectorItem } from '@cyborgdb/sdk-js-ts';
+import { VectorItem } from 'cyborgdb';
 
 const vectorItem: VectorItem = {
     id: 'article_123',
@@ -312,7 +312,7 @@ Standard IVF (Inverted File) index configuration, ideal for balanced performance
 #### Example Usage
 
 ```typescript
-import { IndexIVF } from '@cyborgdb/sdk-js-ts';
+import { IndexIVF } from 'cyborgdb';
 
 const ivfConfig: IndexIVF = {
     type: 'ivf',
@@ -342,7 +342,7 @@ IVFFlat index configuration, suitable for highest accuracy requirements:
 #### Example Usage
 
 ```typescript
-import { IndexIVFFlat } from '@cyborgdb/sdk-js-ts';
+import { IndexIVFFlat } from 'cyborgdb';
 
 const flatConfig: IndexIVFFlat = {
     type: 'ivfflat',
@@ -374,7 +374,7 @@ IVFPQ (Product Quantization) index configuration, optimized for memory efficienc
 #### Example Usage
 
 ```typescript
-import { IndexIVFPQ } from '@cyborgdb/sdk-js-ts';
+import { IndexIVFPQ } from 'cyborgdb';
 
 const pqConfig: IndexIVFPQ = {
     type: 'ivfpq',
@@ -418,7 +418,7 @@ Response interface for similarity search operations with helper methods.
 #### Example Usage
 
 ```typescript
-import { QueryResponse } from '@cyborgdb/sdk-js-ts';
+import { QueryResponse } from 'cyborgdb';
 
 function processQueryResults(response: QueryResponse) {
     if (response.isBatchResponse()) {

@@ -3,9 +3,7 @@ title: "Create Index"
 mode: "wide"
 ---
 
-Creates and returns a new encrypted index based on the provided configuration.
-
-Creates and returns a new encrypted index based on the provided configuration.
+Creates and returns an `EncryptedIndex` instance based on the provided configuration.
 
 ```typescript
 async createIndex(
@@ -49,18 +47,17 @@ async createIndex(
 
 ### Example Usage
 
-#### Basic IVF Index Creation
+#### Basic IVFFlat Index Creation
 
 ```typescript
-import { Client, IndexIVFModel } from '@cyborgdb/sdk-js-ts';
+import { Client, IndexIVFFlatModel } from 'cyborgdb';
 
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+const client = new Client('http://localhost:3000', 'your-api-key');
 
 const indexName = "my_vector_index";
 const indexKey = crypto.getRandomValues(new Uint8Array(32)); // Generate secure 32-byte key
 
-const indexConfig: IndexIVFModel = {
-    type: 'ivf',
+const indexConfig: IndexIVFFlatModel = {
     dimension: 768,
     nLists: 1024,
     metric: 'cosine'
@@ -81,15 +78,14 @@ try {
 #### IVFPQ Index with Embedding Model
 
 ```typescript
-import { Client, IndexIVFPQModel } from '@cyborgdb/sdk-js-ts';
+import { Client, IndexIVFPQModel } from 'cyborgdb';
 
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+const client = new Client('http://localhost:3000', 'your-api-key');
 
 const indexName = "semantic_search_index";
 const indexKey = crypto.getRandomValues(new Uint8Array(32));
 
 const indexConfig: IndexIVFPQModel = {
-    type: 'ivfpq',
     dimension: 1536,
     nLists: 2048,
     metric: 'cosine',
@@ -102,7 +98,7 @@ try {
         indexName,
         indexKey,
         indexConfig,
-        'text-embedding-3-large'  // OpenAI embedding model
+        'all-MiniLM-L6-v2'  // OpenAI embedding model
     );
     
     console.log('IVFPQ index with embeddings created successfully');
@@ -110,61 +106,3 @@ try {
     console.error('Index creation failed:', error.message);
 }
 ```
-
-#### IVFFlat Index for High Precision
-
-```typescript
-import { Client, IndexIVFFlatModel } from '@cyborgdb/sdk-js-ts';
-
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
-
-const indexName = "high_precision_index";
-const indexKey = crypto.getRandomValues(new Uint8Array(32));
-
-const indexConfig: IndexIVFFlatModel = {
-    type: 'ivfflat',
-    dimension: 512,
-    nLists: 100,
-    metric: 'euclidean'
-};
-
-try {
-    const index = await client.createIndex(
-        indexName,
-        indexKey,
-        indexConfig,
-        'sentence-transformers/all-MiniLM-L6-v2'
-    );
-    
-    // Index is ready for operations
-    await index.upsert([
-        { id: '1', vector: [0.1, 0.2, ...], metadata: { title: 'Document 1' } }
-    ]);
-} catch (error) {
-    console.error('Error:', error.message);
-}
-```
-
-### Key Generation Best Practices
-
-Always generate cryptographically secure keys:
-
-```typescript
-// Good: Using crypto.getRandomValues()
-const indexKey = crypto.getRandomValues(new Uint8Array(32));
-
-// Good: Node.js crypto module
-import { randomBytes } from 'crypto';
-const indexKey = new Uint8Array(randomBytes(32));
-
-// Bad: Predictable or weak keys
-const badKey = new Uint8Array(32).fill(1); // Don't do this!
-```
-
-### Index Configuration Guidelines
-
-Choose the right index type for your use case:
-
-- **IVF**: Best for general-purpose vector search with good balance of speed and accuracy
-- **IVFFlat**: Highest accuracy but slower search, good for smaller datasets
-- **IVFPQ**: Most memory-efficient, good for large datasets where some accuracy trade-off is acceptable

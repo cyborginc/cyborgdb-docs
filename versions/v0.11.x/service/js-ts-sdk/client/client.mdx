@@ -25,10 +25,10 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 ### Example Usage
 
 ```typescript
-import { Client } from '@cyborgdb/sdk-js-ts';
+import { Client } from 'cyborgdb';
 
 // Create client with API key
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+const client = new Client('http://localhost:3000', 'your-api-key');
 
 // Create client without API key (for local development)
 const localClient = new Client('http://localhost:8000');

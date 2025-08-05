@@ -18,6 +18,21 @@ index.delete(ids)
 
 `None`
 
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors preventing the deletion.
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Throws if the `ids` parameter is null, undefined, or empty.
+        - Throws if any of the provided IDs are invalid format.
+    </Accordion>
+</AccordionGroup>
+
 ### Example Usage
 
 ```python

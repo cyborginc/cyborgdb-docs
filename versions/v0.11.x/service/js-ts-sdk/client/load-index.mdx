@@ -3,4 +3,33 @@ title: "Load Index"
 mode: "wide"
 ---
 
-<Warning> This page is under construction </Warning>
+<Warning>
+The service-based JavaScript/TypeScript SDK does not have a separate `loadIndex()` method. Instead, use the `createIndex()` method to connect to existing indexes.
+
+This will be changed in the `v0.12.0` release of the JavaScript/TypeScript SDK.
+</Warning>
+
+## Connecting to Existing Indexes
+
+To connect to an existing index using the service JavaScript/TypeScript SDK, use `createIndex()` with the same parameters:
+
+```typescript
+import { Client, IndexIVFModel } from 'cyborgdb';
+
+const client = new Client('http://localhost:3000', 'your-api-key');
+
+// Connect to existing index (or create if it doesn't exist)
+const indexKey = yourExisting32ByteKey; // Must be the same key used originally
+const config: IndexIVFModel = {
+    dimension: 768,
+    nLists: 1024,
+    metric: 'cosine'
+};
+
+// This will connect to the existing index if it exists with this name and key
+const index = await client.createIndex(
+    'my-existing-index',
+    indexKey,
+    config
+);
+```

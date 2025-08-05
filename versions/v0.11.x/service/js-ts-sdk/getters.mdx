@@ -179,18 +179,3 @@ function analyzeIndexCapabilities(index: EncryptedIndex) {
 // Usage
 analyzeIndexCapabilities(index);
 ```
-
-### Immutability Note
-
-The `getIndexConfig()` method returns a copy of the configuration to prevent external modification:
-
-```typescript
-const config = index.getIndexConfig();
-
-// This will not affect the internal index configuration
-config.dimension = 512; // Changes only the returned copy
-
-// The internal configuration remains unchanged
-const originalConfig = index.getIndexConfig();
-console.log(originalConfig.dimension); // Still the original value
-```

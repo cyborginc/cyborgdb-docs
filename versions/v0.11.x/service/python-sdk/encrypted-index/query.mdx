@@ -50,9 +50,27 @@ index.query(query_contents=text, top_k=10)
 ]
 ```
 
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors during the search.
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Throws if no query vector is provided.
+        - Throws if vector dimensions don't match the index configuration.
+        - Throws if parameter values are out of valid ranges.
+        - Throws if the `include` parameter contains invalid field names.
+    </Accordion>
+</AccordionGroup>
+
+
 ### Example Usage
 
-Single vector query:
+#### Single Vector Query
 
 ```python
 # Basic similarity search
@@ -85,7 +103,7 @@ for i, query_results in enumerate(batch_results):
         print(f"  ID: {result['id']}, Distance: {result['distance']}")
 ```
 
-Semantic search with text:
+#### Semantic Search with Text
 
 ```python
 # Search using text content

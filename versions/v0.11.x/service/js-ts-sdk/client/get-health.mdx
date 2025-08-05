@@ -9,10 +9,6 @@ Checks the health status of the CyborgDB microservice to verify connectivity and
 async getHealth(): Promise<{ status: string; api_version: string; version: string }>
 ```
 
-### Parameters
-
-This method takes no parameters.
-
 ### Returns
 
 `Promise<{ status: string; api_version: string; version: string }>`: A Promise that resolves to the health status response from the CyborgDB service containing the service status, API version, and application version.
@@ -34,9 +30,9 @@ This method takes no parameters.
 ### Example Usage
 
 ```typescript
-import { Client } from '@cyborgdb/sdk-js-ts';
+import { Client } from 'cyborgdb';
 
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+const client = new Client('http://localhost:3000', 'your-api-key');
 
 try {
     const health = await client.getHealth();

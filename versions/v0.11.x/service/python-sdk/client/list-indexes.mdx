@@ -9,15 +9,23 @@ Retrieves a list of all available indexes from the CyborgDB microservice.
 client.list_indexes()
 ```
 
-### Parameters
-
-This method does not require any parameters.
-
 ### Returns
 
-A list of strings containing the names of all available indexes.
+`List[str]`: A list of strings containing the index names currently available on the CyborgDB service.
 
-**Return Type**: `List[str]`
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
 
 ### Example Usage
 

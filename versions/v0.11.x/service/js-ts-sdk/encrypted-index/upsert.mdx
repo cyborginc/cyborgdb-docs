@@ -6,7 +6,7 @@ mode: "wide"
 Adds new vectors to the encrypted index or updates existing vectors if they have the same ID. This operation is the primary method for populating an index with vector data.
 
 ```typescript
-async upsert(items: VectorItem[]): Promise<CyborgdbServiceApiSchemasVectorsSuccessResponseModel>
+async upsert(items: VectorItem[]): Promise<SuccessResponseModel>
 ```
 
 ### Parameters
@@ -28,7 +28,7 @@ Each `VectorItem` must contain an `id` and may optionally include `vector`, `con
 
 ### Returns
 
-`Promise<CyborgdbServiceApiSchemasVectorsSuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message with the count of upserted vectors.
+`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message with the count of upserted vectors.
 
 ### Exceptions
 
@@ -52,9 +52,9 @@ Each `VectorItem` must contain an `id` and may optionally include `vector`, `con
 #### Basic Vector Upsert
 
 ```typescript
-import { Client, IndexIVFModel, VectorItem } from '@cyborgdb/sdk-js-ts';
+import { Client, IndexIVFModel, VectorItem } from 'cyborgdb';
 
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+const client = new Client('http://localhost:3000', 'your-api-key');
 
 // Create index
 const indexKey = crypto.getRandomValues(new Uint8Array(32));
@@ -140,7 +140,7 @@ try {
 }
 ```
 
-#### Batch Upsert with Content Processing
+#### Upsert with Content & Metadata
 
 ```typescript
 interface DocumentData {
@@ -213,197 +213,3 @@ const documents: DocumentData[] = [
 
 const batchResult = await processBatchDocuments(index, documents);
 ```
-
-#### Large Dataset Processing
-
-```typescript
-async function processLargeDataset(
-    index: EncryptedIndex, 
-    allItems: VectorItem[], 
-    batchSize: number = 100
-) {
-    const results = [];
-    const totalBatches = Math.ceil(allItems.length / batchSize);
-    
-    console.log(`Processing ${allItems.length} items in ${totalBatches} batches`);
-    
-    for (let i = 0; i < allItems.length; i += batchSize) {
-        const batch = allItems.slice(i, i + batchSize);
-        const batchNumber = Math.floor(i / batchSize) + 1;
-        
-        try {
-            console.log(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} items)`);
-            
-            const startTime = Date.now();
-            const result = await index.upsert(batch);
-            const duration = Date.now() - startTime;
-            
-            results.push({
-                batchNumber,
-                itemCount: batch.length,
-                duration,
-                success: true,
-                message: result.message
-            });
-            
-            console.log(`Batch ${batchNumber} completed in ${duration}ms`);
-            
-            // Small delay between batches to avoid overwhelming the server
-            if (batchNumber < totalBatches) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-        } catch (error) {
-            console.error(`Batch ${batchNumber} failed:`, error.message);
-            results.push({
-                batchNumber,
-                itemCount: batch.length,
-                success: false,
-                error: error.message
-            });
-        }
-    }
-    
-    // Summary
-    const successful = results.filter(r => r.success).length;
-    const failed = results.filter(r => !r.success).length;
-    const totalProcessed = results
-        .filter(r => r.success)
-        .reduce((sum, r) => sum + r.itemCount, 0);
-    
-    console.log(`\nProcessing Summary:`);
-    console.log(`Successful batches: ${successful}/${totalBatches}`);
-    console.log(`Failed batches: ${failed}`);
-    console.log(`Total items processed: ${totalProcessed}/${allItems.length}`);
-    
-    return {
-        successful,
-        failed,
-        totalProcessed,
-        results
-    };
-}
-
-// Usage with large dataset
-const largeDataset: VectorItem[] = generateLargeDataset(10000); // Your data generation function
-const processingResult = await processLargeDataset(index, largeDataset, 50);
-```
-
-#### Handling Binary Content
-
-```typescript
-async function upsertWithBinaryContent(index: EncryptedIndex) {
-    // Example with different content types
-    const binaryItems: VectorItem[] = [
-        {
-            id: 'text_doc',
-            vector: [0.1, 0.2, /* ... */],
-            contents: 'Plain text content',
-            metadata: { type: 'text', format: 'plain' }
-        },
-        {
-            id: 'binary_doc',
-            vector: [0.3, 0.4, /* ... */],
-            contents: Buffer.from('Binary content data', 'utf8'), // Will be base64 encoded
-            metadata: { type: 'binary', format: 'custom' }
-        },
-        {
-            id: 'json_doc',
-            vector: [0.5, 0.6, /* ... */],
-            contents: JSON.stringify({ 
-                title: 'Structured Data',
-                data: [1, 2, 3, 4, 5]
-            }),
-            metadata: { type: 'json', format: 'structured' }
-        }
-    ];
-    
-    try {
-        const result = await index.upsert(binaryItems);
-        console.log('Binary content upsert:', result.message);
-        
-        // Retrieve and verify content handling
-        const retrieved = await index.get(['text_doc', 'binary_doc', 'json_doc'], ['contents', 'metadata']);
-        
-        retrieved.forEach(item => {
-            console.log(`${item.id} (${item.metadata?.type}):`);
-            if (Buffer.isBuffer(item.contents)) {
-                console.log('  Content: Binary data,', item.contents.length, 'bytes');
-            } else {
-                console.log('  Content:', typeof item.contents, item.contents?.toString().substring(0, 50) + '...');
-            }
-        });
-        
-    } catch (error) {
-        console.error('Binary content upsert failed:', error.message);
-    }
-}
-
-await upsertWithBinaryContent(index);
-```
-
-### Response Format
-
-The method returns a success response object with the following structure:
-
-```typescript
-// Standard upsert completion response
-{
-    "status": "success",
-    "message": "Upserted 5 vectors"
-}
-```
-
-#### Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | `string` | Operation status (typically "success") |
-| `message` | `string` | Descriptive message including the count of upserted vectors |
-
-### Content Encoding
-
-The SDK automatically handles content encoding:
-
-- **String content**: Transmitted as-is
-- **Buffer content**: Automatically base64 encoded for transmission
-- **Binary data**: Converted to Buffer then base64 encoded
-
-### Performance Considerations
-
-#### Batch Size Optimization
-
-- **Small batches (10-50 items)**: Lower memory usage, more API calls
-- **Medium batches (100-200 items)**: Balanced performance and resource usage
-- **Large batches (500+ items)**: Fewer API calls but higher memory usage and longer processing time
-
-#### Vector Dimensions
-
-- Ensure all vectors have the exact same dimensions as specified in index configuration
-- Higher dimensional vectors consume more memory and processing time
-- Consider dimensionality reduction for very high-dimensional data
-
-#### Metadata Efficiency
-
-- Keep metadata objects reasonably sized to minimize storage and transfer overhead
-- Use consistent metadata schemas across all vectors for better query performance
-- Consider indexing frequently queried metadata fields
-
-### Best Practices
-
-- **Batch Processing**: Process large datasets in appropriately sized batches
-- **Validation**: Validate vector dimensions and data types before upserting
-- **Error Handling**: Implement proper error handling and retry logic for network failures
-- **Progress Monitoring**: Provide progress feedback for long-running upsert operations
-- **Memory Management**: Monitor memory usage when processing large datasets
-- **Training**: Train the index after significant data additions for optimal query performance
-- **ID Consistency**: Use consistent and meaningful ID naming conventions
-- **Content Types**: Handle different content types appropriately (text, binary, structured data)
-
-### Important Notes
-
-- Upserting vectors with existing IDs will overwrite the previous data
-- All vector data is automatically encrypted before storage
-- The operation is atomic per batch - either all vectors in a batch are processed or none are
-- Large upsert operations may take significant time depending on the dataset size
-- Training the index after upserting large amounts of data will improve query performance

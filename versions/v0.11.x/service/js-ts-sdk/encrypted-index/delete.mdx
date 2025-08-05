@@ -6,7 +6,7 @@ mode: "wide"
 Deletes vectors from the encrypted index by their IDs.
 
 ```typescript
-async delete(ids: string[]): Promise<CyborgdbServiceApiSchemasVectorsSuccessResponseModel>
+async delete(ids: string[]): Promise<SuccessResponseModel>
 ```
 
 ### Parameters
@@ -17,7 +17,7 @@ async delete(ids: string[]): Promise<CyborgdbServiceApiSchemasVectorsSuccessResp
 
 ### Returns
 
-`Promise<CyborgdbServiceApiSchemasVectorsSuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message with the count of deleted vectors.
+`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message with the count of deleted vectors.
 
 ### Exceptions
 
@@ -37,14 +37,13 @@ async delete(ids: string[]): Promise<CyborgdbServiceApiSchemasVectorsSuccessResp
 ### Example Usage
 
 ```typescript
-import { Client, IndexIVFModel } from '@cyborgdb/sdk-js-ts';
+import { Client, IndexIVFModel } from 'cyborgdb';
 
-const client = new Client('https://your-cyborgdb-service.com', 'your-api-key');
+const client = new Client('http://localhost:3000', 'your-api-key');
 
 // Create and populate index
 const indexKey = crypto.getRandomValues(new Uint8Array(32));
 const config: IndexIVFModel = {
-    type: 'ivf',
     dimension: 768,
     nLists: 1024,
     metric: 'cosine'
@@ -80,33 +79,3 @@ The method returns a success response object with the following structure:
     "message": "Deleted 3 vectors"
 }
 ```
-
-#### Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | `string` | Operation status (typically "success") |
-| `message` | `string` | Descriptive message including the count of deleted vectors |
-
-### Best Practices
-
-- **Batch Size**: When deleting many vectors, process them in reasonable batches (50-100 vectors) to avoid timeouts
-- **Verification**: For critical deletions, verify the operation by attempting to retrieve the deleted vectors
-- **Error Handling**: Implement proper error handling for network failures and invalid IDs
-- **Queue Management**: Consider using a deletion queue for managing bulk deletion operations
-- **Backup**: For important data, consider backing up vectors before deletion if recovery might be needed
-- **Atomic Operations**: When replacing vectors, add new ones first, then delete old ones to maintain data availability
-
-### Performance Considerations
-
-- **Index Type**: Deletion performance may vary based on the index type (IVF, IVFFlat, IVFPQ)
-- **Batch Processing**: Batch deletions are more efficient than individual deletions
-- **Training**: After large deletions, consider retraining the index for optimal query performance
-- **Memory**: Large deletion operations may temporarily increase memory usage during processing
-
-### Important Notes
-
-- Deleted vectors cannot be recovered unless backed up separately
-- Vector IDs that don't exist in the index are silently ignored (no error thrown)
-- The operation is atomic - either all specified vectors are deleted or none are
-- Deletion does not automatically retrain the index - call `train()` if needed for optimal performance
