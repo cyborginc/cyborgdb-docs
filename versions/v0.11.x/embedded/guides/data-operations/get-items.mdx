@@ -27,11 +27,11 @@ std::vector<std::string> ids = {"item_20", "item_11"};
 std::vector<cyborg::ItemFields> include = {kContents, kMetadata};
 
 // Retrieve items from the encrypted index
-std::vector<cyborg::Item> items = index.Get(ids, include);
+std::vector<cyborg::Item> items = index->Get(ids, include);
 
 // Print the item fields
-for (const auto& items : items) {
-    std::cout << "ID: " << item.id << ", Contents: " << item.contents << ", Metadata: " << item.metadata << std::endl;
+for (const auto& item : items) {
+    std::cout << "ID: " << item.id << ", Contents: " << std::string(item.contents.begin(), item.contents.end()) << ", Metadata: " << item.metadata << std::endl;
 }
 ```
 </CodeGroup>

@@ -22,10 +22,10 @@ index.upsert(items)
 ```cpp C++
 // Items to add to the encrypted index
 std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
+cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
 
 // Add items to the encrypted index
-index.Upsert(vectors, ids);
+index->Upsert(ids, vectors);
 ```
 </CodeGroup>
 
@@ -53,7 +53,7 @@ index.upsert(items)
 ```cpp C++
 // Items to add to the encrypted index
 std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
+cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
 std::vector<std::vector<uint8_t>> contents = {
     std::vector<uint8_t>{'H', 'e', 'l', 'l', 'o', '!'},
     std::vector<uint8_t>{'W', 'o', 'r', 'l', 'd', '!'},
@@ -61,7 +61,7 @@ std::vector<std::vector<uint8_t>> contents = {
 };
 
 // Add items to the encrypted index
-index.Upsert(vectors, ids, contents);
+index->Upsert(ids, vectors, contents);
 ```
 </CodeGroup>
 
@@ -87,7 +87,7 @@ index.upsert(items)
 ```cpp C++
 // Items to add to the encrypted index
 std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
+cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
 std::vector<std::string> metadata = {
     R"({"name": "Alice", "age": 30})",
     R"({"name": "Bob", "age": 40})",
@@ -95,7 +95,7 @@ std::vector<std::string> metadata = {
 };
 
 // Add items to the encrypted index
-index.Upsert(vectors, ids, std::nullopt, metadata);
+index->Upsert(ids, vectors, std::nullopt, metadata);
 ```
 </CodeGroup>
 

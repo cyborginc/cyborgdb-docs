@@ -22,8 +22,11 @@ import secrets
 index_location = cyborgdb.DBConfig("memory")  # Where encrypted index is stored (for queries)
 config_location = cyborgdb.DBConfig("memory") # Where encrypted index config is stored (for config/loading)
 
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
 # Create a client
-client = cyborgdb.Client(index_location, config_location)
+client = cyborgdb.Client(api_key, index_location, config_location)
 ```
 
 ```cpp C++
@@ -35,13 +38,18 @@ client = cyborgdb.Client(index_location, config_location)
 // Using `memory` storage for this example
 // `redis` and `postgres` are also supported
 
-cyborg::DBConfig index_location(Location::kMemory);  // Where encrypted index is stored (for queries)
-cyborg::DBConfig config_location(Location::kMemory); // Where encrypted index config is stored (for config/loading)
+cyborg::DBConfig index_location(cyborg::Location::kMemory);  // Where encrypted index is stored (for queries)
+cyborg::DBConfig config_location(cyborg::Location::kMemory); // Where encrypted index config is stored (for config/loading)
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
 
 // Create a client
-cyborg::Client client(index_location, config_location);
+cyborg::Client client(api_key, index_location, config_location);
 ```
 </CodeGroup>
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
 
 Bear in mind that all contents stored in the backing stores is end-to-end encrypted, meaning that **no index contents will be stored in plaintext**. For performance reasons, you may wish to use a "fast" backing store option for `index_location`, such as Redis.
 
@@ -61,10 +69,14 @@ index_location = cyborgdb.DBConfig(location="redis", connection_string="redis://
 config_location = cyborgdb.DBConfig(location="redis", connection_string="redis://localhost")
 item_location = cyborgdb.DBConfig(location="postgres", table_name="item_table", connection_string="host=localhost dbname=postgres")
 
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
 # Construct the Client object
-client = cyborgdb.Client(index_location=index_location, 
-                            config_location=config_location,
-                            item_location=item_location)
+client = cyborgdb.Client(api_key, 
+                        index_location=index_location, 
+                        config_location=config_location,
+                        items_location=item_location)
 ```
 
 ```cpp C++
@@ -72,12 +84,15 @@ client = cyborgdb.Client(index_location=index_location,
 
 // Using `redis` storage for the index and config
 // Using `postgres` storage for the items
-cyborg::DBConfig index_location(Location::kRedis, "redis://localhost");
-cyborg::DBConfig config_location(Location::kRedis, "redis://localhost");
-cyborg::DBConfig item_location(Location::kPostgres, "host=localhost dbname=postgres");
+cyborg::DBConfig index_location(cyborg::Location::kRedis, "redis://localhost");
+cyborg::DBConfig config_location(cyborg::Location::kRedis, "redis://localhost");
+cyborg::DBConfig item_location(cyborg::Location::kPostgres, "host=localhost dbname=postgres");
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
 
 // Construct the Client object
-cyborg::Client client(index_location, config_location, item_location);
+cyborg::Client client(api_key, index_location, config_location, item_location);
 ```
 </CodeGroup>
 
@@ -94,17 +109,18 @@ You can control either of these with the optional `cpu_threads` and `gpu_acceler
 
 <CodeGroup>
 ```python Python
-# ... existing setup
-client = cyborgdb.Client(index_location=index_location, 
-                            config_location=config_location,
-                            item_location=item_location,
-                            cpu_threads=4,
-                            gpu_accelerate=False)
+# ... existing setup (with api_key defined above)
+client = cyborgdb.Client(api_key,
+                        index_location=index_location, 
+                        config_location=config_location,
+                        items_location=item_location,
+                        cpu_threads=4,
+                        gpu_accelerate=False)
 ```
 
 ```cpp C++
-// ... existing setup
-cyborg::Client client(index_location, config_location, item_location, 4, false);
+// ... existing setup (with api_key defined above)
+cyborg::Client client(api_key, index_location, config_location, item_location, 4, false);
 ```
 </CodeGroup>
 

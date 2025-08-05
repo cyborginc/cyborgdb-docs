@@ -26,7 +26,7 @@ size_t top_k = 10;
 
 // Perform query
 cyborg::QueryParams query_params(top_k);
-cyborg::QueryResults results = index.Query(query_vectors, query_params);
+std::vector<cyborg::QueryResult> results = index->Query(query_vectors, query_params);
 
 // Print the results
 for (const auto& result : results) {
@@ -73,7 +73,7 @@ std::vector<std::string> include = {"distance", "metadata"};
 
 // Perform query
 cyborg::QueryParams query_params(top_k, n_probes, include, greedy, filters);
-cyborg::QueryResults results = index.Query(query_vectors, query_params);
+std::vector<cyborg::QueryResult> results = index->Query(query_vectors, query_params);
 
 // Print the results
 for (const auto& result : results) {
@@ -103,7 +103,7 @@ size_t top_k = 10;
 
 // Perform batch query
 cyborg::QueryParams query_params(top_k);
-cyborg::QueryResults results = index.Query(query_vectors, query_params);
+std::vector<std::vector<cyborg::QueryResult>> results = index->Query(query_vectors, query_params);
 ```
 </CodeGroup>
 

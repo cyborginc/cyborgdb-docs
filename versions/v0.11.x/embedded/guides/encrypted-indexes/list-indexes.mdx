@@ -14,7 +14,10 @@ import cyborgdb_lite as cyborgdb
 
 # Set index location and config location beforehand...
 
-client = cyborgdb.Client(index_location=index_location, config_location=config_location)
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
+client = cyborgdb.Client(api_key, index_location=index_location, config_location=config_location)
 
 indexes = client.list_indexes()
 
@@ -28,7 +31,10 @@ print(indexes)
 
 // Set index location and config location beforehand...
 
-cyborg::Client client(index_location, config_location);
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
+
+cyborg::Client client(api_key, index_location, config_location);
 
 auto indexes = client.ListIndexes();
 

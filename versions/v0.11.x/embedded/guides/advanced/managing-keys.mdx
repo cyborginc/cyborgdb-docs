@@ -45,7 +45,7 @@ For local development and evaluation, you can generate a 256-bit encryption key 
     # Example setup
     index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
     config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-    client = cyborgdb.Client(index_location, config_location)
+    client = cyborgdb.Client(api_key, index_location, config_location)
 
     # Example index configuration
     dimension = 128
@@ -168,7 +168,7 @@ CyborgDB can integrate with popular KMS providers, such as:
     # Example setup
     index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
     config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-    client = cyborgdb.Client(index_location, config_location)
+    client = cyborgdb.Client(api_key, index_location, config_location)
 
     # Initialize AWS KMS client
     kms_client = boto3.client('kms')

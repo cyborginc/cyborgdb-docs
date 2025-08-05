@@ -16,8 +16,11 @@ import cyborgdb_lite as cyborgdb
 index_location = cyborgdb.DBConfig("memory") 
 config_location = cyborgdb.DBConfig("memory")
 
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
 # Create a client
-client = cyborgdb.Client(index_location, config_location)
+client = cyborgdb.Client(api_key, index_location, config_location)
 
 # Provide the index key used when creating the index
 # Example key (32 bytes)
@@ -33,18 +36,21 @@ index = client.load_index("my_index", index_key)
 #include <array>
 
 // Using `memory` storage for this example
-cyborg::DBConfig index_location(Location::kMemory); 
-cyborg::DBConfig config_location(Location::kMemory);
+cyborg::DBConfig index_location(cyborg::Location::kMemory); 
+cyborg::DBConfig config_location(cyborg::Location::kMemory);
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
 
 // Create a client
-cyborg::Client client(index_location, config_location);
+cyborg::Client client(api_key, index_location, config_location);
 
 // Provide the index key used when creating the index
 // Example key (32 bytes)
 std::array<uint8_t, 32> index_key;
 
 // Create an encrypted index
-cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key);
+auto index = client.LoadIndex("my_index", index_key);
 ```
 </CodeGroup>
 
@@ -69,8 +75,11 @@ import secrets
 index_location = cyborgdb.DBConfig("memory") 
 config_location = cyborgdb.DBConfig("memory")
 
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
 # Create a client
-client = cyborgdb.Client(index_location, config_location)
+client = cyborgdb.Client(api_key, index_location, config_location)
 
 # Generate an encryption key for the index
 index_key = secrets.token_bytes(32)
@@ -89,11 +98,14 @@ index = client.load_index("my_index", index_key, max_cache_size)
 #include <random>
 
 // Using `memory` storage for this example
-cyborg::DBConfig index_location(Location::kMemory); 
-cyborg::DBConfig config_location(Location::kMemory);
+cyborg::DBConfig index_location(cyborg::Location::kMemory); 
+cyborg::DBConfig config_location(cyborg::Location::kMemory);
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
 
 // Create a client
-cyborg::Client client(index_location, config_location);
+cyborg::Client client(api_key, index_location, config_location);
 
 // Generate a 32-byte random encryption key
 std::array<uint8_t, 32> index_key;
@@ -104,7 +116,7 @@ std::generate(index_key.begin(), index_key.end(), [&]() { return rd() % 256; });
 std::size_t max_cache_size = 1000000;
 
 // Create an encrypted index
-cyborg::EncryptedIndex index = client.LoadIndex("my_index", index_key, max_cache_size);
+auto index = client.LoadIndex("my_index", index_key, max_cache_size);
 ```
 </CodeGroup>
 

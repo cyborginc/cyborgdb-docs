@@ -64,8 +64,11 @@ Get started with CyborgDB in minutes.
         config_location = cyborgdb.DBConfig("memory") # Where encrypted index config is stored (for config/loading)
         items_location = cyborgdb.DBConfig("memory")  # Where item contents are stored (for upsert/get)
 
+        # Get your API key
+        api_key = "your_api_key_here"  # Replace with your actual API key
+        
         # Create a client
-        client = cyborgdb.Client(index_location, config_location, items_location)
+        client = cyborgdb.Client(api_key, index_location, config_location, items_location)
         ```
 
         ```cpp C++
@@ -82,8 +85,11 @@ Get started with CyborgDB in minutes.
         cyborg::DBConfig config_location(cyborg::Location::kMemory); // Where encrypted index config is stored (for config/loading)
         cyborg::DBConfig items_location(cyborg::Location::kMemory);  // Where item contents are stored (for upsert/get)
 
+        // Get your API key
+        std::string api_key = "your_api_key_here";  // Replace with your actual API key
+        
         // Create a client
-        cyborg::Client client(index_location, config_location, items_location);
+        cyborg::Client client(api_key, index_location, config_location, items_location, 0, false);
         ```
         </CodeGroup>
 
@@ -121,7 +127,7 @@ Get started with CyborgDB in minutes.
         }
 
         // Create an encrypted index
-        cyborg::EncryptedIndex index = client.CreateIndex("my_index", index_key, index_config);
+        auto index = client.CreateIndex("my_index", index_key, index_config);
         ```
         </CodeGroup>
 
@@ -149,9 +155,14 @@ Get started with CyborgDB in minutes.
 
         // Add items to the encrypted index
         std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-        cyborg::Array2D vectors = {{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
+        cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
+        std::vector<std::vector<uint8_t>> contents = {
+            std::vector<uint8_t>{'H', 'e', 'l', 'l', 'o', '!'},
+            std::vector<uint8_t>{'B', 'o', 'n', 'j', 'o', 'u', 'r', '!'},
+            std::vector<uint8_t>{'H', 'o', 'l', 'a', '!'}
+        };
 
-        index.Upsert(vectors, ids);
+        index->Upsert(ids, vectors, contents);
         ```
         </CodeGroup>
 
@@ -175,8 +186,10 @@ Get started with CyborgDB in minutes.
 
         ```cpp C++
         // ... Continuing from the previous step
-        std::vector<float> query_vectors = {0.1, 0.2, 0.3, 0.4};
-        cyborg::QueryResults results = index.Query(query_vectors);
+        std::vector<float> query_vector = {0.1, 0.2, 0.3, 0.4};
+        
+        cyborg::QueryParams query_params(10);
+        std::vector<cyborg::QueryResult> results = index->Query(query_vector, query_params);
 
         // Print the results
         for (const auto& result : results) {
@@ -208,11 +221,12 @@ Get started with CyborgDB in minutes.
 
         // Retrieve items from the encrypted index
         std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-        cyborg::Array2D<cyborg::Item> items = index.Get(ids, {kContents});
+        std::vector<cyborg::ItemFields> include = {cyborg::ItemFields::kContents};
+        std::vector<cyborg::Item> items = index->Get(ids, include);
 
         // Print the items
-        for (size_t i = 0; i < ids.size(); i++) {
-            std::cout << "ID: " << ids[i] << ", Contents: " << items[i].contents << std::endl;
+        for (const auto& item : items) {
+            std::cout << "ID: " << item.id << ", Contents: " << std::string(item.contents.begin(), item.contents.end()) << std::endl;
         }
         ```
         </CodeGroup>

@@ -11,7 +11,7 @@
 - [ ] Write `v0.11.x/intro/quickstart` page
 - [ ] Write `v0.11.x/intro/using-docs` page
 - [ ] Write `v0.11.x/embedded/guides/intro` page
-- [ ] Update all `v0.11.x/embedded/guides/*` pages (API key, code examples, core -> embdedded)
+- [X] Update all `v0.11.x/embedded/guides/*` pages (API key, code examples, core -> embdedded)
 - [X] Update all `v0.11.x/embedded/python/*` pages (API key, code examples, core -> embdedded)
 - [X] Update all `v0.11.x/embedded/cpp/*` pages (API key, code examples, core -> embdedded)
 - [ ] Write `v0.11.x/service/guides/intro` page
@@ -23,3 +23,6 @@
 - [ ] Write `v0.11.x/integrations/integrations/about` page
 - [ ] Write `v0.11.x/integrations/langchain/introduction` page
 - [ ] Review all `v0.11.x/integrations/langchain/*` pages (content, code examples, links)
+- [ ] Permanent `intro` page for SEO
+- [ ] Meta description & og image
+- [ ] Permalink redirects to each main section's intro
