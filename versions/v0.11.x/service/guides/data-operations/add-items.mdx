@@ -1,0 +1,314 @@
+---
+title: "Add Items to an Encrypted Index"
+sidebarTitle: "Add Items"
+mode: "wide"
+---
+
+Once you have created or connected to an encrypted index, you can add items to it. To do this, you can use the `upsert()` function:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Items to add to the encrypted index
+items = [
+    {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4]},
+    {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8]},
+    {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12]}
+]
+
+# Add items to the encrypted index
+index.upsert(items)
+```
+
+```javascript JavaScript SDK icon="js"
+// Items to add to the encrypted index
+const items = [
+    {id: "item_1", vector: [0.1, 0.2, 0.3, 0.4]},
+    {id: "item_2", vector: [0.5, 0.6, 0.7, 0.8]},
+    {id: "item_3", vector: [0.9, 0.10, 0.11, 0.12]}
+];
+
+// Add items to the encrypted index
+await index.upsert(items);
+```
+
+```typescript TypeScript SDK icon="code"
+import { VectorItem } from 'cyborgdb';
+
+// Items to add to the encrypted index
+const items: VectorItem[] = [
+    {id: "item_1", vector: [0.1, 0.2, 0.3, 0.4]},
+    {id: "item_2", vector: [0.5, 0.6, 0.7, 0.8]},
+    {id: "item_3", vector: [0.9, 0.10, 0.11, 0.12]}
+];
+
+// Add items to the encrypted index
+await index.upsert(items);
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {
+           "id": "item_1",
+           "vector": [0.1, 0.2, 0.3, 0.4]
+         },
+         {
+           "id": "item_2", 
+           "vector": [0.5, 0.6, 0.7, 0.8]
+         },
+         {
+           "id": "item_3",
+           "vector": [0.9, 0.10, 0.11, 0.12]
+         }
+       ]
+     }'
+```
+</CodeGroup>
+
+
+## Adding Items with Contents
+
+It's also possible to store item contents alongside vectors. To do this, include `contents` in the `upsert()` call. 
+
+The contents field will be encrypted using the index key.
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Items to add to the encrypted index
+items = [
+    {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "contents": "Hello!"},
+    {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8], "contents": "World!"},
+    {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "contents": "Cyborg!"}
+]
+
+# Add items to the encrypted index
+index.upsert(items)
+```
+
+```javascript JavaScript SDK icon="js"
+// Items to add to the encrypted index
+const items = [
+    {id: "item_1", vector: [0.1, 0.2, 0.3, 0.4], contents: "Hello!"},
+    {id: "item_2", vector: [0.5, 0.6, 0.7, 0.8], contents: "World!"},
+    {id: "item_3", vector: [0.9, 0.10, 0.11, 0.12], contents: "Cyborg!"}
+];
+
+// Add items to the encrypted index
+await index.upsert(items);
+```
+
+```typescript TypeScript SDK icon="code"
+import { VectorItem } from 'cyborgdb';
+
+// Items to add to the encrypted index
+const items: VectorItem[] = [
+    {id: "item_1", vector: [0.1, 0.2, 0.3, 0.4], contents: "Hello!"},
+    {id: "item_2", vector: [0.5, 0.6, 0.7, 0.8], contents: "World!"},
+    {id: "item_3", vector: [0.9, 0.10, 0.11, 0.12], contents: "Cyborg!"}
+];
+
+// Add items to the encrypted index
+await index.upsert(items);
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {
+           "id": "item_1",
+           "vector": [0.1, 0.2, 0.3, 0.4],
+           "contents": "Hello!"
+         },
+         {
+           "id": "item_2",
+           "vector": [0.5, 0.6, 0.7, 0.8], 
+           "contents": "World!"
+         },
+         {
+           "id": "item_3",
+           "vector": [0.9, 0.10, 0.11, 0.12],
+           "contents": "Cyborg!"
+         }
+       ]
+     }'
+```
+</CodeGroup>
+
+## Adding Items with Metadata
+
+CyborgDB also supports metadata storage, retrieval and filtering. To add metadata to an item, include `metadata` in the `upsert()` call.
+
+All metadata fields will be encrypted using the index key.
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Items to add to the encrypted index
+items = [
+    {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "metadata": {"name": "Alice", "age": 30}},
+    {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8], "metadata": {"name": "Bob", "age": 40}},
+    {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "metadata": {"name": "Charlie", "age": 50}}
+]
+
+# Add items to the encrypted index
+index.upsert(items)
+```
+
+```javascript JavaScript SDK icon="js"
+// Items to add to the encrypted index
+const items = [
+    {id: "item_1", vector: [0.1, 0.2, 0.3, 0.4], metadata: {name: "Alice", age: 30}},
+    {id: "item_2", vector: [0.5, 0.6, 0.7, 0.8], metadata: {name: "Bob", age: 40}},
+    {id: "item_3", vector: [0.9, 0.10, 0.11, 0.12], metadata: {name: "Charlie", age: 50}}
+];
+
+// Add items to the encrypted index
+await index.upsert(items);
+```
+
+```typescript TypeScript SDK icon="code"
+import { VectorItem } from 'cyborgdb';
+
+// Items to add to the encrypted index
+const items: VectorItem[] = [
+    {id: "item_1", vector: [0.1, 0.2, 0.3, 0.4], metadata: {name: "Alice", age: 30}},
+    {id: "item_2", vector: [0.5, 0.6, 0.7, 0.8], metadata: {name: "Bob", age: 40}},
+    {id: "item_3", vector: [0.9, 0.10, 0.11, 0.12], metadata: {name: "Charlie", age: 50}}
+];
+
+// Add items to the encrypted index
+await index.upsert(items);
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {
+           "id": "item_1",
+           "vector": [0.1, 0.2, 0.3, 0.4],
+           "metadata": {"name": "Alice", "age": 30}
+         },
+         {
+           "id": "item_2",
+           "vector": [0.5, 0.6, 0.7, 0.8],
+           "metadata": {"name": "Bob", "age": 40}
+         },
+         {
+           "id": "item_3",
+           "vector": [0.9, 0.10, 0.11, 0.12],
+           "metadata": {"name": "Charlie", "age": 50}
+         }
+       ]
+     }'
+```
+</CodeGroup>
+
+For more info on metadata storage and filtering, see [Metadata Filtering](./metadata-filtering).
+
+## Automatic Embedding Generation
+
+If you provided an `embedding_model` during index creation, you can automatically generate embeddings for items by providing `contents` to the `upsert()` call:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# ... index creation and embedding model setup
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+index = client.create_index("my_index", index_key, index_config, embedding_model)
+
+# Items to add to the encrypted index
+items = [
+    {"id": "item_1", "contents": "Hello, World!"},
+    {"id": "item_2", "contents": "Hello, Cyborg!"}
+]
+
+# Add items to the encrypted index
+index.upsert(items)
+```
+
+```javascript JavaScript SDK icon="js"
+// ... index creation and embedding model setup
+const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
+const index = await client.createIndex("my_index", indexKey, indexConfig, embeddingModel);
+
+// Items to add to the encrypted index
+const items = [
+    {id: "item_1", contents: "Hello, World!"},
+    {id: "item_2", contents: "Hello, Cyborg!"}
+];
+
+// Add items to the encrypted index
+await index.upsert(items);
+```
+
+```typescript TypeScript SDK icon="code"
+import { VectorItem } from 'cyborgdb';
+
+// ... index creation and embedding model setup
+const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
+const index = await client.createIndex("my_index", indexKey, indexConfig, embeddingModel);
+
+// Items to add to the encrypted index
+const items: VectorItem[] = [
+    {id: "item_1", contents: "Hello, World!"},
+    {id: "item_2", contents: "Hello, Cyborg!"}
+];
+
+// Add items to the encrypted index
+await index.upsert(items);
+```
+
+```bash cURL icon="rectangle-terminal"
+# For indexes created with embedding_model
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {
+           "id": "item_1",
+           "contents": "Hello, World!"
+         },
+         {
+           "id": "item_2",
+           "contents": "Hello, Cyborg!"
+         }
+       ]
+     }'
+```
+</CodeGroup>
+
+In this example, the `embedding_model` will automatically generate embeddings for the `contents` field. The contents will also be stored alongside the generated embeddings.
+
+This feature uses various embedding models available through the service. You can use any model supported by the CyborgDB service, including models from the [HuggingFace Model Hub](https://huggingface.co/models).
+
+## API Reference
+
+For more information on adding items to an encrypted index, refer to the API reference:[](../../rest-api/)
+
+<CardGroup cols={3}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/upsert" icon="rectangle-terminal">
+        REST API reference for `/v1/vectors/upsert`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/upsert" icon="python">
+        API reference for `upsert()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/upsert" icon="js">
+        API reference for `upsert()` in JavaScript/TypeScript
+    </Card>
+</CardGroup>

@@ -1,0 +1,186 @@
+---
+title: "Getters"
+---
+
+## index_name
+
+```python
+@property
+index_name: str
+```
+
+Returns the name of the encrypted index.
+
+### Returns
+
+`str`: The unique name identifier of the index.
+
+### Example Usage
+
+```python
+index_name = index.index_name
+print(f'Index name: {index_name}')
+# Output: "my-vectors"
+```
+
+---
+
+## index_type
+
+```python
+@property
+index_type: str
+```
+
+Returns the type of the index (for example, `'ivf'`, `'ivfpq'`, or `'ivfflat'`).
+
+### Returns
+
+`str`: The index type.
+
+### Example Usage
+
+```python
+index_type = index.index_type
+print(f'Index type: {index_type}')
+# Output: "ivf"
+
+if index_type == 'ivfpq':
+    print('Using IVFPQ index for memory efficiency')
+elif index_type == 'ivfflat':
+    print('Using IVFFlat index for high accuracy')
+```
+
+---
+
+## is_trained
+
+```python
+def is_trained() -> bool
+```
+
+Returns whether the index has been trained. Training is required for optimal query performance on IVF-based indexes.
+
+### Returns
+
+`bool`: `True` if the index has been trained, `False` otherwise.
+
+### Example Usage
+
+```python
+trained = index.is_trained()
+print(f'Index trained: {trained}')
+
+if not trained:
+    print('Index needs training for optimal performance')
+    index.train()
+```
+
+---
+
+## index_config
+
+```python
+@property
+index_config: Dict[str, Any]
+```
+
+Returns the index configuration object as a dictionary. The structure depends on the index type.
+
+### Returns
+
+`Dict[str, Any]`: Configuration dictionary containing index parameters.
+
+### Example Usage
+
+```python
+config = index.index_config
+print(f'Index configuration: {config}')
+
+# Access common properties
+print(f"Dimension: {config.get('dimension')}")
+print(f"Metric: {config.get('metric')}")
+print(f"Number of lists: {config.get('n_lists')}")
+
+# Type-specific properties
+if config.get('type') == 'ivfpq':
+    print(f"PQ dimension: {config.get('pq_dim')}")
+    print(f"PQ bits: {config.get('pq_bits')}")
+```
+
+### Configuration Properties
+
+#### Common Properties (All Index Types)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `type` | `str` | Index type (`'ivf'`, `'ivfflat'`, or `'ivfpq'`) |
+| `dimension` | `int` | Vector dimensionality |
+| `metric` | `str` | Distance metric (`'cosine'`, `'euclidean'`, etc.) |
+| `n_lists` | `int` | Number of inverted lists for clustering |
+
+#### IVFPQ-Specific Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `pq_dim` | `int` | Product quantization dimension |
+| `pq_bits` | `int` | Number of bits for quantization |
+
+### Advanced Usage
+
+```python
+# Check index capabilities based on configuration
+def analyze_index_capabilities(index):
+    config = index.index_config
+    index_name = index.index_name
+    index_type = index.index_type
+    trained = index.is_trained()
+    
+    print(f"\nIndex Analysis: {index_name}")
+    print("=" * 40)
+    print(f"Type: {index_type}")
+    print(f"Dimensions: {config.get('dimension')}")
+    print(f"Metric: {config.get('metric')}")
+    print(f"Lists: {config.get('n_lists')}")
+    print(f"Trained: {'Yes' if trained else 'No'}")
+    
+    # Performance characteristics
+    if index_type == 'ivfflat':
+        print('\nCharacteristics:')
+        print('- Highest accuracy')
+        print('- Slower queries')
+        print('- Higher memory usage')
+    elif index_type == 'ivfpq':
+        print('\nCharacteristics:')
+        print('- Memory efficient')
+        print('- Compressed vectors')
+        print(f"- PQ dimension: {config.get('pq_dim')}")
+        print(f"- Quantization bits: {config.get('pq_bits')}")
+    else:
+        print('\nCharacteristics:')
+        print('- Balanced performance')
+        print('- Good accuracy/speed tradeoff')
+    
+    # Recommendations
+    print('\nRecommendations:')
+    if not trained:
+        print('- Train the index for optimal performance')
+    if config.get('n_lists', 0) < 100:
+        print('- Consider more lists for larger datasets')
+
+# Usage
+analyze_index_capabilities(index)
+```
+
+---
+    
+## generate_key
+
+Generate secure encryption keys:
+
+```python
+from cyborgdb import generate_key
+
+# Generate a cryptographically secure 32-byte key
+index_key = generate_key()  # Returns bytes object
+```

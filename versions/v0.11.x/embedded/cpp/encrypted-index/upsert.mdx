@@ -1,0 +1,57 @@
+---
+title: "Upsert"
+mode: "wide"
+---
+
+Adds or updates vector embeddings in the index. If an item already exists at `id`, then it will be overwritten.
+
+```cpp
+void Upsert(const std::vector<std::string>& ids,
+            Array2D<float>& vectors,
+            const std::vector<std::vector<uint8_t>>& contents = {},
+            const std::vector<std::string>& json_metadata_array = {});
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---------------|-----------------------------|-----------------------------------------------------|
+| `ids` | `std::vector<std::string>&` | Unique identifiers for each vector. |
+| `vectors` | [`Array2D<float>`](../types#array2d) | 2D container with vector embeddings to index. |
+| `contents` | `std::vector<std::vector<uint8_t>>&` | _(Optional)_ Item contents in bytes. |
+| `json_metadata_array` | `std::vector<std::string>&` | _(Optional)_ Item metadata in serialized JSON strings. |
+
+<Tip>For more info on metadata, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).</Tip>
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::invalid_argument">
+        - Throws if vector dimensions are incompatible with the index configuration.
+        - Throws if index was not created or loaded yet.
+        - Throws if there is a mismatch between the number of `vectors`, `ids`, `contents` or `metadata`.
+    </Accordion>
+    <Accordion title="std::runtime_exception">
+        - Throws if the vectors could not be upserted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+cyborg::Array2D<float> embeddings{{0.1, 0.2, 0.3}, {0.4, 0.5, 0.6}};
+std::vector<std::string> ids = {"item_1", "item_2"};
+
+// Upsert without additional item data
+index->Upsert(ids, embeddings);
+
+// Upsert with associated items
+std::vector<std::vector<uint8_t>> items = {
+    {'a', 'b', 'c'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}
+};
+index->Upsert(ids, embeddings, items);
+
+// Upsert with metadata
+std::vector<std::string> metadata = {"\"type\": \"image\"", "\"type\": \"text\""}
+index->Upsert(ids, embeddings, items, metadata);
+```

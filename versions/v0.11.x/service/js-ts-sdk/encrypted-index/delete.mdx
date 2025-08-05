@@ -1,0 +1,81 @@
+---
+title: "Delete"
+mode: "wide"
+---
+
+Deletes vectors from the encrypted index by their IDs.
+
+```typescript
+async delete(ids: string[]): Promise<SuccessResponseModel>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ids` | `string[]` | Array of vector IDs to delete from the index |
+
+### Returns
+
+`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message with the count of deleted vectors.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors preventing the deletion.
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Throws if the `ids` parameter is null, undefined, or empty.
+        - Throws if any of the provided IDs are invalid format.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+import { Client, IndexIVFModel } from 'cyborgdb';
+
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Create and populate index
+const indexKey = crypto.getRandomValues(new Uint8Array(32));
+const config: IndexIVFModel = {
+    dimension: 768,
+    nLists: 1024,
+    metric: 'cosine'
+};
+
+const index = await client.createIndex('my-vectors', indexKey, config);
+
+// Add some vectors
+await index.upsert([
+    { id: 'doc1', vector: [0.1, 0.2, 0.3, ...], metadata: { title: 'Document 1' } },
+    { id: 'doc2', vector: [0.4, 0.5, 0.6, ...], metadata: { title: 'Document 2' } },
+    { id: 'doc3', vector: [0.7, 0.8, 0.9, ...], metadata: { title: 'Document 3' } }
+]);
+
+// Delete specific vectors
+try {
+    const result = await index.delete(['doc1', 'doc2']);
+    console.log('Deletion result:', result);
+    // Output: { status: 'success', message: 'Deleted 2 vectors' }
+} catch (error) {
+    console.error('Failed to delete vectors:', error.message);
+}
+```
+
+### Response Format
+
+The method returns a success response object with the following structure:
+
+```typescript
+// Standard successful deletion response
+{
+    "status": "success",
+    "message": "Deleted 3 vectors"
+}
+```

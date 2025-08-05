@@ -1,0 +1,54 @@
+---
+title: "Client"
+mode: "wide"
+---
+
+`Client` is the main class exposed by CyborgDB TypeScript SDK. It provides an interface to interact with the CyborgDB vector database service, exposing functionality to create and list indexes. Operations within encrypted indexes (such as upsert and query) are contained within the `EncryptedIndex` class returned by `createIndex`.
+
+## Constructor
+
+```typescript
+new Client(baseUrl: string, apiKey?: string)
+```
+
+Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `baseUrl` | `string` | Base URL of the CyborgDB microservice endpoint |
+| `apiKey` | `string` | API key for authentication with the microservice |
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+// Create client with API key
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Create client without API key (for local development)
+const localClient = new Client('http://localhost:8000');
+```
+
+## Error Handling
+
+The `Client` class includes comprehensive error handling that processes different types of API errors:
+
+- **HTTP Errors**: Status codes and response details are logged and converted to meaningful error messages
+- **Validation Errors**: Field validation failures are formatted with detailed information
+- **Network Errors**: Connection and timeout issues are handled gracefully
+
+All methods throw standard JavaScript `Error` objects with descriptive messages for easier debugging and error handling in your application.
+
+## Type Safety
+
+The TypeScript SDK provides full type safety with:
+
+- Strongly typed method parameters and return values
+- Type definitions for all configuration objects
+- IntelliSense support in compatible IDEs
+- Compile-time validation of API usage

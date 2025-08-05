@@ -1,0 +1,44 @@
+---
+title: "List Indexes"
+mode: "wide"
+---
+
+Retrieves a list of all available indexes from the CyborgDB microservice.
+
+```typescript
+async listIndexes(): Promise<string[]>
+```
+
+### Returns
+
+`Promise<string[]>`: A Promise that resolves to an array of index names currently available on the CyborgDB service.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+try {
+    const indexes = await client.listIndexes();
+    console.log('Available indexes:', indexes);
+    // Output: ['my_vector_index', 'semantic_search', 'document_embeddings']
+} catch (error) {
+    console.error('Failed to list indexes:', error.message);
+}
+```

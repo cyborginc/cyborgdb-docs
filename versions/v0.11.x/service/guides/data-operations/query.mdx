@@ -1,0 +1,330 @@
+---
+title: "Query Encrypted Index"
+mode: "wide"
+---
+
+Once you've added items to an encrypted index, you can query the index to retrieve the items that match a given query. This is done via `query()`:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Example query
+query_vector = [0.5, 0.9, 0.2, 0.7]
+top_k = 10
+
+# Perform query
+results = index.query(query_vector=query_vector, top_k=top_k)
+
+print(results)
+# Example results (nested list format)
+# [[{"id": "item_12", "distance": 0.01}, {"id": "item_7", "distance": 0.04}, ...]]
+```
+
+```javascript JavaScript SDK icon="js"
+// Example query
+const queryVector = [0.5, 0.9, 0.2, 0.7];
+const topK = 10;
+
+// Perform query
+const results = await index.query(queryVector, topK);
+
+console.log(results);
+// Example results 
+// [[{id: "item_12", distance: 0.01}, {id: "item_7", distance: 0.04}, ...]]
+```
+
+```typescript TypeScript SDK icon="code"
+// Example query
+const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
+const topK: number = 10;
+
+// Perform query
+const results = await index.query(queryVector, topK);
+
+console.log(results);
+// Example results
+// [[{id: "item_12", distance: 0.01}, {id: "item_7", distance: 0.04}, ...]]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.5, 0.9, 0.2, 0.7],
+       "top_k": 10
+     }'
+```
+</CodeGroup>
+
+## Query Parameters
+
+You can specify additional parameters for the query, such as:
+
+- `top_k`: the number of results to return.
+- `n_probes`: the number of clusters to search for each query vector.
+- `filters`: metadata filters to apply to the query (dictionary format).
+- `include`: item fields to return (e.g., `["distance", "metadata"]`).
+- `greedy`: whether to perform a greedy search (higher recall but slower).
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Example query with parameters
+query_vector = [0.5, 0.9, 0.2, 0.7]
+top_k = 10
+n_probes = 5
+filters = {"age": {"$gt": 18}}
+include = ["distance", "metadata"]
+
+# Perform query
+results = index.query(
+    query_vector=query_vector, 
+    top_k=top_k, 
+    n_probes=n_probes, 
+    filters=filters, 
+    include=include
+)
+
+print(results)
+# Example results
+# [[{"id": "item_12", "distance": 0.01, "metadata": {"age": 25}}, ...]]
+```
+
+```javascript JavaScript SDK icon="js"
+// Example query with parameters
+const queryVector = [0.5, 0.9, 0.2, 0.7];
+const topK = 10;
+const nProbes = 5;
+const filters = {age: {$gt: 18}};
+const include = ["distance", "metadata"];
+
+// Perform query
+const results = await index.query({
+    queryVector,
+    topK,
+    nProbes,
+    filters,
+    include
+});
+
+console.log(results);
+// Example results
+// [[{id: "item_12", distance: 0.01, metadata: {age: 25}}, ...]]
+```
+
+```typescript TypeScript SDK icon="code"
+// Example query with parameters
+const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
+const topK: number = 10;
+const nProbes: number = 5;
+const filters = {age: {$gt: 18}};
+const include: string[] = ["distance", "metadata"];
+
+// Perform query
+const results = await index.query({
+    queryVector,
+    topK,
+    nProbes,
+    filters,
+    include
+});
+
+console.log(results);
+// Example results  
+// [[{id: "item_12", distance: 0.01, metadata: {age: 25}}, ...]]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.5, 0.9, 0.2, 0.7],
+       "top_k": 10,
+       "n_probes": 5,
+       "filters": {
+         "age": {"$gt": 18}
+       },
+       "include": ["distance", "metadata"]
+     }'
+```
+</CodeGroup>
+
+## Batched Queries
+
+It's also possible to perform batch queries by passing multiple query vectors to `query()`:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Example batch query
+query_vectors = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]]
+top_k = 10
+
+# Perform batch query
+results = index.query(query_vectors=query_vectors, top_k=top_k)
+
+print(results)
+# Returns nested results: one list per query vector
+# [[results_for_query_1], [results_for_query_2]]
+```
+
+```javascript JavaScript SDK icon="js"
+// Example batch query
+const queryVectors = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]];
+const topK = 10;
+
+// Perform batch query
+const results = await index.query({
+    queryVectors,
+    topK
+});
+
+console.log(results);
+// Returns nested results: one list per query vector
+// [[results_for_query_1], [results_for_query_2]]
+```
+
+```typescript TypeScript SDK icon="code"
+// Example batch query
+const queryVectors: number[][] = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]];
+const topK: number = 10;
+
+// Perform batch query
+const results = await index.query({
+    queryVectors,
+    topK
+});
+
+console.log(results);
+// Returns nested results: one list per query vector
+// [[results_for_query_1], [results_for_query_2]]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [
+         [0.5, 0.9, 0.2, 0.7],
+         [0.1, 0.3, 0.8, 0.6]
+       ],
+       "top_k": 10
+     }'
+```
+</CodeGroup>
+
+## Querying with Metadata Filters
+
+You can filter query results based on metadata fields. For example, to filter items where the `age` field is greater than `18`, you can use the following filter:
+
+```json
+{"age": {"$gt": 18}}
+```
+
+This filter will return items where the `age` field is greater than `18`. You can also use other comparison operators such as `$lt`, `$gte`, `$lte`, `$eq`, and `$ne`.
+
+For more details on metadata filters, see the [Metadata Filtering](./metadata-filtering) guide.
+
+## Automatic Embedding Generation
+
+If you provided an `embedding_model` during index creation, you can automatically generate embeddings for queries by providing `query_contents` to the `query()` call:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# ... index creation and embedding model setup
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+index = client.create_index("my_index", index_key, index_config, embedding_model)
+
+# ... Add items to the encrypted index ...
+
+# Example semantic query
+query_contents = "What is the capital of France?"
+top_k = 10
+
+# Perform query
+results = index.query(query_contents=query_contents, top_k=top_k)
+```
+
+```javascript JavaScript SDK icon="js"
+// ... index creation and embedding model setup
+const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
+const index = await client.createIndex("my_index", indexKey, indexConfig, embeddingModel);
+
+// ... Add items to the encrypted index ...
+
+// Example semantic query
+const queryContents = "What is the capital of France?";
+const topK = 10;
+
+// Perform query
+const results = await index.query({
+    queryContents,
+    topK
+});
+```
+
+```typescript TypeScript SDK icon="code"
+// ... index creation and embedding model setup
+const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
+const index = await client.createIndex("my_index", indexKey, indexConfig, embeddingModel);
+
+// ... Add items to the encrypted index ...
+
+// Example semantic query
+const queryContents: string = "What is the capital of France?";
+const topK: number = 10;
+
+// Perform query
+const results = await index.query({
+    queryContents,
+    topK
+});
+```
+
+```bash cURL icon="rectangle-terminal"
+# For indexes with embedding_model
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_contents": "What is the capital of France?",
+       "top_k": 10
+     }'
+```
+</CodeGroup>
+
+This feature allows you to perform semantic search using natural language queries. The service will automatically generate embeddings for your query text using the specified embedding model.
+
+## Retrieving Items Post-Query
+
+In certain applications, such as RAG, it may be desirable to retrieve matching items after a query. This is possible via `get()`, which retrieves and decrypts item added via `upsert()`. For more details, see the [Get Items](./get-items) guide.
+
+## Index Training for Optimal Performance
+
+For optimal query performance, you should train your index after adding a significant amount of data (typically more than 50,000 vectors). The CyborgDB service supports index training to improve query speed and accuracy.
+
+Queries will initially use exhaustive search, which is fine for small datasets. Once you have a substantial amount of data, train the index for better performance. For more details, see [Training an Encrypted Index](../encrypted-indexes/train-index).
+
+## API Reference
+
+For more information on querying encrypted indexes, refer to the API reference:
+
+<CardGroup cols={3}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/query" icon="rectangle-terminal">
+        REST API reference for `/v1/vectors/query`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/query" icon="python">
+        API reference for `query()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/query" icon="js">
+        API reference for `query()` in JavaScript/TypeScript
+    </Card>
+</CardGroup>

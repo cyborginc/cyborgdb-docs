@@ -1,0 +1,158 @@
+---
+title: "Train"
+mode: "wide"
+---
+
+Trains the encrypted index to optimize it for efficient similarity search queries. Training is essential for IVF-based indexes to achieve optimal query performance and accuracy.
+
+```typescript
+async train(
+    batchSize: number = 2048,
+    maxIters: number = 100,
+    tolerance: number = 1e-6
+): Promise<SuccessResponseModel>
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `batchSize` | `number` | `2048` | _(Optional)_ Size of each batch processed during training. Larger values may improve training quality but use more memory |
+| `maxIters` | `number` | `100` | _(Optional)_ Maximum number of iterations for the training algorithm. More iterations may improve accuracy but take longer |
+| `tolerance` | `number` | `1e-6` | _(Optional)_ Convergence tolerance for training. Smaller values result in more precise training but may take longer |
+
+<Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
+
+### Returns
+
+`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and training completion message.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are insufficient resources to complete training.
+    </Accordion>
+    <Accordion title="Training Errors">
+        - Throws if the index has no vectors to train on.
+        - Throws if the index configuration is incompatible with training.
+        - Throws if training parameters are out of valid ranges.
+        - Throws if training fails to converge within the specified parameters.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Basic Index Training
+
+```typescript
+import { Client, IndexIVFModel } from 'cyborgdb';
+
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Create and populate index
+const indexKey = crypto.getRandomValues(new Uint8Array(32));
+const config: IndexIVFModel = {
+    dimension: 768,
+    nLists: 1024,
+    metric: 'cosine'
+};
+
+const index = await client.createIndex('my-vectors', indexKey, config);
+
+// Add vectors to the index
+await index.upsert([
+    { id: 'doc1', vector: [0.1, 0.2, 0.3, /* ... 768 dimensions */], metadata: { title: 'Document 1' } },
+    { id: 'doc2', vector: [0.4, 0.5, 0.6, /* ... 768 dimensions */], metadata: { title: 'Document 2' } },
+    { id: 'doc3', vector: [0.7, 0.8, 0.9, /* ... 768 dimensions */], metadata: { title: 'Document 3' } }
+]);
+
+// Train the index with default parameters
+try {
+    console.log('Starting index training...');
+    const startTime = Date.now();
+    
+    const result = await index.train();
+    
+    const duration = Date.now() - startTime;
+    console.log(`Training completed in ${duration}ms`);
+    console.log('Training result:', result.message);
+    // Output: "Index 'my-vectors' trained successfully"
+    
+    // Index is now optimized for queries
+    const queryResults = await index.query([0.1, 0.2, 0.3, /* ... */], 5);
+    console.log('Query after training:', queryResults);
+    
+} catch (error) {
+    console.error('Training failed:', error.message);
+}
+```
+
+#### Custom Training Parameters
+
+```typescript
+// High-quality training with custom parameters
+async function trainHighQuality(index: EncryptedIndex) {
+    try {
+        const result = await index.train(
+            4096,    // batchSize: larger batches for better quality
+            200,     // maxIters: more iterations for convergence
+            1e-8     // tolerance: stricter convergence criteria
+        );
+        
+        console.log('High-quality training completed:', result.message);
+        return result;
+        
+    } catch (error) {
+        console.error('High-quality training failed:', error.message);
+        throw error;
+    }
+}
+
+// Fast training with relaxed parameters
+async function trainFast(index: EncryptedIndex) {
+    try {
+        const result = await index.train(
+            1024,    // batchSize: smaller batches for speed
+            50,      // maxIters: fewer iterations for speed
+            1e-4     // tolerance: relaxed convergence for speed
+        );
+        
+        console.log('Fast training completed:', result.message);
+        return result;
+        
+    } catch (error) {
+        console.error('Fast training failed:', error.message);
+        throw error;
+    }
+}
+
+// Usage based on requirements
+if (requiresHighAccuracy) {
+    await trainHighQuality(index);
+} else {
+    await trainFast(index);
+}
+```
+
+### Response Format
+
+The method returns a success response object with the following structure:
+
+```typescript
+// Standard training completion response
+{
+    "status": "success",
+    "message": "Index 'my-vectors' trained successfully"
+}
+```
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Operation status (typically "success") |
+| `message` | `string` | Descriptive message about the training completion |

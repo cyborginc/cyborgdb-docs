@@ -1,0 +1,164 @@
+---
+title: "Query Encrypted Index"
+mode: "wide"
+---
+
+Once you've added items to an encrypted index, you can query the index to retrieve the items that match a given query. This is done via `query()`:
+
+<CodeGroup>
+```python Python icon="python"
+# Example query
+query_vectors = [0.5, 0.9, 0.2, 0.7]
+top_k = 10
+
+# Perform query
+results = index.query(query_vectors=query_vectors, top_k=top_k)
+
+print(results)
+# Example results (IDs and distances)
+# [("id": "item_12", "distance": 0.01), ("id": "item_7", "distance": 0.04), ...]
+```
+
+```cpp C++ icon="brackets-curly"
+// Example query
+std::vector<float> query_vectors = {0.5, 0.9, 0.2, 0.7};
+size_t top_k = 10;
+
+// Perform query
+cyborg::QueryParams query_params(top_k);
+std::vector<cyborg::QueryResult> results = index->Query(query_vectors, query_params);
+
+// Print the results
+for (const auto& result : results) {
+    std::cout << "ID: " << result.id << ", Distance: " << result.distance << std::endl;
+}
+```
+</CodeGroup>
+
+## Query Parameters
+
+You can specify additional parameters for the query, such as:
+
+- `top_k`: the number of results to return.
+- `n_probes`: the number of clusters to search for each query vector.
+- `filters`: a list of metadata filters to apply to the query.
+- `include`: a list of item fields to return (e.g., `["distance", "metadata"]`).
+- `greedy`: whether to perform a greedy search (higher recall but slower).
+
+<CodeGroup>
+```python Python icon="python"
+# Example query
+query_vectors = [0.5, 0.9, 0.2, 0.7]
+top_k = 10
+n_probes = 5
+filters = [{"age": {"$gt": 18}}]
+include = ["distance", "metadata"]
+
+# Perform query
+results = index.query(query_vectors=query_vectors, top_k=top_k, n_probes=n_probes, filters=filters, include=include)
+
+print(results)
+# Example results (IDs and distances)
+# [("id": "item_12", "distance": 0.01, "metadata": {"age": 25}), ...]
+```
+
+```cpp C++ icon="brackets-curly"
+// Example query
+std::vector<float> query_vectors = {0.5, 0.9, 0.2, 0.7};
+size_t top_k = 10;
+size_t n_probes = 5;
+bool greedy = false;
+std::string filters = R"([{"age": {"$gt": 18}}])";
+std::vector<std::string> include = {"distance", "metadata"};
+
+// Perform query
+cyborg::QueryParams query_params(top_k, n_probes, include, greedy, filters);
+std::vector<cyborg::QueryResult> results = index->Query(query_vectors, query_params);
+
+// Print the results
+for (const auto& result : results) {
+    std::cout << "ID: " << result.id << ", Distance: " << result.distance << ", Metadata: " << result.metadata << std::endl;
+}
+```
+</CodeGroup>
+
+## Batched Queries
+
+It's also possible to perform batch queries by passing a list of query vectors to `query()`:
+
+<CodeGroup>
+```python Python icon="python"
+# Example batch query
+query_vectors = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]]
+top_k = 10
+
+# Perform batch query
+results = index.query(query_vectors=query_vectors, top_k=top_k)
+```
+
+```cpp C++ icon="brackets-curly"
+// Example batch query
+std::vector<std::vector<float>> query_vectors = {{0.5, 0.9, 0.2, 0.7}, {0.1, 0.3, 0.8, 0.6}};
+size_t top_k = 10;
+
+// Perform batch query
+cyborg::QueryParams query_params(top_k);
+std::vector<std::vector<cyborg::QueryResult>> results = index->Query(query_vectors, query_params);
+```
+</CodeGroup>
+
+## Querying with Metadata Filters
+
+You can filter query results based on metadata fields. For example, to filter items where the `age` field is greater than `18`, you can use the following filter:
+
+```json
+[{"age": {"$gt": 18}}]
+```
+
+This filter will return items where the `age` field is greater than `18`. You can also use other comparison operators such as `$lt`, `$gte`, `$lte`, `$eq`, and `$neq`.
+
+For more details on metadata filters, see the [Metadata Filtering](./metadata-filtering) guide.
+
+## Automatic Embedding Generation
+
+<Note>This feature is only available in Python and is experimental as of v0.9.0.</Note>
+
+If you provided an `embedding_model` during index creation, you can automatically generate embeddings for queries by providing `query_contents` to the `query()` call:
+
+```python Python icon="python"
+# ... index creation and embedding model setup
+embedding_model = "all-MiniLM-L6-v2"
+index = client.create_index("my_index", index_key, index_config, embedding_model)
+
+# ... Add items to the encrypted index ...
+
+# Example query
+query_contents = "What is the capital of France?"
+top_k = 10
+
+# Perform query
+results = index.query(query_contents=query_contents, top_k=top_k)
+```
+
+This feature uses [`sentence-transformers`](https://www.sbert.net/) for embedding generation. You can use any model from the [HuggingFace Model Hub](https://huggingface.co/models) that is compatible with `sentence-transformers`.
+
+## Retrieving Items Post-Query
+
+In certain applications, such as RAG, it may be desirable to retrieve matching items after a query. This is possible via `get()`, which retrieves and decrypts item added via `upsert()`. For more details, see the [Get Items](./get-items) guide.
+
+## Note on Trained vs. Untrained Queries
+
+For the [embedded lib](../../../intro/deployment-models) version of CyborgDB, queries will initially default to 'untrained' queries, which use an exhaustive search algorithm. This is fine for small datasets, but once you have more than `50,000` vectors in your index, you should train the index. Without doing so, queries will run slower. For more details, see [Training an Encrypted Index](../encrypted-indexes/train-index).
+
+## API Reference
+
+For more information on querying encrypted indexes, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../python/encrypted-index/query" icon="python">
+        API reference for `query()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../cpp/encrypted-index/query" icon="brackets-curly">
+        API reference for `Query()` in C++
+    </Card>
+</CardGroup>

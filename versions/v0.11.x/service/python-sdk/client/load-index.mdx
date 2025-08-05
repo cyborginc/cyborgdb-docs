@@ -1,0 +1,36 @@
+---
+title: "Load Index"
+mode: "wide"
+---
+
+<Warning>
+The service-based Python SDK does not have a separate `load_index()` method. Instead, use the `create_index()` method to connect to existing indexes.
+
+This will be changed in the `v0.12.0` release of the Python SDK.
+</Warning>
+
+## Connecting to Existing Indexes
+
+To connect to an existing index using the service Python SDK, use `create_index()` with the same parameters:
+
+```python
+from cyborgdb import Client, IndexIVF
+
+client = Client('http://localhost:8000', 'your-api-key')
+
+# Connect to existing index (or create if it doesn't exist)
+index_key = your_existing_32_byte_key  # Must be the same key used originally
+config = IndexIVF(
+    type='ivf',
+    dimension=768,
+    n_lists=1024,
+    metric='cosine'
+)
+
+# This will connect to the existing index if it exists with this name and key
+index = client.create_index(
+    index_name='my-existing-index',
+    index_key=index_key,
+    index_config=config
+)
+```

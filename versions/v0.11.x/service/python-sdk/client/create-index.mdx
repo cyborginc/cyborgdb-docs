@@ -1,0 +1,76 @@
+---
+title: "Create Index"
+mode: "wide"
+---
+
+Creates and returns an `EncryptedIndex` instance based on the provided configuration.
+
+```python
+client.create_index(
+    index_name,
+    index_key,
+    index_config,
+    embedding_model,
+    max_cache_size
+)
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `index_name` | `str` | - | Unique name for the index |
+| `index_key` | `bytes` | - | 32-byte encryption key |
+| `index_config` | `IndexConfig` | - | Index configuration object |
+| `embedding_model` | `str` | `None` | _(Optional)_ Embedding model identifier |
+
+### Returns
+
+An instance of `EncryptedIndex` configured with the provided parameters.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the index name already exists on the server.
+        - Throws if the index configuration is invalid or missing required parameters.
+        - Throws if the encryption key is not exactly 32 bytes.
+        - Throws if the embedding model is not supported by the server.
+    </Accordion>
+    <Accordion title="Network/API Errors">
+        - Throws if the API request fails due to network issues.
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+Basic usage of the `create_index` method to create an IVF-Flat index:
+
+```python
+from cyborgdb import Client, IndexIVFFlat, generate_key
+
+# Initialize client
+client = Client('https://localhost:8000', 'your-api-key')
+
+# Generate a secure encryption key
+index_key = generate_key()
+
+# Create a basic IVF-Flat index
+config = IndexIVFFlat(dimension=384, n_lists=100, metric="cosine")
+index = client.create_index('documents', index_key, config)
+```
+
+#### IVFPQ Index with Embedding Model
+
+```python
+# Create index with embedding model and cache
+config = IndexIVFPQ(dimension=768, n_lists=50, pq_bits=8, pq_dim=64, metric="cosine")
+index = client.create_index(
+    index_name='example_index_name',
+    index_key=index_key,
+    index_config=config,
+    embedding_model='all-MiniLM-L6-v2'
+)
+```

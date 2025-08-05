@@ -1,0 +1,176 @@
+---
+title: "Types"
+---
+
+## Index Configuration Types
+
+### IndexIVF
+
+Standard IVF (Inverted File) index configuration, ideal for balanced performance:
+
+| Speed | Accuracy | Memory Usage |
+|-------|----------|--------------|
+| Fast  | Good     | Medium       |
+
+```python
+from cyborgdb import IndexIVF
+
+config = IndexIVF(
+    type='ivf',
+    dimension=768,
+    n_lists=1024,
+    metric='cosine'
+)
+```
+
+### IndexIVFFlat
+
+IVFFlat index configuration, suitable for highest accuracy requirements:
+
+| Speed | Accuracy | Memory Usage |
+|-------|----------|--------------|
+| Medium| Highest  | High         |
+
+```python
+from cyborgdb import IndexIVFFlat
+
+config = IndexIVFFlat(
+    type='ivfflat',
+    dimension=512,
+    n_lists=256,
+    metric='euclidean'
+)
+```
+
+### IndexIVFPQ
+
+IVFPQ (Product Quantization) index configuration, optimized for memory efficiency:
+
+| Speed | Accuracy | Memory Usage |
+|-------|----------|--------------|
+| Fast  | Good     | Low          |
+
+```python
+from cyborgdb import IndexIVFPQ
+
+config = IndexIVFPQ(
+    type='ivfpq',
+    dimension=1536,
+    n_lists=2048,
+    metric='cosine',
+    pq_dim=64,
+    pq_bits=8
+)
+```
+
+## Vector Item Format
+
+Dictionary format for upsert operations:
+
+```python
+vector_item = {
+    "id": "unique_identifier",           # Required: string
+    "vector": [0.1, 0.2, 0.3, ...],    # Optional: List[float]
+    "contents": "text content",          # Optional: string
+    "metadata": {                        # Optional: Dict[str, Any]
+        "category": "research",
+        "author": "Dr. Smith",
+        "tags": ["ai", "ml"]
+    }
+}
+```
+
+## Query Result Format
+
+Results returned from query operations:
+
+```python
+# Single query result format
+query_results = [
+    [
+        {
+            "id": "doc1",                    # string
+            "distance": 0.125,               # float (lower = more similar)
+            "metadata": {                    # Dict (if included)
+                "category": "research"
+            },
+            "contents": "text content",      # string (if included)
+            "vector": [0.1, 0.2, ...]      # List[float] (if included)
+        },
+        # ... more results
+    ]
+]
+```
+
+## Metadata Filtering
+
+The `filters` parameter in query operations supports MongoDB-style operators:
+
+### Supported Operators
+
+- **`$eq`**: Equality (`{"category": "research"}`)
+- **`$ne`**: Not equal (`{"status": {"$ne": "draft"}}`)
+- **`$gt`**: Greater than (`{"score": {"$gt": 0.8}}`)
+- **`$gte`**: Greater than or equal (`{"year": {"$gte": 2020}}`)
+- **`$lt`**: Less than (`{"price": {"$lt": 100}}`)
+- **`$lte`**: Less than or equal (`{"rating": {"$lte": 4.5}}`)
+- **`$in`**: In array (`{"tag": {"$in": ["ai", "ml"]}}`)
+- **`$nin`**: Not in array (`{"category": {"$nin": ["spam", "deleted"]}}`)
+- **`$and`**: Logical AND (`{"$and": [{"a": 1}, {"b": 2}]}`)
+- **`$or`**: Logical OR (`{"$or": [{"x": 1}, {"y": 2}]}`)
+
+### Filter Examples
+
+```python
+# Simple equality filter
+simple_filter = {"category": "research"}
+
+# Range filter
+range_filter = {
+    "published_year": {"$gte": 2020, "$lte": 2024}
+}
+
+# Complex compound filter
+complex_filter = {
+    "$and": [
+        {"category": "research"},
+        {"confidence": {"$gte": 0.9}},
+        {"$or": [
+            {"language": "en"},
+            {"translated": True}
+        ]}
+    ]
+}
+```
+
+## Field Selection
+
+Many operations support field selection through the `include` parameter:
+
+### Available Fields
+
+- **`vector`**: The vector data itself
+- **`contents`**: Text or binary content associated with the vector
+- **`metadata`**: Structured metadata object
+- **`distance`**: Similarity distance (query operations only)
+
+### Example Usage
+
+```python
+# Include only metadata (efficient for existence checks)
+metadata_only = ["metadata"]
+
+# Include vectors and distances (for similarity analysis)
+vectors_and_distances = ["vector", "distance"]
+
+# Include all available fields
+all_fields = ["vector", "contents", "metadata", "distance"]
+```
+
+## Distance Metrics
+
+Supported distance metrics for similarity calculations:
+
+- **`cosine`**: Cosine similarity (recommended for normalized vectors)
+- **`euclidean`**: Euclidean distance (L2 norm)
+- **`squared_euclidean`**: Squared Euclidean distance (faster than euclidean)
