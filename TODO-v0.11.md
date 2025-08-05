@@ -4,17 +4,18 @@
 - [X] Fix broken links
 - [X] Remove REST API & SDK from `v0.10.x`
 - [X] Write `v0.11.x` changelog
-- [ ] Update `v0.11.x/intro/intro` page
-- [ ] Update `v0.11.x/intro/about` page (update, remove backing stores & deployment models, remove `cyborgdb-lite` and add context)
-- [ ] Write `v0.11.x/intro/deployment-models` page
-- [ ] Write `v0.11.x/intro/backing-stores` page
-- [ ] Write `v0.11.x/intro/quickstart` page
-- [ ] Write `v0.11.x/intro/using-docs` page
-- [ ] Write `v0.11.x/embedded/guides/intro` page
+- [X] Update `v0.11.x/intro/intro` page
+- [X] Update `v0.11.x/intro/about` page (update, remove backing stores & deployment models, remove `cyborgdb-lite` and add context)
+- [X] Write `v0.11.x/intro/deployment-models` page
+- [X] Write `v0.11.x/intro/backing-stores` page
+- [X] Write `v0.11.x/intro/quickstart` page
+- [X] Write `v0.11.x/intro/get-api-key` page
+- [X] Write `v0.11.x/intro/using-docs` page
+- [X] Write `v0.11.x/embedded/guides/intro` page
 - [X] Update all `v0.11.x/embedded/guides/*` pages (API key, code examples, core -> embdedded)
 - [X] Update all `v0.11.x/embedded/python/*` pages (API key, code examples, core -> embdedded)
 - [X] Update all `v0.11.x/embedded/cpp/*` pages (API key, code examples, core -> embdedded)
-- [ ] Write `v0.11.x/service/guides/intro` page
+- [X] Write `v0.11.x/service/guides/intro` page
 - [X] Write `v0.11.x/service/guides/env-vars` page
 - [X] Review all `v0.11.x/service/guides/*` pages (content, code examples, links)
 - [X] Review all `v0.11.x/service/rest-api/*` pages (content, code examples, links)

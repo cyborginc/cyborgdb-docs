@@ -3,4 +3,214 @@ title: "Using the Docs"
 mode: "wide"
 ---
 
-<Warning> This page is under construction </Warning>
+This guide will help you navigate CyborgDB's documentation effectively and find the information you need quickly.
+
+## Documentation Structure
+
+Our documentation is organized into four main sections:
+
+<CardGroup cols={2}>
+  <Card title="Introduction" href="./about" icon="graduation-cap">
+    *Core concepts and getting started*
+    
+    - Architecture and key concepts
+    - Deployment models (Service vs Embedded)
+    - Database integration options
+    - Quickstart guides
+  </Card>
+  
+  <Card title="CyborgDB Service" href="../service/guides/intro" icon="cloud">
+    *Self-deployed REST API service*
+    
+    - REST API documentation
+    - Client SDKs (Python, JS/TS, Go, C++)
+    - Docker and Python deployment
+    - Authentication and configuration
+  </Card>
+  
+  <Card title="CyborgDB Embedded" href="../embedded/guides/intro" icon="code">
+    *Direct library integration*
+    
+    - Python and C++ bindings
+    - Installation and setup guides
+    - Performance tuning
+    - Advanced configuration
+  </Card>
+  
+  <Card title="Integrations" href="../integrations/about" icon="plug">
+    *Framework integrations*
+    
+    - LangChain integration
+    - Migration from other vector databases
+    - Framework-specific guides
+    - Custom integrations
+  </Card>
+</CardGroup>
+
+---
+
+## Navigation Tips
+
+<CardGroup cols={3}>
+  <Card title="Quick Access" icon="bolt">
+    - **Search** (Ctrl/Cmd + K) - Find topics instantly
+    - **Table of Contents** - Navigate within articles
+    - **Breadcrumbs** - Track your location
+  </Card>
+  
+  <Card title="Page Types" icon="file">
+    - **Quickstart Guides** - Step-by-step tutorials
+    - **Conceptual Guides** - How things work
+    - **Reference Docs** - Complete API documentation
+    - **How-to Guides** - Practical solutions
+  </Card>
+  
+  <Card title="Code Examples" icon="code">
+    - **Multiple Languages** - Python, JavaScript, TypeScript, C++
+    - **Copy Button** - One-click code copying
+    - **Runnable Examples** - Complete working code
+  </Card>
+</CardGroup>
+
+---
+
+## Conventions Used
+
+### Code and Commands
+```bash
+# Terminal commands are shown in code blocks like this
+pip install cyborgdb-core
+```
+
+```python
+# Python code examples use syntax highlighting
+from cyborgdb_core import Client
+client = Client(api_key="your-key")
+```
+
+### Information Callouts
+
+<Note>
+**Notes** provide helpful context and additional information that's good to know.
+</Note>
+
+<Tip>
+**Tips** share best practices and insider knowledge to help you succeed.
+</Tip>
+
+<Warning>
+**Warnings** highlight important considerations that could affect your implementation.
+</Warning>
+
+---
+
+## Finding What You Need
+
+<Tabs>
+  <Tab title="I'm new to CyborgDB">
+    **First time learning about confidential vector search**
+    
+    → Start with [About CyborgDB](./about) then try the [Quickstart Guide](./quickstart)
+    
+    Get oriented with core concepts and architecture before diving into implementation.
+  </Tab>
+  
+  <Tab title="I want to get started quickly">
+    **Need something working fast**
+    
+    → Jump to the [Quickstart Guide](./quickstart) and choose your deployment path
+    
+    Follow step-by-step guides to get your first confidential vector search running.
+  </Tab>
+  
+  <Tab title="I need specific information">
+    **Looking for API methods or configuration details**
+    
+    → Use search (Ctrl/Cmd + K) or browse the reference docs for your deployment model
+    
+    Find exact method signatures, parameters, and configuration options.
+  </Tab>
+  
+  <Tab title="I'm migrating from another database">
+    **Moving from existing vector database**
+    
+    → Check the [Integrations](../integrations/about) section for migration guides
+    
+    LangChain and other framework integrations make migration seamless.
+  </Tab>
+</Tabs>
+
+### Search Tips
+- **Exact phrases**: Use quotes for exact matches: `"create index"`
+- **Multiple terms**: Search for multiple concepts: `python authentication`
+- **Method names**: Search for specific functions: `similarity_search`
+
+---
+
+## Code Examples
+
+### Language Tabs
+Many code examples include multiple language options:
+
+<CodeGroup>
+```python Python
+from cyborgdb_core import Client
+client = Client(api_key="your-key")
+```
+
+```javascript JavaScript
+import { CyborgDBClient } from '@cyborgdb/client';
+const client = new CyborgDBClient({ apiKey: 'your-key' });
+```
+
+```cpp C++
+#include <cyborgdb/client.hpp>
+auto client = cyborgdb::Client("your-key");
+```
+</CodeGroup>
+
+### Runnable Examples
+Look for complete, runnable examples that you can copy and execute directly:
+
+```python
+# Complete working example
+from cyborgdb_core import Client, DBConfig
+
+client = Client(
+    api_key="your-api-key",
+    index_location=DBConfig("memory"),
+    config_location=DBConfig("memory")
+)
+
+# Create index and add vectors
+index = client.create_index("my-index", dimension=384)
+index.add_vectors([1, 2, 3, ...], metadata={"doc": "example"})
+
+# Search for similar vectors  
+results = index.search([1, 2, 3, ...], k=5)
+print(results)
+```
+
+---
+
+## Getting Help
+
+<CardGroup cols={3}>
+  <Card title="Contact Support" href="https://www.cyborg.co/contact" icon="headset">
+    *General inquiries and enterprise support*
+    
+    Visit our contact page for sales, partnerships, and enterprise support requests
+  </Card>
+  
+  <Card title="Email Support" href="mailto:help@cyborg.co" icon="envelope" arrow="true">
+    *Direct technical support*
+    
+    Email us directly at help@cyborg.co for technical questions and support
+  </Card>
+  
+  <Card title="Priority Support" href="https://cyborgdb.co" icon="fire">
+    *Get faster support when logged in*
+    
+    Log into the CyborgDB dashboard for priority support and account-specific help
+  </Card>
+</CardGroup>

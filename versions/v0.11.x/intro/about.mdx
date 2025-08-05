@@ -2,90 +2,83 @@
 title: "About CyborgDB"
 ---
 
-**CyborgDB** is a Confidential Vector Database that enables you to search and analyze vectors in a privacy-preserving manner, without revealing the contents of the vectors themselves. 
+**CyborgDB** is a Confidential Vector Database proxy that transforms your existing databases into encrypted vector search engines. Instead of replacing your database infrastructure, CyborgDB sits between your application and your database, adding confidential vector search capabilities **while keeping your data encrypted throughout the entire process**. 
 
 ### Why *Confidential*?
 
 According to KPMG, 63% of enterprises say that confidentiality and data privacy are their top risk to AI adoption ([1](https://iapp.org/resources/article/consumer-perspectives-of-privacy-and-ai/)). In regulated sectors, this figure increases to 76%. Yet, when it comes to solutions which address these concerns, the market has yet to answer. This leaves a critical mass of companies unserved and unable to adopt AI in their workflows. They need **Confidential AI**.
 
-### Why *Vector*?
+### Where CyborgDB Fits in Your Stack
 
-Vector Search is at the heart of the most popular AI applications - RAG, RecSys, Semantic Search, IR, etc. - and the market is overcrowded with Vector DBs. All of these share a key commonality: they need to store their indexed contents (vector embeddings) in plaintext to enable Approximate Nearest-Neighbor (ANN) search. This creates a significant attack vector for that data, making confidentiality a near-impossibility.
-
-To solve this, we need a brand new approach to Vector Search - Confidential Vector Search. CyborgDB is the first solution to implement this. By leveraging cryptographic hashing and symmetric encryption, CyborgDB enables ANN search over encrypted space. This means that vector embeddings are **not** decrypted during search, and remain encrypted throughout their lifecycle. This greatly reduces the attack surface while guaranteeing the confidentiality of inference data.
-
-### How It Works
-
-CyborgDB is built on a novel architecture that keeps confidential inference data secure through a zero-trust design. It leverages **cryptographic hashing** and **forward-privacy** to maintain vector embeddings end-to-end encrypted throughout their lifecycle, including at search time. 
+Think of CyborgDB as a **specialized middleware layer** for vector operations:
 
 <img src="/images/cyborgdb-search-overview.png" alt="CyborgDB RAG Overview" />
 
-This makes it easy to integrate with existing AI workflows, providing high-performance indexing and retrieval that can be GPU-accelerated with CUDA. CyborgDB works with databases such as Postgres and Redis, transforming traditional databases into Confidential Vector Databases.
+**Instead of switching databases**, you keep your existing infrastructure and add CyborgDB as a proxy layer. This means:
 
-### Backing Stores
+- **No database migration required** - Work with your current PostgreSQL, Redis, or other databases
+- **Familiar development patterns** - Use standard database connections and queries  
+- **Minimal infrastructure changes** - Add encryption without rebuilding your data layer
+- **Gradual adoption possible** - Start with vector search, expand as needed
 
-CyborgDB supports a variety of backing stores, including:
+### The Vector Search Problem
 
-- **PostgreSQL**
-- **Redis**
-- **Memory** (for testing and development)
+Vector Search powers the most popular AI applications - RAG, RecSys, Semantic Search, etc. However, traditional vector databases have a fundamental security flaw: they use (and often store) vector embeddings in **plaintext** to enable fast similarity search.
 
-In addition, CyborgDB supports managed services such as:
+This creates a massive attack surface. Your sensitive data - converted to embeddings that still contain semantic meaning - sits unprotected in your database. For enterprise AI applications, this is unacceptable.
 
-- **AWS RDS**
-- **AWS ElastiCache**
-- **Azure Database for PostgreSQL**
-- **Azure Cache for Redis**
-- **Google Cloud SQL**
-- **Google Cloud Memorystore**
+**CyborgDB solves this** by enabling Approximate Nearest-Neighbor (ANN) search directly over **encrypted vectors**. Your embeddings never exist in plaintext, even during search operations.
 
-We are continuously adding support for more backing stores. If you have a specific backing store in mind, please [let us know](https://www.cyborg.co/contact).
+### How CyborgDB Works
 
-<Note>Only PostgreSQL & Memory are supported in `cyborgdb_lite`. For more details, see [CyborgDB Lite](#cyborgdb-lite).</Note>
+CyborgDB uses **cryptographic hashing** and **symmetric encryption** to enable vector search over encrypted data:
 
-### Deployment Models
+**The Process:**
+1. **Your app sends vectors** → CyborgDB encrypts them using your private key
+2. **Encrypted vectors stored** → Your database stores only encrypted data, never plaintext
+3. **Search queries encrypted** → Query vectors encrypted with the same key  
+4. **Search over encrypted space** → ANN search happens on encrypted vectors
+5. **Results returned** → Matching vectors and metadata, with vectors remaining encrypted
 
-CyborgDB supports a variety of deployment models, including:
+**Key Innovation:** Traditional vector databases decrypt data during search. CyborgDB performs similarity search directly on encrypted vectors, so your sensitive embeddings are **never exposed in plaintext**.
 
-**1. Core Library**
+This approach transforms any standard database (PostgreSQL, Redis, etc.) into a **Confidential Vector Database** without requiring you to change your existing infrastructure.
 
-In this form, CyborgDB is packaged as a standalone module (Python or C++) which contains all of the encrypted indexing and querying logic. The module is run locally and can connect to any of the supported [backing stores](#backing-stores).
+### Why Developers Choose CyborgDB
 
-Recommended for evaluation, small-scale deployments, and custom integrations.
+**🔄 Works with Your Existing Stack**  
+No need to migrate databases or rewrite applications. CyborgDB integrates as a proxy layer with PostgreSQL, Redis, and other databases you already use.
 
-**2. Microservice**
+**🔒 True End-to-End Encryption**  
+Vector embeddings stay encrypted throughout their entire lifecycle - at rest, in transit, and **during search operations**. No plaintext exposure, ever.
 
-_Now in General Access_
+**⚡ Production-Ready Performance**  
+GPU-accelerated search with CUDA support. Optimized algorithms deliver fast results without compromising security.
 
-The CyborgDB microservice is a self-contained Docker image that can be deployed locally or in a Kubernetes cluster. It enables scalable and repeatable deployments, and also connects to any of the supported [backing stores](#backing-stores). REST API as well as client SDKs (Python, JS/TS, C++ and Go) will be available.
+**🛠️ Developer-Friendly APIs**  
+Familiar programming interfaces and extensive framework integrations (LangChain, etc.) make adoption seamless within existing AI workflows.
 
-Recommended for development and production deployments.
+**📈 Flexible Deployment**  
+Deploy as embedded libraries for maximum control, or as a service for easier scaling. Choose what works best for your team and infrastructure.
 
-**3. Microservice w/ DB**
+### Next Steps
 
-This evolved microservice integrates a backing store within the Docker image, enabling a self-sufficient Confidential Vector DB deployment without external backing stores. REST API as well as client SDKs (Python, JS/TS, C++ and Go) will be available.
-
-Recommended for development and production deployments.
-
-**4. Serverless**
-
-_Release Date TBD_
-
-The fully-managed CyborgDB offering will provide the lowest barrier to adoption - simply generate an API key and install a client SDK.
-
-Recommended for everything from evaluation to large-scale deployments.
-
-### CyborgDB Lite
-
-CyborgDB is a proprietary product, but we also offer a free version of the core library called `cyborgdb_lite`. This version is intended for evaluation and non-commercial use only, and comes with the following functional limitations:
-
-| Feature | `cyborgdb_lite` | `cyborgdb_core` |
-| ------- | :----------------: | :----------------: |
-| End-to-End Encryption | Yes | Yes |
-| Index Types | `ivfflat` | `ivfflat`, `ivfpq`, `ivf` |
-| Vector Limits | Up to 1M | Unlimited |
-| Backing Stores | `postgres`, `memory` | `postgres`, `redis`, `memory` |
-| CPU Threads | Up to 4 | Unlimited |
-| GPU Acceleration | No | Yes |
-| Languages | Python | Python, C++ |
-| Support | Community | Enterprise |
+<CardGroup cols={3}>
+  <Card title="Start Building" href="./quickstart" icon="rocket">
+    *Get hands-on in minutes*
+    
+    Choose your deployment path and build your first confidential vector search application
+  </Card>
+  
+  <Card title="Choose Your Deployment" href="./deployment-models" icon="server">
+    *Embedded vs Service*
+    
+    Understand the trade-offs between embedded libraries and service deployment
+  </Card>
+  
+  <Card title="Database Integrations" href="./backing-stores" icon="database">
+    *PostgreSQL, Redis, Memory*
+    
+    Learn how CyborgDB transforms your existing database into a confidential vector store
+  </Card>
+</CardGroup>

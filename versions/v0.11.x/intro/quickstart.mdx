@@ -4,4 +4,130 @@ sidebarTitle: "Quickstart"
 mode: "wide"
 ---
 
-<Warning> This page is under construction </Warning>
+Get started with CyborgDB in minutes! This guide will help you choose the right deployment model and get your first confidential vector search running quickly.
+
+## Choose Your Deployment Path
+
+CyborgDB offers two main deployment approaches - both **self-hosted** on your infrastructure:
+
+<CardGroup cols={2}>
+  <Card title="CyborgDB Service" href="../service/guides/intro/quickstart-python" icon="cloud">
+    *Self-deployed REST API service*
+    
+    Deploy as a microservice with REST API and client SDKs. Best for:
+    - Multi-language team environments
+    - Independent scaling capabilities
+    - Operational simplicity with centralized management
+    - Microservice architecture patterns
+  </Card>
+  
+  <Card title="CyborgDB Embedded" href="../embedded/guides/intro/quickstart" icon="code">
+    *Direct library integration*
+    
+    Embed directly in your applications using Python/C++ libraries. Best for:
+    - Maximum performance and control
+    - Custom integrations and workflows
+    - Single-application deployments
+    - Sub-millisecond latency requirements
+  </Card>
+</CardGroup>
+
+---
+
+## Framework Integrations
+
+Already using AI frameworks? Get started even faster with our native integrations:
+
+<CardGroup cols={2}>
+  <Card title="LangChain Integration" href="../integrations/langchain/introduction" icon="link">
+    *Drop-in replacement for existing vector stores*
+    
+    Replace your current vector store with CyborgDB's encrypted alternative:
+    ```python
+    from cyborgdb_core.integrations.langchain import CyborgVectorStore
+    
+    store = CyborgVectorStore.from_texts(
+        texts=["hello world", "goodbye world"],
+        embedding="all-MiniLM-L6-v2",
+        index_key=CyborgVectorStore.generate_key(),
+        # ... other config
+    )
+    ```
+  </Card>
+  
+  <Card title="More Integrations Coming" href="../integrations/about" icon="plus">
+    *Expanding framework support*
+    
+    We're actively building integrations for:
+    - LlamaIndex
+    - Haystack  
+    - Semantic Kernel
+    - Custom frameworks
+    
+    [Request an integration →](https://www.cyborg.co/contact)
+  </Card>
+</CardGroup>
+
+---
+
+## Quick Decision Guide
+
+<Tabs>
+  <Tab title="I want to get started quickly">
+    **Fastest path to working confidential vector search**
+    
+    → Use [**CyborgDB Service**](../service/guides/intro/quickstart-python) with Python SDK
+    
+    Deploy as a microservice and connect via REST API. Minimal setup required.
+  </Tab>
+  
+  <Tab title="I have a LangChain application">
+    **Drop-in replacement for existing vector stores**
+    
+    → Use the [**LangChain Integration**](../integrations/langchain/introduction) guide
+    
+    Replace your existing vector store with just a few lines of code changes.
+  </Tab>
+  
+  <Tab title="I need maximum performance">
+    **Sub-millisecond latency requirements**
+    
+    → Use [**CyborgDB Embedded**](../embedded/guides/intro/quickstart) libraries
+    
+    Direct integration eliminates network overhead for ultimate performance.
+  </Tab>
+  
+  <Tab title="I'm building a distributed application">
+    **Multi-language team or microservice architecture**
+    
+    → Use [**CyborgDB Service**](../service/guides/intro/quickstart-python) deployment
+    
+    One service supports Python, JavaScript, Go, and C++ client SDKs.
+  </Tab>
+</Tabs>
+
+---
+
+## Next Steps After Quickstart
+
+<CardGroup cols={3}>
+  <Card title="Learn the Concepts" href="./about" icon="book">
+    *Understand the architecture*
+    
+    Dive deeper into how CyborgDB enables confidential vector search
+  </Card>
+  
+  <Card title="Choose Your Database" href="./backing-stores" icon="database">
+    *PostgreSQL, Redis, or Memory*
+    
+    Understand database options and performance characteristics
+  </Card>
+  
+  <Card title="Production Planning" href="./deployment-models" icon="server">
+    *Service vs Embedded comparison*
+    
+    Review deployment models and choose the right approach for production
+  </Card>
+</CardGroup>
+
+Ready to get started? Choose your deployment path above and follow the step-by-step guide!
