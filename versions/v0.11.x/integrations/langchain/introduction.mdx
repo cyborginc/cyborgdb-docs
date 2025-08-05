@@ -33,7 +33,7 @@ pip install cyborgdb-lite[langchain]
 
 ## Usage
 
-To use CyborgDB with LangChain, you can import the `CyborgVectorStore` class from the `cyborgdb_core.integration.langchain` or `cyborgdb_lite.integration.langchain` module, depending on which version you are using.
+To use CyborgDB with LangChain, you can import the `CyborgVectorStore` class from the `cyborgdb_core.integrations.langchain` or `cyborgdb_lite.integrations.langchain` module, depending on which version you are using.
 
 ```python
 from cyborgdb.integrations.langchain import CyborgVectorStore
@@ -64,7 +64,8 @@ Configuration object for defining the location of index data (`memory`, `redis`,
 ## Usage Example
 
 ```python
-from cyborgdb_core.langchain import CyborgVectorStore, DBConfig
+from cyborgdb_core.integrations.langchain import CyborgVectorStore
+from cyborgdb_core import DBConfig
 
 store = CyborgVectorStore.from_texts(
     texts=["hello world", "goodbye world"],

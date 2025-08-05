@@ -15,15 +15,15 @@
 - [X] Update all `v0.11.x/embedded/python/*` pages (API key, code examples, core -> embdedded)
 - [X] Update all `v0.11.x/embedded/cpp/*` pages (API key, code examples, core -> embdedded)
 - [ ] Write `v0.11.x/service/guides/intro` page
-- [ ] Write `v0.11.x/service/guides/env-vars` page
+- [X] Write `v0.11.x/service/guides/env-vars` page
 - [X] Review all `v0.11.x/service/guides/*` pages (content, code examples, links)
 - [X] Review all `v0.11.x/service/rest-api/*` pages (content, code examples, links)
 - [X] Review all `v0.11.x/service/python-sdk/*` pages (content, code examples, links)
 - [X] Review all `v0.11.x/service/js-ts-sdk/*` pages (content, code examples, links)
 - [X] Compare SDK references for consistency
-- [ ] Write `v0.11.x/integrations/integrations/about` page
-- [ ] Write `v0.11.x/integrations/langchain/introduction` page
-- [ ] Review all `v0.11.x/integrations/langchain/*` pages (content, code examples, links)
-- [ ] Permanent `intro` page for SEO
-- [ ] Meta description & og image
-- [ ] Permalink redirects to each main section's intro
+- [X] Write `v0.11.x/integrations/integrations/about` page
+- [X] Write `v0.11.x/integrations/langchain/introduction` page
+- [X] Review all `v0.11.x/integrations/langchain/*` pages (content, code examples, links)
+- [X] Permanent `intro` page for SEO
+- [X] Meta description & og image
+- [X] Permalink redirects to each main section's intro

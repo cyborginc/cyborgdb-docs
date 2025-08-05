@@ -19,8 +19,24 @@
   },
   "redirects": [
     {
-      "source": "/versions/about",
-      "destination": "/versions/v0.11.x/guides/get-started/about"
+      "source": "/about",
+      "destination": "versions/v0.11.x/intro/about"
+    },
+    {
+      "source": "/quickstart",
+      "destination": "/versions/v0.11.x/intro/quickstart"
+    },
+    {
+      "source": "/changelog",
+      "destination": "/versions/changelog"
+    },
+    {
+      "source": "/service",
+      "destination": "/versions/v0.11.x/service/guides/intro/about"
+    },
+    {
+      "source": "/embedded",
+      "destination": "/versions/v0.11.x/embedded/guides/intro/about"
     }
   ],
   "navigation": {
@@ -34,7 +50,7 @@
               {
                 "group": "CyborgDB Docs",
                 "pages": [
-                  "versions/v0.11.x/intro/intro",
+                  "index",
                   "versions/v0.11.x/intro/about",
                   "versions/v0.11.x/intro/deployment-models",
                   "versions/v0.11.x/intro/backing-stores"
@@ -98,6 +114,7 @@
                     "group": "Advanced",
                     "pages": [
                       "versions/v0.11.x/service/guides/advanced/managing-keys",
+                      "versions/v0.11.x/service/guides/advanced/env-vars",
                       "versions/v0.11.x/service/guides/advanced/usage-telemetry"
                     ]
                   }
@@ -825,6 +842,12 @@
   },
   "search": {
     "prompt": "Search documentation..."
+  },
+    "seo": {
+    "metatags": {
+      "description": "Documentation for CyborgDB, the Confidential Vector Database",
+      "keywords": "vector database, encryption, confidential computing, AI, RAG"
+    }
   },
   "integrations": {
     "plausible": {

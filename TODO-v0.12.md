@@ -11,3 +11,4 @@
     - [ ] Auto query config
     - [ ] `load_index()` exposed in SDKs
 - [ ] Check that SDK return types are aligned
+- [ ] Langchain for Python SDK
