@@ -1,7 +1,7 @@
 # v0.12 TODO
 
-- [ ] Copy `v0.11.x/*` to `v0.12.x/*`
-- [ ] Update `v0.11.x` to `v0.12.x` tags
+- [X] Copy `v0.11.x/*` to `v0.12.x/*`
+- [X] Update `v0.11.x` to `v0.12.x` tags
 - [ ] Add `v0.12.0` changelog
 - [ ] Add `v0.12.x/service/go-sdk` section with:
 - [ ] Add Go examples to `v0.12.x/service/guides`
