@@ -16,3 +16,4 @@
 - [ ] SDK homogenization
     - [ ] Python (reference & guides)
     - [ ] JS/TS (reference & guides)
+- [ ] Add SSL requirements for SDKs
