@@ -1,0 +1,45 @@
+---
+title: "Get"
+mode: "wide"
+---
+
+Retrieves and decrypts items associated with the specified IDs.
+
+```cpp
+std::vector<cyborg::Item> 
+    Get(const std::vector<std::string>& ids,
+        const std::vector<cyborg::ItemFields> include);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `ids` | `const std::vector<std::string>&` | IDs to retrieve. (For a single item, provide a `std::vector` with one element.)|
+| `include` | [`std::vector<cyborg::ItemFields>`](../types#itemfields) | List of item fields to return. Can include `kVector`, `kContents`, and `kMetadata` (`vector` only for [`IVFFlat`](../types#IndexIVFFlat) indexes). |
+
+### Returns
+
+[`std::vector<cyborg::Item>`](../types#item):  Decrypted items with requested fields.
+
+<Tip>IDs will always be included in the returned items.</Tip>
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::runtime_exception">
+        - Throws if the items could not be retrieved or decrypted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+std::vector<std::string> item_ids = {"item_1", "item_2"};
+auto items = index->Get(item_ids, {cyborg::ItemFields::kContents});
+
+for (const auto& item : items) {
+    // Process each decrypted item (IDs & contents)
+    std::string id = item.id;
+}
+```

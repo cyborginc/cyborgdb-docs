@@ -1,0 +1,52 @@
+---
+title: "Get Health"
+mode: "wide"
+---
+
+Checks the health status of the CyborgDB microservice to verify connectivity and service availability.
+
+```typescript
+async getHealth(): Promise<{ status: string; api_version: string; version: string }>
+```
+
+### Returns
+
+`Promise<{ status: string; api_version: string; version: string }>`: A Promise that resolves to the health status response from the CyborgDB service containing the service status, API version, and application version.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the health check request fails due to network connectivity issues.
+        - Throws if the server is unreachable or times out.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unhealthy or experiencing issues.
+        - Throws if there are internal server errors preventing health reporting.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+try {
+    const health = await client.getHealth();
+    console.log('Service health status:', health);
+    // Expected output: { status: 'healthy', api_version: 'v1', version: '1.2.3' }
+} catch (error) {
+    console.error('Health check failed:', error.message);
+}
+```
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Current health status of the service (typically "healthy") |
+| `api_version` | `string` | Version of the API interface (e.g., "v1") |
+| `version` | `string` | Version of the CyborgDB application/service |

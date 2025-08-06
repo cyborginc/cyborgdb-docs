@@ -1,0 +1,77 @@
+---
+title: "Get Index Configuration"
+mode: "wide"
+api: "POST /v1/indexes/describe"
+playground: "simple"
+---
+
+Extract the complete index configuration from the describe response. This contains all the parameters used to configure the vector index.
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes"
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to describe
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+</Expandable>
+
+## Response
+
+The response contains the index configuration in the `index_config` field:
+
+```json
+{
+  "index_name": "my_index",
+  "index_type": "ivfflat",
+  "is_trained": true,
+  "index_config": {
+    "type": "ivfflat",
+    "dimension": 384,
+    "n_lists": 1024,
+    "metric": "euclidean"
+  }
+}
+```
+
+<Expandable title="response fields">
+  <ResponseField name="index_config" type="object">
+    Complete index configuration object containing:
+  </ResponseField>
+  <ResponseField name="index_config.type" type="string">
+    Index algorithm type (ivf, ivfflat, ivfpq)
+  </ResponseField>
+  <ResponseField name="index_config.dimension" type="integer">
+    Vector embedding dimension
+  </ResponseField>
+  <ResponseField name="index_config.n_lists" type="integer">
+    Number of inverted lists for clustering
+  </ResponseField>
+  <ResponseField name="index_config.metric" type="string">
+    Distance metric (euclidean, cosine, etc.)
+  </ResponseField>
+</Expandable>
+
+## Example Usage
+
+```bash
+# Retrieve index config
+config=$(curl -s -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }' | jq '.index_config')
+
+echo "Index configuration: $config"
+```

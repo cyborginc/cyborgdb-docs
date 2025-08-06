@@ -1,0 +1,180 @@
+---
+title: "Backing Stores"
+---
+
+CyborgDB transforms traditional databases into Confidential Vector Databases by leveraging their storage capabilities while adding encrypted vector search functionality. Choose the backing store that best fits your existing infrastructure and operational requirements.
+
+<img src="/images/cyborgdb-search-overview.png" alt="CyborgDB RAG Overview" />
+
+## PostgreSQL
+
+**Production-ready relational database with vector extensions**
+
+PostgreSQL provides robust data durability, ACID transactions, and excellent tooling ecosystem. CyborgDB leverages PostgreSQL's reliability while adding encrypted vector search capabilities on top.
+
+### Key Benefits
+
+**ACID Compliance**  
+Full transactional consistency for mission-critical applications with guaranteed data integrity.
+
+**Rich Ecosystem**  
+Extensive tooling, monitoring, and operational expertise available across the industry.
+
+**Enterprise Scalability**  
+Support for read replicas, connection pooling, horizontal scaling, and mature backup solutions.
+
+**Best For:** Production applications requiring data consistency, teams with existing PostgreSQL expertise, and environments requiring strict data durability guarantees.
+
+---
+
+## Redis
+
+**High-performance in-memory data store**
+
+Redis delivers ultra-low latency access patterns, making it ideal for real-time applications. CyborgDB uses Redis's memory-optimized storage for blazing-fast vector search operations.
+
+### Key Benefits
+
+**Ultra-Low Latency**  
+Sub-millisecond response times for vector queries with excellent concurrent access performance.
+
+**High Throughput**  
+Optimized for high-volume concurrent operations with flexible data structures beyond simple key-value storage.
+
+**Configurable Persistence**  
+Choose between speed and durability with flexible persistence and replication options.
+
+**Best For:** Real-time applications with strict latency requirements, high-throughput vector search workloads, and caching scenarios.
+
+---
+
+## Memory
+
+**Local in-process storage for development and testing**
+
+Memory-based storage keeps all data in local process memory, providing the fastest possible access with zero network overhead. Perfect for development, testing, and single-process applications.
+
+### Key Benefits
+
+**Zero Network Latency**  
+Direct memory access without serialization overhead for maximum performance.
+
+**Development Simplicity**  
+No external dependencies or configuration required - instant setup for prototyping.
+
+**Deterministic Performance**  
+Predictable access patterns with complete control over memory usage.
+
+**Best For:** Development and testing environments, single-process applications, proof-of-concept scenarios, and ephemeral data requirements.
+
+---
+
+## Future Backing Stores
+
+CyborgDB is designed to be extensible, allowing for future backing stores to be added as needed. Have one in mind? [Let us know!](https://www.cyborg.co/contact)
+
+---
+
+## Managed Services Support
+
+CyborgDB works seamlessly with managed database services, reducing operational overhead while maintaining security and performance.
+
+<CardGroup cols={3}>
+  <Card title="AWS" icon="aws">
+    **Amazon RDS for PostgreSQL**  
+    Fully managed PostgreSQL with automated backups and scaling
+    
+    **Amazon ElastiCache for Redis**  
+    Managed Redis with cluster mode and automatic failover
+  </Card>
+  
+  <Card title="Azure" icon="microsoft">
+    **Azure Database for PostgreSQL**  
+    Managed PostgreSQL with built-in security and monitoring
+    
+    **Azure Cache for Redis**  
+    Enterprise-grade managed Redis with geo-replication
+  </Card>
+  
+  <Card title="Google Cloud" icon="google">
+    **Cloud SQL for PostgreSQL**  
+    Fully managed PostgreSQL with automatic maintenance
+    
+    **Memorystore for Redis**  
+    Secure and highly available managed Redis service
+  </Card>
+</CardGroup>
+
+---
+
+## Choosing the Right Backing Store
+
+<Tabs>
+  <Tab title="Use PostgreSQL">
+    - **Data Durability** - You need guaranteed data persistence and consistency
+    - **Complex Queries** - Your application requires SQL queries beyond vector search
+    - **Team Expertise** - Your team has PostgreSQL operational knowledge
+    - **Compliance** - You need audit trails and transaction logging
+    - **Production Workloads** - Mission-critical applications requiring ACID guarantees
+  </Tab>
+  
+  <Tab title="Use Redis">
+    - **Performance** - Sub-millisecond latency is critical to your application
+    - **Scale** - You need to handle high concurrent query loads
+    - **Real-time** - Your application provides real-time recommendations or search
+    - **Caching** - You're implementing a high-performance caching layer
+    - **Session Storage** - Temporary data with fast access requirements
+  </Tab>
+  
+  <Tab title="Use Memory">
+    - **Development** - You're building and testing your application
+    - **Single Process** - Your application runs in a single process or container
+    - **Temporary Data** - Your vectors are computed on-demand and don't need persistence
+    - **Simplicity** - You want to minimize external dependencies
+    - **Maximum Performance** - Need absolute fastest access with zero network overhead
+  </Tab>
+</Tabs>
+
+## Configuration Examples
+
+<CodeGroup>
+```python PostgreSQL
+from cyborgdb_core import DBConfig
+
+# Local PostgreSQL
+db_config = DBConfig("postgres://user:password@localhost:5432/cyborgdb")
+
+# Amazon RDS
+db_config = DBConfig("postgres://user:password@rds-endpoint.region.rds.amazonaws.com:5432/cyborgdb")
+```
+
+```python Redis
+from cyborgdb_core import DBConfig
+
+# Local Redis
+db_config = DBConfig("redis://localhost:6379")
+
+# Redis with authentication
+db_config = DBConfig("redis://:password@redis-host:6379")
+
+# AWS ElastiCache
+db_config = DBConfig("redis://elasticache-endpoint.region.cache.amazonaws.com:6379")
+```
+
+```python Memory
+from cyborgdb_core import DBConfig
+
+# In-memory storage (no external dependencies)
+db_config = DBConfig("memory")
+```
+</CodeGroup>
+
+## Performance Characteristics
+
+| Backing Store | Latency | Throughput | Durability | Consistency |
+|---------------|:---------:|:------------:|:------------:|:-------------:|
+| **Memory**    | ~1µs    | Very High  | None       | Single Process |
+| **Redis**     | ~100µs  | High       | Configurable | Eventually Consistent |
+| **PostgreSQL** | ~1ms   | Medium     | Full       | ACID |
+
+Choose based on your application's specific requirements for speed, durability, and consistency.

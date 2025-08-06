@@ -1,0 +1,50 @@
+---
+title: "Get Encrypted Items"
+sidebarTitle: "Get Items"
+mode: "wide"
+---
+
+If you have added items to the index with the `item` field, you can retrieve them via `get()`:
+
+<CodeGroup>
+```python Python icon="python"
+# IDs of items to retrieve
+ids = ["item_20, item_11"]
+include = ["contents", "metadata"]
+
+# Retrieve items from the encrypted index
+item = index.get(ids, include)
+
+print(item)
+# Example item
+# [{"id": "item_20", "contents": "Hello, World!", "metadata": {"type": "txt"}},
+#  {"id": "item_11", "contents": "Hello, Cyborg!", "metadata": {"type": "md"}}]
+```
+
+```cpp C++ icon="brackets-curly"
+// IDs of items to retrieve
+std::vector<std::string> ids = {"item_20", "item_11"};
+std::vector<cyborg::ItemFields> include = {kContents, kMetadata};
+
+// Retrieve items from the encrypted index
+std::vector<cyborg::Item> items = index->Get(ids, include);
+
+// Print the item fields
+for (const auto& item : items) {
+    std::cout << "ID: " << item.id << ", Contents: " << std::string(item.contents.begin(), item.contents.end()) << ", Metadata: " << item.metadata << std::endl;
+}
+```
+</CodeGroup>
+
+## API Reference
+
+For more information on getting items from an encrypted index, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../python/encrypted-index/get" icon="python">
+        API reference for `get()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../cpp/encrypted-index/get" icon="brackets-curly">
+        API reference for `Get()` in C++
+    </Card>
+</CardGroup>

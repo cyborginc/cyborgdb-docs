@@ -1,0 +1,122 @@
+---
+title: "Create Client"
+mode: "wide"
+---
+
+The `Client` class provides an interface to connect to the CyborgDB service and manage encrypted indexes. It allows you to create, list, and interact with encrypted indexes through the CyborgDB REST API.
+
+## Creating the Client
+
+To create the client, you need to provide the service URL and optionally an API key for authentication:
+
+<CodeGroup>
+```python Python SDK icon="python"
+from cyborgdb import Client
+
+# Create client with API key (for production)
+client = Client('http://localhost:8000', 'your-api-key')
+
+# Create client without API key (for local development)
+local_client = Client('http://localhost:8000', None)
+```
+
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
+
+// Create client with API key (for production) 
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Create client without API key (for local development)
+const localClient = new Client('http://localhost:8000');
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client } from 'cyborgdb';
+
+// Create client with API key (for production)
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Create client without API key (for local development)
+const localClient = new Client('http://localhost:8000');
+```
+
+```bash cURL icon="rectangle-terminal"
+# Test connection with health check
+curl -X GET "http://localhost:8000/v1/health"
+
+# All subsequent API calls will use this pattern:
+# curl -H "X-API-Key: your-api-key" "http://localhost:8000/v1/..."
+```
+</CodeGroup>
+
+<Tip>If using the REST API directly, you don't need to create a client. You can make HTTP requests directly to the [service endpoints](../../rest-api/introduction).</Tip>
+
+## API Key Authentication
+
+For production deployments, you'll need an API key for authentication. You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
+
+The client handles all authentication automatically once you provide the API key during initialization.
+
+## Service Connection
+
+The client connects to the CyborgDB service via HTTP/HTTPS. All data transmission is secured, and all index data is end-to-end encrypted before being sent to the service.
+
+- **Local Development**: Use `http://localhost:8000` without an API key when running the service locally
+- **Production**: Use your hosted service URL with an API key for authentication
+
+## Health Checking
+
+You can verify the service connection and health:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Note: get_health() is not yet implemented in Python SDK
+# Use try/catch with any operation to verify connection
+try:
+    indexes = client.list_indexes()
+    print("Service is healthy")
+except Exception as e:
+    print(f"Service unavailable: {e}")
+```
+
+```javascript JavaScript SDK icon="js"
+// Check service health
+try {
+    const health = await client.getHealth();
+    console.log('Service status:', health);
+} catch (error) {
+    console.error('Service unavailable:', error.message);
+}
+```
+
+```typescript TypeScript SDK icon="code"
+// Check service health
+try {
+    const health = await client.getHealth();
+    console.log('Service status:', health);
+} catch (error) {
+    console.error('Service unavailable:', error.message);
+}
+```
+
+```bash cURL icon="rectangle-terminal"
+# Check service health (no API key required)
+curl -X GET "http://localhost:8000/v1/health"
+
+# Expected response:
+# {"status": "healthy", "timestamp": "2024-01-15T10:30:00Z"}
+```
+</CodeGroup>
+
+## API Reference
+
+For more information on the `Client` class, refer to the API Reference:
+
+<CardGroup cols={2}>
+    <Card title="Python SDK Reference" href="../../python-sdk/client/client" icon="python">
+        API reference for `Client` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/client" icon="js">
+        API reference for `Client` in JavaScript/TypeScript
+    </Card>
+</CardGroup>

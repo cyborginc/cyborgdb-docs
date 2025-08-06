@@ -1,0 +1,42 @@
+---
+title: "List Indexes"
+mode: "wide"
+---
+
+Retrieves a list of all available indexes from the CyborgDB microservice.
+
+```python
+client.list_indexes()
+```
+
+### Returns
+
+`List[str]`: A list of strings containing the index names currently available on the CyborgDB service.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+from cyborgdb import Client
+
+# Initialize client
+client = Client('https://localhost:8000', 'your-api-key')
+
+# Get list of all indexes
+indexes = client.list_indexes()
+print(f"Available indexes: {indexes}")
+# Output: ['documents', 'embeddings', 'semantic-search']
+```

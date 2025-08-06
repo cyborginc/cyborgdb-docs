@@ -1,0 +1,89 @@
+---
+title: "Getter Functions"
+---
+
+## is_trained
+
+Returns `True` if the index has been trained, enabling efficient approximate nearest neighbor search. An untrained index will default to exhaustive search.
+
+```python
+def is_trained(self) -> bool
+```
+
+### Returns
+
+`bool`: `True` if the index has been trained; otherwise, `False`.
+
+### Example Usage
+
+```python
+# Check if index is trained
+if index.is_trained():
+    print("The index is ready for efficient querying.")
+else:
+    print("The index is not trained; consider calling train().")
+```
+
+---
+
+## index_name
+
+Retrieves the name of the current index.
+
+```python
+def index_name(self) -> str
+```
+
+### Returns
+
+`str`: Name of the currently loaded or created index.
+
+### Example Usage
+
+```python
+# Retrieve the index name
+print("Current index name:", index.index_name())
+```
+
+---
+
+## index_type
+
+Returns the type of the current index (e.g., `ivf`, `ivfpq`, `ivfflat`).
+
+```python
+def index_type(self) -> str
+```
+
+### Returns
+| Return Type | Description |
+|-------------|-------------------------------------|
+| `str` | Type of the current index. |
+
+### Example Usage
+
+```python
+# Retrieve the type of index
+print("Index type:", index.index_type())
+```
+
+---
+
+## index_config
+
+Retrieves the configuration details of the current index.
+
+```python
+def index_config(self) -> IndexConfig
+```
+
+### Returns
+
+[`IndexConfig`](./types#indexconfig): Dictionary of index configuration parameters.
+
+### Example Usage
+
+```python
+# Retrieve index config
+print("Index configuration:", index.index_config())
+```

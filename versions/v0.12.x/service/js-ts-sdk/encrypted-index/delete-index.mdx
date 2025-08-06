@@ -1,0 +1,84 @@
+---
+title: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+Deletes the current index and all its associated data from the CyborgDB service.
+
+```typescript
+async deleteIndex(): Promise<SuccessResponseModel>
+```
+
+### Returns
+
+`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if there are internal server errors preventing the deletion.
+    </Accordion>
+    <Accordion title="Index Errors">
+        - Returns success status if the index was already deleted or doesn't exist.
+        - Throws if the encryption key is invalid for the specified index.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+// Delete the index when no longer needed
+try {
+    const result = await index.deleteIndex();
+    console.log('Index deleted:', result);
+    // Output: { status: 'success', message: "Index 'temporary-index' deleted successfully" }
+} catch (error) {
+    console.error('Failed to delete index:', error.message);
+}
+```
+
+### Response Format
+
+The method returns a success response object with the following structure:
+
+```typescript
+// Standard successful deletion response
+{
+    "status": "success",
+    "message": "Index 'index-name' deleted successfully"
+}
+
+// When index was already deleted (handled gracefully)
+{
+    "status": "success", 
+    "message": "Index 'index-name' was already deleted"
+}
+```
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Operation status (defaults to "success") |
+| `message` | `string` | Descriptive message about the deletion result |
+
+### Best Practices
+
+- **Confirmation**: Always implement user confirmation for deletion operations in production applications
+- **Backup**: Consider exporting important data before deletion if needed for recovery
+- **Cleanup**: Remove local references to deleted indexes to prevent memory leaks
+- **Error Handling**: Implement proper error handling to gracefully handle network failures
+- **Logging**: Log deletion operations for audit trails and debugging
+- **Batch Operations**: When deleting multiple indexes, handle failures gracefully to avoid partial cleanup states
+
+### Important Notes
+
+- Once deleted, the index and all its data cannot be recovered
+- The operation affects all vectors, metadata, and configuration associated with the index
+- Other applications or services using the same index will lose access immediately
+- The deletion is performed on the CyborgDB service and cannot be undone

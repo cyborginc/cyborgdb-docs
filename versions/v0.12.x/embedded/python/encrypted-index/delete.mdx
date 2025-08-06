@@ -1,0 +1,36 @@
+---
+title: "Delete"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+Deletes the specified encrypted items stored in the index, including all its associated fields (`vector`, `contents`, `metadata`).
+
+```python
+def delete(self, ids: List[str])
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `ids` | `List[str]` | IDs to delete. |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the items could not be deleted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# Load index
+index = client.load_index(index_name=index_name, index_key=index_key)
+
+# Delete "item_1" and "item_2"
+index.delete(["item_1", "item_2"])
+```

@@ -1,0 +1,62 @@
+---
+title: "Delete Encrypted Items"
+sidebarTitle: "Delete Items"
+mode: "wide"
+---
+
+You can delete items from an encrypted index using `delete()`:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# IDs of items to delete
+ids_to_delete = ["item1", "item2", "item3"]
+
+# Delete items from the encrypted index
+index.delete(ids_to_delete)
+```
+
+```javascript JavaScript SDK icon="js"
+// IDs of items to delete
+const idsToDelete = ["item1", "item2", "item3"];
+
+// Delete items from the encrypted index
+await index.delete(idsToDelete);
+```
+
+```typescript TypeScript SDK icon="code"
+// IDs of items to delete
+const idsToDelete: string[] = ["item1", "item2", "item3"];
+
+// Delete items from the encrypted index
+await index.delete(idsToDelete);
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/delete" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["item1", "item2", "item3"]
+     }'
+```
+</CodeGroup>
+
+<Warning>This operation is irreversible. Once you delete an item, you cannot recover it.</Warning>
+
+## API Reference
+
+For more information on deleting items from an encrypted index, refer to the API reference:
+
+<CardGroup cols={3}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/delete" icon="rectangle-terminal">
+        REST API reference for `/v1/vectors/delete`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/delete" icon="python">
+        API reference for `delete()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/delete" icon="js">
+        API reference for `delete()` in JavaScript/TypeScript
+    </Card>
+</CardGroup>

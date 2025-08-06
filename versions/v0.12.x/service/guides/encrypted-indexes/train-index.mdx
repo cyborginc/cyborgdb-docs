@@ -1,0 +1,75 @@
+---
+title: "Train an Encrypted Index"
+sidebarTitle: "Train Index"
+mode: "wide"
+---
+
+<Note>This functionality is only present in the [core library](../../../intro/deployment-models) version of CyborgDB.
+In other versions (microservice, serverless), it is automatically called once enough vector embeddings have been indexed.</Note>
+
+CyborgDB uses `IVF*` index types, which leverage clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
+
+In the service-based SDKs, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Train the encrypted index
+index.train()
+```
+
+```javascript JavaScript SDK icon="js"
+// Train the encrypted index
+await index.train();
+```
+
+```typescript TypeScript SDK icon="code"
+// Train the encrypted index
+await index.train();
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/train" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+</CodeGroup>
+
+<Tip>You must have at least `2 * n_lists` number of vectors in the index (ingested via `upsert`) before you can call `train`.</Tip>
+
+## Training Parameters
+
+Parameters are available to customize the training process:
+
+| Parameter | Type | Default | Description |
+|---------------|--------|---------|-------------------------------------------------------|
+| `batch_size` | `int` | `0` | _(Optional)_ Size of each batch for training. `0` auto-selects the batch size. |
+| `max_iters` | `int` | `0` | _(Optional)_ Maximum number of iterations for training. `0` auto-selects the iteration count. |
+| `tolerance` | `float`| `1e-6` | _(Optional)_ Convergence tolerance for training. |
+
+## Warnings with Large Untrained Queries
+
+While training is technically optional (you can use CyborgDB without ever calling `train`), it is recommended that you do so once you have a large number of vectors in the index (e.g., `> 50,000`). If you don't, and you call `query`, you will see a warning in the console, stating:
+
+```
+Warning: querying untrained index with more than 50000 indexed vectors.
+```
+
+## API Reference
+
+For more information on training an encrypted index, refer to the API reference:
+
+<CardGroup cols={3}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/train" icon="rectangle-terminal">
+        REST API reference for `/v1/indexes/train`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/train" icon="python">
+        API reference for `train()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/train" icon="js">
+        API reference for `train()` in JavaScript/TypeScript
+    </Card>
+</CardGroup>

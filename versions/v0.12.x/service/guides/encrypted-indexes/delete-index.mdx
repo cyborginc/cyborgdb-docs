@@ -1,0 +1,88 @@
+---
+title: "Delete an Encrypted Index"
+sidebarTitle: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+To delete an existing encrypted index, you can connect to it and then call the `delete_index()` method.
+
+<CodeGroup>
+```python Python SDK icon="python"
+from cyborgdb import Client
+
+# Create a client
+client = Client('http://localhost:8000', 'your-api-key')
+
+# Provide the same index key and config used when creating the index
+index_key = your_existing_32_byte_key  # Must be the same key used originally
+index_config = your_existing_index_config  # Must match original config
+
+# Connect to the existing index
+index = client.create_index("my_index", index_key, index_config)
+
+# Delete the index
+index.delete_index()
+```
+
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
+
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Provide the same index key and config used when creating the index
+const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
+const indexConfig = yourExistingIndexConfig;  // Must match original config
+
+// Connect to the existing index
+const index = await client.createIndex("my_index", indexKey, indexConfig);
+
+// Delete the index
+await index.deleteIndex();
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client } from 'cyborgdb';
+
+// Create a client
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Provide the same index key and config used when creating the index
+const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
+const indexConfig = yourExistingIndexConfig;  // Must match original config
+
+// Connect to the existing index
+const index = await client.createIndex("my_index", indexKey, indexConfig);
+
+// Delete the index
+await index.deleteIndex();
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X DELETE "http://localhost:8000/v1/indexes/delete" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+</CodeGroup>
+
+## API Reference
+
+For more information on deleting an encrypted index, refer to the API reference:
+
+<CardGroup cols={3}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/delete-index" icon="rectangle-terminal">
+        REST API reference for `/v1/indexes/delete`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/delete-index" icon="python">
+        API reference for `delete_index()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/delete-index" icon="js">
+        API reference for `delete_index()` in JavaScript/TypeScript
+    </Card>
+</CardGroup>

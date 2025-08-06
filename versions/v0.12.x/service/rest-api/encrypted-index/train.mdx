@@ -1,0 +1,110 @@
+---
+title: "Train Index"
+mode: "wide"
+api: "POST /v1/indexes/train"
+playground: "simple"
+---
+
+Train an index for efficient querying. Required before optimal performance.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "batch_size": 2048,
+  "max_iters": 100,
+  "tolerance": 0.000001,
+  "max_memory": 0
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to train
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="batch_size" type="integer" default={2048}>
+    Size of each training batch
+  </ParamField>
+  <ParamField body="max_iters" type="integer" default={100}>
+    Maximum training iterations
+  </ParamField>
+  <ParamField body="tolerance" type="number" default={1e-6}>
+    Convergence tolerance
+  </ParamField>
+  <ParamField body="max_memory" type="integer" default={0}>
+    Maximum memory usage (0 = no limit)
+  </ParamField>
+</Expandable>
+
+## Response
+
+```json
+{
+  "status": "success",
+  "message": "Index 'my_index' trained successfully"
+}
+```
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters or insufficient vectors
+- `500`: Internal server error
+
+## Example Usage
+
+**Basic Training:**
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/train" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+
+**Custom Training Parameters:**
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/train" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "batch_size": 1024,
+       "max_iters": 50,
+       "tolerance": 0.0001
+     }'
+```
+
+<Tip>There must be at least `2 * n_lists` vector embeddings in the index prior to training.</Tip>
+
+## Training Requirements
+
+- **Minimum vectors**: At least `2 × n_lists` vectors must be present in the index
+- **Memory**: Training may require significant memory depending on `batch_size` and dataset size
+- **Time**: Training duration varies based on dataset size and convergence parameters
+
+## Use Cases
+
+- **Performance optimization**: Enable fast approximate nearest neighbor search
+- **Production preparation**: Train indexes before deploying to production
+- **Batch processing**: Train indexes after bulk data ingestion
+- **Index maintenance**: Retrain indexes after significant data updates

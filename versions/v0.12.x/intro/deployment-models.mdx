@@ -1,0 +1,121 @@
+---
+title: "Deployment Models"
+---
+
+CyborgDB offers two deployment approaches, each optimized for different use cases and operational requirements. Both models are **self-hosted** and work with your existing database infrastructure.
+
+---
+
+## CyborgDB Service
+
+**Self-deployed REST API service**
+
+Deploy CyborgDB as a standalone microservice that provides REST API access to confidential vector search. The service runs on your infrastructure and can scale independently from your applications.
+
+<Tip>Learn more about CyborgDB Service [here](../service/guides/intro/about).</Tip>
+
+### Key Benefits
+
+**Independent Scaling**  
+Scale vector operations separately from your main application. Handle high query loads without impacting your core services.
+
+**Self-Optimization**  
+The service automatically optimizes index performance, manages memory efficiently, and adapts to query patterns over time.
+
+**Multi-Language Access**  
+One service deployment supports multiple applications and programming languages through REST API and client SDKs.
+
+**Operational Simplicity**  
+Centralized deployment, monitoring, and maintenance. Update vector search capabilities without touching application code.
+
+### Deployment Options
+
+<CardGroup cols={2}>
+  <Card title="Docker Deployment" href="../service/guides/intro/quickstart-docker" icon="docker">
+    *Containerized service*
+    
+    Deploy as a Docker container for easy orchestration and scaling
+  </Card>
+  
+  <Card title="Python Service" href="../service/guides/intro/quickstart-python" icon="python">
+    *Direct Python installation*
+    
+    Install and run as a Python service with pip for lightweight deployment
+  </Card>
+</CardGroup>
+
+### Client SDKs
+
+<CardGroup cols={2}>
+  <Card title="Python SDK" href="../service/python-sdk/introduction" icon="python">
+    Full-featured Python client with async support and type hints
+  </Card>
+  
+  <Card title="JavaScript/TypeScript SDK" href="../service/js-ts-sdk/introduction" icon="js">
+    Modern JS/TS client with Promise-based API and TypeScript definitions
+  </Card>
+</CardGroup>
+
+---
+
+## CyborgDB Embedded
+
+**Direct library integration**
+
+Embed CyborgDB directly into your applications using Python or C++ libraries. This approach provides maximum control and performance by eliminating network overhead.
+
+<Tip>Learn more about CyborgDB Embedded [here](../embedded/guides/intro/about).</Tip>
+
+### Key Benefits
+
+**Maximum Performance**  
+Direct memory access and zero network latency. Ideal for latency-sensitive applications requiring sub-millisecond response times.
+
+**Deep Integration**  
+Customize every aspect of vector operations. Perfect for specialized workflows and performance tuning requirements.
+
+**Complete Control**  
+Full ownership of the vector search stack. No external dependencies or service management overhead.
+
+**Advanced Customization**  
+Access to low-level APIs for custom index configurations, memory management, and algorithm tuning.
+
+### Deployment Options
+
+<CardGroup cols={2}>
+  <Card title="Python Embedded" href="../embedded/python/introduction" icon="python">
+    *Direct Python integration*
+    
+    Embed confidential vector search directly in Python applications
+  </Card>
+  
+  <Card title="C++ Embedded" href="../embedded/cpp/introduction" icon="brackets-curly">
+    *Native C++ integration*
+    
+    High-performance native integration for C++ applications
+  </Card>
+</CardGroup>
+
+---
+
+## Choosing the Right Model
+
+<Tabs>
+  <Tab title="Use CyborgDB Service">
+  - **Multi-application architecture** - Multiple services need vector search capabilities
+  - **Team scalability** - Different teams use different programming languages
+  - **Operational simplicity** - You want centralized vector search management
+  - **Independent scaling** - Vector workloads need to scale separately from applications
+  - **Microservice patterns** - You prefer service-oriented architecture
+  </Tab>
+  
+  <Tab title="Embedded Deployment">
+    - **Maximum performance** - Sub-millisecond latency requirements
+    - **Deep customization** - Need fine-grained control over vector operations  
+    - **Single application focus** - One primary application using vector search
+    - **Resource optimization** - Want to eliminate network overhead entirely
+    - **Specialized workflows** - Require custom integration or algorithm tuning
+  </Tab>
+</Tabs>
+
+Start with embedded libraries for rapid prototyping, then scale to service deployment for production multi-application environments, or vice versa based on your specific requirements.

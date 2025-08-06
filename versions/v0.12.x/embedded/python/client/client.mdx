@@ -1,0 +1,109 @@
+---
+title: "Client"
+mode: "wide"
+---
+
+`Client` is the main class exposed by CyborgDB. It exposes the functionality necessary to create, load, list and delete indexes. Operations within encrypted indexes (such as `upsert` and `query`) are contained within the `EncryptedIndex` class returned by `create_index` and `load_index`.
+
+## Constructor
+
+```python
+Client(api_key: str,
+       index_location: DBConfig,
+       config_location: DBConfig,
+       items_location: DBConfig,
+       cpu_threads: int = 0,
+       gpu_accelerate: bool = False)
+```
+
+Initializes a new CyborgDB `Client` instance.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-------------------|--------------------|---------------------------------------------------------------------|---|
+| `api_key` | `str` | - | API key for your CyborgDB account. |
+| `index_location` | [`DBConfig`](../types#dbconfig) | - | Configuration for index storage location. Use a dictionary with keys `location`, `table_name`, and `connection_string`. |
+| `config_location` | [`DBConfig`](../types#dbconfig) | - | Configuration for index metadata storage. Uses the same dictionary structure as `index_location`. |
+| `items_location` | [`DBConfig`](../types#dbconfig) | `NONE` | _(Optional)_ Configuration for encrypted item storage. Uses the same dictionary structure as `index_location`. |
+| `cpu_threads` | `int` | `0` | _(Optional)_ Number of CPU threads to use for computations (defaults to `0` = all cores). |
+| `gpu_accelerate` | `bool` | `False` | _(Optional)_ Indicates whether to use GPU acceleration (defaults to `False`). |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the `cpu_threads` parameter is less than `0`.
+        - Throws if any [`DBConfig`](../types#dbconfig) is invalid.
+        - Throws if the GPU is not available when `gpu_accelerate` is `True`.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the backing store is not available.
+        - Throws if the Client could not be initialized.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+
+api_key = "your_api_key_here"
+index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+items_location = cyborgdb.DBConfig(location='postgres', table_name="items", connection_string="host=localhost dbname=postgres")
+
+# Construct the Client object
+client = cyborgdb.Client(api_key=api_key,
+                    index_location=index_location,
+                    config_location=config_location,
+                    items_location=items_location,
+                    cpu_threads=4,
+                    gpu_accelerate=True)
+
+# Proceed with further operations
+```
+
+---
+
+## Methods
+
+### get_cpu_threads()
+
+Returns the number of CPU threads configured for this client.
+
+```python
+def get_cpu_threads(self) -> int
+```
+
+#### Returns
+
+`int`: The number of CPU threads.
+
+#### Example Usage
+
+```python
+threads = client.get_cpu_threads()
+print(f"Using {threads} CPU threads")
+```
+
+---
+
+### is_gpu_enabled()
+
+Checks if GPU acceleration is enabled for this client.
+
+```python
+def is_gpu_enabled(self) -> bool
+```
+
+#### Returns
+
+`bool`: True if GPU acceleration is enabled, False otherwise.
+
+#### Example Usage
+
+```python
+gpu_enabled = client.is_gpu_enabled()
+print(f"GPU acceleration is {'enabled' if gpu_enabled else 'disabled'}")
+```

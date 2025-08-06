@@ -1,0 +1,57 @@
+---
+title: "Get Index Type"
+mode: "wide"
+api: "POST /v1/indexes/describe"
+playground: "simple"
+---
+
+Extract the index type from the describe response. This indicates the algorithm used for the vector index.
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes"
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to describe
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+</Expandable>
+
+## Response
+
+The response contains the index type in the `index_type` field:
+
+```json
+{
+  "index_type": "ivfflat"
+}
+```
+
+<Expandable title="response fields">
+  <ResponseField name="index_type" type="string">
+    Type of the current index (ivf, ivfflat, ivfpq)
+  </ResponseField>
+</Expandable>
+
+## Example Usage
+
+```bash
+# Retrieve the type of index
+index_type=$(curl -s -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }' | jq -r '.index_type')
+
+echo "Index type: $index_type"
+```
