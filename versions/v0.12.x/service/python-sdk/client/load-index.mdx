@@ -3,34 +3,54 @@ title: "Load Index"
 mode: "wide"
 ---
 
-<Warning>
-The service-based Python SDK does not have a separate `load_index()` method. Instead, use the `create_index()` method to connect to existing indexes.
-
-This will be changed in the `v0.12.0` release of the Python SDK.
-</Warning>
-
-## Connecting to Existing Indexes
-
-To connect to an existing index using the service Python SDK, use `create_index()` with the same parameters:
+Loads and returns an existing `EncryptedIndex` instance based on its name and key.
 
 ```python
-from cyborgdb import Client, IndexIVF
+client.load_index(
+    index_name,
+    index_key
+)
+```
 
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `index_name` | `str` | - | Name of an existing index |
+| `index_key` | `bytes` | - | 32-byte encryption key |
+
+### Returns
+
+An instance of `EncryptedIndex` if the index exists and the key is valid.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the index does not exist on the server.
+        - Throws if the encryption key is not exactly 32 bytes.
+        - Throws if the index name format is invalid.
+    </Accordion>
+    <Accordion title="Network/API Errors">
+        - Throws if the API request fails due to network issues.
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+Basic usage of the `load_index` method to retrieve an existing index:
+
+```python
+from cyborgdb import Client
+
+# Create a client
 client = Client('http://localhost:8000', 'your-api-key')
 
-# Connect to existing index (or create if it doesn't exist)
-index_key = your_existing_32_byte_key  # Must be the same key used originally
-config = IndexIVF(
-    type='ivf',
-    dimension=768,
-    n_lists=1024,
-    metric='cosine'
-)
+# Provide the same index key used when creating the index
+index_key = your_existing_32_byte_key
 
-# This will connect to the existing index if it exists with this name and key
-index = client.create_index(
-    index_name='my-existing-index',
-    index_key=index_key,
-    index_config=config
-)
+# Connect to existing index
+index = client.load_index("my_index", index_key)
 ```

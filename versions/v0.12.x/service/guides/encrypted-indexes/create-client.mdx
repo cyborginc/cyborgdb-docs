@@ -70,11 +70,10 @@ You can verify the service connection and health:
 
 <CodeGroup>
 ```python Python SDK icon="python"
-# Note: get_health() is not yet implemented in Python SDK
-# Use try/catch with any operation to verify connection
+# Check service health
 try:
-    indexes = client.list_indexes()
-    print("Service is healthy")
+    health = client.get_health()
+    print("Service status:", health["status"])
 except Exception as e:
     print(f"Service unavailable: {e}")
 ```

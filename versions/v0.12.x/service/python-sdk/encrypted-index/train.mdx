@@ -9,8 +9,7 @@ Trains the index to optimize it for efficient similarity search queries. Trainin
 index.train(
     batch_size=2048,
     max_iters=100,
-    tolerance=1e-6,
-    max_memory=0
+    tolerance=1e-6
 )
 ```
 
@@ -20,7 +19,6 @@ index.train(
 | `batch_size` | `int` | `2048` | Number of vectors to process per training batch |
 | `max_iters` | `int` | `100` | Maximum number of training iterations |
 | `tolerance` | `float` | `1e-6` | Convergence tolerance for training completion |
-| `max_memory` | `int` | `0` | Maximum memory usage in MB (0 = unlimited) |
 
 <Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
 
@@ -61,7 +59,6 @@ index.train()
 index.train(
     batch_size=4096,     # Larger batches for better performance
     max_iters=200,       # More iterations for better convergence
-    tolerance=1e-7,      # Stricter convergence criteria
-    max_memory=2048      # Limit memory usage to 2GB
+    tolerance=1e-7       # Stricter convergence criteria
 )
 ```

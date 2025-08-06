@@ -9,22 +9,16 @@ If you've previously created an encrypted index, you can connect to it to add, q
 <Note>This is only applicable to the CyborgDB SDKs. The REST API is stateless, so you don't need to load indexes explicitly.</Note>
 <CodeGroup>
 ```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVF
+from cyborgdb import Client
 
 # Create a client
 client = Client('http://localhost:8000', 'your-api-key')
 
-# Provide the same index key and config used when creating the index
-index_key = your_existing_32_byte_key  # Must be the same key used originally
-index_config = IndexIVF(
-    type='ivf',
-    dimension=768,
-    n_lists=1024,
-    metric='cosine'
-)
+# Provide the same index key used when creating the index
+index_key = your_existing_32_byte_key
 
-# Connect to existing index (or create if it doesn't exist)
-index = client.create_index("my_index", index_key, index_config)
+# Connect to existing index
+index = client.load_index("my_index", index_key)
 ```
 
 ```javascript JavaScript SDK icon="js"
@@ -87,13 +81,6 @@ This connects to an existing encrypted index on the service. For more details on
 <Warning>You must provide the exact same index key and configuration that was used when the index was originally created. 
 For production use, we recommend that you use an HSM or KMS solution for key management.
 For more details, see [Managing Encryption Keys](../advanced/managing-keys).</Warning>
-
-## Key Points
-
-- **Same Method**: Service SDKs use `createIndex()` for both creating new indexes and connecting to existing ones
-- **Exact Match Required**: The index key and configuration must exactly match the original
-- **Automatic Detection**: The service automatically determines whether to create or connect based on the index name
-- **No Separate Load Method**: Unlike embedded SDKs, service SDKs don't have a separate `loadIndex()` method
 
 ## Index Caching
 
