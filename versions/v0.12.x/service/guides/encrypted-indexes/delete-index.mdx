@@ -60,6 +60,10 @@ const index = await client.createIndex("my_index", indexKey, indexConfig);
 await index.deleteIndex();
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 curl -X DELETE "http://localhost:8000/v1/indexes/delete" \
      -H "X-API-Key: your-api-key" \
@@ -75,7 +79,7 @@ curl -X DELETE "http://localhost:8000/v1/indexes/delete" \
 
 For more information on deleting an encrypted index, refer to the API reference:
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
     <Card title="REST API Reference" href="../../rest-api/encrypted-index/delete-index" icon="rectangle-terminal">
         REST API reference for `/v1/indexes/delete`
     </Card>
@@ -84,5 +88,8 @@ For more information on deleting an encrypted index, refer to the API reference:
     </Card>
     <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/delete-index" icon="js">
         API reference for `delete_index()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/encrypted-index/delete-index" icon="golang">
+        API reference for `DeleteIndex()` in Go
     </Card>
 </CardGroup>

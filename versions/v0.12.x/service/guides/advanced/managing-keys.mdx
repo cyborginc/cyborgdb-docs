@@ -114,6 +114,10 @@ const indexKey = new Uint8Array(Buffer.from(keyB64, 'base64'));
 const index = await client.createIndex(indexName, indexKey, indexConfig);
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 # Load the base64 key from file and use in REST API
 KEY_B64=$(cat index_key.txt)
@@ -333,6 +337,10 @@ const indexConfig: IndexIVFFlatModel = {
 
 // Use the key with CyborgDB
 const index = await client.createIndex("my_index", indexKey, indexConfig);
+```
+
+```go Go SDK icon="golang"
+// TODO
 ```
 
 ```bash cURL icon="rectangle-terminal"

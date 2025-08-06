@@ -40,6 +40,10 @@ const client = new Client('http://localhost:8000', 'your-api-key');
 const localClient = new Client('http://localhost:8000');
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 # Test connection with health check
 curl -X GET "http://localhost:8000/v1/health"
@@ -98,6 +102,10 @@ try {
 }
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 # Check service health (no API key required)
 curl -X GET "http://localhost:8000/v1/health"
@@ -111,11 +119,14 @@ curl -X GET "http://localhost:8000/v1/health"
 
 For more information on the `Client` class, refer to the API Reference:
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
     <Card title="Python SDK Reference" href="../../python-sdk/client/client" icon="python">
         API reference for `Client` in Python
     </Card>
     <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/client" icon="js">
         API reference for `Client` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/client/client" icon="golang">
+        API reference for `Client` in Go
     </Card>
 </CardGroup>

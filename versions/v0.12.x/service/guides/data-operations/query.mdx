@@ -45,6 +45,10 @@ console.log(results);
 // [[{id: "item_12", distance: 0.01}, {id: "item_7", distance: 0.04}, ...]]
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 curl -X POST "http://localhost:8000/v1/vectors/query" \
      -H "X-API-Key: your-api-key" \
@@ -135,6 +139,10 @@ console.log(results);
 // [[{id: "item_12", distance: 0.01, metadata: {age: 25}}, ...]]
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 curl -X POST "http://localhost:8000/v1/vectors/query" \
      -H "X-API-Key: your-api-key" \
@@ -201,6 +209,10 @@ const results = await index.query({
 console.log(results);
 // Returns nested results: one list per query vector
 // [[results_for_query_1], [results_for_query_2]]
+```
+
+```go Go SDK icon="golang"
+// TODO
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -287,6 +299,10 @@ const results = await index.query({
 });
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 # For indexes with embedding_model
 curl -X POST "http://localhost:8000/v1/vectors/query" \
@@ -317,7 +333,7 @@ Queries will initially use exhaustive search, which is fine for small datasets. 
 
 For more information on querying encrypted indexes, refer to the API reference:
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
     <Card title="REST API Reference" href="../../rest-api/encrypted-index/query" icon="rectangle-terminal">
         REST API reference for `/v1/vectors/query`
     </Card>
@@ -326,5 +342,8 @@ For more information on querying encrypted indexes, refer to the API reference:
     </Card>
     <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/query" icon="js">
         API reference for `query()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/encrypted-index/query" icon="golang">
+        API reference for `Query()` in Go
     </Card>
 </CardGroup>

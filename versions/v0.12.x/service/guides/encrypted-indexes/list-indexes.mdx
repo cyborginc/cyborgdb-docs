@@ -49,6 +49,10 @@ console.log(indexes);
 // ["index_one", "index_two", "index_three"]
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 curl -X GET "http://localhost:8000/v1/indexes/list" \
      -H "X-API-Key: your-api-key"
@@ -61,7 +65,7 @@ This returns an array of index names that are available to your API key.
 
 For more information on listing encrypted indexes, refer to the API reference:
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
     <Card title="REST API Reference" href="../../rest-api/client/list-indexes" icon="rectangle-terminal">
         REST API reference for `/v1/indexes/list`
     </Card>
@@ -70,5 +74,8 @@ For more information on listing encrypted indexes, refer to the API reference:
     </Card>
     <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/list-indexes" icon="js">
         API reference for `list_indexes()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/client/list-indexes" icon="golang">
+        API reference for `ListIndexes()` in Go
     </Card>
 </CardGroup>

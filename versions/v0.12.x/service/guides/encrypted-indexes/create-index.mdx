@@ -73,6 +73,10 @@ const indexKey = crypto.getRandomValues(new Uint8Array(32));
 const index = await client.createIndex("my_index", indexKey, indexConfig);
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 curl -X POST "http://localhost:8000/v1/indexes/create" \
      -H "X-API-Key: your-api-key" \
@@ -182,6 +186,10 @@ const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
 const index = await client.createIndex("my_index", indexKey, indexConfig, embeddingModel);
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 curl -X POST "http://localhost:8000/v1/indexes/create" \
      -H "X-API-Key: your-api-key" \
@@ -204,7 +212,7 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
 
 For more information on creating encrypted indexes, refer to the API reference:
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
     <Card title="REST API Reference" href="../../rest-api/client/create-index" icon="rectangle-terminal">
         REST API reference for `/v1/indexes/create`
     </Card>
@@ -213,5 +221,8 @@ For more information on creating encrypted indexes, refer to the API reference:
     </Card>
     <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/create-index" icon="js">
         API reference for `create_index()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/client/create-index" icon="golang">
+        API reference for `CreateIndex()` in Go
     </Card>
 </CardGroup>

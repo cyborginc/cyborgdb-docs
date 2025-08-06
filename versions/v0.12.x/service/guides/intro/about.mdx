@@ -52,7 +52,7 @@ Native SDKs for Python, JavaScript/TypeScript, Go, and C++ - use your preferred 
 
 Access CyborgDB Service from any language using our comprehensive SDK collection:
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card title="Python SDK" href="../../python-sdk/introduction" icon="python">
     *Full-featured Python client*
     
@@ -63,6 +63,12 @@ Access CyborgDB Service from any language using our comprehensive SDK collection
     *Modern web and Node.js client*
     
     Promise-based API with TypeScript definitions
+  </Card>
+
+  <Card title="Go SDK" href="../../go-sdk/introduction" icon="golang">
+    *Native Go client*
+    
+    Efficient and idiomatic Go API for CyborgDB
   </Card>
 </CardGroup>
 
@@ -107,11 +113,13 @@ flowchart TB
     PythonSDK["Python SDK"]
     JSSDK["JavaScript SDK"]
     TSSDK["TypeScript SDK"]
+    GoSDK["Go SDK"]
   end
 
   PythonSDK --> RESTAPI
   JSSDK --> RESTAPI
   TSSDK --> RESTAPI
+  GoSDK --> RESTAPI
 
   RESTAPI["REST API"]
   RESTAPI --> CyborgDB["CyborgDB Service"]

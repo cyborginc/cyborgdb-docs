@@ -240,6 +240,46 @@
                     ]
                   }
                 ]
+              },
+              {
+                "dropdown": "Go SDK Reference",
+                "icon": "golang",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.12.x/service/go-sdk/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "versions/v0.12.x/service/go-sdk/client/client",
+                      "versions/v0.12.x/service/go-sdk/client/get-health",
+                      "versions/v0.12.x/service/go-sdk/client/create-index",
+                      "versions/v0.12.x/service/go-sdk/client/load-index",
+                      "versions/v0.12.x/service/go-sdk/client/list-indexes"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "versions/v0.12.x/service/go-sdk/encrypted-index/upsert",
+                      "versions/v0.12.x/service/go-sdk/encrypted-index/query",
+                      "versions/v0.12.x/service/go-sdk/encrypted-index/train",
+                      "versions/v0.12.x/service/go-sdk/encrypted-index/get",
+                      "versions/v0.12.x/service/go-sdk/encrypted-index/delete",
+                      "versions/v0.12.x/service/go-sdk/encrypted-index/delete-index"
+                    ]
+                  },
+                  {
+                    "group": "Index Configuration",
+                    "pages": [
+                      "versions/v0.12.x/service/go-sdk/getters",
+                      "versions/v0.12.x/service/go-sdk/types"
+                    ]
+                  }
+                ]
               }
             ]
           },

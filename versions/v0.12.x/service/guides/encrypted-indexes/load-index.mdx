@@ -59,6 +59,10 @@ const indexConfig: IndexIVFModel = {
 const index = await client.createIndex("my_index", indexKey, indexConfig);
 ```
 
+```go Go SDK icon="golang"
+// TODO
+```
+
 ```bash cURL icon="rectangle-terminal"
 # The REST API is stateless - no explicit "load" needed
 # Simply use the index_name and index_key in subsequent operations
@@ -94,11 +98,14 @@ Index caching is handled automatically by the CyborgDB service. The service opti
 
 For more information on loading an encrypted index, refer to the API reference:
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
     <Card title="Python SDK Reference" href="../../python-sdk/client/load-index" icon="python">
         API reference for `load_index()` in Python
     </Card>
     <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/load-index" icon="js">
         API reference for `load_index()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/client/load-index" icon="golang">
+        API reference for `LoadIndex()` in Go
     </Card>
 </CardGroup>
