@@ -245,6 +245,8 @@ For more details on metadata filters, see the [Metadata Filtering](./metadata-fi
 
 ## Automatic Embedding Generation
 
+<Tip>To use automatic embedding generation, use the [Docker Service](../intro/quickstart-docker) or install with `pip install cyborgdb-service[embeddings]`</Tip>
+
 If you provided an `embedding_model` during index creation, you can automatically generate embeddings for queries by providing `query_contents` to the `query()` call:
 
 <CodeGroup>
