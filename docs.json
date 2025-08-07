@@ -417,8 +417,13 @@
               {
                 "dropdown": "Integrations",
                 "icon": "book",
-                "pages": [
-                  "versions/v0.12.x/integrations/about"
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.12.x/integrations/about"
+                    ]
+                  }
                 ]
               },
               {
