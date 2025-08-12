@@ -2,8 +2,8 @@
 
 - [X] Copy `v0.11.x/*` to `v0.12.x/*`
 - [X] Update `v0.11.x` to `v0.12.x` tags
-- [ ] Add `v0.12.0` changelog
-- [ ] Add `v0.12.x/service/go-sdk` section with:
+- [X] Add `v0.12.0` changelog
+- [ ] Write `v0.12.x/service/go-sdk` section
 - [ ] Add Go examples to `v0.12.x/service/guides`
 - [ ] General API updates (C++, Python, REST, Python SDK, JS/TS SDK, Go SDK)
     - [ ] Auto index config
@@ -13,7 +13,4 @@
 - [ ] Check that SDK return types are aligned
 - [ ] Langchain for Python SDK
 - [ ] Add performance benchmarks
-- [ ] SDK homogenization
-    - [ ] Python (reference & guides)
-    - [ ] JS/TS (reference & guides)
 - [ ] Add SSL requirements for SDKs
