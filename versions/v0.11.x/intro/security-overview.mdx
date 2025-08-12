@@ -1,0 +1,34 @@
+---
+title: "Security Overview"
+sidebarTitle: "Overview"
+mode: "wide"
+---
+
+CyborgDB is designed to address one of the most urgent and overlooked risks in enterprise AI: **centralized AI data becoming a single, high-value breach target**.
+
+As enterprises adopt AI applications - especially those using Retrieval-Augmented Generation (RAG) and other data-intensive approaches - they centralize data from multiple systems (Finance, HR, CRM, and more) into a single vector database. While this boosts AI performance, it also creates a **single point of failure**. A breach of this system could expose sensitive data from across the entire organization.
+
+This is not just another database security issue. Before AI, sensitive data was spread across multiple systems, each with its own security perimeter. AI adoption is changing that. To improve AI performance, enterprises are centralizing their most valuable data into one system  -  the vector database. That shift creates a new, much larger blast radius for any breach.
+
+<Frame>
+    <img src="/images/vector-db-blast-radius.png" alt="Diagram showing the blast radius of a breach in a centralized vector database" />
+</Frame>
+
+Without adequate security measures, a single breach here could compromise your entire organization’s most valuable data - and that’s the problem CyborgDB is built to solve.
+
+CyborgDB protects against this risk by [encrypting data end-to-end](./encryption) - so even if attackers gain direct access to the database, they cannot recover usable data.
+
+CyborgDB makes securing your AI database as straightforward as running it  -  so you can innovate with AI without creating a breach magnet.
+
+## Learn More
+
+To learn more about CyborgDB's security features, check out the following resources:
+
+<CardGroup cols={2}>
+    <Card title="Threat Model" href="./threat-model" icon="bomb">
+        Overview of potential threats and attack vectors
+    </Card>
+    <Card title="Encryption" href="./encryption" icon="lock-keyhole">
+        Overview of encryption methods used in CyborgDB
+    </Card>
+</CardGroup>

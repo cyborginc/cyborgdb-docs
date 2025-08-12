@@ -1,0 +1,55 @@
+---
+title: "Threat Model"
+mode: "wide"
+---
+
+CyborgDB’s security model assumes that **attackers may gain direct access to the vector database**. This could be via:
+
+* Exploiting vulnerabilities in the application layer
+* Insider threats with elevated permissions
+* Misconfigured or exposed cloud resources
+
+Once inside a standard vector DB, an attacker could:
+
+<Steps>
+    <Step title="Exfiltrate Embeddings" icon="download">
+        Extract & download dense vector data from the database.
+    </Step>
+    <Step title="Run Inversion Attacks" icon="forward">
+        Use public or custom ML models to reconstruct original text or images from embeddings.
+    </Step>
+    <Step title="Recover Sensitive Data" icon="lock-open">
+        Expose information from Finance, HR, CRM, and other systems.
+    </Step>
+</Steps>
+
+We’ve seen similar high-impact breaches with open Elasticsearch clusters and misconfigured S3 buckets  -  but in those cases, attackers only got data from one system. A vector DB breach could expose data from  every system it’s connected to - amplifying the impact far beyond a single application.
+
+## Attack Demo
+
+Cyborg showcased such an attack on a popular vector database at the Confidential Computing Summit in June 2025. You can watch the attack demo below:
+
+<iframe 
+    className="w-full aspect-video rounded-xl"
+    src="https://www.youtube.com/embed/TK2L3P3k-EM?si=Xj_fKUo_gwtWHkjL&amp;start=270" 
+    title="YouTube video player" 
+    frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen
+>
+    Your browser does not support iframes. 
+    <a href="https://www.youtube.com/watch?v=TK2L3P3k-EM&t=270s" target="_blank" rel="noopener noreferrer">
+        Watch the attack demo on YouTube
+    </a>
+</iframe>
+
+## How CyborgDB Disrupts the Attack Chain
+
+* **[In-use encryption](./encryption)** ensures embeddings are never in plaintext - even in memory.
+* **Key isolation (BYOK/HYOK)** ensures encryption keys are controlled by the customer, not Cyborg or the cloud provider.
+* **Full audit logging** makes suspicious access patterns visible.
+
+By protecting data across its full lifecycle and designing for zero-plaintext exposure, CyborgDB minimizes the blast radius of any compromise.
+
+We assume the attacker will get inside. Our job is to make sure they leave with nothing useful.

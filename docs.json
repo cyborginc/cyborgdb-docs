@@ -65,6 +65,14 @@
                 ]
               },
               {
+                "group": "Security",
+                "pages": [
+                  "versions/v0.11.x/intro/security-overview",
+                  "versions/v0.11.x/intro/threat-model",
+                  "versions/v0.11.x/intro/encryption"
+                ]
+              },
+              {
                 "group": "Changelog",
                 "pages": [
                   "versions/changelog"
