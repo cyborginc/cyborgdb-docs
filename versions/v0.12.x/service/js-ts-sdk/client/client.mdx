@@ -8,7 +8,7 @@ mode: "wide"
 ## Constructor
 
 ```typescript
-new Client(baseUrl: string, apiKey?: string)
+new Client(baseUrl: string, apiKey?: string, verifySsl?: boolean)
 ```
 
 Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
@@ -18,20 +18,33 @@ Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB micros
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `baseUrl` | `string` | Base URL of the CyborgDB microservice endpoint |
-| `apiKey` | `string` | API key for authentication with the microservice |
+| `apiKey` | `string` | Optional API key for authentication with the microservice |
+| `verifySsl` | `boolean` | Optional SSL verification setting. If not provided, auto-detects based on URL |
 
 You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+### SSL Verification
+
+The constructor includes intelligent SSL verification handling:
+
+- **Auto-detection**: For `localhost` and `127.0.0.1` URLs, SSL verification is automatically disabled for development convenience
+- **HTTP URLs**: SSL verification is automatically disabled for `http://` URLs
+- **Production Safety**: SSL verification is enabled by default for HTTPS URLs in production
+- **Manual Override**: You can explicitly set `verifySsl` to override the auto-detection behavior
 
 ### Example Usage
 
 ```typescript
 import { Client } from 'cyborgdb';
 
-// Create client with API key
-const client = new Client('http://localhost:8000', 'your-api-key');
+// Create client with API key (SSL auto-detected)
+const client = new Client('https://api.cyborgdb.co', 'your-api-key');
 
-// Create client without API key (for local development)
+// Create client for local development (SSL auto-disabled)
 const localClient = new Client('http://localhost:8000');
+
+// Create client with explicit SSL verification disabled
+const devClient = new Client('https://dev.cyborgdb.co', 'dev-api-key', false);
 ```
 
 ## Error Handling
@@ -49,6 +62,15 @@ All methods throw standard JavaScript `Error` objects with descriptive messages 
 The TypeScript SDK provides full type safety with:
 
 - Strongly typed method parameters and return values
-- Type definitions for all configuration objects
+- Type definitions for all configuration objects including `CreateIndexRequest`, `IndexIVFPQ`, `IndexIVFFlat`, `IndexIVF`, and `IndexOperationRequest`
 - IntelliSense support in compatible IDEs
 - Compile-time validation of API usage
+
+## Development Features
+
+The client includes several development-friendly features:
+
+- **Automatic SSL detection** for local development environments
+- **Console warnings** when SSL verification is disabled in production-like environments
+- **Node.js specific configurations** for SSL handling in server environments
+- **Standardized headers** with proper Content-Type and Accept headers

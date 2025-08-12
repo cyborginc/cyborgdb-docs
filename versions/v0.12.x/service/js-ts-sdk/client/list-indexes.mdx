@@ -25,9 +25,14 @@ async listIndexes(): Promise<string[]>
         - Throws if the CyborgDB service is unavailable or unreachable.
         - Throws if there are internal server errors on the CyborgDB service.
     </Accordion>
+    <Accordion title="Validation Errors">
+        - Throws if the API response format is invalid or unexpected.
+    </Accordion>
 </AccordionGroup>
 
 ### Example Usage
+
+#### Basic Index Listing
 
 ```typescript
 import { Client } from 'cyborgdb';
@@ -38,7 +43,80 @@ try {
     const indexes = await client.listIndexes();
     console.log('Available indexes:', indexes);
     // Output: ['my_vector_index', 'semantic_search', 'document_embeddings']
+    
+    if (indexes.length === 0) {
+        console.log('No indexes found. Create your first index!');
+    } else {
+        console.log(`Found ${indexes.length} indexes`);
+    }
 } catch (error) {
     console.error('Failed to list indexes:', error.message);
+}
+```
+
+#### Checking for Specific Index
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+const targetIndexName = 'my-production-index';
+
+try {
+    const indexes = await client.listIndexes();
+    
+    if (indexes.includes(targetIndexName)) {
+        console.log(`Index '${targetIndexName}' exists`);
+        // Load the existing index
+        const index = await client.loadIndex(targetIndexName, yourStoredKey);
+    } else {
+        console.log(`Index '${targetIndexName}' not found. Creating...`);
+        // Create the index
+        const index = await client.createIndex(
+            targetIndexName,
+            client.generateKey(),
+            indexConfig
+        );
+    }
+} catch (error) {
+    console.error('Index operation failed:', error.message);
+}
+```
+
+#### Listing with Error Handling
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client('https://api.cyborgdb.co', 'your-api-key');
+
+async function getIndexList() {
+    try {
+        const indexes = await client.listIndexes();
+        return {
+            success: true,
+            indexes,
+            count: indexes.length
+        };
+    } catch (error: any) {
+        console.error('Failed to retrieve index list:', error.message);
+        
+        if (error.message.includes('401') || error.message.includes('authentication')) {
+            throw new Error('Invalid API key. Please check your credentials.');
+        } else if (error.message.includes('503') || error.message.includes('unavailable')) {
+            throw new Error('CyborgDB service is temporarily unavailable.');
+        } else {
+            throw new Error(`Unexpected error: ${error.message}`);
+        }
+    }
+}
+
+// Usage
+try {
+    const result = await getIndexList();
+    console.log(`Successfully retrieved ${result.count} indexes:`, result.indexes);
+} catch (error) {
+    console.error('Error:', error.message);
 }
 ```

@@ -1,0 +1,57 @@
+---
+title: "Generate Key"
+mode: "wide"
+---
+
+Generates a cryptographically secure 32-byte encryption key suitable for creating encrypted indexes.
+
+```typescript
+generateKey(): Uint8Array
+```
+
+### Returns
+
+`Uint8Array`: A 32-byte array containing cryptographically secure random data suitable for index encryption.
+
+### Security Notes
+
+- Uses Node.js `crypto.randomBytes()` which leverages OS entropy sources for maximum security
+- Each generated key is unique and provides strong 256-bit encryption
+- Keys should be stored securely and backed up - losing a key means losing access to the encrypted index
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Generate a secure encryption key
+const indexKey = client.generateKey();
+console.log('Generated key length:', indexKey.length); // Output: 32
+
+// Use the key to create an encrypted index
+const indexConfig = {
+    dimension: 768,
+    nLists: 1024,
+    metric: 'cosine',
+    type: 'ivfflat'
+};
+
+const index = await client.createIndex(
+    'my-secure-index',
+    indexKey,
+    indexConfig
+);
+
+// IMPORTANT: Store the key securely for future access
+// const keyHex = Buffer.from(indexKey).toString('hex');
+// console.log('Store this key safely:', keyHex);
+```
+
+#### Best Practices
+
+- **Store Keys Securely**: Save generated keys in a secure key management system
+- **Backup Keys**: Always backup encryption keys - they cannot be recovered if lost
+- **Use Environment Variables**: Never hardcode keys in source code
+- **Key Rotation**: Consider implementing key rotation policies for enhanced security
