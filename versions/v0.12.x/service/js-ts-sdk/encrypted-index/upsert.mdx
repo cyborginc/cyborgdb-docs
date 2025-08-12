@@ -3,32 +3,51 @@ title: "Upsert"
 mode: "wide"
 ---
 
-Adds new vectors to the encrypted index or updates existing vectors if they have the same ID. This operation is the primary method for populating an index with vector data.
+Adds new vectors to the encrypted index or updates existing vectors if they have the same ID. This operation supports two distinct calling patterns for maximum flexibility.
+
+## Method Overloads
+
+### Pattern 1: VectorItem Array
 
 ```typescript
-async upsert(items: VectorItem[]): Promise<SuccessResponseModel>
+async upsert(items: VectorItem[]): Promise<object>
+```
+
+### Pattern 2: Parallel Arrays
+
+```typescript
+async upsert(ids: string[], vectors: number[][]): Promise<object>
 ```
 
 ### Parameters
+
+#### Pattern 1: VectorItem Array
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `items` | [`VectorItem[]`](../types#vectoritem) | Array of vector items to insert or update in the index |
 
+#### Pattern 2: Parallel Arrays
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ids` | `string[]` | Array of ID strings for each vector |
+| `vectors` | `number[][]` | Array of vector embeddings corresponding to each ID |
+
 #### VectorItem Structure
 
-Each `VectorItem` must contain an `id` and may optionally include `vector`, `contents`, and `metadata`:
+Each `VectorItem` must contain an `id` and `vector`, with optional fields:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | Yes | Unique identifier for the vector item |
-| `vector` | `number[]` | Optional | The vector representation (required if no embedding model configured) |
+| `vector` | `number[]` | Yes | The vector representation |
 | `contents` | `string` \| `Buffer` | Optional | Original text or binary content associated with the vector |
 | `metadata` | `object` | Optional | Additional structured data associated with the vector |
 
 ### Returns
 
-`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message with the count of upserted vectors.
+`Promise<object>`: A Promise that resolves to a response object containing the operation status and message with the count of upserted vectors.
 
 ### Exceptions
 
@@ -40,57 +59,53 @@ Each `VectorItem` must contain an `id` and may optionally include `vector`, `con
         - Throws if there are internal server errors preventing the upsert.
     </Accordion>
     <Accordion title="Validation Errors">
-        - Throws if the `items` array is empty or contains invalid data.
+        - Throws detailed validation errors for invalid VectorItem objects.
         - Throws if vector dimensions don't match the index configuration.
         - Throws if required fields are missing from vector items.
-        - Throws if item IDs contain invalid characters or are too long.
+        - Throws if array lengths don't match in parallel array format.
+        - Throws if vector elements are not finite numbers.
     </Accordion>
 </AccordionGroup>
 
 ### Example Usage
 
-#### Basic Vector Upsert
+#### Pattern 1: VectorItem Array (Recommended)
 
 ```typescript
-import { Client, IndexIVFModel, VectorItem } from 'cyborgdb';
+import { Client, VectorItem } from 'cyborgdb';
 
 const client = new Client('http://localhost:8000', 'your-api-key');
 
-// Create index
-const indexKey = crypto.getRandomValues(new Uint8Array(32));
-const config: IndexIVFModel = {
-    type: 'ivf',
-    dimension: 768,
-    nLists: 1024,
-    metric: 'cosine'
-};
+// Load an existing index
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex('my-vector-index', indexKey);
 
-const index = await client.createIndex('my-vectors', indexKey, config);
-
-// Prepare vector items
+// Prepare vector items with rich metadata
 const vectorItems: VectorItem[] = [
     {
         id: 'doc1',
-        vector: [0.1, 0.2, 0.3, /* ... 768 dimensions */],
+        vector: [0.1, 0.2, 0.3, /* ... additional dimensions */],
         contents: 'This is the content of the first document',
         metadata: {
             title: 'Introduction to Machine Learning',
             author: 'Dr. Smith',
             category: 'education',
             tags: ['ml', 'ai', 'tutorial'],
-            published_date: '2024-01-15'
+            published_date: '2024-01-15',
+            word_count: 1250
         }
     },
     {
         id: 'doc2',
-        vector: [0.4, 0.5, 0.6, /* ... 768 dimensions */],
+        vector: [0.4, 0.5, 0.6, /* ... additional dimensions */],
         contents: 'This is the content of the second document',
         metadata: {
             title: 'Advanced Neural Networks',
             author: 'Dr. Jones',
             category: 'research',
             tags: ['neural-networks', 'deep-learning'],
-            published_date: '2024-01-20'
+            published_date: '2024-01-20',
+            word_count: 2100
         }
     }
 ];
@@ -98,12 +113,34 @@ const vectorItems: VectorItem[] = [
 // Upsert vectors
 try {
     const result = await index.upsert(vectorItems);
-    console.log('Upsert result:', result.message);
-    // Output: "Upserted 2 vectors"
+    console.log('Upsert result:', result);
+    // Typical output: { status: 'success', message: 'Upserted 2 vectors' }
     
     console.log(`Successfully added ${vectorItems.length} vectors to the index`);
-} catch (error) {
+} catch (error: any) {
     console.error('Upsert failed:', error.message);
+}
+```
+
+#### Pattern 2: Parallel Arrays (For Bulk Operations)
+
+```typescript
+// Efficient for bulk operations with just IDs and vectors
+const ids = ['vec1', 'vec2', 'vec3'];
+const vectors = [
+    [0.1, 0.2, 0.3, 0.4],
+    [0.5, 0.6, 0.7, 0.8],
+    [0.9, 1.0, 1.1, 1.2]
+];
+
+try {
+    const result = await index.upsert(ids, vectors);
+    console.log('Bulk upsert result:', result);
+    
+    // This approach is more efficient for large datasets
+    // where you only need IDs and vectors (no metadata/contents)
+} catch (error: any) {
+    console.error('Bulk upsert failed:', error.message);
 }
 ```
 
@@ -113,7 +150,7 @@ try {
 // Add initial vector
 const initialVector: VectorItem = {
     id: 'updatable_doc',
-    vector: [0.1, 0.2, 0.3, /* ... */],
+    vector: [0.1, 0.2, 0.3, 0.4],
     contents: 'Original content',
     metadata: { version: 1, status: 'draft' }
 };
@@ -123,39 +160,43 @@ await index.upsert([initialVector]);
 // Update the same vector with new data
 const updatedVector: VectorItem = {
     id: 'updatable_doc', // Same ID - will update existing
-    vector: [0.15, 0.25, 0.35, /* ... */], // Updated vector
+    vector: [0.15, 0.25, 0.35, 0.45], // Updated vector
     contents: 'Updated content with more information',
-    metadata: { version: 2, status: 'published', updated_date: '2024-01-25' }
+    metadata: { 
+        version: 2, 
+        status: 'published', 
+        updated_date: '2024-01-25',
+        editor: 'John Doe'
+    }
 };
 
 try {
     const updateResult = await index.upsert([updatedVector]);
-    console.log('Update result:', updateResult.message);
+    console.log('Update result:', updateResult);
     
     // Verify the update
     const retrievedVector = await index.get(['updatable_doc']);
-    console.log('Updated vector:', retrievedVector[0]);
-} catch (error) {
+    console.log('Updated vector metadata:', retrievedVector[0].metadata);
+} catch (error: any) {
     console.error('Update failed:', error.message);
 }
 ```
 
-#### Upsert with Content & Metadata
+#### Batch Processing with Error Handling
 
 ```typescript
-interface DocumentData {
-    id: string;
-    title: string;
-    content: string;
-    author: string;
-    category: string;
-    vector: number[];
-}
-
 async function processBatchDocuments(
     index: EncryptedIndex, 
-    documents: DocumentData[]
-) {
+    documents: Array<{
+        id: string;
+        title: string;
+        content: string;
+        author: string;
+        category: string;
+        vector: number[];
+    }>
+): Promise<{ success: boolean; count: number; message: string }> {
+    
     // Convert documents to VectorItem format
     const vectorItems: VectorItem[] = documents.map(doc => ({
         id: doc.id,
@@ -175,31 +216,40 @@ async function processBatchDocuments(
         console.log(`Processing batch of ${vectorItems.length} documents`);
         
         const result = await index.upsert(vectorItems);
-        console.log('Batch upsert completed:', result.message);
+        console.log('Batch upsert completed:', result);
         
         return {
             success: true,
             count: vectorItems.length,
-            message: result.message
+            message: `Successfully processed ${vectorItems.length} documents`
         };
-    } catch (error) {
+    } catch (error: any) {
         console.error('Batch upsert failed:', error.message);
+        
+        // Provide detailed error information
+        if (error.message.includes('Invalid VectorItem')) {
+            console.error('Validation failed - check your vector data format');
+        } else if (error.message.includes('dimension')) {
+            console.error('Vector dimension mismatch - check index configuration');
+        }
+        
         return {
             success: false,
-            error: error.message
+            count: 0,
+            message: `Batch processing failed: ${error.message}`
         };
     }
 }
 
 // Usage
-const documents: DocumentData[] = [
+const documents = [
     {
         id: 'article_001',
         title: 'Getting Started with TypeScript',
         content: 'TypeScript is a powerful superset of JavaScript...',
         author: 'Jane Developer',
         category: 'programming',
-        vector: [0.1, 0.2, /* ... */]
+        vector: [0.1, 0.2, 0.3, 0.4]
     },
     {
         id: 'article_002',
@@ -207,9 +257,78 @@ const documents: DocumentData[] = [
         content: 'When building React applications, it is important...',
         author: 'John React',
         category: 'frontend',
-        vector: [0.3, 0.4, /* ... */]
+        vector: [0.5, 0.6, 0.7, 0.8]
     }
 ];
 
 const batchResult = await processBatchDocuments(index, documents);
+console.log('Batch processing result:', batchResult);
 ```
+
+#### Content Processing Example
+
+```typescript
+// Example with different content types
+const mixedContentItems: VectorItem[] = [
+    {
+        id: 'text_doc',
+        vector: [0.1, 0.2, 0.3, 0.4],
+        contents: 'Plain text content',
+        metadata: { type: 'text', language: 'en' }
+    },
+    {
+        id: 'binary_doc',
+        vector: [0.5, 0.6, 0.7, 0.8],
+        contents: Buffer.from('Binary content data', 'utf8'),
+        metadata: { type: 'binary', encoding: 'utf8' }
+    },
+    {
+        id: 'minimal_doc',
+        vector: [0.9, 1.0, 1.1, 1.2],
+        // No contents - just vector and metadata
+        metadata: { type: 'minimal', generated: true }
+    }
+];
+
+try {
+    const result = await index.upsert(mixedContentItems);
+    console.log('Mixed content upsert:', result);
+} catch (error: any) {
+    console.error('Mixed content upsert failed:', error.message);
+}
+```
+
+### Validation Details
+
+The upsert method includes comprehensive validation:
+
+#### VectorItem Validation
+- **ID**: Must be a non-empty string
+- **Vector**: Must be an array of finite numbers
+- **Contents**: Optional, can be string or Buffer
+- **Metadata**: Optional, must be an object if provided
+
+#### Parallel Arrays Validation
+- **Arrays Length**: IDs and vectors arrays must have matching lengths
+- **ID Format**: Each ID must be a non-empty string
+- **Vector Format**: Each vector must be an array of finite numbers
+- **Dimension Consistency**: All vectors must have the same dimensions
+
+### Response Format
+
+```typescript
+// Standard successful upsert response
+{
+    "status": "success",
+    "message": "Upserted 5 vectors"
+}
+```
+
+### Best Practices
+
+- **Use VectorItem Array**: Preferred for rich data with metadata and contents
+- **Use Parallel Arrays**: For bulk operations with simple ID/vector pairs
+- **Validate Dimensions**: Ensure vectors match your index configuration
+- **Handle Errors**: Implement robust error handling for validation failures
+- **Batch Operations**: Process large datasets in reasonable batch sizes
+- **Monitor Performance**: Track upsert performance for optimization opportunities

@@ -9,7 +9,7 @@ Retrieves vectors from the encrypted index by their IDs, with options to specify
 async get(
     ids: string[],
     include: string[] = ["vector", "contents", "metadata"]
-): Promise<Array<GetResultItem>>
+): Promise<Array<object>>
 ```
 
 ### Parameters
@@ -21,7 +21,7 @@ async get(
 
 ### Returns
 
-`Promise<Array<GetResultItem>>`: A Promise that resolves to an array of retrieved vector items, each containing the requested fields based on the `include` parameter.
+`Promise<Array<object>>`: A Promise that resolves to an array of retrieved vector items, each containing the requested fields based on the `include` parameter.
 
 ### Exceptions
 
@@ -40,38 +40,34 @@ async get(
 
 ### Example Usage
 
+#### Basic Vector Retrieval
+
 ```typescript
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 
 const client = new Client('http://localhost:8000', 'your-api-key');
 
-// Create and populate index
-const indexKey = crypto.getRandomValues(new Uint8Array(32));
-const config: IndexIVFModel = {
-    dimension: 768,
-    nLists: 1024,
-    metric: 'cosine'
-};
-
-const index = await client.createIndex('my-vectors', indexKey, config);
+// Load an existing index
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex('my-vector-index', indexKey);
 
 // Add some vectors first
 await index.upsert([
     { 
         id: 'doc1', 
-        vector: [0.1, 0.2, 0.3, /* ... 768 dimensions */], 
+        vector: [0.1, 0.2, 0.3, 0.4], 
         contents: 'This is the first document content',
         metadata: { title: 'Document 1', category: 'research', date: '2024-01-15' }
     },
     { 
         id: 'doc2', 
-        vector: [0.4, 0.5, 0.6, /* ... 768 dimensions */], 
+        vector: [0.4, 0.5, 0.6, 0.7], 
         contents: 'This is the second document content',
         metadata: { title: 'Document 2', category: 'tutorial', date: '2024-01-16' }
     }
 ]);
 
-// Retrieve vectors with all fields
+// Retrieve vectors with all fields (default behavior)
 try {
     const vectors = await index.get(['doc1', 'doc2']);
     
@@ -83,8 +79,194 @@ try {
         console.log('---');
     });
     
-} catch (error) {
+} catch (error: any) {
     console.error('Failed to retrieve vectors:', error.message);
+}
+```
+
+#### Selective Field Retrieval
+
+```typescript
+// Retrieve only metadata (no vector data or contents)
+const metadataOnly = await index.get(['doc1', 'doc2'], ['metadata']);
+
+metadataOnly.forEach(item => {
+    console.log(`ID: ${item.id}`);
+    console.log(`Title: ${item.metadata?.title}`);
+    console.log(`Category: ${item.metadata?.category}`);
+    // item.vector and item.contents will be undefined
+});
+
+// Retrieve only vectors (no metadata or contents)
+const vectorsOnly = await index.get(['doc1', 'doc2'], ['vector']);
+
+vectorsOnly.forEach(item => {
+    console.log(`ID: ${item.id}`);
+    console.log(`Vector: [${item.vector?.slice(0, 3).join(', ')}...]`);
+    // item.metadata and item.contents will be undefined
+});
+
+// Retrieve metadata and contents (no vectors)
+const contentAndMeta = await index.get(['doc1', 'doc2'], ['metadata', 'contents']);
+```
+
+#### Batch Retrieval with Error Handling
+
+```typescript
+async function retrieveVectorsBatch(
+    index: EncryptedIndex,
+    vectorIds: string[],
+    fields: string[] = ['vector', 'metadata']
+): Promise<{ found: any[]; notFound: string[] }> {
+    
+    try {
+        console.log(`Retrieving ${vectorIds.length} vectors...`);
+        
+        const results = await index.get(vectorIds, fields);
+        
+        // Check which IDs were actually found
+        const foundIds = results.map(item => item.id);
+        const notFound = vectorIds.filter(id => !foundIds.includes(id));
+        
+        console.log(`✓ Found ${results.length} vectors`);
+        if (notFound.length > 0) {
+            console.log(`⚠ Not found: ${notFound.join(', ')}`);
+        }
+        
+        return { found: results, notFound };
+        
+    } catch (error: any) {
+        console.error('Batch retrieval failed:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+const batchResult = await retrieveVectorsBatch(
+    index, 
+    ['doc1', 'doc2', 'nonexistent'], 
+    ['metadata', 'contents']
+);
+
+console.log('Retrieval summary:', {
+    foundCount: batchResult.found.length,
+    notFoundCount: batchResult.notFound.length
+});
+```
+
+#### Content Processing Example
+
+```typescript
+async function processRetrievedContent(
+    index: EncryptedIndex,
+    vectorIds: string[]
+): Promise<void> {
+    
+    try {
+        const vectors = await index.get(vectorIds, ['contents', 'metadata']);
+        
+        vectors.forEach(item => {
+            console.log(`Processing ${item.id}:`);
+            
+            // Handle different content types
+            if (item.contents) {
+                if (Buffer.isBuffer(item.contents)) {
+                    // Content was stored as binary and auto-converted to Buffer
+                    const textContent = item.contents.toString('utf8');
+                    console.log(`  Binary content (${item.contents.length} bytes): ${textContent.substring(0, 100)}...`);
+                } else if (typeof item.contents === 'string') {
+                    // Content was stored as string
+                    console.log(`  Text content: ${item.contents.substring(0, 100)}...`);
+                } else {
+                    console.log(`  Content type: ${typeof item.contents}`);
+                }
+            } else {
+                console.log(`  No content available`);
+            }
+            
+            // Process metadata
+            if (item.metadata) {
+                console.log(`  Metadata keys: ${Object.keys(item.metadata).join(', ')}`);
+            }
+        });
+        
+    } catch (error: any) {
+        console.error('Content processing failed:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+await processRetrievedContent(index, ['doc1', 'doc2']);
+```
+
+#### Verification and Validation
+
+```typescript
+async function verifyVectorIntegrity(
+    index: EncryptedIndex,
+    expectedVectors: Array<{ id: string; expectedDimensions: number }>
+): Promise<{ valid: any[]; invalid: any[] }> {
+    
+    try {
+        const ids = expectedVectors.map(v => v.id);
+        const retrieved = await index.get(ids, ['vector', 'metadata']);
+        
+        const valid: any[] = [];
+        const invalid: any[] = [];
+        
+        retrieved.forEach(item => {
+            const expected = expectedVectors.find(ev => ev.id === item.id);
+            
+            if (!expected) {
+                invalid.push({ id: item.id, reason: 'Unexpected vector found' });
+                return;
+            }
+            
+            if (!item.vector) {
+                invalid.push({ id: item.id, reason: 'No vector data' });
+                return;
+            }
+            
+            if (item.vector.length !== expected.expectedDimensions) {
+                invalid.push({ 
+                    id: item.id, 
+                    reason: `Dimension mismatch: expected ${expected.expectedDimensions}, got ${item.vector.length}` 
+                });
+                return;
+            }
+            
+            // Check for invalid vector values
+            const hasInvalidValues = item.vector.some((val: number) => 
+                !isFinite(val) || typeof val !== 'number'
+            );
+            
+            if (hasInvalidValues) {
+                invalid.push({ id: item.id, reason: 'Invalid vector values detected' });
+                return;
+            }
+            
+            valid.push(item);
+        });
+        
+        console.log(`Validation complete: ${valid.length} valid, ${invalid.length} invalid`);
+        
+        return { valid, invalid };
+        
+    } catch (error: any) {
+        console.error('Vector integrity verification failed:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+const verification = await verifyVectorIntegrity(index, [
+    { id: 'doc1', expectedDimensions: 4 },
+    { id: 'doc2', expectedDimensions: 4 }
+]);
+
+if (verification.invalid.length > 0) {
+    console.warn('Invalid vectors found:', verification.invalid);
 }
 ```
 
@@ -97,7 +279,7 @@ The method returns an array of objects with the following structure:
 [
     {
         "id": "doc1",
-        "vector": [0.1, 0.2, 0.3, /* ... */],
+        "vector": [0.1, 0.2, 0.3, 0.4],
         "contents": "Document content as string or Buffer",
         "metadata": {
             "title": "Document 1",
@@ -107,7 +289,7 @@ The method returns an array of objects with the following structure:
     },
     {
         "id": "doc2",
-        "vector": [0.4, 0.5, 0.6, /* ... */],
+        "vector": [0.4, 0.5, 0.6, 0.7],
         "contents": "Another document content",
         "metadata": {
             "title": "Document 2", 
@@ -126,3 +308,19 @@ The method returns an array of objects with the following structure:
 | `vector` | `number[]` | The vector data (included if `"vector"` in include array) |
 | `contents` | `Buffer` \| `string` | The content data, automatically decoded from base64 if needed (included if `"contents"` in include array) |
 | `metadata` | `any` | Associated metadata object (included if `"metadata"` in include array) |
+
+### Content Handling
+
+The `get` method automatically handles different content formats:
+
+- **String content**: Returned as-is if originally stored as string
+- **Binary content**: Automatically decoded from base64 and returned as Buffer
+- **Mixed content**: The method attempts base64 decoding but falls back to original format if decoding fails
+
+### Best Practices
+
+- **Field Selection**: Only request fields you need to minimize data transfer
+- **Batch Retrieval**: Retrieve multiple vectors in single calls for efficiency
+- **Error Handling**: Handle cases where some requested IDs don't exist
+- **Content Processing**: Check content type (Buffer vs string) before processing
+- **Memory Management**: Be mindful of memory usage when retrieving large vectors with full content

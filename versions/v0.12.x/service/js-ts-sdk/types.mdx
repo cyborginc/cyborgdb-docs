@@ -4,7 +4,7 @@ title: "Types"
 
 ## CreateIndexRequest
 
-The `CreateIndexRequest` interface defines the parameters for creating a new encrypted index.
+The `CreateIndexRequest` class defines the parameters for creating a new encrypted index.
 
 ### Properties
 
@@ -37,7 +37,7 @@ const createRequest: CreateIndexRequest = {
 
 ## IndexOperationRequest
 
-Base interface for operations that require index identification and authentication.
+Base class for operations that require index identification and authentication.
 
 ### Properties
 
@@ -61,7 +61,7 @@ const operationRequest: IndexOperationRequest = {
 
 ## UpsertRequest
 
-Interface for adding or updating vectors in an encrypted index.
+Class for adding or updating vectors in an encrypted index.
 
 ### Properties
 
@@ -94,7 +94,7 @@ const upsertRequest: UpsertRequest = {
 
 ## QueryRequest
 
-Interface for performing similarity search in the encrypted index.
+Class for performing similarity search in the encrypted index.
 
 ### Properties
 
@@ -131,7 +131,7 @@ const queryRequest: QueryRequest = {
 
 ## BatchQueryRequest
 
-Interface for performing batch similarity searches with multiple vectors.
+Class for performing batch similarity searches with multiple vectors.
 
 ### Properties
 
@@ -170,7 +170,7 @@ const batchQueryRequest: BatchQueryRequest = {
 
 ## TrainRequest
 
-Interface for training an index to optimize query performance.
+Class for training an index to optimize query performance.
 
 ### Properties
 
@@ -202,7 +202,7 @@ const trainRequest: TrainRequest = {
 
 ## DeleteRequest
 
-Interface for deleting vectors from the encrypted index.
+Class for deleting vectors from the encrypted index.
 
 ### Properties
 
@@ -228,7 +228,7 @@ const deleteRequest: DeleteRequest = {
 
 ## GetRequest
 
-Interface for retrieving specific vectors from the index.
+Class for retrieving specific vectors from the index.
 
 ### Properties
 
@@ -256,7 +256,7 @@ const getRequest: GetRequest = {
 
 ## VectorItem
 
-Interface representing a vectorized item for storage in the encrypted index.
+Class representing a vectorized item for storage in the encrypted index.
 
 ### Properties
 
@@ -288,9 +288,7 @@ const vectorItem: VectorItem = {
 
 ---
 
-## IndexConfig
-
-Base type for index configuration. Use one of the specific index types:
+## Index Configuration Types
 
 ### IndexIVF
 
@@ -392,7 +390,7 @@ const pqConfig: IndexIVFPQ = {
 
 ### GetResponseModel
 
-Response interface for vector retrieval operations.
+Response class for vector retrieval operations.
 
 #### Properties
 
@@ -402,7 +400,7 @@ Response interface for vector retrieval operations.
 
 ### QueryResponse
 
-Response interface for similarity search operations with helper methods.
+Response class for similarity search operations with helper methods.
 
 #### Properties
 
@@ -441,7 +439,7 @@ function processQueryResults(response: QueryResponse) {
 
 ### QueryResultItem
 
-Interface representing a single result from similarity search.
+Class representing a single result from similarity search.
 
 #### Properties
 
@@ -458,7 +456,7 @@ Interface representing a single result from similarity search.
 
 ### ErrorResponseModel
 
-Standard error response interface for API errors.
+Standard error response class for API errors.
 
 #### Properties
 
@@ -469,7 +467,7 @@ Standard error response interface for API errors.
 
 ### HTTPValidationError
 
-Interface for validation errors with detailed field information.
+Class for validation errors with detailed field information.
 
 #### Properties
 
@@ -549,3 +547,42 @@ const allFields = { include: ['vector', 'contents', 'metadata', 'distance'] };
 ```
 
 Selecting only necessary fields improves performance by reducing data transfer and processing overhead.
+
+---
+
+## Type Safety and TypeScript
+
+All types are fully typed for TypeScript environments with:
+
+- **Strict typing**: All properties have specific types with null safety
+- **IntelliSense support**: Auto-completion and type checking in compatible IDEs
+- **Compile-time validation**: Catch type errors before runtime
+- **Optional/Required distinction**: Clear indication of which fields are required
+
+### Example with Type Safety
+
+```typescript
+import { CreateIndexRequest, IndexIVFPQ, VectorItem } from 'cyborgdb';
+
+// TypeScript will enforce correct types
+const request: CreateIndexRequest = {
+    indexConfig: {
+        type: 'ivfpq',
+        dimension: 768,
+        nLists: 1024,
+        metric: 'cosine',
+        pqDim: 64,
+        pqBits: 8
+    } as IndexIVFPQ,
+    indexKey: 'valid-hex-string',
+    indexName: 'my-index',
+    embeddingModel: null  // Explicitly set to null if not using
+};
+
+// TypeScript will catch errors like missing required fields
+const vectorItem: VectorItem = {
+    id: 'doc1',
+    vector: [0.1, 0.2, 0.3],
+    // contents and metadata are optional
+};
+```

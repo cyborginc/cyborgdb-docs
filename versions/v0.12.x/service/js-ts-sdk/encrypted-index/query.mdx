@@ -3,32 +3,25 @@ title: "Query"
 mode: "wide"
 ---
 
-Searches for nearest neighbors in the encrypted index using vector similarity search. Supports both single vector queries and batch queries with multiple vectors.
+Searches for nearest neighbors in the encrypted index using vector similarity search. Supports both single vector queries and batch queries with multiple vectors, as well as content-based search.
+
+## Method Overloads
+
+### Pattern 1: Individual Parameters
 
 ```typescript
 async query(
-    ...args: [number[] | number[][], number?, number?, boolean?, object?, string[]?] | [QueryRequest]
+    queryVectors?: number[] | number[][],
+    queryContents?: string,
+    topK?: number,
+    nProbes?: number,
+    filters?: object,
+    include?: string[],
+    greedy?: boolean
 ): Promise<QueryResponse>
 ```
 
-### Method Overloads
-
-The `query` method supports two calling patterns:
-
-#### Pattern 1: Individual Parameters
-
-```typescript
-async query(
-    queryVector: number[] | number[][],
-    topK?: number = 100,
-    nProbes?: number = 1,
-    greedy?: boolean = false,
-    filters?: object = {},
-    include?: string[] = ["distance", "metadata"]
-): Promise<QueryResponse>
-```
-
-#### Pattern 2: Request Object
+### Pattern 2: Request Object
 
 ```typescript
 async query(request: QueryRequest): Promise<QueryResponse>
@@ -36,18 +29,19 @@ async query(request: QueryRequest): Promise<QueryResponse>
 
 ### Parameters
 
-#### Individual Parameters Pattern
+#### Pattern 1: Individual Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `queryVector` | `number[]` \| `number[][]` | - | Single vector (1D array) or multiple vectors (2D array) to search for |
-| `topK` | `number` | `100` | _(Optional)_ Number of nearest neighbors to return for each query |
-| `nProbes` | `number` | `1` | _(Optional)_ Number of lists to probe during the query (affects accuracy vs speed tradeoff) |
-| `greedy` | `boolean` | `false` | _(Optional)_ Whether to use greedy search algorithm |
+| `queryVectors` | `number[]` \| `number[][]` | - | Single vector `[0.1, 0.2]` or batch vectors `[[0.1, 0.2], [0.3, 0.4]]` |
+| `queryContents` | `string` | - | _(Optional)_ Text content to embed and search (alternative to queryVectors) |
+| `topK` | `number` | `100` | _(Optional)_ Number of nearest neighbors to return per query |
+| `nProbes` | `number` | `1` | _(Optional)_ Number of cluster centers to search (higher = better recall) |
 | `filters` | `object` | `{}` | _(Optional)_ Metadata filters to apply to the search |
-| `include` | `string[]` | `["distance", "metadata"]` | _(Optional)_ Fields to include in results: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
+| `include` | `string[]` | `["distance", "metadata"]` | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
+| `greedy` | `boolean` | `false` | _(Optional)_ Use faster approximate search |
 
-#### Request Object Pattern
+#### Pattern 2: Request Object
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -55,7 +49,7 @@ async query(request: QueryRequest): Promise<QueryResponse>
 
 ### Returns
 
-`Promise<QueryResponse>`: A Promise that resolves to search results. The response format depends on whether a single vector or multiple vectors were queried:
+`Promise<QueryResponse>`: A Promise that resolves to search results. The response format depends on the query type:
 
 - **Single vector query**: `results` is a flat array of `QueryResultItem[]`
 - **Batch query**: `results` is a nested array of `QueryResultItem[][]` (one array per input vector)
@@ -70,7 +64,7 @@ async query(request: QueryRequest): Promise<QueryResponse>
         - Throws if there are internal server errors during the search.
     </Accordion>
     <Accordion title="Validation Errors">
-        - Throws if no query vector is provided.
+        - Throws if neither queryVectors nor queryContents is provided.
         - Throws if vector dimensions don't match the index configuration.
         - Throws if parameter values are out of valid ranges.
         - Throws if the `include` parameter contains invalid field names.
@@ -82,77 +76,85 @@ async query(request: QueryRequest): Promise<QueryResponse>
 #### Basic Single Vector Query
 
 ```typescript
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 
 const client = new Client('http://localhost:8000', 'your-api-key');
 
-// Create and populate index
-const indexKey = crypto.getRandomValues(new Uint8Array(32));
-const config: IndexIVFModel = {
-    dimension: 768,
-    nLists: 1024,
-    metric: 'cosine'
-};
-
-const index = await client.createIndex('my-vectors', indexKey, config);
-
-// Add some vectors
-await index.upsert([
-    { 
-        id: 'doc1', 
-        vector: [0.1, 0.2, 0.3, /* ... 768 dimensions */], 
-        metadata: { title: 'Document 1', category: 'research' }
-    },
-    { 
-        id: 'doc2', 
-        vector: [0.4, 0.5, 0.6, /* ... 768 dimensions */], 
-        metadata: { title: 'Document 2', category: 'tutorial' }
-    }
-]);
-
-// Train the index for optimal performance
-await index.train();
+// Load an existing index
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex('my-vector-index', indexKey);
 
 // Search for similar vectors
-const queryVector = [0.15, 0.25, 0.35, /* ... 768 dimensions */];
+const queryVector = [0.15, 0.25, 0.35, 0.45];
 
 try {
-    const results = await index.query(queryVector, 5);
+    const results = await index.query(queryVector, undefined, 5);
     
     // Single vector query returns flat array
-    const items = results.results as QueryResultItem[];
+    console.log(`Found ${results.results.length} similar vectors:`);
     
-    items.forEach((item, i) => {
-        console.log(`Result ${i + 1}:`);
-        console.log(`  ID: ${item.id}`);
-        console.log(`  Distance: ${item.distance}`);
-        console.log(`  Metadata: ${JSON.stringify(item.metadata)}`);
+    results.results.forEach((item, i) => {
+        console.log(`${i + 1}. ID: ${item.id}, Distance: ${item.distance}`);
+        if (item.metadata) {
+            console.log(`   Metadata: ${JSON.stringify(item.metadata)}`);
+        }
     });
     
-} catch (error) {
+} catch (error: any) {
     console.error('Query failed:', error.message);
 }
 ```
 
-#### Advanced Single Query with Options
+#### Content-Based Search (Text Search)
 
 ```typescript
-const queryVector = [0.1, 0.2, 0.3, /* ... */];
+// Search by text content (requires embedding model configured on index)
+try {
+    const contentResults = await index.query(
+        undefined,              // no vector provided
+        "machine learning tutorial",  // content to embed and search
+        10                      // return top 10 results
+    );
+    
+    console.log('Content-based search results:');
+    contentResults.results.forEach((item, i) => {
+        console.log(`${i + 1}. ${item.id}: ${item.metadata?.title}`);
+        console.log(`   Distance: ${item.distance}`);
+    });
+    
+} catch (error: any) {
+    console.error('Content search failed:', error.message);
+    // May fail if no embedding model is configured for the index
+}
+```
 
-const results = await index.query(
-    queryVector,
-    10,        // topK: return top 10 results
-    5,         // nProbes: probe 5 lists for better accuracy
-    true,      // greedy: use greedy search
-    { category: 'research' },  // filters: only research documents
-    ['distance', 'metadata', 'contents']  // include: return distance, metadata, and contents
-);
+#### Advanced Single Query with Filters
 
-const items = results.results as QueryResultItem[];
-items.forEach(item => {
-    console.log(`${item.id}: distance=${item.distance}, category=${item.metadata?.category}`);
-    console.log(`Contents: ${item.contents}`);
-});
+```typescript
+const queryVector = [0.1, 0.2, 0.3, 0.4];
+
+try {
+    const results = await index.query(
+        queryVector,
+        undefined,              // no content search
+        10,                     // topK: return top 10 results
+        5,                      // nProbes: probe 5 clusters for better accuracy
+        { category: 'research', published: true },  // filters: only research documents
+        ['distance', 'metadata', 'contents'],       // include: return all fields
+        false                   // greedy: use exact search
+    );
+    
+    console.log('Advanced query results:');
+    results.results.forEach((item, i) => {
+        console.log(`${i + 1}. ${item.id}`);
+        console.log(`   Distance: ${item.distance}`);
+        console.log(`   Category: ${item.metadata?.category}`);
+        console.log(`   Content Preview: ${item.contents?.substring(0, 100)}...`);
+    });
+    
+} catch (error: any) {
+    console.error('Advanced query failed:', error.message);
+}
 ```
 
 #### Batch Vector Query
@@ -160,71 +162,192 @@ items.forEach(item => {
 ```typescript
 // Query multiple vectors at once
 const queryVectors = [
-    [0.1, 0.2, 0.3, /* ... */],  // First query vector
-    [0.4, 0.5, 0.6, /* ... */],  // Second query vector
-    [0.7, 0.8, 0.9, /* ... */]   // Third query vector
+    [0.1, 0.2, 0.3, 0.4],  // First query vector
+    [0.5, 0.6, 0.7, 0.8],  // Second query vector
+    [0.9, 1.0, 1.1, 1.2]   // Third query vector
 ];
 
-const batchResults = await index.query(queryVectors, 3);
-
-// Batch query returns nested arrays
-const allResults = batchResults.results as QueryResultItem[][];
-
-allResults.forEach((queryResults, queryIndex) => {
-    console.log(`Results for query ${queryIndex + 1}:`);
-    queryResults.forEach((item, resultIndex) => {
-        console.log(`  ${resultIndex + 1}. ${item.id} (distance: ${item.distance})`);
+try {
+    const batchResults = await index.query(queryVectors, undefined, 3);
+    
+    // Batch query returns nested arrays - one per input vector
+    console.log(`Batch query completed for ${queryVectors.length} vectors:`);
+    
+    batchResults.results.forEach((queryResults, queryIndex) => {
+        console.log(`\nResults for query vector ${queryIndex + 1}:`);
+        queryResults.forEach((item, resultIndex) => {
+            console.log(`  ${resultIndex + 1}. ${item.id} (distance: ${item.distance})`);
+        });
     });
-    console.log('---');
-});
+    
+} catch (error: any) {
+    console.error('Batch query failed:', error.message);
+}
 ```
 
-#### Metadata Filtering
+#### Complex Metadata Filtering
 
 ```typescript
-// Filter by single field
-const categoryResults = await index.query(
-    queryVector, 
-    10, 
-    1, 
-    false, 
-    { category: 'research' }
-);
+// Simple equality filter
+const simpleFilter = { category: 'research' };
 
-// Filter by multiple fields
-const complexResults = await index.query(
-    queryVector, 
-    10, 
-    1, 
-    false, 
-    { 
-        category: 'research', 
-        published: true,
-        year: 2024 
-    }
-);
+// Complex nested filter with operators
+const complexFilter = {
+    "$and": [
+        { "author.name": "Dr. Smith" },
+        { "metrics.score": { "$gte": 0.8 } },
+        { "tags": { "$in": ["ai", "ml", "neural-networks"] } },
+        { "published_date": { "$gte": "2024-01-01" } }
+    ]
+};
 
-// Range filter (if supported by your metadata structure)
-const dateResults = await index.query(
-    queryVector, 
-    10, 
-    1, 
-    false, 
-    { 
-        created_date: { 
-            $gte: '2024-01-01',
-            $lte: '2024-12-31'
-        } 
-    }
-);
+// Range filter example
+const dateRangeFilter = {
+    "created_date": {
+        "$gte": "2024-01-01",
+        "$lte": "2024-12-31"
+    },
+    "status": "published"
+};
+
+try {
+    const filteredResults = await index.query(
+        queryVector,
+        undefined,
+        15,
+        3,
+        complexFilter,  // Use complex filter
+        ['distance', 'metadata']
+    );
+    
+    console.log(`Found ${filteredResults.results.length} filtered results`);
+    
+} catch (error: any) {
+    console.error('Filtered query failed:', error.message);
+}
 ```
 
-#### QueryResultItem Fields
+#### QueryRequest Object Pattern
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `string` | Unique identifier of the matching vector |
-| `distance` | `number` | Similarity distance (lower values indicate higher similarity) |
-| `metadata` | `any` | Associated metadata (included if `"metadata"` in include array) |
-| `vector` | `number[]` | The vector data (included if `"vector"` in include array) |
-| `contents` | `string` | The content data (included if `"contents"` in include array) |
+```typescript
+import { QueryRequest } from 'cyborgdb';
+
+const queryRequest: QueryRequest = {
+    indexName: 'my-vector-index',  // Will be set automatically
+    indexKey: 'hex-key',           // Will be set automatically
+    queryVector: [0.1, 0.2, 0.3, 0.4],  // Single query vector
+    topK: 10,
+    nProbes: 3,
+    greedy: false,
+    filters: { category: 'tutorial' },
+    include: ['distance', 'metadata', 'contents']
+};
+
+try {
+    const results = await index.query(queryRequest);
+    console.log('QueryRequest pattern results:', results);
+    
+} catch (error: any) {
+    console.error('QueryRequest pattern failed:', error.message);
+}
+```
+
+#### Performance Optimization Example
+
+```typescript
+async function optimizedQuery(
+    index: EncryptedIndex,
+    queryVector: number[],
+    accuracyLevel: 'fast' | 'balanced' | 'accurate'
+) {
+    let nProbes: number;
+    let greedy: boolean;
+    
+    // Adjust parameters based on accuracy requirements
+    switch (accuracyLevel) {
+        case 'fast':
+            nProbes = 1;
+            greedy = true;
+            break;
+        case 'balanced':
+            nProbes = 3;
+            greedy = false;
+            break;
+        case 'accurate':
+            nProbes = 10;
+            greedy = false;
+            break;
+    }
+    
+    try {
+        const startTime = Date.now();
+        
+        const results = await index.query(
+            queryVector,
+            undefined,
+            20,        // topK
+            nProbes,
+            {},        // no filters
+            ['distance', 'metadata'],
+            greedy
+        );
+        
+        const duration = Date.now() - startTime;
+        
+        console.log(`${accuracyLevel} query completed in ${duration}ms`);
+        console.log(`Found ${results.results.length} results`);
+        
+        return { results: results.results, duration, accuracyLevel };
+        
+    } catch (error: any) {
+        console.error(`Optimized query (${accuracyLevel}) failed:`, error.message);
+        throw error;
+    }
+}
+
+// Usage
+const fastResults = await optimizedQuery(index, queryVector, 'fast');
+const accurateResults = await optimizedQuery(index, queryVector, 'accurate');
+```
+
+### Response Format
+
+#### Single Query Response
+```typescript
+{
+    "results": [
+        {
+            "id": "doc1",
+            "distance": 0.234,
+            "metadata": { "title": "Document 1", "category": "research" },
+            "contents": "Document content...",  // if included
+            "vector": [0.1, 0.2, 0.3]          // if included
+        }
+    ]
+}
+```
+
+#### Batch Query Response
+```typescript
+{
+    "results": [
+        [ // Results for first query vector
+            { "id": "doc1", "distance": 0.234, "metadata": {...} },
+            { "id": "doc2", "distance": 0.456, "metadata": {...} }
+        ],
+        [ // Results for second query vector
+            { "id": "doc3", "distance": 0.123, "metadata": {...} },
+            { "id": "doc4", "distance": 0.567, "metadata": {...} }
+        ]
+    ]
+}
+```
+
+### Performance Tips
+
+- **Training**: Ensure index is trained for optimal performance
+- **nProbes**: Higher values improve accuracy but reduce speed
+- **Greedy Search**: Use for fastest queries when exact accuracy isn't critical
+- **Batch Queries**: More efficient than multiple single queries
+- **Field Selection**: Only include necessary fields in `include` parameter
+- **Filtering**: Apply metadata filters to reduce result set size

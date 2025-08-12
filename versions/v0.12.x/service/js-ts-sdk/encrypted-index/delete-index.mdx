@@ -8,12 +8,12 @@ mode: "wide"
 Deletes the current index and all its associated data from the CyborgDB service.
 
 ```typescript
-async deleteIndex(): Promise<SuccessResponseModel>
+async deleteIndex(): Promise<object>
 ```
 
 ### Returns
 
-`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message.
+`Promise<object>`: A Promise that resolves to a response object containing the operation status and message. The method gracefully handles cases where the index was already deleted.
 
 ### Exceptions
 
@@ -25,56 +25,207 @@ async deleteIndex(): Promise<SuccessResponseModel>
     </Accordion>
     <Accordion title="Index Errors">
         - Returns success status if the index was already deleted or doesn't exist.
-        - Throws if the encryption key is invalid for the specified index.
+        - Throws if the encryption key is invalid for the specified index (unless already deleted).
     </Accordion>
 </AccordionGroup>
 
 ### Example Usage
 
+#### Basic Index Deletion
+
 ```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client('http://localhost:8000', 'your-api-key');
+
+// Load an existing index
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex('temporary-index', indexKey);
+
 // Delete the index when no longer needed
 try {
     const result = await index.deleteIndex();
-    console.log('Index deleted:', result);
-    // Output: { status: 'success', message: "Index 'temporary-index' deleted successfully" }
+    console.log('Index deletion result:', result);
+    // Possible outputs:
+    // { status: 'success', message: "Index 'temporary-index' deleted successfully" }
+    // { status: 'success', message: "Index 'temporary-index' was already deleted" }
+    
 } catch (error) {
     console.error('Failed to delete index:', error.message);
 }
 ```
 
+#### Safe Deletion with Confirmation
+
+```typescript
+async function safeDeleteIndex(
+    index: EncryptedIndex,
+    confirmationName: string
+): Promise<boolean> {
+    
+    try {
+        // Get index name for verification
+        const actualName = await index.getIndexName();
+        
+        if (actualName !== confirmationName) {
+            console.error('Index name mismatch. Deletion cancelled for safety.');
+            console.error(`Expected: ${confirmationName}, Got: ${actualName}`);
+            return false;
+        }
+        
+        console.log(`Confirmed deletion of index: ${actualName}`);
+        console.log('This action cannot be undone...');
+        
+        const result = await index.deleteIndex();
+        console.log('✓ Index deleted successfully:', result.message);
+        
+        return true;
+        
+    } catch (error: any) {
+        console.error('Safe deletion failed:', error.message);
+        return false;
+    }
+}
+
+// Usage with confirmation
+const success = await safeDeleteIndex(index, 'temporary-test-index');
+if (success) {
+    console.log('Index deletion completed');
+} else {
+    console.log('Index deletion was cancelled or failed');
+}
+```
+
+#### Cleanup Multiple Indexes
+
+```typescript
+async function cleanupTestIndexes(
+    client: Client,
+    indexConfigs: Array<{ name: string; key: Uint8Array }>
+): Promise<{ deleted: string[]; failed: string[]; alreadyDeleted: string[] }> {
+    
+    const results = {
+        deleted: [] as string[],
+        failed: [] as string[],
+        alreadyDeleted: [] as string[]
+    };
+    
+    for (const config of indexConfigs) {
+        try {
+            console.log(`Attempting to delete index: ${config.name}`);
+            
+            const index = await client.loadIndex(config.name, config.key);
+            const result = await index.deleteIndex();
+            
+            if (result.message?.includes('already deleted')) {
+                results.alreadyDeleted.push(config.name);
+                console.log(`⚠ ${config.name}: already deleted`);
+            } else {
+                results.deleted.push(config.name);
+                console.log(`✓ ${config.name}: deleted successfully`);
+            }
+            
+        } catch (error: any) {
+            results.failed.push(config.name);
+            console.error(`✗ ${config.name}: deletion failed - ${error.message}`);
+        }
+    }
+    
+    console.log('\nCleanup Summary:');
+    console.log(`- Successfully deleted: ${results.deleted.length}`);
+    console.log(`- Already deleted: ${results.alreadyDeleted.length}`);
+    console.log(`- Failed: ${results.failed.length}`);
+    
+    return results;
+}
+
+// Usage
+const testIndexes = [
+    { name: 'test-index-1', key: testKey1 },
+    { name: 'test-index-2', key: testKey2 },
+    { name: 'test-index-3', key: testKey3 }
+];
+
+const cleanupResults = await cleanupTestIndexes(client, testIndexes);
+```
+
+#### Production Deletion with Backup
+
+```typescript
+async function deleteIndexWithBackup(
+    index: EncryptedIndex,
+    backupPath?: string
+): Promise<{ deleted: boolean; backupCreated: boolean; message: string }> {
+    
+    try {
+        const indexName = await index.getIndexName();
+        
+        // Optional: Create backup if path provided
+        let backupCreated = false;
+        if (backupPath) {
+            console.log('Creating backup before deletion...');
+            // Note: This is conceptual - actual backup implementation would depend
+            // on your specific requirements and available APIs
+            console.log(`Backup would be created at: ${backupPath}`);
+            backupCreated = true;
+        }
+        
+        // Perform deletion
+        console.log(`Deleting index: ${indexName}`);
+        const result = await index.deleteIndex();
+        
+        const wasAlreadyDeleted = result.message?.includes('already deleted');
+        
+        return {
+            deleted: true,
+            backupCreated,
+            message: wasAlreadyDeleted 
+                ? `Index '${indexName}' was already deleted` 
+                : `Index '${indexName}' deleted successfully`
+        };
+        
+    } catch (error: any) {
+        console.error('Index deletion with backup failed:', error.message);
+        return {
+            deleted: false,
+            backupCreated: false,
+            message: `Deletion failed: ${error.message}`
+        };
+    }
+}
+
+// Usage
+const result = await deleteIndexWithBackup(index, '/backups/my-index-backup.json');
+console.log('Deletion result:', result);
+```
+
 ### Response Format
 
-The method returns a success response object with the following structure:
+The method returns a response object with the following structure:
 
 ```typescript
 // Standard successful deletion response
 {
     "status": "success",
-    "message": "Index 'index-name' deleted successfully"
+    "message": "Index 'my-index' deleted successfully"
 }
 
 // When index was already deleted (handled gracefully)
 {
     "status": "success", 
-    "message": "Index 'index-name' was already deleted"
+    "message": "Index 'my-index' was already deleted"
 }
 ```
-
-#### Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | `string` | Operation status (defaults to "success") |
-| `message` | `string` | Descriptive message about the deletion result |
 
 ### Best Practices
 
 - **Confirmation**: Always implement user confirmation for deletion operations in production applications
-- **Backup**: Consider exporting important data before deletion if needed for recovery
-- **Cleanup**: Remove local references to deleted indexes to prevent memory leaks
+- **Backup Strategy**: Consider exporting important data before deletion if needed for recovery
+- **Cleanup References**: Remove local references to deleted indexes to prevent memory leaks
 - **Error Handling**: Implement proper error handling to gracefully handle network failures
-- **Logging**: Log deletion operations for audit trails and debugging
+- **Audit Logging**: Log deletion operations for audit trails and debugging
 - **Batch Operations**: When deleting multiple indexes, handle failures gracefully to avoid partial cleanup states
+- **Verification**: Verify index name before deletion to prevent accidental deletions
 
 ### Important Notes
 
@@ -82,3 +233,4 @@ The method returns a success response object with the following structure:
 - The operation affects all vectors, metadata, and configuration associated with the index
 - Other applications or services using the same index will lose access immediately
 - The deletion is performed on the CyborgDB service and cannot be undone
+- The method gracefully handles already-deleted indexes without throwing errors

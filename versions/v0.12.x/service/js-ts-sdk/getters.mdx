@@ -5,21 +5,36 @@ title: "Getters"
 ## getIndexName
 
 ```typescript
-getIndexName(): string
+async getIndexName(): Promise<string>
 ```
 
-Returns the name of the encrypted index.
+Retrieves the name of the encrypted index from the CyborgDB service.
 
 ### Returns
 
-`string`: The unique name identifier of the index.
+`Promise<string>`: A Promise that resolves to the unique name identifier of the index.
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key or encryption key)
+- Throws if the index doesn't exist on the server
 
 ### Example Usage
 
 ```typescript
-const indexName = index.getIndexName();
-console.log('Index name:', indexName);
-// Output: "my-vectors"
+try {
+    const indexName = await index.getIndexName();
+    console.log('Index name:', indexName);
+    // Output: "my-vectors"
+    
+    // Use for verification
+    if (indexName === 'expected-index-name') {
+        console.log('✓ Connected to correct index');
+    }
+} catch (error) {
+    console.error('Failed to get index name:', error.message);
+}
 ```
 
 ---
@@ -27,26 +42,44 @@ console.log('Index name:', indexName);
 ## getIndexType
 
 ```typescript
-getIndexType(): string | undefined
+async getIndexType(): Promise<string | undefined>
 ```
 
-Returns the type of the index (for example, `'ivf'`, `'ivfpq'`, or `'ivfflat'`).
+Retrieves the type of the index from the CyborgDB service.
 
 ### Returns
 
-`string | undefined`: The index type, or `undefined` if not set.
+`Promise<string | undefined>`: A Promise that resolves to the index type (`'ivf'`, `'ivf_flat'`, or `'ivf_pq'`), or `undefined` if not set.
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key or encryption key)
+- Throws if the index doesn't exist on the server
 
 ### Example Usage
 
 ```typescript
-const indexType = index.getIndexType();
-console.log('Index type:', indexType);
-// Output: "ivf"
+try {
+    const indexType = await index.getIndexType();
+    console.log('Index type:', indexType);
+    // Output: "ivf_flat"
 
-if (indexType === 'ivfpq') {
-    console.log('Using IVFPQ index for memory efficiency');
-} else if (indexType === 'ivfflat') {
-    console.log('Using IVFFlat index for high accuracy');
+    switch (indexType) {
+        case 'ivf_pq':
+            console.log('Using IVFPQ index for memory efficiency');
+            break;
+        case 'ivf_flat':
+            console.log('Using IVFFlat index for high accuracy');
+            break;
+        case 'ivf':
+            console.log('Using standard IVF index');
+            break;
+        default:
+            console.log('Unknown or undefined index type');
+    }
+} catch (error) {
+    console.error('Failed to get index type:', error.message);
 }
 ```
 
@@ -55,24 +88,40 @@ if (indexType === 'ivfpq') {
 ## isTrained
 
 ```typescript
-isTrained(): boolean
+async isTrained(): Promise<boolean>
 ```
 
-Returns whether the index has been trained. Training is required for optimal query performance on IVF-based indexes.
+Checks whether the index has been trained by querying the CyborgDB service. Training is required for optimal query performance on IVF-based indexes.
 
 ### Returns
 
-`boolean`: `true` if the index has been trained, `false` otherwise.
+`Promise<boolean>`: A Promise that resolves to `true` if the index has been trained, `false` otherwise.
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key or encryption key)
+- Throws if the index doesn't exist on the server
 
 ### Example Usage
 
 ```typescript
-const trained = index.isTrained();
-console.log('Index trained:', trained);
+try {
+    const trained = await index.isTrained();
+    console.log('Index trained:', trained);
 
-if (!trained) {
-    console.log('Index needs training for optimal performance');
-    await index.train();
+    if (!trained) {
+        console.log('Index needs training for optimal performance');
+        await index.train();
+        
+        // Verify training completed
+        const isNowTrained = await index.isTrained();
+        console.log('Training completed:', isNowTrained);
+    } else {
+        console.log('Index is ready for queries');
+    }
+} catch (error) {
+    console.error('Failed to check training status:', error.message);
 }
 ```
 
@@ -81,33 +130,44 @@ if (!trained) {
 ## getIndexConfig
 
 ```typescript
-getIndexConfig(): IndexIVFFlatModel | IndexIVFModel | IndexIVFPQModel
+async getIndexConfig(): Promise<IndexIVFFlat | IndexIVF | IndexIVFPQ>
 ```
 
-Returns a copy of the index configuration object, preventing external modification of the internal state. The return type depends on the index type.
+Retrieves the complete index configuration from the CyborgDB service and returns a copy to prevent external modification of the internal state. The return type depends on the index type.
 
 ### Returns
 
-- `IndexIVFFlatModel`: For IVFFlat indexes
-- `IndexIVFModel`: For IVF indexes  
-- `IndexIVFPQModel`: For IVFPQ indexes
+- `Promise<IndexIVFFlat>`: For IVF Flat indexes
+- `Promise<IndexIVF>`: For standard IVF indexes  
+- `Promise<IndexIVFPQ>`: For IVF PQ indexes
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key or encryption key)
+- Throws if the index doesn't exist on the server
 
 ### Example Usage
 
 ```typescript
-const config = index.getIndexConfig();
-console.log('Index configuration:', config);
+try {
+    const config = await index.getIndexConfig();
+    console.log('Index configuration:', config);
 
-// Access common properties
-console.log('Dimension:', config.dimension);
-console.log('Metric:', config.metric);
-console.log('Number of lists:', config.nLists);
+    // Access common properties
+    console.log('Index Type:', config.indexType);
+    console.log('Dimension:', config.dimension);
+    console.log('Metric:', config.metric);
+    console.log('Number of lists:', config.nLists);
 
-// Type-specific properties
-if (config.type === 'ivfpq') {
-    const pqConfig = config as IndexIVFPQModel;
-    console.log('PQ dimension:', pqConfig.pqDim);
-    console.log('PQ bits:', pqConfig.pqBits);
+    // Type-specific properties
+    if (config.indexType === 'ivf_pq') {
+        const pqConfig = config as IndexIVFPQ;
+        console.log('PQ dimension:', pqConfig.pqDim);
+        console.log('PQ bits:', pqConfig.pqBits);
+    }
+} catch (error) {
+    console.error('Failed to get index config:', error.message);
 }
 ```
 
@@ -117,7 +177,7 @@ if (config.type === 'ivfpq') {
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `type` | `string` | Index type (`'ivf'`, `'ivfflat'`, or `'ivfpq'`) |
+| `indexType` | `string` | Index type (`'ivf'`, `'ivf_flat'`, or `'ivf_pq'`) |
 | `dimension` | `number` | Vector dimensionality |
 | `metric` | `string` | Distance metric (`'cosine'`, `'euclidean'`, etc.) |
 | `nLists` | `number` | Number of inverted lists for clustering |
@@ -132,50 +192,217 @@ if (config.type === 'ivfpq') {
 ### Advanced Usage
 
 ```typescript
-// Check index capabilities based on configuration
-function analyzeIndexCapabilities(index: EncryptedIndex) {
-    const config = index.getIndexConfig();
-    const indexName = index.getIndexName();
-    const indexType = index.getIndexType();
-    const trained = index.isTrained();
-    
-    console.log(`\nIndex Analysis: ${indexName}`);
-    console.log('='.repeat(40));
-    console.log(`Type: ${indexType}`);
-    console.log(`Dimensions: ${config.dimension}`);
-    console.log(`Metric: ${config.metric}`);
-    console.log(`Lists: ${config.nLists}`);
-    console.log(`Trained: ${trained ? 'Yes' : 'No'}`);
-    
-    // Performance characteristics
-    if (indexType === 'ivfflat') {
+// Comprehensive index analysis with error handling
+async function analyzeIndexCapabilities(index: EncryptedIndex) {
+    try {
+        console.log('Gathering index information...');
+        
+        // Fetch all index information concurrently
+        const [indexName, indexType, trained, config] = await Promise.all([
+            index.getIndexName(),
+            index.getIndexType(),
+            index.isTrained(),
+            index.getIndexConfig()
+        ]);
+        
+        console.log(`\nIndex Analysis: ${indexName}`);
+        console.log('='.repeat(40));
+        console.log(`Type: ${indexType}`);
+        console.log(`Dimensions: ${config.dimension}`);
+        console.log(`Metric: ${config.metric}`);
+        console.log(`Lists: ${config.nLists}`);
+        console.log(`Trained: ${trained ? 'Yes' : 'No'}`);
+        
+        // Performance characteristics based on type
         console.log('\nCharacteristics:');
-        console.log('- Highest accuracy');
-        console.log('- Slower queries');
-        console.log('- Higher memory usage');
-    } else if (indexType === 'ivfpq') {
-        const pqConfig = config as IndexIVFPQModel;
-        console.log('\nCharacteristics:');
-        console.log('- Memory efficient');
-        console.log('- Compressed vectors');
-        console.log(`- PQ dimension: ${pqConfig.pqDim}`);
-        console.log(`- Quantization bits: ${pqConfig.pqBits}`);
-    } else {
-        console.log('\nCharacteristics:');
-        console.log('- Balanced performance');
-        console.log('- Good accuracy/speed tradeoff');
-    }
-    
-    // Recommendations
-    console.log('\nRecommendations:');
-    if (!trained) {
-        console.log('- Train the index for optimal performance');
-    }
-    if (config.nLists && config.nLists < 100) {
-        console.log('- Consider more lists for larger datasets');
+        switch (indexType) {
+            case 'ivf_flat':
+                console.log('- Highest accuracy');
+                console.log('- Slower queries');
+                console.log('- Higher memory usage');
+                break;
+            case 'ivf_pq':
+                const pqConfig = config as IndexIVFPQ;
+                console.log('- Memory efficient');
+                console.log('- Compressed vectors');
+                console.log(`- PQ dimension: ${pqConfig.pqDim}`);
+                console.log(`- Quantization bits: ${pqConfig.pqBits}`);
+                const compressionRatio = config.dimension ? (config.dimension / (pqConfig.pqDim || 1)) : 'Unknown';
+                console.log(`- Compression ratio: ${compressionRatio}`);
+                break;
+            case 'ivf':
+                console.log('- Balanced performance');
+                console.log('- Good accuracy/speed tradeoff');
+                break;
+            default:
+                console.log('- Unknown index type characteristics');
+        }
+        
+        // Actionable recommendations
+        console.log('\nRecommendations:');
+        const recommendations = [];
+        
+        if (!trained) {
+            recommendations.push('Train the index for optimal performance');
+        }
+        if (config.nLists && config.nLists < 100) {
+            recommendations.push('Consider more lists for larger datasets');
+        }
+        if (config.dimension && config.dimension > 1000) {
+            recommendations.push('Consider using IVFPQ for memory efficiency with high-dimensional vectors');
+        }
+        
+        if (recommendations.length === 0) {
+            console.log('- Index appears to be optimally configured');
+        } else {
+            recommendations.forEach(rec => console.log(`- ${rec}`));
+        }
+        
+        return {
+            name: indexName,
+            type: indexType,
+            trained,
+            config,
+            recommendations
+        };
+        
+    } catch (error) {
+        console.error('Failed to analyze index:', error.message);
+        throw error;
     }
 }
 
 // Usage
-analyzeIndexCapabilities(index);
+try {
+    const analysis = await analyzeIndexCapabilities(index);
+    console.log('\nAnalysis completed successfully');
+} catch (error) {
+    console.error('Index analysis failed:', error.message);
+}
 ```
+
+### Configuration Validation Example
+
+```typescript
+async function validateIndexConfiguration(
+    index: EncryptedIndex,
+    expectedDimension: number,
+    expectedMetric: string
+): Promise<{ valid: boolean; issues: string[] }> {
+    
+    try {
+        const config = await index.getIndexConfig();
+        const issues: string[] = [];
+        
+        // Validate dimensions
+        if (config.dimension !== expectedDimension) {
+            issues.push(`Dimension mismatch: expected ${expectedDimension}, got ${config.dimension}`);
+        }
+        
+        // Validate metric
+        if (config.metric !== expectedMetric) {
+            issues.push(`Metric mismatch: expected ${expectedMetric}, got ${config.metric}`);
+        }
+        
+        // Check for reasonable nLists value
+        if (config.nLists && config.nLists < 10) {
+            issues.push(`Very low nLists value (${config.nLists}) may impact performance`);
+        }
+        
+        const isValid = issues.length === 0;
+        
+        if (isValid) {
+            console.log('✓ Index configuration is valid');
+        } else {
+            console.warn('⚠ Index configuration issues found:', issues);
+        }
+        
+        return { valid: isValid, issues };
+        
+    } catch (error) {
+        console.error('Configuration validation failed:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+const validation = await validateIndexConfiguration(index, 768, 'cosine');
+if (!validation.valid) {
+    console.log('Configuration issues:', validation.issues);
+}
+```
+
+### Index Health Check Example
+
+```typescript
+async function performIndexHealthCheck(index: EncryptedIndex) {
+    const healthCheck = {
+        timestamp: new Date().toISOString(),
+        status: 'unknown',
+        details: {} as any,
+        issues: [] as string[],
+        recommendations: [] as string[]
+    };
+    
+    try {
+        console.log('🔍 Performing comprehensive index health check...');
+        
+        // Gather all information
+        const [name, type, trained, config] = await Promise.all([
+            index.getIndexName(),
+            index.getIndexType(),
+            index.isTrained(),
+            index.getIndexConfig()
+        ]);
+        
+        healthCheck.details = { name, type, trained, config };
+        
+        // Check for issues
+        if (!trained) {
+            healthCheck.issues.push('Index is not trained');
+            healthCheck.recommendations.push('Run index.train() to optimize query performance');
+        }
+        
+        if (!type) {
+            healthCheck.issues.push('Index type is undefined');
+        }
+        
+        if (config.nLists && config.nLists < 50) {
+            healthCheck.issues.push(`Low nLists value: ${config.nLists}`);
+            healthCheck.recommendations.push('Consider increasing nLists for better performance');
+        }
+        
+        // Determine overall status
+        if (healthCheck.issues.length === 0) {
+            healthCheck.status = 'healthy';
+            console.log('✅ Index health check passed');
+        } else if (healthCheck.issues.length === 1 && !trained) {
+            healthCheck.status = 'needs_training';
+            console.log('⚠️ Index needs training');
+        } else {
+            healthCheck.status = 'needs_attention';
+            console.log('❌ Index has multiple issues');
+        }
+        
+        return healthCheck;
+        
+    } catch (error) {
+        healthCheck.status = 'error';
+        healthCheck.issues.push(`Health check failed: ${error.message}`);
+        console.error('❌ Health check failed:', error.message);
+        return healthCheck;
+    }
+}
+
+// Usage
+const healthReport = await performIndexHealthCheck(index);
+console.log('Health Report:', JSON.stringify(healthReport, null, 2));
+```
+
+## Important Notes
+
+- **All getters are async**: Unlike typical getter methods, these fetch live data from the CyborgDB service
+- **Network dependency**: These methods require network connectivity and will fail if the service is unreachable
+- **Authentication required**: Valid API key and encryption key are required for all operations
+- **Caching consideration**: Consider caching results if you need to access this information frequently
+- **Error handling**: Always wrap calls in try-catch blocks for production use

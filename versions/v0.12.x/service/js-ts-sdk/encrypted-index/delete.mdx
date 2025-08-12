@@ -6,7 +6,7 @@ mode: "wide"
 Deletes vectors from the encrypted index by their IDs.
 
 ```typescript
-async delete(ids: string[]): Promise<SuccessResponseModel>
+async delete(ids: string[]): Promise<object>
 ```
 
 ### Parameters
@@ -17,7 +17,7 @@ async delete(ids: string[]): Promise<SuccessResponseModel>
 
 ### Returns
 
-`Promise<SuccessResponseModel>`: A Promise that resolves to a success response object containing the operation status and message with the count of deleted vectors.
+`Promise<object>`: A Promise that resolves to a response object containing the operation status and message with details about the deletion.
 
 ### Exceptions
 
@@ -36,46 +36,196 @@ async delete(ids: string[]): Promise<SuccessResponseModel>
 
 ### Example Usage
 
+#### Basic Vector Deletion
+
 ```typescript
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 
 const client = new Client('http://localhost:8000', 'your-api-key');
 
-// Create and populate index
-const indexKey = crypto.getRandomValues(new Uint8Array(32));
-const config: IndexIVFModel = {
-    dimension: 768,
-    nLists: 1024,
-    metric: 'cosine'
-};
+// Load an existing index
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex('my-vector-index', indexKey);
 
-const index = await client.createIndex('my-vectors', indexKey, config);
-
-// Add some vectors
+// Add some vectors first
 await index.upsert([
-    { id: 'doc1', vector: [0.1, 0.2, 0.3, ...], metadata: { title: 'Document 1' } },
-    { id: 'doc2', vector: [0.4, 0.5, 0.6, ...], metadata: { title: 'Document 2' } },
-    { id: 'doc3', vector: [0.7, 0.8, 0.9, ...], metadata: { title: 'Document 3' } }
+    { id: 'doc1', vector: [0.1, 0.2, 0.3], metadata: { title: 'Document 1' } },
+    { id: 'doc2', vector: [0.4, 0.5, 0.6], metadata: { title: 'Document 2' } },
+    { id: 'doc3', vector: [0.7, 0.8, 0.9], metadata: { title: 'Document 3' } }
 ]);
 
 // Delete specific vectors
 try {
     const result = await index.delete(['doc1', 'doc2']);
     console.log('Deletion result:', result);
-    // Output: { status: 'success', message: 'Deleted 2 vectors' }
+    // Typical output: { status: 'success', message: 'Deleted 2 vectors', deleted_count: 2 }
+    
+    // Verify deletion by trying to retrieve
+    const remaining = await index.get(['doc1', 'doc2', 'doc3']);
+    console.log(`Remaining vectors: ${remaining.length}`); // Should be 1 (only doc3)
+    
 } catch (error) {
     console.error('Failed to delete vectors:', error.message);
 }
 ```
 
+#### Batch Deletion with Error Handling
+
+```typescript
+async function deleteBatchVectors(
+    index: EncryptedIndex, 
+    vectorIds: string[]
+): Promise<{ success: boolean; deletedCount: number; errors: string[] }> {
+    
+    if (!vectorIds || vectorIds.length === 0) {
+        return { success: false, deletedCount: 0, errors: ['No vector IDs provided'] };
+    }
+    
+    try {
+        console.log(`Attempting to delete ${vectorIds.length} vectors...`);
+        
+        const result = await index.delete(vectorIds);
+        
+        return {
+            success: true,
+            deletedCount: vectorIds.length,
+            errors: []
+        };
+        
+    } catch (error: any) {
+        console.error('Batch deletion failed:', error.message);
+        
+        return {
+            success: false,
+            deletedCount: 0,
+            errors: [error.message]
+        };
+    }
+}
+
+// Usage
+const idsToDelete = ['old_doc_1', 'old_doc_2', 'old_doc_3'];
+const deleteResult = await deleteBatchVectors(index, idsToDelete);
+
+if (deleteResult.success) {
+    console.log(`✓ Successfully deleted ${deleteResult.deletedCount} vectors`);
+} else {
+    console.error('✗ Deletion failed:', deleteResult.errors);
+}
+```
+
+#### Conditional Deletion with Verification
+
+```typescript
+async function deleteVectorsIfExists(
+    index: EncryptedIndex, 
+    idsToDelete: string[]
+): Promise<{ deleted: string[]; notFound: string[] }> {
+    
+    try {
+        // First, check which vectors exist
+        const existingVectors = await index.get(idsToDelete, ['metadata']);
+        const existingIds = existingVectors.map(v => v.id);
+        const notFoundIds = idsToDelete.filter(id => !existingIds.includes(id));
+        
+        if (existingIds.length === 0) {
+            console.log('No vectors found to delete');
+            return { deleted: [], notFound: idsToDelete };
+        }
+        
+        // Delete only existing vectors
+        console.log(`Deleting ${existingIds.length} existing vectors...`);
+        await index.delete(existingIds);
+        
+        console.log(`✓ Deleted: ${existingIds.join(', ')}`);
+        if (notFoundIds.length > 0) {
+            console.log(`⚠ Not found: ${notFoundIds.join(', ')}`);
+        }
+        
+        return {
+            deleted: existingIds,
+            notFound: notFoundIds
+        };
+        
+    } catch (error: any) {
+        console.error('Conditional deletion failed:', error.message);
+        throw error;
+    }
+}
+
+// Usage
+const result = await deleteVectorsIfExists(index, ['doc1', 'nonexistent', 'doc2']);
+console.log('Deletion summary:', result);
+```
+
+#### Cleanup by Metadata Filter
+
+```typescript
+async function deleteByMetadataFilter(
+    index: EncryptedIndex, 
+    filterCriteria: (metadata: any) => boolean
+): Promise<string[]> {
+    
+    try {
+        // This is a conceptual example - you'd need to implement
+        // your own logic to find vectors matching criteria
+        console.log('Finding vectors to delete based on metadata filter...');
+        
+        // In a real implementation, you might:
+        // 1. Query with metadata filters if supported
+        // 2. Or retrieve all vectors and filter locally (for small datasets)
+        // 3. Or maintain a separate index of metadata to IDs
+        
+        // For this example, let's assume we have a list of candidate IDs
+        const candidateIds = ['doc1', 'doc2', 'doc3', 'doc4'];
+        
+        const candidates = await index.get(candidateIds, ['metadata']);
+        const idsToDelete = candidates
+            .filter(item => filterCriteria(item.metadata))
+            .map(item => item.id);
+        
+        if (idsToDelete.length === 0) {
+            console.log('No vectors match the deletion criteria');
+            return [];
+        }
+        
+        console.log(`Deleting ${idsToDelete.length} vectors matching criteria...`);
+        await index.delete(idsToDelete);
+        
+        console.log(`✓ Deleted vectors: ${idsToDelete.join(', ')}`);
+        return idsToDelete;
+        
+    } catch (error: any) {
+        console.error('Filtered deletion failed:', error.message);
+        throw error;
+    }
+}
+
+// Usage - delete all vectors with category 'temp'
+const deletedIds = await deleteByMetadataFilter(
+    index, 
+    (metadata) => metadata?.category === 'temp'
+);
+```
+
 ### Response Format
 
-The method returns a success response object with the following structure:
+The method returns a response object with the following structure:
 
 ```typescript
 // Standard successful deletion response
 {
     "status": "success",
-    "message": "Deleted 3 vectors"
+    "message": "Successfully deleted 3 vectors",
+    // Additional fields may be present depending on implementation
 }
 ```
+
+### Best Practices
+
+- **Verify Before Delete**: Check vector existence before deletion to avoid errors
+- **Batch Operations**: Delete multiple vectors in single calls for efficiency
+- **Error Handling**: Implement robust error handling for network failures
+- **Backup Strategy**: Consider backing up important vectors before deletion
+- **Audit Trail**: Log deletion operations for compliance and debugging
+- **Transaction Safety**: Be aware that deletions are immediate and cannot be undone
