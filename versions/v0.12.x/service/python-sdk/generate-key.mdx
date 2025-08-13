@@ -1,0 +1,57 @@
+---
+title: "Generate Key"
+mode: "wide"
+---
+
+Generates a cryptographically secure 32-byte encryption key suitable for creating encrypted indexes.
+
+```python
+generate_key() -> bytes
+```
+
+### Returns
+
+`bytes`: A 32-byte object containing cryptographically secure random data suitable for index encryption.
+
+### Security Notes
+
+- Uses Python's `secrets.token_bytes()` which leverages OS entropy sources for maximum security
+- Each generated key is unique and provides strong 256-bit encryption
+- Keys should be stored securely and backed up - losing a key means losing access to the encrypted index
+
+### Example Usage
+
+```python
+from cyborgdb import Client, generate_key
+
+client = Client('http://localhost:8000', 'your-api-key')
+
+# Generate a secure encryption key
+index_key = generate_key()
+print(f'Generated key length: {len(index_key)}')  # Output: 32
+
+# Use the key to create an encrypted index
+index_config = {
+    'dimension': 768,
+    'n_lists': 1024,
+    'metric': 'cosine',
+    'type': 'ivfflat'
+}
+
+index = client.create_index(
+    'my-secure-index',
+    index_key,
+    index_config
+)
+
+# IMPORTANT: Store the key securely for future access
+# key_hex = index_key.hex()
+# print(f'Store this key safely: {key_hex}')
+```
+
+#### Best Practices
+
+- **Store Keys Securely**: Save generated keys in a secure key management system
+- **Backup Keys**: Always backup encryption keys - they cannot be recovered if lost
+- **Use Environment Variables**: Never hardcode keys in source code
+- **Key Rotation**: Consider implementing key rotation policies for enhanced security

@@ -153,9 +153,6 @@
                     "group": "Types & Getters",
                     "pages": [
                       "versions/v0.12.x/service/rest-api/getters/describe-index",
-                      "versions/v0.12.x/service/rest-api/getters/get-index-name",
-                      "versions/v0.12.x/service/rest-api/getters/get-index-type",
-                      "versions/v0.12.x/service/rest-api/getters/get-index-config",
                       "versions/v0.12.x/service/rest-api/getters/get-vector-count"
                     ]
                   }
@@ -193,10 +190,11 @@
                     ]
                   },
                   {
-                    "group": "Index Configuration",
+                    "group": "Types & Helpers",
                     "pages": [
                       "versions/v0.12.x/service/python-sdk/getters",
-                      "versions/v0.12.x/service/python-sdk/types"
+                      "versions/v0.12.x/service/python-sdk/types",
+                      "versions/v0.12.x/service/python-sdk/generate-key"
                     ]
                   }
                 ]
@@ -233,10 +231,11 @@
                     ]
                   },
                   {
-                    "group": "Types & Getters",
+                    "group": "Types & Helpers",
                     "pages": [
                       "versions/v0.12.x/service/js-ts-sdk/getters",
-                      "versions/v0.12.x/service/js-ts-sdk/types"
+                      "versions/v0.12.x/service/js-ts-sdk/types",
+                      "versions/v0.12.x/service/js-ts-sdk/generate-key"
                     ]
                   }
                 ]
@@ -273,10 +272,11 @@
                     ]
                   },
                   {
-                    "group": "Index Configuration",
+                    "group": "Types & Helpers",
                     "pages": [
                       "versions/v0.12.x/service/go-sdk/getters",
-                      "versions/v0.12.x/service/go-sdk/types"
+                      "versions/v0.12.x/service/go-sdk/types",
+                      "versions/v0.12.x/service/go-sdk/generate-key"
                     ]
                   }
                 ]
