@@ -137,6 +137,8 @@ The retrieval and decryption process:
 
 This ensures that the server can execute efficient ANN search while never having persistent access to plaintext embeddings or the ability to decrypt irrelevant index nodes.
 
+Alternatively, node decryption can happen client-side, ensuring the server only deals with ciphertext and never sees plaintext embeddings. 
+
 ## 4. Security Benefits
 
 CyborgDB's multi-layered cryptographic design provides comprehensive protection against various threat scenarios, leveraging our patented technology to achieve security properties impossible with traditional approaches.
