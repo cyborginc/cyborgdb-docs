@@ -41,8 +41,6 @@ async loadIndex(
 
 ### Example Usage
 
-#### Loading an Existing Index
-
 ```typescript
 import { Client } from 'cyborgdb';
 
@@ -61,37 +59,6 @@ try {
     console.log('Query results:', results);
 } catch (error) {
     console.error('Failed to load index:', error.message);
-}
-```
-
-#### Loading with Stored Hex Key
-
-```typescript
-import { Client } from 'cyborgdb';
-
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-// Convert stored hex key back to Uint8Array
-const storedHexKey = 'a1b2c3d4e5f6...'; // Your stored hex key
-const indexKey = new Uint8Array(Buffer.from(storedHexKey, 'hex'));
-
-try {
-    const index = await client.loadIndex('production-search-index', indexKey);
-    
-    // Index is ready for operations
-    await index.upsert([
-        { id: '1', vector: [0.1, 0.2, 0.3], metadata: { type: 'document' } }
-    ]);
-    
-    console.log('Successfully loaded and updated index');
-} catch (error) {
-    if (error.message.includes('401') || error.message.includes('authentication')) {
-        console.error('Invalid encryption key or API key');
-    } else if (error.message.includes('404')) {
-        console.error('Index not found');
-    } else {
-        console.error('Load failed:', error.message);
-    }
 }
 ```
 

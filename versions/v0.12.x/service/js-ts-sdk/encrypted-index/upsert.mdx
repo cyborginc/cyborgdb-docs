@@ -265,55 +265,6 @@ const batchResult = await processBatchDocuments(index, documents);
 console.log('Batch processing result:', batchResult);
 ```
 
-#### Content Processing Example
-
-```typescript
-// Example with different content types
-const mixedContentItems: VectorItem[] = [
-    {
-        id: 'text_doc',
-        vector: [0.1, 0.2, 0.3, 0.4],
-        contents: 'Plain text content',
-        metadata: { type: 'text', language: 'en' }
-    },
-    {
-        id: 'binary_doc',
-        vector: [0.5, 0.6, 0.7, 0.8],
-        contents: Buffer.from('Binary content data', 'utf8'),
-        metadata: { type: 'binary', encoding: 'utf8' }
-    },
-    {
-        id: 'minimal_doc',
-        vector: [0.9, 1.0, 1.1, 1.2],
-        // No contents - just vector and metadata
-        metadata: { type: 'minimal', generated: true }
-    }
-];
-
-try {
-    const result = await index.upsert(mixedContentItems);
-    console.log('Mixed content upsert:', result);
-} catch (error: any) {
-    console.error('Mixed content upsert failed:', error.message);
-}
-```
-
-### Validation Details
-
-The upsert method includes comprehensive validation:
-
-#### VectorItem Validation
-- **ID**: Must be a non-empty string
-- **Vector**: Must be an array of finite numbers
-- **Contents**: Optional, can be string or Buffer
-- **Metadata**: Optional, must be an object if provided
-
-#### Parallel Arrays Validation
-- **Arrays Length**: IDs and vectors arrays must have matching lengths
-- **ID Format**: Each ID must be a non-empty string
-- **Vector Format**: Each vector must be an array of finite numbers
-- **Dimension Consistency**: All vectors must have the same dimensions
-
 ### Response Format
 
 ```typescript
@@ -323,12 +274,3 @@ The upsert method includes comprehensive validation:
     "message": "Upserted 5 vectors"
 }
 ```
-
-### Best Practices
-
-- **Use VectorItem Array**: Preferred for rich data with metadata and contents
-- **Use Parallel Arrays**: For bulk operations with simple ID/vector pairs
-- **Validate Dimensions**: Ensure vectors match your index configuration
-- **Handle Errors**: Implement robust error handling for validation failures
-- **Batch Operations**: Process large datasets in reasonable batch sizes
-- **Monitor Performance**: Track upsert performance for optimization opportunities

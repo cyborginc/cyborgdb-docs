@@ -5,10 +5,6 @@ mode: "wide"
 
 Searches for nearest neighbors in the encrypted index using vector similarity search. Supports both single vector queries and batch queries with multiple vectors, as well as content-based search.
 
-## Method Overloads
-
-### Pattern 1: Individual Parameters
-
 ```typescript
 async query(
     queryVectors?: number[] | number[][],
@@ -21,15 +17,7 @@ async query(
 ): Promise<QueryResponse>
 ```
 
-### Pattern 2: Request Object
-
-```typescript
-async query(request: QueryRequest): Promise<QueryResponse>
-```
-
 ### Parameters
-
-#### Pattern 1: Individual Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -40,12 +28,6 @@ async query(request: QueryRequest): Promise<QueryResponse>
 | `filters` | `object` | `{}` | _(Optional)_ Metadata filters to apply to the search |
 | `include` | `string[]` | `["distance", "metadata"]` | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
 | `greedy` | `boolean` | `false` | _(Optional)_ Use faster approximate search |
-
-#### Pattern 2: Request Object
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `request` | [`QueryRequest`](../types#queryrequest) | Complete query request object with all parameters |
 
 ### Returns
 
@@ -227,89 +209,6 @@ try {
 }
 ```
 
-#### QueryRequest Object Pattern
-
-```typescript
-import { QueryRequest } from 'cyborgdb';
-
-const queryRequest: QueryRequest = {
-    indexName: 'my-vector-index',  // Will be set automatically
-    indexKey: 'hex-key',           // Will be set automatically
-    queryVector: [0.1, 0.2, 0.3, 0.4],  // Single query vector
-    topK: 10,
-    nProbes: 3,
-    greedy: false,
-    filters: { category: 'tutorial' },
-    include: ['distance', 'metadata', 'contents']
-};
-
-try {
-    const results = await index.query(queryRequest);
-    console.log('QueryRequest pattern results:', results);
-    
-} catch (error: any) {
-    console.error('QueryRequest pattern failed:', error.message);
-}
-```
-
-#### Performance Optimization Example
-
-```typescript
-async function optimizedQuery(
-    index: EncryptedIndex,
-    queryVector: number[],
-    accuracyLevel: 'fast' | 'balanced' | 'accurate'
-) {
-    let nProbes: number;
-    let greedy: boolean;
-    
-    // Adjust parameters based on accuracy requirements
-    switch (accuracyLevel) {
-        case 'fast':
-            nProbes = 1;
-            greedy = true;
-            break;
-        case 'balanced':
-            nProbes = 3;
-            greedy = false;
-            break;
-        case 'accurate':
-            nProbes = 10;
-            greedy = false;
-            break;
-    }
-    
-    try {
-        const startTime = Date.now();
-        
-        const results = await index.query(
-            queryVector,
-            undefined,
-            20,        // topK
-            nProbes,
-            {},        // no filters
-            ['distance', 'metadata'],
-            greedy
-        );
-        
-        const duration = Date.now() - startTime;
-        
-        console.log(`${accuracyLevel} query completed in ${duration}ms`);
-        console.log(`Found ${results.results.length} results`);
-        
-        return { results: results.results, duration, accuracyLevel };
-        
-    } catch (error: any) {
-        console.error(`Optimized query (${accuracyLevel}) failed:`, error.message);
-        throw error;
-    }
-}
-
-// Usage
-const fastResults = await optimizedQuery(index, queryVector, 'fast');
-const accurateResults = await optimizedQuery(index, queryVector, 'accurate');
-```
-
 ### Response Format
 
 #### Single Query Response
@@ -342,12 +241,3 @@ const accurateResults = await optimizedQuery(index, queryVector, 'accurate');
     ]
 }
 ```
-
-### Performance Tips
-
-- **Training**: Ensure index is trained for optimal performance
-- **nProbes**: Higher values improve accuracy but reduce speed
-- **Greedy Search**: Use for fastest queries when exact accuracy isn't critical
-- **Batch Queries**: More efficient than multiple single queries
-- **Field Selection**: Only include necessary fields in `include` parameter
-- **Filtering**: Apply metadata filters to reduce result set size

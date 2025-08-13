@@ -33,8 +33,6 @@ async getHealth(): Promise<object>
 
 ### Example Usage
 
-#### Basic Health Check
-
 ```typescript
 import { Client } from 'cyborgdb';
 
@@ -49,88 +47,10 @@ try {
 }
 ```
 
-#### Service Readiness Check
+#### Response Fields
 
-```typescript
-import { Client } from 'cyborgdb';
-
-const client = new Client('https://api.cyborgdb.co', 'your-api-key');
-
-async function waitForService(maxRetries = 5, delayMs = 2000) {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            const health = await client.getHealth();
-            console.log('Service is ready:', health);
-            return true;
-        } catch (error) {
-            console.log(`Health check attempt ${attempt}/${maxRetries} failed:`, error.message);
-            
-            if (attempt === maxRetries) {
-                throw new Error('Service failed to become ready after maximum retries');
-            }
-            
-            // Wait before retrying
-            await new Promise(resolve => setTimeout(resolve, delayMs));
-        }
-    }
-    return false;
-}
-
-// Usage
-try {
-    await waitForService();
-    console.log('Service is healthy, proceeding with operations...');
-    
-    // Now safe to perform other operations
-    const indexes = await client.listIndexes();
-    console.log('Available indexes:', indexes);
-} catch (error) {
-    console.error('Service readiness check failed:', error.message);
-}
-```
-
-#### Health Check with Connection Validation
-
-```typescript
-import { Client } from 'cyborgdb';
-
-async function validateConnection(baseUrl: string, apiKey: string) {
-    const client = new Client(baseUrl, apiKey);
-    
-    try {
-        console.log('Checking service health...');
-        const health = await client.getHealth();
-        
-        console.log('✓ Service is responding');
-        console.log('Health details:', health);
-        
-        // Additional validation - try to list indexes
-        console.log('Validating API access...');
-        const indexes = await client.listIndexes();
-        
-        console.log('✓ API access validated');
-        console.log(`Found ${indexes.length} indexes`);
-        
-        return { healthy: true, health, indexCount: indexes.length };
-        
-    } catch (error: any) {
-        console.error('✗ Connection validation failed');
-        
-        if (error.message.includes('401')) {
-            throw new Error('Invalid API key');
-        } else if (error.message.includes('timeout')) {
-            throw new Error('Service timeout - check network connectivity');
-        } else {
-            throw new Error(`Service validation failed: ${error.message}`);
-        }
-    }
-}
-
-// Usage
-try {
-    const result = await validateConnection('https://api.cyborgdb.co', 'your-api-key');
-    console.log('Connection validation successful:', result);
-} catch (error) {
-    console.error('Validation failed:', error.message);
-}
-```
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Current health status of the service (typically "healthy") |
+| `api_version` | `string` | Version of the API interface (e.g., "v1") |
+| `version` | `string` | Version of the CyborgDB application/service |
