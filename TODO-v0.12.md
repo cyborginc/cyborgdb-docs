@@ -15,3 +15,4 @@
 - [ ] Add performance benchmarks
 - [ ] Add SSL requirements for SDKs
 - [ ] Add backing stores to `v0.12.x/integrations` section
+- [ ] Change voice from 1st-person to 3rd-person (we/our -> Cyborg/Cyborg's)
