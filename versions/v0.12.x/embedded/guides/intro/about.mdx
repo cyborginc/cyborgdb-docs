@@ -77,14 +77,13 @@ CyborgDB Embedded integrates directly into your application process:
 
 ```mermaid
 flowchart TB
-  App["Your Application"]
-  Library["CyborgDB Library (Python/C++)"]
+  subgraph Your_Applications [Your Application]
+    Library("CyborgDB Library (Python/C++)")
+  end
 
-  App --> Library
-
-  Library --> PostgreSQL["PostgreSQL (local or managed)"]
-  Library --> Redis["Redis (local or managed)"]
-  Library --> Memory["Memory (for development)"]
+  Library --> PostgreSQL("PostgreSQL (local or managed)")
+  Library --> Redis("Redis (local or managed)")
+  Library --> Memory("Memory (for development)")
 ```
 
 **Key Benefits:**

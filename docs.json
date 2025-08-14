@@ -65,6 +65,14 @@
                 ]
               },
               {
+                "group": "Security",
+                "pages": [
+                  "versions/v0.12.x/intro/security-overview",
+                  "versions/v0.12.x/intro/threat-model",
+                  "versions/v0.12.x/intro/encryption"
+                ]
+              },
+              {
                 "group": "Changelog",
                 "pages": [
                   "versions/changelog"
@@ -488,6 +496,14 @@
                   "versions/v0.11.x/intro/quickstart",
                   "versions/v0.11.x/intro/get-api-key",
                   "versions/v0.11.x/intro/using-docs"
+                ]
+              },
+              {
+                "group": "Security",
+                "pages": [
+                  "versions/v0.11.x/intro/security-overview",
+                  "versions/v0.11.x/intro/threat-model",
+                  "versions/v0.11.x/intro/encryption"
                 ]
               },
               {

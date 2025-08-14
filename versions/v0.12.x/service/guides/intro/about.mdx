@@ -110,10 +110,10 @@ CyborgDB Service runs as a containerized microservice in your infrastructure:
 ```mermaid
 flowchart TB
   subgraph Your_Applications [Your Application]
-    PythonSDK["Python SDK"]
-    JSSDK["JavaScript SDK"]
-    TSSDK["TypeScript SDK"]
-    GoSDK["Go SDK"]
+    PythonSDK("Python SDK")
+    JSSDK("JavaScript SDK")
+    TSSDK("TypeScript SDK")
+    GoSDK("Go SDK")
   end
 
   PythonSDK --> RESTAPI
@@ -121,16 +121,16 @@ flowchart TB
   TSSDK --> RESTAPI
   GoSDK --> RESTAPI
 
-  RESTAPI["REST API"]
-  RESTAPI --> CyborgDB["CyborgDB Service"]
+  RESTAPI("REST API")
+  RESTAPI --> CyborgDB("CyborgDB Service")
 
   CyborgDB --> PostgreSQL
   CyborgDB --> Redis
   CyborgDB --> Memory
 
-  PostgreSQL["PostgreSQL"]
-  Redis["Redis"]
-  Memory["Memory"]
+  PostgreSQL("PostgreSQL")
+  Redis("Redis")
+  Memory("Memory")
 ```
 
 
