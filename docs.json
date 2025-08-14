@@ -14,7 +14,9 @@
      "copy",
      "view",
      "chatgpt",
-     "claude"
+     "claude",
+     "cursor",
+     "vscode"
    ]
   },
   "redirects": [
