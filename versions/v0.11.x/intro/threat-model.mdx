@@ -2,7 +2,7 @@
 title: "Threat Model"
 ---
 
-CyborgDB's threat model defines the types of adversaries we assume, the attacks we protect against, and the attacks we explicitly do not address. It guides the design of our encryption, key management, and system architecture.
+CyborgDB's threat model defines the types of adversaries assumed, the attacks protected against, and the attacks explicitly not addressed. It guides the design of our encryption, key management, and system architecture.
 
 <Tip>
 A well-scoped threat model is essential to evaluate whether CyborgDB's security properties align with your risk profile. This page should be read alongside the [Encryption](./encryption) section.
@@ -10,7 +10,7 @@ A well-scoped threat model is essential to evaluate whether CyborgDB's security 
 
 ## 1. Adversary Model
 
-We assume adversaries can be:
+The threat model assume adversaries can be:
 
 <CardGroup cols={2}>
   <Card title="External Network Adversary" icon="globe">
@@ -27,7 +27,7 @@ We assume adversaries can be:
   </Card>
 </CardGroup>
 
-We do **not** assume the client endpoint is compromised (see [Out of Scope](#6-out-of-scope)), nor do we defend against malicious users with valid credentials performing authorized actions.
+CyborgDB do **not** assume the client endpoint is compromised (see [Out of Scope](#6-out-of-scope)), nor does it defend against malicious users with valid credentials performing authorized actions.
 
 ## 2. Attack Surfaces
 

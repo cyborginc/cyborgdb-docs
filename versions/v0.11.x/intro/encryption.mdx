@@ -27,7 +27,7 @@ This guarantees that even with full disk access, data remains encrypted and cann
 
 ## 2. Forward-Secure Cryptographic Indexing 
 
-CyborgDB also encrypts the **search index** used for approximate nearest neighbor (ANN) retrieval. The index is constructed using a **forward-secure** cryptographic scheme inspired by research in forward-private searchable encryption, combined with our patented enhancements.
+CyborgDB also encrypts the **search index** used for approximate nearest neighbor (ANN) retrieval. The index is constructed using a **forward-secure** cryptographic scheme inspired by research in forward-private searchable encryption, combined with Cyborg's patented enhancements.
 
 <Info>
 Forward privacy ensures that newly inserted entries cannot be linked to prior search queries, even if the index is compromised later.
@@ -82,7 +82,7 @@ This design ensures that even identical vector embeddings result in different ci
 
 ## 3. Cryptographic Approximate Nearest Neighbor Search
 
-CyborgDB's search execution maintains cryptographic protection throughout the entire query process, leveraging our cryptographic index discussed [above](#2-forward-secure-cryptographic-indexing).
+CyborgDB's search execution maintains cryptographic protection throughout the entire query process, leveraging the cryptographic index discussed [above](#2-forward-secure-cryptographic-indexing).
 
 ### Token Generation
 
@@ -141,7 +141,7 @@ Alternatively, node decryption can happen client-side, ensuring the server only 
 
 ## 4. Security Benefits
 
-CyborgDB's multi-layered cryptographic design provides comprehensive protection against various threat scenarios, leveraging our patented technology to achieve security properties impossible with traditional approaches.
+CyborgDB's multi-layered cryptographic design provides comprehensive protection against various threat scenarios, leveraging Cyborg's patented technology to achieve security properties impossible with traditional approaches.
 
 ### Threat Protection Matrix
 
@@ -181,8 +181,8 @@ CyborgDB achieves exceptional performance through several key optimizations:
 - **Vectorized operations**: Batch processing of similarity computations in encrypted space
 - **Cache-optimized layouts**: Organizing encrypted index structures for optimal memory access patterns
 
-Our optimizations deliver industry-leading performance:
+These optimizations deliver industry-leading performance:
 
-> **>10,000 QPS** at **95% recall** for ANN search over encrypted embeddings
+> **>10,000 QPS** at **95% recall** for ANN search over encrypted embeddings<br />
 >
 > **Sub-10ms query latency** for typical workloads
