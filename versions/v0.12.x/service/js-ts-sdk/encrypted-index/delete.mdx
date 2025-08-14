@@ -79,12 +79,3 @@ The method returns a response object with the following structure:
     // Additional fields may be present depending on implementation
 }
 ```
-
-### Best Practices
-
-- **Verify Before Delete**: Check vector existence before deletion to avoid errors
-- **Batch Operations**: Delete multiple vectors in single calls for efficiency
-- **Error Handling**: Implement robust error handling for network failures
-- **Backup Strategy**: Consider backing up important vectors before deletion
-- **Audit Trail**: Log deletion operations for compliance and debugging
-- **Transaction Safety**: Be aware that deletions are immediate and cannot be undone

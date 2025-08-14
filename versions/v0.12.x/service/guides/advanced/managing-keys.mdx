@@ -90,7 +90,7 @@ const index = await client.createIndex(indexName, indexKey, indexConfig);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFFlatModel } from 'cyborgdb';
+import { Client, IndexIVFFlat } from 'cyborgdb';
 import fs from 'fs';
 
 // Create a client
@@ -99,7 +99,7 @@ const client = new Client('http://localhost:8000', 'your-api-key');
 // Example index configuration
 const dimension = 128;
 const nLists = 4096;
-const indexConfig: IndexIVFFlatModel = {
+const indexConfig: IndexIVFFlat = {
     type: 'ivf_flat',
     dimension: dimension,
     nLists: nLists
@@ -307,7 +307,7 @@ const index = await client.createIndex("my_index", indexKey, indexConfig);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFFlatModel } from 'cyborgdb';
+import { Client, IndexIVFFlat } from 'cyborgdb';
 const AWS = require('aws-sdk');
 
 // Create a client
@@ -329,7 +329,7 @@ const response = await kms.decrypt({
 const indexKey = new Uint8Array(response.Plaintext);  // This is your 256-bit key
 
 // Example index configuration
-const indexConfig: IndexIVFFlatModel = {
+const indexConfig: IndexIVFFlat = {
     type: 'ivf_flat',
     dimension: 768,
     nLists: 1024

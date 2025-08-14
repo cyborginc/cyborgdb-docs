@@ -69,7 +69,7 @@ const index = await client.createIndex(indexName, indexKey, indexConfig);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFFlatModel } from 'cyborgdb';
+import { Client, IndexIVFFlat } from 'cyborgdb';
 
 // Create a client
 const client = new Client('http://localhost:8000', 'your-api-key');
@@ -79,7 +79,7 @@ const dimension = 128;  // Adjust according to your dataset (dimensionality)
 const nLists = 4096;
 
 // Create the IVFFlat index config
-const indexConfig: IndexIVFFlatModel = {
+const indexConfig: IndexIVFFlat = {
     type: 'ivf_flat',
     dimension: dimension,
     nLists: nLists
@@ -168,7 +168,7 @@ const index = await client.createIndex(indexName, indexKey, indexConfig);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFPQModel } from 'cyborgdb';
+import { Client, IndexIVFPQ } from 'cyborgdb';
 
 // Create a client
 const client = new Client('http://localhost:8000', 'your-api-key');
@@ -180,7 +180,7 @@ const pqDim = 32; // Dimension must be divisible by pqDim
 const pqBits = 8; // Number of bits for each pq dimension
 
 // Create the IVFPQ index config
-const indexConfig: IndexIVFPQModel = {
+const indexConfig: IndexIVFPQ = {
     type: 'ivf_pq',
     dimension: dimension,
     nLists: nLists,
@@ -267,7 +267,7 @@ const index = await client.createIndex(indexName, indexKey, indexConfig);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client, IndexIVF } from 'cyborgdb';
 
 // Create a client
 const client = new Client('http://localhost:8000', 'your-api-key');
@@ -277,7 +277,7 @@ const dimension = 128;  // Adjust according to your dataset (dimensionality)
 const nLists = 4096;
 
 // Create the IVF index config
-const indexConfig: IndexIVFModel = {
+const indexConfig: IndexIVF = {
     type: 'ivf',
     dimension: dimension,
     nLists: nLists
@@ -327,7 +327,7 @@ const indexConfig = {
 
 ```typescript TypeScript SDK icon="code"
 // Example with cosine similarity
-const indexConfig: IndexIVFFlatModel = {
+const indexConfig: IndexIVFFlat = {
     type: 'ivf_flat',
     dimension: dimension,
     nLists: nLists,

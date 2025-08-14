@@ -30,7 +30,7 @@ index = client.create_index("my_index", index_key, index_config)
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client, IndexIVF } from 'cyborgdb';
 
 // Create a client
 const client = new Client('http://localhost:8000', 'your-api-key');
@@ -52,14 +52,14 @@ const index = await client.createIndex("my_index", indexKey, indexConfig);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client, IndexIVF } from 'cyborgdb';
 
 // Create a client
 const client = new Client('http://localhost:8000', 'your-api-key');
 
 // Create an IVF index config (can also be IVFFlat/IVFPQ)
 // Using an example vector dimension of 768, and number of lists of 1024
-const indexConfig: IndexIVFModel = {
+const indexConfig: IndexIVF = {
     type: 'ivf',
     dimension: 768,
     nLists: 1024,
@@ -141,7 +141,7 @@ index = client.create_index("my_index", index_key, index_config, embedding_model
 ```
 
 ```javascript JavaScript SDK icon="js"  
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client, IndexIVF } from 'cyborgdb';
 
 // Create a client
 const client = new Client('http://localhost:8000', 'your-api-key');
@@ -165,13 +165,13 @@ const index = await client.createIndex("my_index", indexKey, indexConfig, embedd
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client, IndexIVF } from 'cyborgdb';
 
 // Create a client
 const client = new Client('http://localhost:8000', 'your-api-key');
 
 // Example index config with dimensions matching the embedding model
-const indexConfig: IndexIVFModel = {
+const indexConfig: IndexIVF = {
     type: 'ivf', 
     dimension: 384,  // dimension for all-MiniLM-L6-v2
     nLists: 1024,

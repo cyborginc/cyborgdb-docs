@@ -70,21 +70,3 @@ The method returns a response object with the following structure:
     "message": "Index 'my-index' was already deleted"
 }
 ```
-
-### Best Practices
-
-- **Confirmation**: Always implement user confirmation for deletion operations in production applications
-- **Backup Strategy**: Consider exporting important data before deletion if needed for recovery
-- **Cleanup References**: Remove local references to deleted indexes to prevent memory leaks
-- **Error Handling**: Implement proper error handling to gracefully handle network failures
-- **Audit Logging**: Log deletion operations for audit trails and debugging
-- **Batch Operations**: When deleting multiple indexes, handle failures gracefully to avoid partial cleanup states
-- **Verification**: Verify index name before deletion to prevent accidental deletions
-
-### Important Notes
-
-- Once deleted, the index and all its data cannot be recovered
-- The operation affects all vectors, metadata, and configuration associated with the index
-- Other applications or services using the same index will lose access immediately
-- The deletion is performed on the CyborgDB service and cannot be undone
-- The method gracefully handles already-deleted indexes without throwing errors

@@ -22,7 +22,7 @@ index = client.load_index("my_index", index_key)
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client, IndexIVF } from 'cyborgdb';
 
 // Create a client
 const client = new Client('http://localhost:8000', 'your-api-key');
@@ -41,14 +41,14 @@ const index = await client.createIndex("my_index", indexKey, indexConfig);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFModel } from 'cyborgdb';
+import { Client, IndexIVF } from 'cyborgdb';
 
 // Create a client
 const client = new Client('http://localhost:8000', 'your-api-key');
 
 // Provide the same index key and config used when creating the index
 const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
-const indexConfig: IndexIVFModel = {
+const indexConfig: IndexIVF = {
     type: 'ivf',
     dimension: 768,
     nLists: 1024,
