@@ -9,8 +9,9 @@
     - [ ] Auto index config
     - [ ] Auto index training
     - [ ] Auto query config
-    - [ ] `load_index()` exposed in SDKs
-- [ ] Check that SDK return types are aligned
+    - [X] `load_index()` exposed in SDKs
+- [X] Check that SDK return types are aligned
 - [ ] Langchain for Python SDK
 - [ ] Add performance benchmarks
 - [ ] Add SSL requirements for SDKs
+- [ ] Add backing stores to `v0.12.x/integrations` section
