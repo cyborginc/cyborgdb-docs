@@ -6,6 +6,7 @@ mode: "wide"
 Generates a cryptographically secure 32-byte encryption key suitable for creating encrypted indexes.
 
 ```python
+@staticmethod
 generate_key() -> bytes
 ```
 
@@ -22,26 +23,17 @@ generate_key() -> bytes
 ### Example Usage
 
 ```python
-from cyborgdb import Client, generate_key
+from cyborgdb import Client
 
-client = Client('http://localhost:8000', 'your-api-key')
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
 # Generate a secure encryption key
-index_key = generate_key()
+index_key = client.generate_key()
 print(f'Generated key length: {len(index_key)}')  # Output: 32
-
-# Use the key to create an encrypted index
-index_config = {
-    'dimension': 768,
-    'n_lists': 1024,
-    'metric': 'cosine',
-    'type': 'ivfflat'
-}
 
 index = client.create_index(
     'my-secure-index',
     index_key,
-    index_config
 )
 
 # IMPORTANT: Store the key securely for future access

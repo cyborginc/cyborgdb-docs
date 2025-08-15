@@ -27,7 +27,7 @@ const ids = ["item_20", "item_11"];
 const include = ["contents", "metadata"];
 
 // Retrieve items from the encrypted index
-const items = await index.get(ids, include);
+const items = await index.get({ ids, include });
 
 console.log(items);
 // Example items
@@ -41,7 +41,7 @@ const ids: string[] = ["item_20", "item_11"];
 const include: string[] = ["contents", "metadata"];
 
 // Retrieve items from the encrypted index
-const items = await index.get(ids, include);
+const items = await index.get({ ids, include });
 
 console.log(items);
 // Example items

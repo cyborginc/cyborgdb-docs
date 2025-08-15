@@ -10,13 +10,11 @@ Adds new vectors to the encrypted index or updates existing vectors if they have
 ### Pattern 1: VectorItem Array
 
 ```typescript
-async upsert(items: VectorItem[]): Promise<object>
-```
-
-### Pattern 2: Parallel Arrays
-
-```typescript
-async upsert(ids: string[], vectors: number[][]): Promise<object>
+async upsert({
+    items?: VectorItem[],    // optional, required if ids and vectors not provided
+    ids?: string[],         // optional, used for bulk operations
+    vectors?: number[][]    // optional, used for bulk operations
+}): Promise<object>
 ```
 
 ### Parameters
@@ -74,11 +72,11 @@ Each `VectorItem` must contain an `id` and `vector`, with optional fields:
 ```typescript
 import { Client, VectorItem } from 'cyborgdb';
 
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 // Load an existing index
 const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
-const index = await client.loadIndex('my-vector-index', indexKey);
+const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey });
 
 // Prepare vector items with rich metadata
 const vectorItems: VectorItem[] = [
@@ -175,7 +173,7 @@ try {
     console.log('Update result:', updateResult);
     
     // Verify the update
-    const retrievedVector = await index.get(['updatable_doc']);
+    const retrievedVector = await index.get({ ids: ['updatable_doc'] });
     console.log('Updated vector metadata:', retrievedVector[0].metadata);
 } catch (error: any) {
     console.error('Update failed:', error.message);

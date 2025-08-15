@@ -6,7 +6,7 @@ mode: "wide"
 Generates a cryptographically secure 32-byte encryption key suitable for creating encrypted indexes.
 
 ```typescript
-generateKey(): Uint8Array
+Client.generateKey(): Uint8Array
 ```
 
 ### Returns
@@ -24,25 +24,16 @@ generateKey(): Uint8Array
 ```typescript
 import { Client } from 'cyborgdb';
 
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 // Generate a secure encryption key
 const indexKey = client.generateKey();
 console.log('Generated key length:', indexKey.length); // Output: 32
 
-// Use the key to create an encrypted index
-const indexConfig = {
-    dimension: 768,
-    nLists: 1024,
-    metric: 'cosine',
-    type: 'ivfflat'
-};
-
-const index = await client.createIndex(
-    'my-secure-index',
-    indexKey,
-    indexConfig
-);
+const index = await client.createIndex({
+    indexName: 'my-secure-index',
+    indexKey
+});
 
 // IMPORTANT: Store the key securely for future access
 // const keyHex = Buffer.from(indexKey).toString('hex');

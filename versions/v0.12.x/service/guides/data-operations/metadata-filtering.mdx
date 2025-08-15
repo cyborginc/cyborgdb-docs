@@ -20,8 +20,7 @@ To add items with metadata tags, you can pass a dictionary of key-value pairs to
 
 <CodeGroup>
 ```python Python SDK icon="python"
-# Example data in the format:
-# [{id: str, vector: List[float], metadata: Dict}]
+# Example data
 data = [
     {"id": "item_1", "vector": [0.1, 0.1, 0.1, 0.1], "metadata": {"category": "dog"}},
     {"id": "item_2", "vector": [0.2, 0.2, 0.2, 0.2], "metadata": {"category": "cat"}}
@@ -39,7 +38,7 @@ const data = [
 ];
 
 // Upsert data with metadata
-await index.upsert(data);
+await index.upsert({ items: data });
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -52,7 +51,7 @@ const data: VectorItem[] = [
 ];
 
 // Upsert data with metadata
-await index.upsert(data);
+await index.upsert({ items: data });
 ```
 
 ```go Go SDK icon="golang"
@@ -104,7 +103,11 @@ filters = {
 }
 
 # Perform query
-results = index.query(query_vector=query_vector, top_k=top_k, filters=filters)
+results = index.query(
+  query_vector=query_vector, 
+  top_k=top_k, 
+  filters=filters
+)
 ```
 
 ```javascript JavaScript SDK icon="js"

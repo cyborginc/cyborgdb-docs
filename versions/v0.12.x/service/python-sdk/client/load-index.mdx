@@ -46,7 +46,7 @@ Basic usage of the `load_index` method to retrieve an existing index:
 from cyborgdb import Client
 
 # Create a client
-client = Client('http://localhost:8000', 'your-api-key')
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
 # Provide the same index key used when creating the index
 index_key = your_existing_32_byte_key

@@ -25,7 +25,7 @@ const queryVector = [0.5, 0.9, 0.2, 0.7];
 const topK = 10;
 
 // Perform query
-const results = await index.query(queryVector, topK);
+const results = await index.query({ queryVector, topK });
 
 console.log(results);
 // Example results 
@@ -38,7 +38,7 @@ const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
 const topK: number = 10;
 
 // Perform query
-const results = await index.query(queryVector, topK);
+const results = await index.query({ queryVector, topK });
 
 console.log(results);
 // Example results
@@ -172,7 +172,10 @@ query_vectors = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]]
 top_k = 10
 
 # Perform batch query
-results = index.query(query_vectors=query_vectors, top_k=top_k)
+results = index.query(
+  query_vectors=query_vectors, 
+  top_k=top_k
+)
 
 print(results)
 # Returns nested results: one list per query vector
@@ -268,7 +271,7 @@ results = index.query(query_contents=query_contents, top_k=top_k)
 ```javascript JavaScript SDK icon="js"
 // ... index creation and embedding model setup
 const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
-const index = await client.createIndex("my_index", indexKey, indexConfig, embeddingModel);
+const index = await client.createIndex({ indexName: "my_index", indexKey, indexConfig, embeddingModel });
 
 // ... Add items to the encrypted index ...
 
@@ -286,7 +289,7 @@ const results = await index.query({
 ```typescript TypeScript SDK icon="code"
 // ... index creation and embedding model setup
 const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
-const index = await client.createIndex("my_index", indexKey, indexConfig, embeddingModel);
+const index = await client.createIndex({ indexName: "my_index", indexKey, indexConfig, embeddingModel });
 
 // ... Add items to the encrypted index ...
 
@@ -329,7 +332,7 @@ In certain applications, such as RAG, it may be desirable to retrieve matching i
 
 For optimal query performance, you should train your index after adding a significant amount of data (typically more than 50,000 vectors). The CyborgDB service supports index training to improve query speed and accuracy.
 
-Queries will initially use exhaustive search, which is fine for small datasets. Once you have a substantial amount of data, train the index for better performance. For more details, see [Training an Encrypted Index](../encrypted-indexes/train-index).
+Queries will initially use exhaustive search, which is fine for small datasets. Once you have a substantial amount of data, train the index for better performance. For more details, see [Training an Encrypted Index](../advanced/train-index).
 
 ## API Reference
 

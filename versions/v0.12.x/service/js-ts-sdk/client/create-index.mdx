@@ -6,12 +6,13 @@ mode: "wide"
 Creates and returns an `EncryptedIndex` instance based on the provided configuration.
 
 ```typescript
-async createIndex(
-    indexName: string, 
-    indexKey: Uint8Array, 
-    indexConfig: IndexIVFPQ | IndexIVFFlat | IndexIVF,
-    embeddingModel?: string
-): Promise<EncryptedIndex>
+async createIndex({
+    indexName: string,                                      // required
+    indexKey: Uint8Array,                                   // required
+    indexConfig?: IndexConfig,                              // optional, default: IndexIVFFlat()
+    metric?: 'euclidean' | 'squared_euclidean' | 'cosine',  // optional, default: 'euclidean'
+    embeddingModel?: string                                 // optional, default: undefined
+}): Promise<EncryptedIndex>
 ```
 
 ### Parameters
@@ -20,7 +21,8 @@ async createIndex(
 |---------------|--------------------|----------------------------------------------------------------------------------------|
 | `indexName` | `string` | Name of the index to create. Must be unique within the CyborgDB service. |
 | `indexKey` | `Uint8Array` | 32-byte encryption key for the index, used to secure the index data. |
-| `indexConfig` | [`IndexIVFPQ`](../types#indexivfpq) \| [`IndexIVFFlat`](../types#indexivfflat) \| [`IndexIVF`](../types#indexivf) | Configuration object specifying the index type (`ivf`, `ivfpq`, or `ivfflat`) and relevant parameters such as `dimension`, `nLists`, `pqDim`, and `pqBits`. |
+| `indexConfig` | [`IndexIVFPQ`](../types#indexivfpq) \| [`IndexIVFFlat`](../types#indexivfflat) \| [`IndexIVF`](../types#indexivf) | Configuration object specifying the index type (`ivf`, `ivfpq`, or `ivfflat`). |
+| `metric` | `'euclidean' \| 'squared_euclidean' \| 'cosine'` | _(Optional)_ Distance metric to use for the index. Defaults to `'euclidean'`. |
 | `embeddingModel` | `string` | _(Optional)_ Name of the embedding model used to auto-generate embeddings on the server. Defaults to `undefined`, no auto-generation. |
 
 <Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>
@@ -51,91 +53,53 @@ async createIndex(
 
 ### Example Usage
 
-#### Basic IVFFlat Index Creation
+#### Automatic Index Config
 
 ```typescript
 import { Client } from 'cyborgdb';
 
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 const indexName = "my_vector_index";
-const indexKey = client.generateKey(); // Generate secure 32-byte key
-
-const indexConfig = {
-    dimension: 768,
-    nLists: 1024,
-    metric: 'cosine',
-    type: 'ivfflat'
-};
+const indexKey: Uint8Array = client.generateKey(); // Generate secure 32-byte key
 
 try {
-    const index = await client.createIndex(
-        indexName, 
-        indexKey, 
-        indexConfig
-    );
+    const index = await client.createIndex({
+        indexName,
+        indexKey
+    });
     console.log('Index created successfully:', index);
 } catch (error) {
     console.error('Failed to create index:', error.message);
 }
 ```
 
-#### IVFPQ Index with Embedding Model
+<Tip>For more info on `generateKey`, refer to [Generate Key](./generate-key).</Tip>
+
+#### IVFFlat Index with Embedding Model
 
 ```typescript
-import { Client } from 'cyborgdb';
+import { Client, IndexIVFFlat } from 'cyborgdb';
 
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 const indexName = "semantic_search_index";
-const indexKey = client.generateKey();
+const indexKey: Uint8Array = client.generateKey();
 
-const indexConfig = {
-    dimension: 1536,
-    nLists: 2048,
-    metric: 'cosine',
-    type: 'ivfpq',
-    pqDim: 64,
-    pqBits: 8
-};
+const indexConfig: IndexIVFFlat = IndexIVFFlat();
 
 try {
-    const index = await client.createIndex(
+    const index = await client.createIndex({
         indexName,
         indexKey,
         indexConfig,
-        'all-MiniLM-L6-v2'  // Embedding model
-    );
+        embeddingModel: 'all-MiniLM-L6-v2'  // Embedding model
+    });
     
     console.log('IVFPQ index with embeddings created successfully');
-    
-    // Store the key securely for future access
-    const keyHex = Buffer.from(indexKey).toString('hex');
-    console.log('Store this key safely:', keyHex);
 } catch (error) {
     console.error('Index creation failed:', error.message);
 }
-```
-
-#### IVF Index Configuration
-
-```typescript
-import { Client } from 'cyborgdb';
-
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-const indexConfig = {
-    dimension: 512,
-    nLists: 512,
-    metric: 'euclidean',
-    type: 'ivf'
-};
-
-const index = await client.createIndex(
-    'basic_ivf_index',
-    client.generateKey(),
-    indexConfig
-);
 ```
 
 ### Key Management
@@ -144,12 +108,12 @@ Always store your encryption key securely after creating an index:
 
 ```typescript
 // Generate and store key
-const indexKey = client.generateKey();
-const keyHex = Buffer.from(indexKey).toString('hex');
+const indexKey: Uint8Array = client.generateKey();
+const keyHex: string = Buffer.from(indexKey).toString('hex');
 
 // Store keyHex in your secure key management system
 console.log('Save this key:', keyHex);
 
 // Later, to reload the key:
-const restoredKey = new Uint8Array(Buffer.from(keyHex, 'hex'));
+const restoredKey: Uint8Array = new Uint8Array(Buffer.from(keyHex, 'hex'));
 ```

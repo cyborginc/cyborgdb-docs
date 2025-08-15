@@ -33,9 +33,7 @@ Get detailed information about an existing index, including its configuration an
   "index_key": "64_character_hex_string_representing_32_bytes",
   "index_config": {
     "type": "ivfflat",
-    "dimension": 384,
-    "n_lists": 1024,
-    "metric": "euclidean"
+    "dimension": 384
   },
   "status": "ready",
   "vector_count": 10000,
@@ -54,8 +52,6 @@ Get detailed information about an existing index, including its configuration an
     Configuration details of the index, including:
     - `type`: Index type (e.g., ivfflat)
     - `dimension`: Embedding dimension
-    - `n_lists`: Number of inverted lists
-    - `metric`: Distance metric used
   </ResponseField>
   <ResponseField name="status" type="string">
     Current status of the index (e.g., ready, training)

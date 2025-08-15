@@ -34,11 +34,11 @@ async deleteIndex(): Promise<object>
 ```typescript
 import { Client } from 'cyborgdb';
 
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 // Load an existing index
 const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
-const index = await client.loadIndex('temporary-index', indexKey);
+const index = await client.loadIndex({ indexName: 'temporary-index', indexKey });
 
 // Delete the index when no longer needed
 try {

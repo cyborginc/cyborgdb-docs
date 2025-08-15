@@ -6,15 +6,15 @@ mode: "wide"
 Searches for nearest neighbors in the encrypted index using vector similarity search. Supports both single vector queries and batch queries with multiple vectors, as well as content-based search.
 
 ```typescript
-async query(
-    queryVectors?: number[] | number[][],
-    queryContents?: string,
-    topK?: number,
-    nProbes?: number,
-    filters?: object,
-    include?: string[],
-    greedy?: boolean
-): Promise<QueryResponse>
+async query({
+    queryVectors?: number[] | number[][],   // optional, required if `queryContents` not provided
+    queryContents?: string,                 // optional, required if `queryVectors` not provided
+    topK?: number,                          // optional, default: 100
+    nProbes?: number,                       // optional, default: 0
+    filters?: object,                       // optional, default: {}
+    include?: string[],                     // optional, default: ["distance", "metadata"]
+    greedy?: boolean                        // optional, default: false
+}): Promise<QueryResponse>
 ```
 
 ### Parameters
@@ -24,7 +24,7 @@ async query(
 | `queryVectors` | `number[]` \| `number[][]` | - | Single vector `[0.1, 0.2]` or batch vectors `[[0.1, 0.2], [0.3, 0.4]]` |
 | `queryContents` | `string` | - | _(Optional)_ Text content to embed and search (alternative to queryVectors) |
 | `topK` | `number` | `100` | _(Optional)_ Number of nearest neighbors to return per query |
-| `nProbes` | `number` | `1` | _(Optional)_ Number of cluster centers to search (higher = better recall) |
+| `nProbes` | `number` | `0` | _(Optional)_ Number of cluster centers to search (higher = better recall). Auto-determined by default. |
 | `filters` | `object` | `{}` | _(Optional)_ Metadata filters to apply to the search |
 | `include` | `string[]` | `["distance", "metadata"]` | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
 | `greedy` | `boolean` | `false` | _(Optional)_ Use faster approximate search |
@@ -60,11 +60,11 @@ async query(
 ```typescript
 import { Client } from 'cyborgdb';
 
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 // Load an existing index
 const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
-const index = await client.loadIndex('my-vector-index', indexKey);
+const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey });
 
 // Search for similar vectors
 const queryVector = [0.15, 0.25, 0.35, 0.45];

@@ -33,7 +33,7 @@ client.list_indexes()
 from cyborgdb import Client
 
 # Initialize client
-client = Client('https://localhost:8000', 'your-api-key')
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
 # Get list of all indexes
 indexes = client.list_indexes()

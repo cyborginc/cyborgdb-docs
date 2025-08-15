@@ -20,7 +20,7 @@ index.delete(ids_to_delete)
 const idsToDelete = ["item1", "item2", "item3"];
 
 // Delete items from the encrypted index
-await index.delete(idsToDelete);
+await index.delete({ ids: idsToDelete });
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -28,7 +28,7 @@ await index.delete(idsToDelete);
 const idsToDelete: string[] = ["item1", "item2", "item3"];
 
 // Delete items from the encrypted index
-await index.delete(idsToDelete);
+await index.delete({ ids: idsToDelete });
 ```
 
 ```go Go SDK icon="golang"

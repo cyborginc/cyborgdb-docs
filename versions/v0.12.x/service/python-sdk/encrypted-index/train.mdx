@@ -3,10 +3,13 @@ title: "Train"
 mode: "wide"
 ---
 
-Trains the index to optimize it for efficient similarity search queries. Training is essential for IVF-based indexes to achieve optimal query performance and accuracy.
+Trains the encrypted index to optimize it for efficient similarity search queries. Training is essential for IVF-based indexes to achieve optimal query performance and accuracy.
+
+<Tip>In CyborgDB Service, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added.</Tip>
 
 ```python
 index.train(
+    n_lists=0,
     batch_size=2048,
     max_iters=100,
     tolerance=1e-6
@@ -16,6 +19,7 @@ index.train(
 ### Parameters
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
+| `n_lists` | `int` | `0` | Number of inverted lists to use for the index. Defaults to `0` which will auto-select based on the dataset size |
 | `batch_size` | `int` | `2048` | Number of vectors to process per training batch |
 | `max_iters` | `int` | `100` | Maximum number of training iterations |
 | `tolerance` | `float` | `1e-6` | Convergence tolerance for training completion |
@@ -57,8 +61,9 @@ index.train()
 ```python
 # Train with custom parameters for large dataset
 index.train(
-    batch_size=4096,     # Larger batches for better performance
-    max_iters=200,       # More iterations for better convergence
-    tolerance=1e-7       # Stricter convergence criteria
+    n_lists=100,        # Number of inverted lists
+    batch_size=4096,    # Larger batches for better performance
+    max_iters=200,      # More iterations for better convergence
+    tolerance=1e-7      # Stricter convergence criteria
 )
 ```

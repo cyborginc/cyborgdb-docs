@@ -39,21 +39,14 @@ For local development and evaluation, you can generate a 256-bit encryption key 
 
 <CodeGroup>
 ```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVFFlat
+from cyborgdb import Client
 import base64
 
 # Create a client
-client = Client('http://localhost:8000', 'your-api-key')
-
-# Example index configuration
-dimension = 128
-n_lists = 4096
-index_config = IndexIVFFlat(
-    type='ivf_flat',
-    dimension=dimension,
-    n_lists=n_lists
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
 )
-index_name = "test_index"
 
 # Load the encryption key
 with open("index_key.txt", "r") as key_file:
@@ -61,7 +54,7 @@ with open("index_key.txt", "r") as key_file:
     index_key = base64.b64decode(key_b64)
 
 # Use the encryption key
-index = client.create_index(index_name, index_key, index_config)
+index = client.create_index("index_name", index_key)
 ```
 
 ```javascript JavaScript SDK icon="js"
@@ -69,49 +62,37 @@ import { Client } from 'cyborgdb';
 import fs from 'fs';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-// Example index configuration
-const dimension = 128;
-const nLists = 4096;
-const indexConfig = {
-    type: 'ivf_flat',
-    dimension: dimension,
-    nLists: nLists
-};
-const indexName = "test_index";
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Load the encryption key
 const keyB64 = fs.readFileSync("index_key.txt", 'utf8').trim();
 const indexKey = new Uint8Array(Buffer.from(keyB64, 'base64'));
+const indexName = "indexName";
 
 // Use the encryption key
-const index = await client.createIndex(indexName, indexKey, indexConfig);
+const index = await client.createIndex({ indexName, indexKey });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFFlat } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 import fs from 'fs';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-// Example index configuration
-const dimension = 128;
-const nLists = 4096;
-const indexConfig: IndexIVFFlat = {
-    type: 'ivf_flat',
-    dimension: dimension,
-    nLists: nLists
-};
-const indexName = "test_index";
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Load the encryption key
 const keyB64 = fs.readFileSync("index_key.txt", 'utf8').trim();
 const indexKey = new Uint8Array(Buffer.from(keyB64, 'base64'));
+const indexName = "indexName";
 
 // Use the encryption key
-const index = await client.createIndex(indexName, indexKey, indexConfig);
+const index = await client.createIndex({ indexName, indexKey });
 ```
 
 ```go Go SDK icon="golang"
@@ -130,11 +111,6 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
      -d "{
        \"index_name\": \"test_index\",
        \"index_key\": \"$(echo $KEY_B64 | base64 -d | xxd -p -c 32)\",
-       \"index_config\": {
-         \"type\": \"ivfflat\",
-         \"dimension\": 128,
-         \"n_lists\": 4096
-       }
      }"
 ```
 </CodeGroup>
@@ -242,10 +218,13 @@ CyborgDB can integrate with popular KMS providers, such as:
 ```python Python SDK icon="python"
 import boto3
 import base64
-from cyborgdb import Client, IndexIVFFlat
+from cyborgdb import Client
 
 # Create a client
-client = Client('http://localhost:8000', 'your-api-key')
+client = Client(
+    base_url='http://localhost:8000',
+    api_key='your-api-key'
+)
 
 # Initialize AWS KMS client
 kms_client = boto3.client('kms')
@@ -262,15 +241,8 @@ response = kms_client.decrypt(
 )
 index_key = response['Plaintext']  # This is your 256-bit key
 
-# Example index configuration
-index_config = IndexIVFFlat(
-    type='ivf_flat',
-    dimension=768,
-    n_lists=1024
-)
-
 # Use the key with CyborgDB
-index = client.create_index("my_index", index_key, index_config)
+index = client.create_index("my_index", index_key)
 ```
 
 ```javascript JavaScript SDK icon="js"
@@ -278,7 +250,10 @@ import { Client } from 'cyborgdb';
 const AWS = require('aws-sdk');
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Initialize AWS KMS client
 const kms = new AWS.KMS();
@@ -295,23 +270,19 @@ const response = await kms.decrypt({
 }).promise();
 const indexKey = new Uint8Array(response.Plaintext);  // This is your 256-bit key
 
-// Example index configuration
-const indexConfig = {
-    type: 'ivf_flat',
-    dimension: 768,
-    nLists: 1024
-};
-
 // Use the key with CyborgDB
-const index = await client.createIndex("my_index", indexKey, indexConfig);
+const index = await client.createIndex({ indexName: "my_index", indexKey, indexConfig });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFFlat } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 const AWS = require('aws-sdk');
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Initialize AWS KMS client
 const kms = new AWS.KMS();
@@ -328,15 +299,8 @@ const response = await kms.decrypt({
 }).promise();
 const indexKey = new Uint8Array(response.Plaintext);  // This is your 256-bit key
 
-// Example index configuration
-const indexConfig: IndexIVFFlat = {
-    type: 'ivf_flat',
-    dimension: 768,
-    nLists: 1024
-};
-
 // Use the key with CyborgDB
-const index = await client.createIndex("my_index", indexKey, indexConfig);
+const index = await client.createIndex({ indexName: "my_index", indexKey, indexConfig });
 ```
 
 ```go Go SDK icon="golang"
@@ -359,11 +323,6 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
      -d "{
        \"index_name\": \"my_index\",
        \"index_key\": \"$DECRYPTED_KEY\",
-       \"index_config\": {
-         \"type\": \"ivfflat\",
-         \"dimension\": 768,
-         \"n_lists\": 1024
-       }
      }"
 ```
 </CodeGroup>    

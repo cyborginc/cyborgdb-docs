@@ -13,14 +13,19 @@ To delete an existing encrypted index, you can connect to it and then call the `
 from cyborgdb import Client
 
 # Create a client
-client = Client('http://localhost:8000', 'your-api-key')
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
+)
 
 # Provide the same index key and config used when creating the index
 index_key = your_existing_32_byte_key  # Must be the same key used originally
-index_config = your_existing_index_config  # Must match original config
 
 # Connect to the existing index
-index = client.create_index("my_index", index_key, index_config)
+index = client.load_index(
+    index_name="my_index", 
+    index_key=index_key
+)
 
 # Delete the index
 index.delete_index()
@@ -30,14 +35,19 @@ index.delete_index()
 import { Client } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Provide the same index key and config used when creating the index
 const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
-const indexConfig = yourExistingIndexConfig;  // Must match original config
 
 // Connect to the existing index
-const index = await client.createIndex("my_index", indexKey, indexConfig);
+const index = await client.loadIndex({ 
+    indexName: "my_index", 
+    indexKey
+});
 
 // Delete the index
 await index.deleteIndex();
@@ -47,14 +57,19 @@ await index.deleteIndex();
 import { Client } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Provide the same index key and config used when creating the index
 const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
-const indexConfig = yourExistingIndexConfig;  // Must match original config
 
 // Connect to the existing index
-const index = await client.createIndex("my_index", indexKey, indexConfig);
+const index = await client.loadIndex({ 
+    indexName: "my_index", 
+    indexKey
+});
 
 // Delete the index
 await index.deleteIndex();
@@ -87,7 +102,7 @@ For more information on deleting an encrypted index, refer to the API reference:
         API reference for `delete_index()` in Python
     </Card>
     <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/delete-index" icon="js">
-        API reference for `delete_index()` in JavaScript/TypeScript
+        API reference for `deleteIndex()` in JavaScript/TypeScript
     </Card>
     <Card title="Go SDK Reference" href="../../go-sdk/encrypted-index/delete-index" icon="golang">
         API reference for `DeleteIndex()` in Go

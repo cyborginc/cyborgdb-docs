@@ -6,7 +6,9 @@ mode: "wide"
 Deletes vectors from the encrypted index by their IDs.
 
 ```typescript
-async delete(ids: string[]): Promise<object>
+async delete({
+    ids: string[]       // required
+}): Promise<object>
 ```
 
 ### Parameters
@@ -39,27 +41,29 @@ async delete(ids: string[]): Promise<object>
 ```typescript
 import { Client } from 'cyborgdb';
 
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 // Load an existing index
 const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
-const index = await client.loadIndex('my-vector-index', indexKey);
+const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey });
 
 // Add some vectors first
-await index.upsert([
-    { id: 'doc1', vector: [0.1, 0.2, 0.3], metadata: { title: 'Document 1' } },
-    { id: 'doc2', vector: [0.4, 0.5, 0.6], metadata: { title: 'Document 2' } },
-    { id: 'doc3', vector: [0.7, 0.8, 0.9], metadata: { title: 'Document 3' } }
-]);
+await index.upsert({
+    items: [
+        { id: 'doc1', vector: [0.1, 0.2, 0.3], metadata: { title: 'Document 1' } },
+        { id: 'doc2', vector: [0.4, 0.5, 0.6], metadata: { title: 'Document 2' } },
+        { id: 'doc3', vector: [0.7, 0.8, 0.9], metadata: { title: 'Document 3' } }
+    ]
+});
 
 // Delete specific vectors
 try {
-    const result = await index.delete(['doc1', 'doc2']);
+    const result = await index.delete({ ids: ['doc1', 'doc2'] });
     console.log('Deletion result:', result);
     // Typical output: { status: 'success', message: 'Deleted 2 vectors', deleted_count: 2 }
     
     // Verify deletion by trying to retrieve
-    const remaining = await index.get(['doc1', 'doc2', 'doc3']);
+    const remaining = await index.get({ ids: ['doc1', 'doc2', 'doc3'] });
     console.log(`Remaining vectors: ${remaining.length}`); // Should be 1 (only doc3)
     
 } catch (error) {

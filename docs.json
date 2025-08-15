@@ -39,6 +39,10 @@
     {
       "source": "/embedded",
       "destination": "/versions/v0.12.x/embedded/guides/intro/about"
+    },
+    {
+      "source": "/security",
+      "destination": "/versions/v0.12.x/intro/security-overview"
     }
   ],
   "navigation": {
@@ -103,10 +107,8 @@
                       "versions/v0.12.x/service/guides/encrypted-indexes/introduction",
                       "versions/v0.12.x/service/guides/encrypted-indexes/create-client",
                       "versions/v0.12.x/service/guides/encrypted-indexes/create-index",
-                      "versions/v0.12.x/service/guides/encrypted-indexes/configure-index",
                       "versions/v0.12.x/service/guides/encrypted-indexes/load-index",
                       "versions/v0.12.x/service/guides/encrypted-indexes/list-indexes",
-                      "versions/v0.12.x/service/guides/encrypted-indexes/train-index",
                       "versions/v0.12.x/service/guides/encrypted-indexes/delete-index"
                     ]
                   },
@@ -125,6 +127,8 @@
                     "pages": [
                       "versions/v0.12.x/service/guides/advanced/managing-keys",
                       "versions/v0.12.x/service/guides/advanced/env-vars",
+                      "versions/v0.12.x/service/guides/advanced/configure-index",
+                      "versions/v0.12.x/service/guides/advanced/train-index",
                       "versions/v0.12.x/service/guides/advanced/usage-telemetry"
                     ]
                   }
@@ -185,7 +189,8 @@
                       "versions/v0.12.x/service/python-sdk/client/get-health",
                       "versions/v0.12.x/service/python-sdk/client/create-index",
                       "versions/v0.12.x/service/python-sdk/client/load-index",
-                      "versions/v0.12.x/service/python-sdk/client/list-indexes"
+                      "versions/v0.12.x/service/python-sdk/client/list-indexes",
+                      "versions/v0.12.x/service/python-sdk/client/generate-key"
                     ]
                   },
                   {
@@ -203,8 +208,7 @@
                     "group": "Types & Helpers",
                     "pages": [
                       "versions/v0.12.x/service/python-sdk/getters",
-                      "versions/v0.12.x/service/python-sdk/types",
-                      "versions/v0.12.x/service/python-sdk/generate-key"
+                      "versions/v0.12.x/service/python-sdk/types"
                     ]
                   }
                 ]
@@ -226,7 +230,8 @@
                       "versions/v0.12.x/service/js-ts-sdk/client/get-health",
                       "versions/v0.12.x/service/js-ts-sdk/client/create-index",
                       "versions/v0.12.x/service/js-ts-sdk/client/load-index",
-                      "versions/v0.12.x/service/js-ts-sdk/client/list-indexes"
+                      "versions/v0.12.x/service/js-ts-sdk/client/list-indexes",
+                      "versions/v0.12.x/service/js-ts-sdk/client/generate-key"
                     ]
                   },
                   {
@@ -244,8 +249,7 @@
                     "group": "Types & Helpers",
                     "pages": [
                       "versions/v0.12.x/service/js-ts-sdk/getters",
-                      "versions/v0.12.x/service/js-ts-sdk/types",
-                      "versions/v0.12.x/service/js-ts-sdk/generate-key"
+                      "versions/v0.12.x/service/js-ts-sdk/types"
                     ]
                   }
                 ]
@@ -267,7 +271,9 @@
                       "versions/v0.12.x/service/go-sdk/client/get-health",
                       "versions/v0.12.x/service/go-sdk/client/create-index",
                       "versions/v0.12.x/service/go-sdk/client/load-index",
-                      "versions/v0.12.x/service/go-sdk/client/list-indexes"
+                      "versions/v0.12.x/service/go-sdk/client/list-indexes",
+                      "versions/v0.12.x/service/go-sdk/client/generate-key"
+
                     ]
                   },
                   {
@@ -285,8 +291,7 @@
                     "group": "Types & Helpers",
                     "pages": [
                       "versions/v0.12.x/service/go-sdk/getters",
-                      "versions/v0.12.x/service/go-sdk/types",
-                      "versions/v0.12.x/service/go-sdk/generate-key"
+                      "versions/v0.12.x/service/go-sdk/types"
                     ]
                   }
                 ]

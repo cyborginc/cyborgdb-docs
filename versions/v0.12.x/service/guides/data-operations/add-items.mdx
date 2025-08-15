@@ -28,7 +28,7 @@ const items = [
 ];
 
 // Add items to the encrypted index
-await index.upsert(items);
+await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -42,7 +42,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-await index.upsert(items);
+await index.upsert({ items });
 ```
 
 ```go Go SDK icon="golang"
@@ -103,7 +103,7 @@ const items = [
 ];
 
 // Add items to the encrypted index
-await index.upsert(items);
+await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -117,7 +117,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-await index.upsert(items);
+await index.upsert({ items });
 ```
 
 ```go Go SDK icon="golang"
@@ -184,7 +184,7 @@ const items = [
 ];
 
 // Add items to the encrypted index
-await index.upsert(items);
+await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -198,7 +198,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-await index.upsert(items);
+await index.upsert({ items });
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -241,7 +241,12 @@ If you provided an `embedding_model` during index creation, you can automaticall
 ```python Python SDK icon="python"
 # ... index creation and embedding model setup
 embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
-index = client.create_index("my_index", index_key, index_config, embedding_model)
+index = client.create_index(
+  index_name="my_index", 
+  index_key=index_key, 
+  index_config=index_config, 
+  embedding_model=embedding_model
+)
 
 # Items to add to the encrypted index
 items = [
@@ -256,7 +261,12 @@ index.upsert(items)
 ```javascript JavaScript SDK icon="js"
 // ... index creation and embedding model setup
 const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
-const index = await client.createIndex("my_index", indexKey, indexConfig, embeddingModel);
+const index = await client.createIndex({ 
+    indexName: "my_index", 
+    indexKey, 
+    indexConfig, 
+    embeddingModel 
+});
 
 // Items to add to the encrypted index
 const items = [
@@ -265,7 +275,7 @@ const items = [
 ];
 
 // Add items to the encrypted index
-await index.upsert(items);
+await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -273,7 +283,12 @@ import { VectorItem } from 'cyborgdb';
 
 // ... index creation and embedding model setup
 const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
-const index = await client.createIndex("my_index", indexKey, indexConfig, embeddingModel);
+const index = await client.createIndex({ 
+    indexName: "my_index", 
+    indexKey, 
+    indexConfig, 
+    embeddingModel 
+});
 
 // Items to add to the encrypted index
 const items: VectorItem[] = [
@@ -282,7 +297,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-await index.upsert(items);
+await index.upsert({ items });
 ```
 
 ```go Go SDK icon="golang"

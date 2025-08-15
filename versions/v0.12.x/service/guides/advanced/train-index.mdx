@@ -4,27 +4,33 @@ sidebarTitle: "Train Index"
 mode: "wide"
 ---
 
-<Note>This functionality is only present in the [core library](../../../intro/deployment-models) version of CyborgDB.
-In other versions (microservice, serverless), it is automatically called once enough vector embeddings have been indexed.</Note>
-
 CyborgDB uses `IVF*` index types, which leverage clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
 
-In the service-based SDKs, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added:
+<Tip>In CyborgDB Service, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added.</Tip>
 
 <CodeGroup>
 ```python Python SDK icon="python"
 # Train the encrypted index
 index.train()
+
+# Or train with a specific number of clusters
+index.train(n_lists=128)
 ```
 
 ```javascript JavaScript SDK icon="js"
 // Train the encrypted index
 await index.train();
+
+// Or train with a specific number of clusters
+await index.train({ n_lists: 128 });
 ```
 
 ```typescript TypeScript SDK icon="code"
 // Train the encrypted index
 await index.train();
+
+// Or train with a specific number of clusters
+await index.train({ n_lists: 128 });
 ```
 
 ```go Go SDK icon="golang"
@@ -50,9 +56,17 @@ Parameters are available to customize the training process:
 
 | Parameter | Type | Default | Description |
 |---------------|--------|---------|-------------------------------------------------------|
+| `n_lists` | `int` | `0` | _(Optional)_ Number of inverted index lists to create in the index. If `0`, it will auto-determine based on the number of vectors in the index. |
 | `batch_size` | `int` | `0` | _(Optional)_ Size of each batch for training. `0` auto-selects the batch size. |
 | `max_iters` | `int` | `0` | _(Optional)_ Maximum number of iterations for training. `0` auto-selects the iteration count. |
 | `tolerance` | `float`| `1e-6` | _(Optional)_ Convergence tolerance for training. |
+
+`n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
+
+- A base-2 number (e.g., `2,048`, `4,096`). Not a requirement, but yields performance optimizations.
+- Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
+
+If not specified, CyborgDB will auto-determine the best `n_lists` value based on the number of vectors in the index.
 
 ## Warnings with Large Untrained Queries
 

@@ -9,8 +9,9 @@ Creates and returns an `EncryptedIndex` instance based on the provided configura
 client.create_index(
     index_name,
     index_key,
-    index_config,
-    embedding_model
+    index_config = None,
+    metric = "euclidean",
+    embedding_model = None,
 )
 ```
 
@@ -20,7 +21,8 @@ client.create_index(
 |-----------|------|---------|-------------|
 | `index_name` | `str` | - | Unique name for the index |
 | `index_key` | `bytes` | - | 32-byte encryption key |
-| `index_config` | `IndexConfig` | - | Index configuration object |
+| `index_config` | `IndexConfig` | `None` | Index configuration object |
+| `metric` | `str` | `"euclidean"` | Distance metric to use (`"euclidean"`, `"squared_euclidean"`, or `"cosine"`) |
 | `embedding_model` | `str` | `None` | _(Optional)_ Embedding model identifier |
 
 ### Returns
@@ -45,31 +47,51 @@ An instance of `EncryptedIndex` configured with the provided parameters.
 
 ### Example Usage
 
-Basic usage of the `create_index` method to create an IVF-Flat index:
+#### Automatic Index Config
 
 ```python
-from cyborgdb import Client, IndexIVFFlat, generate_key
+from cyborgdb import Client
 
 # Initialize client
-client = Client('https://localhost:8000', 'your-api-key')
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
 # Generate a secure encryption key
-index_key = generate_key()
+index_key = client.generate_key()
 
-# Create a basic IVF-Flat index
-config = IndexIVFFlat(dimension=384, n_lists=100, metric="cosine")
+# Create an index
+index = client.create_index('documents', index_key)
+```
+
+<Tip>For more info on `generate_key`, refer to [Generate Key](./generate-key).</Tip>
+
+#### IVFFlat Index
+
+```python
+from cyborgdb import Client, IndexIVFFlat
+
+# Initialize client
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+
+# Generate a secure encryption key
+index_key = client.generate_key()
+
+# Create a basic IVFFlat index
+config = IndexIVFFlat()
 index = client.create_index('documents', index_key, config)
 ```
 
 #### IVFPQ Index with Embedding Model
 
 ```python
-# Create index with embedding model and cache
-config = IndexIVFPQ(dimension=768, n_lists=50, pq_bits=8, pq_dim=64, metric="cosine")
-index = client.create_index(
-    index_name='example_index_name',
-    index_key=index_key,
-    index_config=config,
-    embedding_model='all-MiniLM-L6-v2'
-)
+from cyborgdb import Client, IndexIVFPQ
+
+# Initialize client
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+
+# Generate a secure encryption key
+index_key = client.generate_key()
+
+# Create an IVFPQ index with automatic embedding generation
+config = IndexIVFPQ(pq_dim=64, pq_bits=8)
+index = client.create_index('documents', index_key, config, embedding_model='all-MiniLM-L6-v2')
 ```

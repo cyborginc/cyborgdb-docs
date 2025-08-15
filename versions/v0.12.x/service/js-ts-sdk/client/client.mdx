@@ -8,7 +8,11 @@ mode: "wide"
 ## Constructor
 
 ```typescript
-new Client(baseUrl: string, apiKey?: string, verifySsl?: boolean)
+new Client({
+    baseUrl: string,        // required
+    apiKey: string,         // required
+    verifySsl?: boolean     // optional, default: true
+})
 ```
 
 Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
@@ -38,13 +42,13 @@ The constructor includes intelligent SSL verification handling:
 import { Client } from 'cyborgdb';
 
 // Create client with API key (SSL auto-detected)
-const client = new Client('https://api.cyborgdb.co', 'your-api-key');
+const client = new Client({ baseUrl: 'https://api.cyborgdb.co', apiKey: 'your-api-key' });
 
 // Create client for local development (SSL auto-disabled)
-const localClient = new Client('http://localhost:8000');
+const localClient = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 // Create client with explicit SSL verification disabled
-const devClient = new Client('https://dev.cyborgdb.co', 'dev-api-key', false);
+const devClient = new Client({ baseUrl: 'https://dev.cyborgdb.co', apiKey: 'dev-api-key', verifySsl: false });
 ```
 
 ## Error Handling

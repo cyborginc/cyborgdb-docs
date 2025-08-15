@@ -6,10 +6,10 @@ mode: "wide"
 Retrieves vectors from the encrypted index by their IDs, with options to specify which fields to include in the results.
 
 ```typescript
-async get(
-    ids: string[],
-    include: string[] = ["vector", "contents", "metadata"]
-): Promise<Array<object>>
+async get({
+    ids: string[],     // required
+    include?: string[]  // optional, default: ["vector", "contents", "metadata"]
+}): Promise<Array<object>>
 ```
 
 ### Parameters
@@ -43,32 +43,34 @@ async get(
 ```typescript
 import { Client } from 'cyborgdb';
 
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 // Load an existing index
 const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
-const index = await client.loadIndex('my-vector-index', indexKey);
+const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey });
 
 // Add some vectors first
-await index.upsert([
-    { 
-        id: 'doc1', 
-        vector: [0.1, 0.2, 0.3, 0.4], 
-        contents: 'This is the first document content',
-        metadata: { title: 'Document 1', category: 'research', date: '2024-01-15' }
-    },
-    { 
-        id: 'doc2', 
-        vector: [0.4, 0.5, 0.6, 0.7], 
-        contents: 'This is the second document content',
-        metadata: { title: 'Document 2', category: 'tutorial', date: '2024-01-16' }
-    }
-]);
+await index.upsert({
+    items: [
+        { 
+            id: 'doc1', 
+            vector: [0.1, 0.2, 0.3, 0.4], 
+            contents: 'This is the first document content',
+                metadata: { title: 'Document 1', category: 'research', date: '2024-01-15' }
+        },
+        { 
+            id: 'doc2', 
+            vector: [0.4, 0.5, 0.6, 0.7], 
+            contents: 'This is the second document content',
+            metadata: { title: 'Document 2', category: 'tutorial', date: '2024-01-16' }
+        }
+    ]
+});
 
 // Retrieve vectors with all fields (default behavior)
 try {
-    const vectors = await index.get(['doc1', 'doc2']);
-    
+    const vectors = await index.get({ ids: ['doc1', 'doc2'] });
+
     vectors.forEach(item => {
         console.log(`ID: ${item.id}`);
         console.log(`Vector dimensions: ${item.vector?.length}`);

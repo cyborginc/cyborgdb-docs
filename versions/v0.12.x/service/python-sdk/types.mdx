@@ -16,10 +16,7 @@ Standard IVF (Inverted File) index configuration, ideal for balanced performance
 from cyborgdb import IndexIVF
 
 config = IndexIVF(
-    type='ivf',
-    dimension=768,
-    n_lists=1024,
-    metric='cosine'
+    dimension=768
 )
 ```
 
@@ -35,10 +32,7 @@ IVFFlat index configuration, suitable for highest accuracy requirements:
 from cyborgdb import IndexIVFFlat
 
 config = IndexIVFFlat(
-    type='ivfflat',
-    dimension=512,
-    n_lists=256,
-    metric='euclidean'
+    dimension=512
 )
 ```
 
@@ -54,12 +48,9 @@ IVFPQ (Product Quantization) index configuration, optimized for memory efficienc
 from cyborgdb import IndexIVFPQ
 
 config = IndexIVFPQ(
-    type='ivfpq',
-    dimension=1536,
-    n_lists=2048,
-    metric='cosine',
     pq_dim=64,
-    pq_bits=8
+    pq_bits=8,
+    dimension=1536
 )
 ```
 

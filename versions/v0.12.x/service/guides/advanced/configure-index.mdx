@@ -3,6 +3,8 @@ title: "Configure an Encrypted Index"
 sidebarTitle: "Configure Index"
 ---
 
+<Info>Index configuration is automatically handled by default. This guide allows you to override these defaults to customize index behavior & performance characteristics.</Info>
+
 CyborgDB offers three index types, all of which offer varying characteristics:
 
 |  Index Type  |  Speed  | Recall | Index Size |
@@ -23,72 +25,71 @@ To create an `IVFFlat` index, you can use its configuration constructor:
 
 <CodeGroup>
 ```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVFFlat, generate_key
+from cyborgdb import Client
 
 # Create a client
-client = Client('http://localhost:8000', 'your-api-key')
-
-# Set index parameters
-dimension = 128  # Adjust according to your dataset (dimensionality)
-n_lists = 4096
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
+)
 
 # Create the IVFFlat index config
-index_config = IndexIVFFlat(
-    type='ivf_flat',
-    dimension=dimension,
-    n_lists=n_lists
-)
+index_config = IndexIVFFlat()
 
 # Generate encryption key and create the index
 index_name = "test_index"
-index_key = generate_key()  # Generate secure 32-byte key
-index = client.create_index(index_name, index_key, index_config)
+index_key = client.generate_key()  # Generate secure 32-byte key
+index = client.create_index(
+    index_name=index_name, 
+    index_key=index_key, 
+    index_config=index_config
+)
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client } from 'cyborgdb';
+import { Client, IndexIVFFlat } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-// Set index parameters
-const dimension = 128;  // Adjust according to your dataset (dimensionality)
-const nLists = 4096;
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Create the IVFFlat index config
-const indexConfig = {
-    type: 'ivf_flat',
-    dimension: dimension,
-    nLists: nLists
-};
+const indexConfig = IndexIVFFlat();
 
 // Generate encryption key and create the index
 const indexName = "test_index";
-const indexKey = crypto.getRandomValues(new Uint8Array(32)); // Generate secure 32-byte key
-const index = await client.createIndex(indexName, indexKey, indexConfig);
+const indexKey = client.generateKey(); // Generate secure 32-byte key
+
+const index = await client.createIndex({ 
+    indexName, 
+    indexKey, 
+    indexConfig 
+});
 ```
 
 ```typescript TypeScript SDK icon="code"
 import { Client, IndexIVFFlat } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-// Set index parameters
-const dimension = 128;  // Adjust according to your dataset (dimensionality)
-const nLists = 4096;
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Create the IVFFlat index config
-const indexConfig: IndexIVFFlat = {
-    type: 'ivf_flat',
-    dimension: dimension,
-    nLists: nLists
-};
+const indexConfig: IndexIVFFlat = IndexIVFFlat();
 
 // Generate encryption key and create the index
 const indexName = "test_index";
-const indexKey = crypto.getRandomValues(new Uint8Array(32)); // Generate secure 32-byte key
-const index = await client.createIndex(indexName, indexKey, indexConfig);
+const indexKey = client.generateKey(); // Generate secure 32-byte key
+
+const index = await client.createIndex({ 
+    indexName, 
+    indexKey, 
+    indexConfig 
+});
 ```
 
 ```go Go SDK icon="golang"
@@ -96,11 +97,6 @@ const index = await client.createIndex(indexName, indexKey, indexConfig);
 ```
 
 </CodeGroup>
-
-`n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
-
-- A base-2 number (e.g., `2,048`, `4,096`). Not a requirement, but yields performance optimizations.
-- Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
 
 ## `IVFPQ` Index Type
 
@@ -114,84 +110,84 @@ To create an `IVFPQ` index, you can use its configuration constructor:
 
 <CodeGroup>
 ```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVFPQ, generate_key
+from cyborgdb import Client, IndexIVFPQ
 
 # Create a client
-client = Client('http://localhost:8000', 'your-api-key')
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
+)
 
 # Set index parameters
-dimension = 128  # Adjust according to your dataset (dimensionality)
-n_lists = 4096
 pq_dim = 32 # Dimension must be divisible by pq_dim
 pq_bits = 8 # Number of bits for each pq dimension
 
 # Create the IVFPQ index config
-index_config = IndexIVFPQ(
-    type='ivf_pq',
-    dimension=dimension,
-    n_lists=n_lists,
-    pq_dim=pq_dim,
-    pq_bits=pq_bits
-)
+index_config = IndexIVFPQ(pq_dim, pq_bits)
 
 # Generate encryption key and create the index
 index_name = "test_index"
-index_key = generate_key()  # Generate secure 32-byte key
-index = client.create_index(index_name, index_key, index_config)
+index_key = client.generate_key()  # Generate secure 32-byte key
+
+index = client.create_index(
+    index_name=index_name, 
+    index_key=index_key, 
+    index_config=index_config
+)
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client } from 'cyborgdb';
+import { Client, IndexIVFPQ } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Set index parameters
-const dimension = 128;  // Adjust according to your dataset (dimensionality)
-const nLists = 4096;
 const pqDim = 32; // Dimension must be divisible by pqDim
 const pqBits = 8; // Number of bits for each pq dimension
 
 // Create the IVFPQ index config
-const indexConfig = {
-    type: 'ivf_pq',
-    dimension: dimension,
-    nLists: nLists,
-    pqDim: pqDim,
-    pqBits: pqBits
-};
+const indexConfig = IndexIVFPQ(pqDim, pqBits);
 
 // Generate encryption key and create the index
 const indexName = "test_index";
-const indexKey = crypto.getRandomValues(new Uint8Array(32)); // Generate secure 32-byte key
-const index = await client.createIndex(indexName, indexKey, indexConfig);
+const indexKey = client.generateKey(); // Generate secure 32-byte key
+
+const index = await client.createIndex({ 
+    indexName, 
+    indexKey, 
+    indexConfig 
+});
 ```
 
 ```typescript TypeScript SDK icon="code"
 import { Client, IndexIVFPQ } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Set index parameters
-const dimension = 128;  // Adjust according to your dataset (dimensionality)
-const nLists = 4096;
 const pqDim = 32; // Dimension must be divisible by pqDim
 const pqBits = 8; // Number of bits for each pq dimension
 
 // Create the IVFPQ index config
-const indexConfig: IndexIVFPQ = {
-    type: 'ivf_pq',
-    dimension: dimension,
-    nLists: nLists,
-    pqDim: pqDim,
-    pqBits: pqBits
-};
+const indexConfig: IndexIVFPQ = IndexIVFPQ(pqDim, pqBits);
 
 // Generate encryption key and create the index
 const indexName = "test_index";
-const indexKey = crypto.getRandomValues(new Uint8Array(32)); // Generate secure 32-byte key
-const index = await client.createIndex(indexName, indexKey, indexConfig);
+const indexKey = client.generateKey(); // Generate secure 32-byte key
+
+const index = await client.createIndex({ 
+    indexName, 
+    indexKey, 
+    indexConfig 
+});
 ```
 
 ```go Go SDK icon="golang"
@@ -199,11 +195,6 @@ const index = await client.createIndex(indexName, indexKey, indexConfig);
 ```
 
 </CodeGroup>
-
-`n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
-
-- A base-2 number (e.g., `2,048`, `4,096`). Not a requirement, but yields performance optimizations.
-- Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
 
 `pq_dim` is the number of dimensionality for each vector after product-quantization. It must be between `1` and `dimension`, and `dimension` must be cleanly divisible by `pq_dim`. Lower `pq_dim` will yield smaller index sizes but lower recall.
 
@@ -213,80 +204,78 @@ const index = await client.createIndex(indexName, indexKey, indexConfig);
 
 <Note>The `IVF` index type is only supported in paid plans.</Note>
 
-The `IVF` index type (Inverted File Index) is the simplest offered by CyborgDB. It takes a single parameter, `n_lists`, which defines the number of lists, or clusters, into which the index is segmented. In other words, vectors that are close together will be clustered together into a single list. At retrieval time, vectors in the clusters closest to the query vector will be returned. This yields a very fast, but rather inaccurate, search.
-
-We recommend `IVF` indexes for applications which require high-speed, low-latency search with low recall requirements (or where `top_k` is rather large, i.e. >500).
+The `IVF` index type (Inverted File Index) is the simplest offered by CyborgDB. We recommend `IVF` indexes for applications which require high-speed, low-latency search with low recall requirements (or where `top_k` is rather large, i.e. >500).
 
 To create an `IVF` index, you can use its configuration constructor:
 
 <CodeGroup>
 ```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVF, generate_key
+from cyborgdb import Client, IndexIVF
 
 # Create a client
-client = Client('http://localhost:8000', 'your-api-key')
-
-# Set index parameters
-dimension = 128  # Adjust according to your dataset (dimensionality)
-n_lists = 4096
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
+)
 
 # Create the IVF index config
-index_config = IndexIVF(
-    type='ivf',
-    dimension=dimension,
-    n_lists=n_lists
-)
+index_config = IndexIVF()
 
 # Generate encryption key and create the index
 index_name = "test_index"
-index_key = generate_key()  # Generate secure 32-byte key
-index = client.create_index(index_name, index_key, index_config)
+index_key = client.generate_key()  # Generate secure 32-byte key
+
+index = client.create_index(
+    index_name=index_name, 
+    index_key=index_key, 
+    index_config=index_config
+)
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client } from 'cyborgdb';
+import { Client, IndexIVF } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-// Set index parameters
-const dimension = 128;  // Adjust according to your dataset (dimensionality)
-const nLists = 4096;
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Create the IVF index config
-const indexConfig = {
-    type: 'ivf',
-    dimension: dimension,
-    nLists: nLists
-};
+const indexConfig = IndexIVF();
 
 // Generate encryption key and create the index
 const indexName = "test_index";
-const indexKey = crypto.getRandomValues(new Uint8Array(32)); // Generate secure 32-byte key
-const index = await client.createIndex(indexName, indexKey, indexConfig);
+const indexKey = client.generateKey(); // Generate secure 32-byte key
+
+const index = await client.createIndex({ 
+    indexName, 
+    indexKey, 
+    indexConfig 
+});
 ```
 
 ```typescript TypeScript SDK icon="code"
 import { Client, IndexIVF } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-// Set index parameters
-const dimension = 128;  // Adjust according to your dataset (dimensionality)
-const nLists = 4096;
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // Create the IVF index config
-const indexConfig: IndexIVF = {
-    type: 'ivf',
-    dimension: dimension,
-    nLists: nLists
-};
+const indexConfig: IndexIVF = IndexIVF();
 
 // Generate encryption key and create the index
 const indexName = "test_index";
-const indexKey = crypto.getRandomValues(new Uint8Array(32)); // Generate secure 32-byte key
-const index = await client.createIndex(indexName, indexKey, indexConfig);
+const indexKey = client.generateKey(); // Generate secure 32-byte key
+
+const index = await client.createIndex({ 
+    indexName, 
+    indexKey, 
+    indexConfig 
+});
 ```
 
 ```go Go SDK icon="golang"
@@ -295,11 +284,6 @@ const index = await client.createIndex(indexName, indexKey, indexConfig);
 
 </CodeGroup>
 
-`n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
-
-- A base-2 number (e.g., `2,048`, `4,096`). Not a requirement, but yields performance optimizations.
-- Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
-
 ## Customizing Distance Metrics
 
 By default, CyborgDB uses `euclidean` distance as its metric for all index types. You can override this default by providing a `metric` parameter to any of the index constructors. For example:
@@ -307,32 +291,42 @@ By default, CyborgDB uses `euclidean` distance as its metric for all index types
 <CodeGroup>
 ```python Python SDK icon="python"
 # Example with cosine similarity
-index_config = IndexIVFFlat(
-    type='ivf_flat',
-    dimension=dimension,
-    n_lists=n_lists,
-    metric='cosine'
+index_config = IndexIVFFlat()
+
+index = client.create_index(
+    index_name="index_name", 
+    index_key=index_key, 
+    index_config=index_config, 
+    metric="cosine"
 )
 ```
 
 ```javascript JavaScript SDK icon="js"
 // Example with cosine similarity
-const indexConfig = {
-    type: 'ivf_flat',
-    dimension: dimension,
-    nLists: nLists,
-    metric: 'cosine'
-};
+const indexConfig = IndexIVFFlat();
+const indexName = "index_name";
+const indexKey = client.generateKey(); // Generate secure 32-byte key
+
+index = client.createIndex({ 
+    indexName, 
+    indexKey, 
+    indexConfig, 
+    metric: "cosine" 
+});
 ```
 
 ```typescript TypeScript SDK icon="code"
 // Example with cosine similarity
-const indexConfig: IndexIVFFlat = {
-    type: 'ivf_flat',
-    dimension: dimension,
-    nLists: nLists,
-    metric: 'cosine'
-};
+const indexConfig: IndexIVFFlat = IndexIVFFlat();
+const indexName = "index_name";
+const indexKey = client.generateKey(); // Generate secure 32-byte key
+
+index = client.createIndex({ 
+    indexName, 
+    indexKey, 
+    indexConfig, 
+    metric: "cosine" 
+});
 ```
 
 ```go Go SDK icon="golang"
@@ -348,11 +342,9 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
        "index_name": "my_index",
        "index_key": "your_64_character_hex_key_here",
        "index_config": {
-         "type": "ivfflat",
-         "dimension": 768,
-         "n_lists": 1024,
-         "metric": "cosine"
-       }
+         "type": "ivfflat"
+       },
+       "metric": "cosine"
      }'
 ```
 </CodeGroup>

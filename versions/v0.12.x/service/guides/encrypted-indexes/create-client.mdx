@@ -7,37 +7,37 @@ The `Client` class provides an interface to connect to the CyborgDB service and 
 
 ## Creating the Client
 
-To create the client, you need to provide the service URL and optionally an API key for authentication:
+To create the client, you need to provide the service URL and an API key for authentication:
 
 <CodeGroup>
 ```python Python SDK icon="python"
 from cyborgdb import Client
 
-# Create client with API key (for production)
-client = Client('http://localhost:8000', 'your-api-key')
-
-# Create client without API key (for local development)
-local_client = Client('http://localhost:8000', None)
+# Create client with API key
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
+)
 ```
 
 ```javascript JavaScript SDK icon="js"
 import { Client } from 'cyborgdb';
 
-// Create client with API key (for production) 
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-// Create client without API key (for local development)
-const localClient = new Client('http://localhost:8000');
+// Create client with API key
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 ```
 
 ```typescript TypeScript SDK icon="code"
 import { Client } from 'cyborgdb';
 
-// Create client with API key (for production)
-const client = new Client('http://localhost:8000', 'your-api-key');
-
-// Create client without API key (for local development)
-const localClient = new Client('http://localhost:8000');
+// Create client with API key
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 ```
 
 ```go Go SDK icon="golang"
@@ -57,16 +57,9 @@ curl -X GET "http://localhost:8000/v1/health"
 
 ## API Key Authentication
 
-For production deployments, you'll need an API key for authentication. You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
+To use CyborgDB, you'll need an API key for authentication. You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 
 The client handles all authentication automatically once you provide the API key during initialization.
-
-## Service Connection
-
-The client connects to the CyborgDB service via HTTP/HTTPS. All data transmission is secured, and all index data is end-to-end encrypted before being sent to the service.
-
-- **Local Development**: Use `http://localhost:8000` without an API key when running the service locally
-- **Production**: Use your hosted service URL with an API key for authentication
 
 ## Health Checking
 

@@ -14,11 +14,12 @@ Create a new encrypted index with the specified configuration.
   "index_name": "my_index",
   "index_key": "64_character_hex_string_representing_32_bytes",
   "index_config": {
-    "type": "ivfflat",
+    "type": "ivfpq",
     "dimension": 384,
-    "n_lists": 1024,
-    "metric": "euclidean"
+    "pq_dim": 64,
+    "pq_bits": 8
   },
+  "metric": "euclidean",
   "embedding_model": "all-MiniLM-L6-v2"
 }
 ```
@@ -34,10 +35,12 @@ Create a new encrypted index with the specified configuration.
     Index configuration object containing:
     - `type`: Index type (`ivfflat`, `ivf`, `ivfpq`)
     - `dimension`: Embedding dimension (required for `ivfflat` and `ivf`)
-    - `n_lists`: Number of inverted lists (required for `ivfflat` and `ivf`)
-    - `metric`: Distance metric (`euclidean`, `cosine`, `squared_euclidean`)
-    
+    - `pq_dim`: Product quantization dimension (required for `ivfpq`)
+    - `pq_bits`: Number of bits per sub-vector (required for `ivfpq`)
     See [Index Types](#index-types) for details.
+  </ParamField>
+  <ParamField body="metric" type="string">
+    Distance metric to use for the index, defaults to `euclidean`
   </ParamField>
   <ParamField body="embedding_model" type="string">
     Optional sentence-transformers model for automatic embedding generation
@@ -53,9 +56,7 @@ Suitable for applications requiring high recall with moderate memory usage:
 ```json
 {
   "type": "ivfflat",
-  "dimension": 384,
-  "n_lists": 1024,
-  "metric": "euclidean"
+  "dimension": 384
 }
 ```
 
@@ -68,9 +69,7 @@ Ideal for large-scale datasets where fast retrieval is prioritized:
 ```json
 {
   "type": "ivf",
-  "dimension": 384,
-  "n_lists": 1024,
-  "metric": "euclidean"
+  "dimension": 384
 }
 ```
 
@@ -84,10 +83,8 @@ Product Quantization compresses embeddings, balancing memory use and recall:
 {
   "type": "ivfpq",
   "dimension": 384,
-  "n_lists": 1024,
   "pq_dim": 64,
   "pq_bits": 8,
-  "metric": "euclidean"
 }
 ```
 
@@ -126,9 +123,7 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
        "index_key": "your_64_character_hex_key_here",
        "index_config": {
          "type": "ivfflat",
-         "dimension": 384,
-         "n_lists": 1024,
-         "metric": "euclidean"
+         "dimension": 384
        }
      }'
 ```
@@ -143,9 +138,7 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
        "index_name": "semantic_search_index",
        "index_key": "your_64_character_hex_key_here",
        "index_config": {
-         "type": "ivfflat",
-         "n_lists": 1024,
-         "metric": "cosine"
+         "type": "ivfflat"
        },
        "embedding_model": "all-MiniLM-L6-v2"
      }'

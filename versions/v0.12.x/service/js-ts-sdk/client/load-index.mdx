@@ -6,10 +6,10 @@ mode: "wide"
 Loads and connects to an existing encrypted index using its name and encryption key.
 
 ```typescript
-async loadIndex(
-    indexName: string,
-    indexKey: Uint8Array
-): Promise<EncryptedIndex>
+async loadIndex({
+    indexName: string,      // required
+    indexKey: Uint8Array    // required
+}): Promise<EncryptedIndex>
 ```
 
 ### Parameters
@@ -44,14 +44,14 @@ async loadIndex(
 ```typescript
 import { Client } from 'cyborgdb';
 
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 // Use the same key that was used to create the index
 const indexKey = new Uint8Array(32); // Your stored 32-byte key
 // Or convert from hex: Buffer.from('your-hex-key', 'hex')
 
 try {
-    const index = await client.loadIndex('my-existing-index', indexKey);
+    const index = await client.loadIndex({ indexName: 'my-existing-index', indexKey });
     console.log('Index loaded successfully');
     
     // Now you can perform operations on the loaded index

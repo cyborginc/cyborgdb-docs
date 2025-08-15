@@ -11,7 +11,10 @@ To see which existing encrypted indexes are available to your CyborgDB client, y
 from cyborgdb import Client
 
 # Create a client
-client = Client('http://localhost:8000', 'your-api-key')
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
+)
 
 # List all available indexes
 indexes = client.list_indexes()
@@ -25,7 +28,10 @@ print(indexes)
 import { Client } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // List all available indexes
 const indexes = await client.listIndexes();
@@ -39,7 +45,10 @@ console.log(indexes);
 import { Client } from 'cyborgdb';
 
 // Create a client
-const client = new Client('http://localhost:8000', 'your-api-key');
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
 
 // List all available indexes
 const indexes: string[] = await client.listIndexes();
@@ -73,7 +82,7 @@ For more information on listing encrypted indexes, refer to the API reference:
         API reference for `list_indexes()` in Python
     </Card>
     <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/list-indexes" icon="js">
-        API reference for `list_indexes()` in JavaScript/TypeScript
+        API reference for `listIndexes()` in JavaScript/TypeScript
     </Card>
     <Card title="Go SDK Reference" href="../../go-sdk/client/list-indexes" icon="golang">
         API reference for `ListIndexes()` in Go
