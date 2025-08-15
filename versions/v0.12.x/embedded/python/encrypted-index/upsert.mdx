@@ -6,7 +6,8 @@ mode: "wide"
 Adds or updates vector embeddings in the index. Accepts a list of dictionaries, where each dictionary represents a vector with its ID.
 
 ```python
-def upsert(self, items: List[Dict[str, Any]])
+def upsert(self, 
+           items: List[Dict[str, Any]])
 ```
 
 ### Parameters
@@ -48,7 +49,10 @@ If `vector` is not provided, a vector embedding will be auto-generated from `con
 # Initial configuration already done...
 
 # Load Index
-index = client.load_index(index_name=index_name, index_key=index_key)
+index = client.load_index(
+    index_name=index_name, 
+    index_key=index_key
+)
 
 # Single upsert (wrapped in a list)
 index.upsert([{"id": "item_1", "vector": [0.1, 0.2, 0.3]}])

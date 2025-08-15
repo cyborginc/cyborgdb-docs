@@ -55,7 +55,13 @@ filters = [{"age": {"$gt": 18}}]
 include = ["distance", "metadata"]
 
 # Perform query
-results = index.query(query_vectors=query_vectors, top_k=top_k, n_probes=n_probes, filters=filters, include=include)
+results = index.query(
+    query_vectors=query_vectors, 
+    top_k=top_k, 
+    n_probes=n_probes, 
+    filters=filters, 
+    include=include
+)
 
 print(results)
 # Example results (IDs and distances)
@@ -128,7 +134,12 @@ If you provided an `embedding_model` during index creation, you can automaticall
 ```python Python icon="python"
 # ... index creation and embedding model setup
 embedding_model = "all-MiniLM-L6-v2"
-index = client.create_index("my_index", index_key, index_config, embedding_model)
+index = client.create_index(
+    index_name="my_index", 
+    index_key=index_key, 
+    index_config=index_config, 
+    embedding_model=embedding_model
+)
 
 # ... Add items to the encrypted index ...
 
@@ -137,7 +148,10 @@ query_contents = "What is the capital of France?"
 top_k = 10
 
 # Perform query
-results = index.query(query_contents=query_contents, top_k=top_k)
+results = index.query(
+    query_contents=query_contents, 
+    top_k=top_k
+)
 ```
 
 This feature uses [`sentence-transformers`](https://www.sbert.net/) for embedding generation. You can use any model from the [HuggingFace Model Hub](https://huggingface.co/models) that is compatible with `sentence-transformers`.

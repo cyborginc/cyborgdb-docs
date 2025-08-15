@@ -15,7 +15,7 @@ QueryResults Query(Array2D<float>& query_vectors,
 | Parameter | Type | Description |
 |-------------------|--------------------|-----------------------|
 | `query_vectors` | [`Array2D<float>`](../types#array2d) | Query vectors to search. |
-| `query_params` | [`QueryParams`](../types#queryparams) | _(Optional)_ Parameters for querying, such as `top_k` and `n_lists`. |
+| `query_params` | [`QueryParams`](../types#queryparams) | _(Optional)_ Parameters for querying, such as `top_k` and `n_probes`. |
 
 <Tip> If this function is called on an index where `TrainIndex()` has not been executed, the query will use encrypted exhaustive search.
 This may cause queries to be slower, especially when there are many vector embeddings in the index.</Tip>

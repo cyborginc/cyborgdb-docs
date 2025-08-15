@@ -45,7 +45,11 @@ import cyborgdb_core as cyborgdb
 index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
 config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
 
-client = cyborgdb.Client(index_location=index_location, config_location=config_location)
+client = cyborgdb.Client(
+    api_key=api_key,
+    index_location=index_location,
+    config_location=config_location
+)
 
 index_name = "my_index"
 index_key = my_index_key  # Use the same 32-byte encryption key used during index creation

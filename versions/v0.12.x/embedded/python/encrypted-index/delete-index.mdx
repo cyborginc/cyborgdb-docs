@@ -25,7 +25,10 @@ Deletes the current index and its associated data. This action is irreversible, 
 
 ```python
 # Load index
-index = client.load_index(index_name=index_name, index_key=index_key)
+index = client.load_index(
+    index_name=index_name, 
+    index_key=index_key
+)
 
 # Delete the index
 index.delete_index()

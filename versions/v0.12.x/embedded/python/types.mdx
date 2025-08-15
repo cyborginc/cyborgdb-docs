@@ -25,11 +25,16 @@ The supported `location` options are:
 ```python
 import cyborgdb_core as cyborgdb
 
-index_location = cyborgdb.DBConfig(location="redis",
-                          connection_string="redis://localhost")
+index_location = cyborgdb.DBConfig(
+    location="redis",
+    connection_string="redis://localhost"
+)
 
-config_location = cyborgdb.DBConfig(location="postgres",
-                           table_name="config_table", connection_string="host=localhost dbname=postgres")
+config_location = cyborgdb.DBConfig(
+    location="postgres",
+    table_name="config_table",
+    connection_string="host=localhost dbname=postgres"
+)
 ```
 
 For more info, you can read about supported backing stores [here](../../intro/backing-stores).
@@ -63,17 +68,14 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 
 | Parameter | Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `dimension` | `int` | Dimensionality of vector embeddings. |
-| `n_lists` | `int` | Number of inverted index lists to create in the index (recommended base-2 value).|
-| `metric` | `str` | _(Optional)_ Distance metric to use for index build and queries. |
-
+| `dimension` | `int` | _(Optional)_ Dimensionality of vector embeddings. |
 
 #### Example Usage
 
 ```python
 import cyborgdb_core as cyborgdb
 
-index_config = cyborgdb.IndexIVF(dimension=128, n_lists=1024, metric="euclidean")
+index_config = cyborgdb.IndexIVF(dimension=128)
 ```
 
 ### IndexIVFFlat
@@ -88,17 +90,17 @@ Suitable for applications requiring high recall with less concern for memory usa
 
 | Parameter | Type | Description |
 |--------------|-------------------------------|-------------------------------------------------------------------------------|
-| `dimension` | `int` | Dimensionality of vector embeddings. |
-| `n_lists` | `int` | Number of inverted index lists to create in the index (recommended base-2 value).|
-| `metric` | `str` | _(Optional)_ Distance metric to use for index build and queries. |
+| `dimension` | `int` | _(Optional)_ Dimensionality of vector embeddings. |
 
 #### Example Usage
 
 ```python
 import cyborgdb_core as cyborgdb
 
-index_config = cyborgdb.IndexIVFFlat(dimension=128, n_lists=1024, metric="euclidean")
+index_config = cyborgdb.IndexIVFFlat(dimension=128)
 ```
+
+<Tip>`IndexIVFFlat` is the default index configuration and is suitable for most use cases.</Tip>
 
 ### IndexIVFPQ
 
@@ -112,18 +114,20 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 
 | Parameter | Type | Description |
 |--------------|-------------------------------|-------------------------------------------------------------------------------|
-| `dimension` | `int` | Dimensionality of vector embeddings. |
-| `n_lists` | `int` | Number of inverted index lists to create in the index (recommended base-2 value).|
 | `pq_dim` | `int` | Dimensionality of embeddings after quantization (less than or equal to `dimension`). |
 | `pq_bits` | `int` | Number of bits per dimension for PQ embeddings (between 1 and 16). |
-| `metric` | `str` | _(Optional)_ Distance metric to use for index build and queries. |
+| `dimension` | `int` | _(Optional)_ Dimensionality of vector embeddings. |
 
 #### Example Usage
 
 ```python
 import cyborgdb_core as cyborgdb
 
-index_config = cyborgdb.IndexIVFPQ(dimension=128, n_lists=1024, pq_dim=64, pq_bits=8, metric="euclidean")
+# Auto-determine dimensionality
+index_config = cyborgdb.IndexIVFPQ(pq_dim=64, pq_bits=8)
+
+# Explicitly set dimensionality
+index_config = cyborgdb.IndexIVFPQ(pq_dim=64, pq_bits=8, dimension=128)
 ```
 
-<Tip>If `embedding_model` is defined in `create_index()`, then `dimension` is unncessary in `IndexConfig`.</Tip>
+<Tip>If `dimension` is not provided, it will be auto-determined based on the first vector embedding added to the index.</Tip>

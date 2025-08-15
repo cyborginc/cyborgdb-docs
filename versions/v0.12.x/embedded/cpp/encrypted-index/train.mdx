@@ -8,16 +8,18 @@ Prior to calling this, all queries will be conducted using encrypted exhaustive 
 After, they will be conducted using encrypted ANN search.
 
 ```cpp
-void TrainIndex(const TrainingConfig& training_config = TrainingConfig());
+void TrainIndex(const size_t n_lists = 0, 
+                const TrainingConfig& training_config = TrainingConfig());
 ```
 
 ### Parameters
 
 | Parameter | Type | Description |
 |----------|------------|--------------------|
+| `n_lists` | `size_t` | _(Optional)_ Number of inverted index lists to create in the index (will auto-determine if not provided). |
 | `training_config` | [`TrainingConfig`](../types#trainingconfig) | _(Optional)_ Training parameters (batch size, max iterations, etc.). |
 
-<Tip>There must be at least `2 * n_lists` vector embeddings in the index prior to to calling this function.</Tip>
+<Tip>There must be at least `2 * n_lists` or `10,000` (whichever is greater) vector embeddings in the index prior to to calling this function.</Tip>
 
 ### Exceptions
 
@@ -34,5 +36,5 @@ Throws if there are not enough vector embeddings in the index for training (must
 
 ```cpp
 cyborg::TrainingConfig config(128, 10, 1e-4, 1024);
-index->TrainIndex(config);
+index->TrainIndex(1024, config);
 ```

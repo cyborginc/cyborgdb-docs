@@ -17,7 +17,11 @@ import cyborgdb_lite as cyborgdb
 # Get your API key
 api_key = "your_api_key_here"  # Replace with your actual API key
 
-client = cyborgdb.Client(api_key, index_location=index_location, config_location=config_location)
+client = cyborgdb.Client(
+    api_key=api_key,
+    index_location=index_location,
+    config_location=config_location
+)
 
 indexes = client.list_indexes()
 

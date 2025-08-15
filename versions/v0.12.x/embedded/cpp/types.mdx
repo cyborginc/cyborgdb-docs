@@ -112,17 +112,13 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 #### Constructor
 
 ```cpp
-IndexIVF(size_t dimension,
-         size_t n_lists,
-         DistanceMetric metric = DistanceMetric::Euclidean);
+IndexIVF(size_t dimension = 0);
 ```
 
 #### Parameters
 | Parameter | Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `dimension` | `size_t` | Dimensionality of vector embeddings. |
-| `n_lists` | `size_t` | Number of inverted index lists to create in the index (recommended base-2 value).|
-| `metric` | [`DistanceMetric`](#distancemetric) | _(Optional)_ Distance metric to use for index build and queries. |
+| `dimension` | `size_t` | _(Optional)_ Dimensionality of vector embeddings. (will auto-detect if not provided) |
 
 ### IndexIVFFlat
 
@@ -135,17 +131,15 @@ Suitable for applications requiring high recall with less concern for memory usa
 #### Constructor
 
 ```cpp
-IndexIVFFlat(size_t dimension,
-             size_t n_lists,
-             DistanceMetric metric = DistanceMetric::Euclidean);
+IndexIVFFlat(size_t dimension = 0);
 ```
 
 #### Parameters
 | Parameter | Type | Description |
 |--------------|-------------------------------|-------------------------------------------------------------------------------|
-| `dimension` | `size_t` | Dimensionality of vector embeddings. |
-| `n_lists` | `size_t` | Number of inverted index lists to create in the index (recommended base-2 value).|
-| `metric` | [`DistanceMetric`](#distancemetric) | _(Optional)_ Distance metric to use for index build and queries. |
+| `dimension` | `size_t` | _(Optional)_ Dimensionality of vector embeddings. (will auto-detect if not provided) |
+
+<Tip>`IndexIVFFlat` is the default index configuration and is suitable for most use cases.</Tip>
 
 ### IndexIVFPQ
 
@@ -158,22 +152,18 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 #### Constructor
 
 ```cpp
-IndexIVFPQ(size_t dimension,
-           size_t n_lists,
-           size_t pq_dim,
+IndexIVFPQ(size_t pq_dim,
            size_t pq_bits,
-           DistanceMetric metric = DistanceMetric::Euclidean);
+           size_t dimension = 0);
 ```
 
 #### Parameters
 
 | Parameter | Type | Description |
 |--------------|-------------------------------|-------------------------------------------------------------------------------|
-| `dimension` | `size_t` | Dimensionality of vector embeddings. |
-| `n_lists` | `size_t` | Number of inverted index lists to create in the index (recommended base-2 value).|
 | `pq_dim` | `size_t` | Dimensionality of embeddings after quantization (less than or equal to `dimension`). |
 | `pq_bits` | `size_t` | Number of bits per dimension for PQ embeddings (between 1 and 16). |
-| `metric` | [`DistanceMetric`](#distancemetric) | _(Optional)_ Distance metric to use for index build and queries. |
+| `dimension` | `size_t` | _(Optional)_ Dimensionality of vector embeddings. (will auto-detect if not provided) |
 
 ---
 
@@ -259,7 +249,7 @@ The `QueryParams` struct defines parameters for querying the index, controlling 
 
 ```cpp
 QueryParams(size_t top_k = 100,
-            size_t n_probes = 1,
+            size_t n_probes = 0,
             std::string filters = "",
             std::vector<ResultFields> include = {},
             bool greedy = false);
@@ -270,7 +260,7 @@ QueryParams(size_t top_k = 100,
 | Parameter | Type | Description |
 |-------------------|----------|--------------------------------------------------------------------------|
 | `top_k` | `size_t` | _(Optional)_ Number of nearest neighbors to return. Defaults to `100`. |
-| `n_probes` | `size_t` | _(Optional)_ Number of lists to probe during query. Defaults to `1`. |
+| `n_probes` | `size_t` | _(Optional)_ Number of lists to probe during query. Defaults to `0` which will auto-determine optimal probes. |
 | `filters` | `std::string` | _(Optional)_ A JSON string of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `include` | `std::vector<ResultFields>` | _(Optional)_ List of result fields to return. Can include `kDistance` and `kMetadata`. Defaults to empty. |
 | `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |

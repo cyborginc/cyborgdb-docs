@@ -29,7 +29,10 @@ def delete(self, ids: List[str])
 
 ```python
 # Load index
-index = client.load_index(index_name=index_name, index_key=index_key)
+index = client.load_index(
+    index_name=index_name, 
+    index_key=index_key
+)
 
 # Delete "item_1" and "item_2"
 index.delete(["item_1", "item_2"])

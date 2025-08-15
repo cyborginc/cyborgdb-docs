@@ -26,7 +26,11 @@ config_location = cyborgdb.DBConfig("memory") # Where encrypted index config is 
 api_key = "your_api_key_here"  # Replace with your actual API key
 
 # Create a client
-client = cyborgdb.Client(api_key, index_location, config_location)
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location
+)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -73,10 +77,12 @@ item_location = cyborgdb.DBConfig(location="postgres", table_name="item_table", 
 api_key = "your_api_key_here"  # Replace with your actual API key
 
 # Construct the Client object
-client = cyborgdb.Client(api_key, 
-                        index_location=index_location, 
-                        config_location=config_location,
-                        items_location=item_location)
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location,
+    items_location=item_location
+)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -110,12 +116,14 @@ You can control either of these with the optional `cpu_threads` and `gpu_acceler
 <CodeGroup>
 ```python Python icon="python"
 # ... existing setup (with api_key defined above)
-client = cyborgdb.Client(api_key,
-                        index_location=index_location, 
-                        config_location=config_location,
-                        items_location=item_location,
-                        cpu_threads=4,
-                        gpu_accelerate=False)
+client = cyborgdb.Client(
+    api_key=api_key,
+    index_location=index_location, 
+    config_location=config_location,
+    items_location=item_location,
+    cpu_threads=4,
+    gpu_accelerate=False
+)
 ```
 
 ```cpp C++ icon="brackets-curly"

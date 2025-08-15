@@ -313,7 +313,6 @@
                       "versions/v0.12.x/embedded/guides/encrypted-indexes/introduction",
                       "versions/v0.12.x/embedded/guides/encrypted-indexes/create-client",
                       "versions/v0.12.x/embedded/guides/encrypted-indexes/create-index",
-                      "versions/v0.12.x/embedded/guides/encrypted-indexes/configure-index",
                       "versions/v0.12.x/embedded/guides/encrypted-indexes/load-index",
                       "versions/v0.12.x/embedded/guides/encrypted-indexes/list-indexes",
                       "versions/v0.12.x/embedded/guides/encrypted-indexes/train-index",
@@ -334,6 +333,7 @@
                     "group": "Advanced",
                     "pages": [
                       "versions/v0.12.x/embedded/guides/advanced/managing-keys",
+                      "versions/v0.12.x/embedded/guides/advanced/configure-index",
                       "versions/v0.12.x/embedded/guides/advanced/usage-telemetry"
                     ]
                   }

@@ -20,14 +20,21 @@ config_location = cyborgdb.DBConfig("memory")
 api_key = "your_api_key_here"  # Replace with your actual API key
 
 # Create a client
-client = cyborgdb.Client(api_key, index_location, config_location)
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location
+)
 
 # Provide the index key used when creating the index
 # Example key (32 bytes)
 index_key = bytes(32)
 
 # Create an encrypted index
-index = client.load_index("my_index", index_key)
+index = client.load_index(
+    index_name="my_index", 
+    index_key=index_key
+)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -54,8 +61,6 @@ auto index = client.LoadIndex("my_index", index_key);
 ```
 </CodeGroup>
 
-This creates a new encrypted index with the IVFFlat type. For more details on IVFFlat and other index options, see [Configure an Encrypted Index](./configure-index).
-
 <Warning>You will need to replace `index_key` with your own index encryption key. 
 For production use, we recommend that you use an HSM or KMS solution.
 For more details, see [Managing Encryption Keys](../advanced/managing-keys).</Warning>
@@ -79,7 +84,11 @@ config_location = cyborgdb.DBConfig("memory")
 api_key = "your_api_key_here"  # Replace with your actual API key
 
 # Create a client
-client = cyborgdb.Client(api_key, index_location, config_location)
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location
+)
 
 # Generate an encryption key for the index
 index_key = secrets.token_bytes(32)
@@ -88,7 +97,11 @@ index_key = secrets.token_bytes(32)
 max_cache_size = 1000000
 
 # Create an encrypted index
-index = client.load_index("my_index", index_key, max_cache_size)
+index = client.load_index(
+    index_name="my_index", 
+    index_key=index_key, 
+    max_cache_size=max_cache_size
+)
 ```
 
 ```cpp C++ icon="brackets-curly"

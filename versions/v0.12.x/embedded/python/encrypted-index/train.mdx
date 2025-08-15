@@ -8,19 +8,25 @@ Prior to calling this, all queries will be conducted using encrypted exhaustive 
 After, they will be conducted using encrypted ANN search.
 
 ```python
-def train(self, batch_size: int = 2048, max_iters: int = 100, tolerance: float = 1e-6, max_memory: int = 0)
+def train(self, 
+          n_lists: int = 0,
+          batch_size: int = 2048,
+          max_iters: int = 100,
+          tolerance: float = 1e-6,
+          max_memory: int = 0)
 ```
 
 ### Parameters
 
 | Parameter | Type | Default | Description |
 |---------------|--------|---------|-------------------------------------------------------|
+| `n_lists` | `int` | `0` | _(Optional)_ Number of inverted index lists to create in the index. If `0`, it will auto-determine based on the number of vectors in the index. |
 | `batch_size` | `int` | `2048` | _(Optional)_ Size of each batch for training. |
 | `max_iters` | `int` | `100` | _(Optional)_ Maximum number of iterations for training. |
 | `tolerance` | `float`| `1e-6` | _(Optional)_ Convergence tolerance for training. |
 | `max_memory` | `int`| `0` | _(Optional)_ Maximum memory to use for training. `0` sets no limit. |
 
-<Tip>There must be at least `2 * n_lists` vector embeddings in the index prior to to calling this function.</Tip>
+<Tip>There must be at least `2 * n_lists` or `10,000` (whichever is greater) vector embeddings in the index prior to to calling this function.</Tip>
 
 ### Exceptions
 
@@ -38,10 +44,17 @@ def train(self, batch_size: int = 2048, max_iters: int = 100, tolerance: float =
 
 ```python
 # Load index
-index = client.load_index(index_name=index_name, index_key=index_key)
+index = client.load_index(
+    index_name=index_name, 
+    index_key=index_key
+)
 
 # Train the index with custom settings
-index.train(batch_size=128, max_iters=10, tolerance=1e-4)
+index.train(
+    batch_size=128, 
+    max_iters=10, 
+    tolerance=1e-4
+)
 
 # Train with default settings (auto-selected configuration)
 index.train()

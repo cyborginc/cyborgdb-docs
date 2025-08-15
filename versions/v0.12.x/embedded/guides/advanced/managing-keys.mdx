@@ -45,12 +45,14 @@ For local development and evaluation, you can generate a 256-bit encryption key 
     # Example setup
     index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
     config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-    client = cyborgdb.Client(api_key, index_location, config_location)
+    client = cyborgdb.Client(
+        api_key=api_key,
+        index_location=index_location,
+        config_location=config_location
+    )
 
     # Example index configuration
-    dimension = 128
-    n_lists = 4096
-    index_config = cyborgdb.IndexIVFFlat(dimension, n_lists)
+    index_config = cyborgdb.IndexIVFFlat()
     index_name = "test_index"
 
     # Load the encryption key
@@ -58,7 +60,11 @@ For local development and evaluation, you can generate a 256-bit encryption key 
         index_key = key_file.read().strip()
 
     # Use the encryption key
-    client.create_index(index_name, index_key, index_config)
+    client.create_index(
+        index_name=index_name,
+        index_key=index_key,
+        index_config=index_config
+    )
     ```
     </Step>
 </Steps>
@@ -168,7 +174,11 @@ CyborgDB can integrate with popular KMS providers, such as:
     # Example setup
     index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
     config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-    client = cyborgdb.Client(api_key, index_location, config_location)
+    client = cyborgdb.Client(
+        api_key=api_key,
+        index_location=index_location,
+        config_location=config_location
+    )
 
     # Initialize AWS KMS client
     kms_client = boto3.client('kms')
@@ -186,8 +196,11 @@ CyborgDB can integrate with popular KMS providers, such as:
     index_key = response['Plaintext']  # This is your 256-bit key
 
     # Use the key with CyborgDB
-    client.create_index(index_name, index_key, index_config)
-    ```    
+    client.create_index(
+        index_name=index_name,
+        index_key=index_key,
+        index_config=index_config
+    )
 
     **Explanation:**
 

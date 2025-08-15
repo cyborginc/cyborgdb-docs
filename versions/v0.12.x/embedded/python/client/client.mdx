@@ -54,12 +54,14 @@ config_location = cyborgdb.DBConfig(location='redis', connection_string="redis:/
 items_location = cyborgdb.DBConfig(location='postgres', table_name="items", connection_string="host=localhost dbname=postgres")
 
 # Construct the Client object
-client = cyborgdb.Client(api_key=api_key,
-                    index_location=index_location,
-                    config_location=config_location,
-                    items_location=items_location,
-                    cpu_threads=4,
-                    gpu_accelerate=True)
+client = cyborgdb.Client(
+    api_key=api_key,
+    index_location=index_location,
+    config_location=config_location,
+    items_location=items_location,
+    cpu_threads=4,
+    gpu_accelerate=True
+)
 
 # Proceed with further operations
 ```

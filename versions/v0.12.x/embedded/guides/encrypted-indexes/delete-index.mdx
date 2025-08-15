@@ -22,14 +22,21 @@ config_location = cyborgdb.DBConfig("memory")
 api_key = "your_api_key_here"  # Replace with your actual API key
 
 # Create a client
-client = cyborgdb.Client(api_key, index_location, config_location)
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location
+)
 
 # Provide the index key used when creating the index
 # Example key (32 bytes)
 index_key = bytes(32)
 
 # Create an encrypted index
-index = client.load_index("my_index", index_key)
+index = client.load_index(
+    index_name="my_index", 
+    index_key=index_key
+)
 
 # Delete the index
 index.delete_index()

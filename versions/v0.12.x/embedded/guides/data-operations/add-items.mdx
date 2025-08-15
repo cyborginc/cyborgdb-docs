@@ -110,7 +110,12 @@ If you provided an `embedding_model` during index creation, you can automaticall
 ```python Python icon="python"
 # ... index creation and embedding model setup
 embedding_model = "all-MiniLM-L6-v2"
-index = client.create_index("my_index", index_key, index_config, embedding_model)
+index = client.create_index(
+    index_name="my_index", 
+    index_key=index_key, 
+    index_config=index_config, 
+    embedding_model=embedding_model
+)
 
 # Items to add to the encrypted index
 items = [
