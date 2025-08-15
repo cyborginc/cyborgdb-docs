@@ -110,7 +110,7 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
      -H "Content-Type: application/json" \
      -d "{
        \"index_name\": \"test_index\",
-       \"index_key\": \"$(echo $KEY_B64 | base64 -d | xxd -p -c 32)\",
+       \"index_key\": \"$(echo $KEY_B64 | base64 -d | xxd -p -c 32)\"
      }"
 ```
 </CodeGroup>
@@ -322,7 +322,7 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
      -H "Content-Type: application/json" \
      -d "{
        \"index_name\": \"my_index\",
-       \"index_key\": \"$DECRYPTED_KEY\",
+       \"index_key\": \"$DECRYPTED_KEY\"
      }"
 ```
 </CodeGroup>    

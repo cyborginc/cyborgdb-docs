@@ -57,7 +57,7 @@ Standard IVF (Inverted File) index configuration, ideal for balanced performance
 ```typescript
 import { IndexIVF } from 'cyborgdb';
 
-const indexConfig: IndexIVF = IndexIVF();
+const indexConfig: IndexIVF = new IndexIVF();
 ```
 
 ### IndexIVFFlat
@@ -79,7 +79,7 @@ IVFFlat index configuration, suitable for highest accuracy requirements:
 ```typescript
 import { IndexIVFFlat } from 'cyborgdb';
 
-const indexConfig: IndexIVFFlat = IndexIVFFlat();
+const indexConfig: IndexIVFFlat = new IndexIVFFlat();
 ```
 
 ### IndexIVFPQ
@@ -103,7 +103,7 @@ IVFPQ (Product Quantization) index configuration, optimized for memory efficienc
 ```typescript
 import { IndexIVFPQ } from 'cyborgdb';
 
-const indexConfig: IndexIVFPQ = IndexIVFPQ({
+const indexConfig: IndexIVFPQ = new IndexIVFPQ({
     pqDim: 64,
     pqBits: 8
 });

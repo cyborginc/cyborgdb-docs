@@ -25,7 +25,7 @@ To create an `IVFFlat` index, you can use its configuration constructor:
 
 <CodeGroup>
 ```python Python SDK icon="python"
-from cyborgdb import Client
+from cyborgdb import Client, IndexIVFFlat
 
 # Create a client
 client = Client(
@@ -56,7 +56,7 @@ const client = new Client({
 });
 
 // Create the IVFFlat index config
-const indexConfig = IndexIVFFlat();
+const indexConfig = new IndexIVFFlat();
 
 // Generate encryption key and create the index
 const indexName = "test_index";
@@ -79,7 +79,7 @@ const client = new Client({
 });
 
 // Create the IVFFlat index config
-const indexConfig: IndexIVFFlat = IndexIVFFlat();
+const indexConfig: IndexIVFFlat = new IndexIVFFlat();
 
 // Generate encryption key and create the index
 const indexName = "test_index";
@@ -150,7 +150,7 @@ const pqDim = 32; // Dimension must be divisible by pqDim
 const pqBits = 8; // Number of bits for each pq dimension
 
 // Create the IVFPQ index config
-const indexConfig = IndexIVFPQ(pqDim, pqBits);
+const indexConfig = new IndexIVFPQ(pqDim, pqBits);
 
 // Generate encryption key and create the index
 const indexName = "test_index";
@@ -177,7 +177,7 @@ const pqDim = 32; // Dimension must be divisible by pqDim
 const pqBits = 8; // Number of bits for each pq dimension
 
 // Create the IVFPQ index config
-const indexConfig: IndexIVFPQ = IndexIVFPQ(pqDim, pqBits);
+const indexConfig: IndexIVFPQ = new IndexIVFPQ(pqDim, pqBits);
 
 // Generate encryption key and create the index
 const indexName = "test_index";
@@ -242,7 +242,7 @@ const client = new Client({
 });
 
 // Create the IVF index config
-const indexConfig = IndexIVF();
+const indexConfig = new IndexIVF();
 
 // Generate encryption key and create the index
 const indexName = "test_index";
@@ -265,7 +265,7 @@ const client = new Client({
 });
 
 // Create the IVF index config
-const indexConfig: IndexIVF = IndexIVF();
+const indexConfig: IndexIVF = new IndexIVF();
 
 // Generate encryption key and create the index
 const indexName = "test_index";
@@ -303,11 +303,11 @@ index = client.create_index(
 
 ```javascript JavaScript SDK icon="js"
 // Example with cosine similarity
-const indexConfig = IndexIVFFlat();
+const indexConfig = new IndexIVFFlat();
 const indexName = "index_name";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-index = client.createIndex({ 
+const index = await client.createIndex({ 
     indexName, 
     indexKey, 
     indexConfig, 
@@ -317,11 +317,11 @@ index = client.createIndex({
 
 ```typescript TypeScript SDK icon="code"
 // Example with cosine similarity
-const indexConfig: IndexIVFFlat = IndexIVFFlat();
+const indexConfig: IndexIVFFlat = new IndexIVFFlat();
 const indexName = "index_name";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-index = client.createIndex({ 
+const index = await client.createIndex({ 
     indexName, 
     indexKey, 
     indexConfig, 
