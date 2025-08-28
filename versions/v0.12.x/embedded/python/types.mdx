@@ -66,16 +66,31 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 
 #### Parameters
 
-| Parameter | Type | Description |
+| Parameter | Type | Default | Description |
+|--------------|-------------------------|---------|---------------------------------------|
+| `dimension` | `int` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+
+#### Properties (Read-Only)
+
+| Property | Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `dimension` | `int` | _(Optional)_ Dimensionality of vector embeddings. |
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally, defaults to 1. |
+| `dimension` | `int` | Dimensionality of vector embeddings. |
 
 #### Example Usage
 
 ```python
 import cyborgdb_core as cyborgdb
 
+# Basic configuration with auto-detection
+index_config = cyborgdb.IndexIVF()
+
+# Explicit dimension configuration
 index_config = cyborgdb.IndexIVF(dimension=128)
+
+# Access read-only properties
+print(f"n_lists: {index_config.n_lists}")  # Will show 1 (default)
+print(f"dimension: {index_config.dimension}")  # Will show 128
 ```
 
 ### IndexIVFFlat
@@ -88,16 +103,31 @@ Suitable for applications requiring high recall with less concern for memory usa
 
 #### Parameters
 
-| Parameter | Type | Description |
-|--------------|-------------------------------|-------------------------------------------------------------------------------|
-| `dimension` | `int` | _(Optional)_ Dimensionality of vector embeddings. |
+| Parameter | Type | Default | Description |
+|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
+| `dimension` | `int` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+
+#### Properties (Read-Only)
+
+| Property | Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally, defaults to 1. |
+| `dimension` | `int` | Dimensionality of vector embeddings. |
 
 #### Example Usage
 
 ```python
 import cyborgdb_core as cyborgdb
 
+# Basic configuration with auto-detection
+index_config = cyborgdb.IndexIVFFlat()
+
+# Explicit dimension configuration
 index_config = cyborgdb.IndexIVFFlat(dimension=128)
+
+# Access read-only properties
+print(f"n_lists: {index_config.n_lists}")  # Will show 1 (default)
+print(f"dimension: {index_config.dimension}")  # Will show 128
 ```
 
 <Tip>`IndexIVFFlat` is the default index configuration and is suitable for most use cases.</Tip>
@@ -112,22 +142,114 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 
 #### Parameters
 
-| Parameter | Type | Description |
-|--------------|-------------------------------|-------------------------------------------------------------------------------|
-| `pq_dim` | `int` | Dimensionality of embeddings after quantization (less than or equal to `dimension`). |
-| `pq_bits` | `int` | Number of bits per dimension for PQ embeddings (between 1 and 16). |
-| `dimension` | `int` | _(Optional)_ Dimensionality of vector embeddings. |
+| Parameter | Type | Default | Description |
+|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
+| `dimension` | `int` | `None` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if not provided. |
+| `pq_dim` | `int` | - | _(Required)_ Dimensionality of PQ codes after quantization. |
+| `pq_bits` | `int` | - | _(Required)_ Number of bits per quantizer (between 1 and 16). |
+
+#### Properties (Read-Only)
+
+| Property | Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally, defaults to 1. |
+| `dimension` | `int` | Dimensionality of vector embeddings. |
+| `pq_dim` | `int` | Dimensionality of PQ codes after quantization. |
+| `pq_bits` | `int` | Number of bits per quantizer. |
 
 #### Example Usage
 
 ```python
 import cyborgdb_core as cyborgdb
 
-# Auto-determine dimensionality
+# Basic configuration (dimension auto-detected)
 index_config = cyborgdb.IndexIVFPQ(pq_dim=64, pq_bits=8)
 
-# Explicitly set dimensionality
-index_config = cyborgdb.IndexIVFPQ(pq_dim=64, pq_bits=8, dimension=128)
+# Explicit configuration
+index_config = cyborgdb.IndexIVFPQ(
+    dimension=128,
+    pq_dim=64, 
+    pq_bits=8
+)
+
+# Access read-only properties
+print(f"n_lists: {index_config.n_lists}")  # Will show 1 (default)
+print(f"pq_dim: {index_config.pq_dim}")    # Will show 64
+print(f"pq_bits: {index_config.pq_bits}")  # Will show 8
 ```
 
 <Tip>If `dimension` is not provided, it will be auto-determined based on the first vector embedding added to the index.</Tip>
+
+---
+
+## TrainingConfig
+
+Configuration parameters for index training, used with the `train_index()` method.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|--------------|-------------|---------|-------------|
+| `n_lists` | `int` | `0` | Number of inverted lists to create during training. Auto-determined if 0. |
+| `batch_size` | `int` | `0` | Size of training batches. Auto-determined if 0. |
+| `max_iters` | `int` | `0` | Maximum training iterations. Auto-determined if 0. |
+| `tolerance` | `float` | `1e-6` | Convergence tolerance for training algorithm. |
+| `max_memory` | `int` | `0` | Maximum memory usage in MB. Auto-determined if 0. |
+
+### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+
+# Default configuration (auto-determined)
+training_config = cyborgdb.TrainingConfig()
+
+# Custom configuration
+training_config = cyborgdb.TrainingConfig(
+    n_lists=100,
+    batch_size=2048,
+    max_iters=50,
+    tolerance=1e-7,
+    max_memory=4096
+)
+
+# Train the index
+index.train_index(training_config)
+```
+
+---
+
+## QueryParams
+
+Configuration parameters for similarity search queries.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|--------------|-------------|---------|-------------|
+| `top_k` | `int` | `100` | Number of nearest neighbors to return. |
+| `n_probes` | `int` | `1` | Number of inverted lists to probe during search. |
+| `filters` | `str` | `""` | JSON-like metadata filters for post-query filtering. |
+| `include` | `list[str]` | `[]` | Fields to include in results (`distance`, `metadata`). |
+| `greedy` | `bool` | `False` | Whether to use faster approximate search. |
+
+### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+
+# Default query parameters
+query_params = cyborgdb.QueryParams()
+
+# Custom query parameters
+query_params = cyborgdb.QueryParams(
+    top_k=50,
+    n_probes=10,
+    filters='{"category": "research"}',
+    include=["distance", "metadata"],
+    greedy=True
+)
+
+# Execute query
+results = index.query(query_vectors, query_params)
+```

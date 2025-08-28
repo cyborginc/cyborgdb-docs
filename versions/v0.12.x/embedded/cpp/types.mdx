@@ -112,13 +112,23 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 #### Constructor
 
 ```cpp
-IndexIVF(size_t dimension = 0);
+IndexIVF(size_t dimension = 0, std::optional<std::string> embedding_model = "");
 ```
 
 #### Parameters
-| Parameter | Type | Description |
+| Parameter | Type | Default | Description |
+|--------------|-------------------------|---------|---------------------------------------|
+| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+
+#### Methods
+| Method | Return Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `dimension` | `size_t` | _(Optional)_ Dimensionality of vector embeddings. (will auto-detect if not provided) |
+| `dimension()` | `size_t` | Get vector dimensionality. |
+| `metric()` | `DistanceMetric` | Get distance metric. |
+| `set_metric(DistanceMetric)` | `void` | Set distance metric. |
+| `n_lists()` | `size_t` | Get number of inverted lists. |
+| `set_n_lists(size_t)` | `void` | Set number of inverted lists. |
 
 ### IndexIVFFlat
 
@@ -131,13 +141,23 @@ Suitable for applications requiring high recall with less concern for memory usa
 #### Constructor
 
 ```cpp
-IndexIVFFlat(size_t dimension = 0);
+IndexIVFFlat(size_t dimension = 0, std::optional<std::string> embedding_model = "");
 ```
 
 #### Parameters
-| Parameter | Type | Description |
-|--------------|-------------------------------|-------------------------------------------------------------------------------|
-| `dimension` | `size_t` | _(Optional)_ Dimensionality of vector embeddings. (will auto-detect if not provided) |
+| Parameter | Type | Default | Description |
+|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
+| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+
+#### Methods
+| Method | Return Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `dimension()` | `size_t` | Get vector dimensionality. |
+| `metric()` | `DistanceMetric` | Get distance metric. |
+| `set_metric(DistanceMetric)` | `void` | Set distance metric. |
+| `n_lists()` | `size_t` | Get number of inverted lists. |
+| `set_n_lists(size_t)` | `void` | Set number of inverted lists. |
 
 <Tip>`IndexIVFFlat` is the default index configuration and is suitable for most use cases.</Tip>
 
@@ -152,18 +172,29 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 #### Constructor
 
 ```cpp
-IndexIVFPQ(size_t pq_dim,
-           size_t pq_bits,
-           size_t dimension = 0);
+IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8, 
+           std::optional<std::string> embedding_model = "");
 ```
 
 #### Parameters
 
-| Parameter | Type | Description |
-|--------------|-------------------------------|-------------------------------------------------------------------------------|
-| `pq_dim` | `size_t` | Dimensionality of embeddings after quantization (less than or equal to `dimension`). |
-| `pq_bits` | `size_t` | Number of bits per dimension for PQ embeddings (between 1 and 16). |
-| `dimension` | `size_t` | _(Optional)_ Dimensionality of vector embeddings. (will auto-detect if not provided) |
+| Parameter | Type | Default | Description |
+|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
+| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+| `pq_dim` | `size_t` | `16` | Dimensionality of embeddings after quantization (less than or equal to `dimension`). |
+| `pq_bits` | `size_t` | `8` | Number of bits per dimension for PQ embeddings (between 1 and 16). |
+| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+
+#### Methods
+| Method | Return Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `dimension()` | `size_t` | Get vector dimensionality. |
+| `metric()` | `DistanceMetric` | Get distance metric. |
+| `set_metric(DistanceMetric)` | `void` | Set distance metric. |
+| `n_lists()` | `size_t` | Get number of inverted lists. |
+| `set_n_lists(size_t)` | `void` | Set number of inverted lists. |
+| `pq_dim()` | `size_t` | Get PQ dimensionality. |
+| `pq_bits()` | `size_t` | Get PQ bits per quantizer. |
 
 ---
 
