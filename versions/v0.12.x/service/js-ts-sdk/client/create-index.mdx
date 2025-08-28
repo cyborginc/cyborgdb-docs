@@ -21,7 +21,7 @@ async createIndex({
 |---------------|--------------------|----------------------------------------------------------------------------------------|
 | `indexName` | `string` | Name of the index to create. Must be unique within the CyborgDB service. |
 | `indexKey` | `Uint8Array` | 32-byte encryption key for the index, used to secure the index data. |
-| `indexConfig` | [`IndexIVFPQ`](../types#indexivfpq) \| [`IndexIVFFlat`](../types#indexivfflat) \| [`IndexIVF`](../types#indexivf) | Configuration object specifying the index type (`ivf`, `ivfpq`, or `ivfflat`). |
+| `indexConfig` | [`IndexIVFPQ`](../types#indexivfpq) \| [`IndexIVFFlat`](../types#indexivfflat) \| [`IndexIVF`](../types#indexivf) | _(Optional)_ Configuration object specifying the index type (`ivf`, `ivfpq`, or `ivfflat`). Defaults to `IndexIVFFlat()`. |
 | `metric` | `'euclidean' \| 'squared_euclidean' \| 'cosine'` | _(Optional)_ Distance metric to use for the index. Defaults to `'euclidean'`. |
 | `embeddingModel` | `string` | _(Optional)_ Name of the embedding model used to auto-generate embeddings on the server. Defaults to `undefined`, no auto-generation. |
 
