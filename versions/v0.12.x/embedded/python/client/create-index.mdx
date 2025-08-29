@@ -6,21 +6,13 @@ mode: "wide"
 Creates and returns a new encrypted index based on the provided configuration.
 
 ```python
-# Overload 1: With IndexConfig (explicit configuration)
 def create_index(self,
                  index_name: str,
                  index_key: bytes,
-                 index_config: IndexConfig,
+                 index_config: IndexConfig = None,
                  max_cache_size: int = 0,
-                 metric: DistanceMetric = None,
-                 logger: Logger = None)
-
-# Overload 2: Without IndexConfig (uses IndexIVFFlat defaults)
-def create_index(self,
-                 index_name: str,
-                 index_key: bytes,
-                 max_cache_size: int = 0,
-                 metric: DistanceMetric = None,
+                 embedding_model: str = None,
+                 metric: str = None,
                  logger: Logger = None)
 ```
 
@@ -30,9 +22,10 @@ def create_index(self,
 |---------------|--------------------|----------------------------------------------------------------------------------------|
 | `index_name` | `str` | Name of the index to create. Must be unique. |
 | `index_key` | `bytes` | 32-byte encryption key for the index, used to secure the index data. |
-| `index_config` | [`IndexConfig`](../types#indexconfig) | _(Optional in overload 2)_ Configuration specifying the index type and parameters. When not provided, uses `IndexIVFFlat()` defaults. |
+| `index_config` | [`IndexConfig`](../types#indexconfig) | _(Optional)_ Configuration specifying the index type and parameters. When not provided, uses `IndexIVFFlat()` with dimension=128. |
 | `max_cache_size` | `int` | _(Optional)_ Maximum size of local cache to keep for encrypted index. Defaults to `0`. |
-| `metric` | [`DistanceMetric`](../types#distancemetric) | _(Optional)_ Distance metric to use for the index. Overrides the metric set in `index_config`. |
+| `embedding_model` | `str` | _(Optional)_ Name of the SentenceTransformer model to use for automatic text embeddings. |
+| `metric` | `str` | _(Optional)_ Distance metric to use: "euclidean", "cosine", or "squared_euclidean". Overrides the metric in `index_config`. Defaults to "euclidean". |
 | `logger` | [`Logger`](./logger) | _(Optional)_ Logger instance for capturing operation logs. Defaults to `None`. |
 
 <Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>
@@ -102,9 +95,7 @@ client = cyborgdb.Client(
 index_name = "my_index"
 index_key = secrets.token_bytes(32)  # Generate a secure 32-byte encryption key
 index_config = cyborgdb.IndexIVF(
-    dimension=128,
-    n_lists=100,
-    metric="cosine"
+    dimension=128  # n_lists will be set automatically during training
 )
 
 # Optional: Set up logging
@@ -116,6 +107,7 @@ index = client.create_index(
     index_key=index_key, 
     index_config=index_config,
     max_cache_size=1024,
+    metric="cosine",  # Override default metric
     logger=logger
 )
 ```

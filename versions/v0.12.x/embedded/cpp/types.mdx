@@ -127,8 +127,8 @@ IndexIVF(size_t dimension = 0, std::optional<std::string> embedding_model = "");
 | `dimension()` | `size_t` | Get vector dimensionality. |
 | `metric()` | `DistanceMetric` | Get distance metric. |
 | `set_metric(DistanceMetric)` | `void` | Set distance metric. |
-| `n_lists()` | `size_t` | Get number of inverted lists. |
-| `set_n_lists(size_t)` | `void` | Set number of inverted lists. |
+| `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
+| `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
 
 ### IndexIVFFlat
 
@@ -156,8 +156,8 @@ IndexIVFFlat(size_t dimension = 0, std::optional<std::string> embedding_model = 
 | `dimension()` | `size_t` | Get vector dimensionality. |
 | `metric()` | `DistanceMetric` | Get distance metric. |
 | `set_metric(DistanceMetric)` | `void` | Set distance metric. |
-| `n_lists()` | `size_t` | Get number of inverted lists. |
-| `set_n_lists(size_t)` | `void` | Set number of inverted lists. |
+| `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
+| `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
 
 <Tip>`IndexIVFFlat` is the default index configuration and is suitable for most use cases.</Tip>
 
@@ -191,8 +191,8 @@ IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
 | `dimension()` | `size_t` | Get vector dimensionality. |
 | `metric()` | `DistanceMetric` | Get distance metric. |
 | `set_metric(DistanceMetric)` | `void` | Set distance metric. |
-| `n_lists()` | `size_t` | Get number of inverted lists. |
-| `set_n_lists(size_t)` | `void` | Set number of inverted lists. |
+| `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
+| `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
 | `pq_dim()` | `size_t` | Get PQ dimensionality. |
 | `pq_bits()` | `size_t` | Get PQ bits per quantizer. |
 
@@ -255,8 +255,9 @@ The `TrainingConfig` struct defines parameters for training an index, allowing c
 ### Constructor
 
 ```cpp
-TrainingConfig(size_t batch_size = 0,
-                size_t max_iters = 0,
+TrainingConfig(size_t n_lists = 0,
+                size_t batch_size = 2048,
+                size_t max_iters = 100,
                 double tolerance = 1e-6,
                 size_t max_memory = 0);
 ```
@@ -265,8 +266,9 @@ TrainingConfig(size_t batch_size = 0,
 
 | Parameter | Type | Description |
 |-------------------|----------|---------------------------------------------------------------------------------------------|
-| `batch_size` | `size_t` | _(Optional)_ Size of each batch for training. Defaults to `0`, which auto-selects the batch size. |
-| `max_iters` | `size_t` | _(Optional)_ Maximum iterations for training. Defaults to `0`, which auto-selects iterations. |
+| `n_lists` | `size_t` | _(Optional)_ Number of inverted lists to create. Defaults to `0`, which auto-determines. |
+| `batch_size` | `size_t` | _(Optional)_ Size of each batch for training. Defaults to `2048`. |
+| `max_iters` | `size_t` | _(Optional)_ Maximum iterations for training. Defaults to `100`. |
 | `tolerance` | `double` | _(Optional)_ Convergence tolerance for training. Defaults to `1e-6`. |
 | `max_memory` | `size_t` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `0`, no limit. |
 

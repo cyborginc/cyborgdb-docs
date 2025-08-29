@@ -39,3 +39,27 @@ IndexConfig* index_config() const;
 ```
 
 Returns a pointer to the index configuration.
+
+---
+
+## NumVectors
+
+```cpp
+size_t NumVectors();
+```
+
+Returns the number of vectors currently stored in the index.
+
+---
+
+## ListIDs
+
+```cpp
+std::vector<std::string> ListIDs();
+```
+
+Returns a vector containing all item IDs currently stored in the index.
+
+### Exceptions
+
+- **std::runtime_error**: Thrown if an error occurs during retrieval.

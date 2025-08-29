@@ -74,8 +74,10 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 
 | Property | Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally, defaults to 1. |
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
 | `dimension` | `int` | Dimensionality of vector embeddings. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivf". |
 
 #### Example Usage
 
@@ -111,8 +113,10 @@ Suitable for applications requiring high recall with less concern for memory usa
 
 | Property | Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally, defaults to 1. |
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
 | `dimension` | `int` | Dimensionality of vector embeddings. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivfflat". |
 
 #### Example Usage
 
@@ -152,10 +156,12 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 
 | Property | Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally, defaults to 1. |
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
 | `dimension` | `int` | Dimensionality of vector embeddings. |
-| `pq_dim` | `int` | Dimensionality of PQ codes after quantization. |
-| `pq_bits` | `int` | Number of bits per quantizer. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivfpq". |
+| `pq_dim()` | `int` | Dimensionality of PQ codes after quantization. |
+| `pq_bits()` | `int` | Number of bits per quantizer. |
 
 #### Example Usage
 
