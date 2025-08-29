@@ -9,16 +9,25 @@ Retrieves the nearest neighbors for a given query vector.
 
 ```python
 def query(self,
-          query_vectors: List[List[float]],
-          query_params: QueryParams = None)
+          query_vectors: List[float] = None,
+          query_contents: Union[str, Image] = None,
+          top_k: int = 100,
+          n_probes: int = 1,
+          filters: Dict[str, Any] = None,
+          include: List[str] = ["distance", "metadata"],
+          greedy: bool = False)
 ```
 
 ### Parameters
 
 | Parameter | Type | Default | Description |
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
-| `query_vectors` | `List[List[float]]` | - | 2D array of query vectors. Each inner list represents a single query vector. |
-| `query_params` | [`QueryParams`](../types#queryparams) | `QueryParams()` | _(Optional)_ Query configuration object containing search parameters. |
+| `query_vectors` | `List[float]` | - | A single query vector as a list of floats (for single query). |
+| `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
+| `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
+| `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
+| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance`, `metadata`, and `vector` (`vector` only for `IVFFlat` indexes). |
+| `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 
 <Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index), then the `query_string` can be used instead of `query_vectors`.</Note>
 
@@ -53,56 +62,46 @@ index = client.load_index(
     index_key=index_key
 )
 
-# Define query vectors (2D array format)
-query_vectors = [[0.1, 0.2, 0.3]]  # Single query vector in 2D array format
+# Define a single query vector
+query_vectors = [0.1, 0.2, 0.3]  # Single query vector of dimension 3
 
-# Perform a basic query with default parameters
-results = index.query(query_vectors=query_vectors)
-
-# Perform a query with custom parameters
-query_params = cyborgdb.QueryParams(
-    top_k=5, 
-    n_probes=10, 
-    include=["distance", "metadata"]
-)
+# Perform a single query with distances
 results = index.query(
     query_vectors=query_vectors, 
-    query_params=query_params
-)
-```
-
-_Query with Metadata Filters_:
-
-```python
-# Query with metadata filtering
-query_params = cyborgdb.QueryParams(
-    top_k=10,
-    n_probes=5,
-    filters='{"label": "dog"}',  # JSON string format
-    include=["distance", "metadata"]
-)
-
-results = index.query(
-    query_vectors=query_vectors,
-    query_params=query_params
-)
-```
-
-_Query with Greedy Search_:
-
-```python
-# Use greedy search for better recall
-query_params = cyborgdb.QueryParams(
-    top_k=20,
-    n_probes=15,
-    greedy=True,
+    top_k=2, 
+    n_probes=5, 
     include=["distance"]
 )
+# Example output:
+# [{"id": "101", "distance": 0.05}, {"id": "102", "distance": 0.1}]
+```
 
+_Single Query without Distances_:
+
+```python
 results = index.query(
-    query_vectors=query_vectors,
-    query_params=query_params
+    query_vectors=query_vectors, 
+    top_k=10, 
+    n_probes=5, 
+    include=[]
 )
+# Example output:
+# [{"id": "101"}, {"id": "102"}]
+```
+
+_Single Query with Metadata_:
+
+```python
+results = index.query(
+    query_vectors=query_vectors, 
+    top_k=10, 
+    n_probes=5, 
+    filters={"label": "dog"}, 
+    include=["metadata"]
+)
+# Example output:
+# [{"id": "101", "metadata": {"label": "dog", "temperament": "good boy"}},
+#  {"id": "102", "metadata": {"label": "dog", "temperament": "hyper"})]]
 ```
 
 ## Batched Queries
@@ -113,9 +112,9 @@ Retrieves the nearest neighbors for one or more query vectors.
 def query(self,
           query_vectors: Union[np.ndarray, List[List[float]]],
           top_k: int = 100,
-          n_probes: int = 0,
+          n_probes: int = 1,
           filters: Dict[str, Any] = None,
-          include: List[str] = ["distance"],
+          include: List[str] = ["distance", "metadata"],
           greedy: bool = False)
 ```
 
@@ -125,9 +124,9 @@ def query(self,
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
 | `query_vectors` | `np.ndarray` or `List[List[float]]` | - | A 2D NumPy array or list of lists, where each inner list represents a query vector (for batch query). |
 | `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
-| `n_probes` | `int` | `0` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. Auto-determined by default. |
+| `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `List[str]` | `"distance"` | _(Optional)_ List of item fields to return. Can include `distance`, `metadata`, and `vector` (`vector` only for `IVFFlat` indexes). |
+| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance`, `metadata`, and `vector` (`vector` only for `IVFFlat` indexes). |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 
 <Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).

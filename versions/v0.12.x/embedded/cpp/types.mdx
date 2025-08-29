@@ -256,19 +256,19 @@ The `TrainingConfig` struct defines parameters for training an index, allowing c
 
 ```cpp
 TrainingConfig(size_t n_lists = 0,
-                size_t batch_size = 2048,
-                size_t max_iters = 100,
-                double tolerance = 1e-6,
-                size_t max_memory = 0);
+               size_t batch_size = 0,
+               size_t max_iters = 0,
+               double tolerance = 1e-6,
+               size_t max_memory = 0);
 ```
 
 ### Parameters
 
 | Parameter | Type | Description |
 |-------------------|----------|---------------------------------------------------------------------------------------------|
-| `n_lists` | `size_t` | _(Optional)_ Number of inverted lists to create. Defaults to `0`, which auto-determines. |
-| `batch_size` | `size_t` | _(Optional)_ Size of each batch for training. Defaults to `2048`. |
-| `max_iters` | `size_t` | _(Optional)_ Maximum iterations for training. Defaults to `100`. |
+| `n_lists` | `uint64_t` | _(Optional)_ Number of inverted lists to create. Defaults to `0`, which auto-determines. |
+| `batch_size` | `size_t` | _(Optional)_ Size of each batch for training. Defaults to `0`, which auto-determines. |
+| `max_iters` | `size_t` | _(Optional)_ Maximum iterations for training. Defaults to `0`, which auto-determines. |
 | `tolerance` | `double` | _(Optional)_ Convergence tolerance for training. Defaults to `1e-6`. |
 | `max_memory` | `size_t` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `0`, no limit. |
 
