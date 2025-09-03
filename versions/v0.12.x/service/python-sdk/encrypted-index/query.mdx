@@ -19,14 +19,13 @@ index.query(query_contents=text, top_k=10)
 ### Parameters
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `query_vector` | `List[float]` or `np.ndarray` | `None` | Single query vector |
-| `query_vectors` | `List[List[float]]` or `np.ndarray` | `None` | 	Multiple query vectors for batch search |
-| `query_contents` | `str` | `None` | Text content for semantic search |
-| `top_k` | `int` | `100` | Number of results to return per query |
-| `n_probes` | `int` | `1` | Number of clusters to probe for search |
+| `query_vectors` | `List[List[float]]` or `List[float]` or `np.ndarray` | `None` | _(Optional)_ Multiple query vectors for batch search |
+| `query_contents` | `str` | `None` | _(Optional)_ Text content for semantic search |
+| `top_k` | `int` | `100` | _(Optional)_ Number of results to return per query |
+| `n_probes` | `int` | `None` | _(Optional)_ Number of clusters to probe for search |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filters to apply |
-| `include` | `List[str]` | `["distance", "metadata"]` | Fields to include in results |
-| `greedy` | `bool` | `False` | Use greedy search algorithm |
+| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ Fields to include in results |
+| `greedy` | `bool` | `False` | _(Optional)_ Use greedy search algorithm |
 
 ### Returns
 
@@ -60,7 +59,7 @@ index.query(query_contents=text, top_k=10)
         - Throws if there are internal server errors during the search.
     </Accordion>
     <Accordion title="Validation Errors">
-        - Throws if no query vector is provided.
+        - Throws if query vectors or query contents is not provided.
         - Throws if vector dimensions don't match the index configuration.
         - Throws if parameter values are out of valid ranges.
         - Throws if the `include` parameter contains invalid field names.
@@ -75,7 +74,7 @@ index.query(query_contents=text, top_k=10)
 ```python
 # Basic similarity search
 query_vector = [0.1, 0.2, 0.3, 0.4]
-results = index.query(query_vector=query_vector, top_k=5)
+results = index.query(query_vectors=query_vector, top_k=5)
 
 # Access results (single query returns list with one result list)
 for result in results[0]:
@@ -123,7 +122,7 @@ Advanced filtering and options:
 ```python
 # Query with metadata filters and custom options
 results = index.query(
-    query_vector=[0.1] * 384,
+    query_vectors=[0.1] * 384,
     top_k=20,
     n_probes=5,  # Search more clusters for better recall
     filters={'category': 'healthcare', 'priority': 'high'},
