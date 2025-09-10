@@ -185,3 +185,51 @@ try {
 |----------|------|-------------|
 | `pqDim` | `number` | Product quantization dimension |
 | `pqBits` | `number` | Number of bits for quantization |
+
+---
+
+## listIds
+
+```typescript
+async listIds(): Promise<{ ids: string[]; count: number }>
+```
+
+Retrieves a list of all item IDs currently stored in the index from the CyborgDB service.
+
+### Returns
+
+`Promise<{ ids: string[]; count: number }>`: A Promise that resolves to an object containing:
+- `ids`: Array of all item ID strings in the index
+- `count`: Total number of items in the index
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key or encryption key)
+- Throws if the index doesn't exist on the server
+
+### Example Usage
+
+```typescript
+try {
+    const result = await index.listIds();
+    console.log('Total items in index:', result.count);
+    console.log('Item IDs:', result.ids);
+    // Output: { count: 3, ids: ["doc1", "doc2", "doc3"] }
+
+    // Check if a specific ID exists
+    if (result.ids.includes('doc1')) {
+        console.log('✓ Item doc1 exists in index');
+    }
+    
+    // Use for inventory management
+    if (result.count === 0) {
+        console.log('Index is empty');
+    } else {
+        console.log(`Index contains ${result.count} items`);
+    }
+    
+} catch (error) {
+    console.error('Failed to list IDs:', error.message);
+}
+```

@@ -16,7 +16,7 @@ Standard IVF (Inverted File) index configuration, ideal for balanced performance
 from cyborgdb import IndexIVF
 
 config = IndexIVF(
-    dimension=768
+    dimension=768 # optional, defaults to auto-detect
 )
 ```
 
@@ -32,7 +32,7 @@ IVFFlat index configuration, suitable for highest accuracy requirements:
 from cyborgdb import IndexIVFFlat
 
 config = IndexIVFFlat(
-    dimension=512
+    dimension=512 # optional, defaults to auto-detect
 )
 ```
 
@@ -50,7 +50,7 @@ from cyborgdb import IndexIVFPQ
 config = IndexIVFPQ(
     pq_dim=64,
     pq_bits=8,
-    dimension=1536
+    dimension=1536 # optional, defaults to auto-detect
 )
 ```
 

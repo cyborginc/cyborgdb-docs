@@ -21,8 +21,8 @@ client.create_index(
 |-----------|------|---------|-------------|
 | `index_name` | `str` | - | Unique name for the index |
 | `index_key` | `bytes` | - | 32-byte encryption key |
-| `index_config` | `IndexConfig` | `None` | Index configuration object |
-| `metric` | `str` | `"euclidean"` | Distance metric to use (`"euclidean"`, `"squared_euclidean"`, or `"cosine"`) |
+| `index_config` | `IndexConfig` | `None` | _(Optional)_ Index configuration object |
+| `metric` | `str` | `"euclidean"` | _(Optional)_ Distance metric to use (`"euclidean"`, `"squared_euclidean"`, or `"cosine"`) |
 | `embedding_model` | `str` | `None` | _(Optional)_ Embedding model identifier |
 
 ### Returns
@@ -34,7 +34,8 @@ An instance of `EncryptedIndex` configured with the provided parameters.
 <AccordionGroup>
     <Accordion title="Error">
         - Throws if the index name already exists on the server.
-        - Throws if the index configuration is invalid or missing required parameters.
+        - Throws if the provided index configuration is invalid.
+        - Throws if the provided metric is not supported.
         - Throws if the encryption key is not exactly 32 bytes.
         - Throws if the embedding model is not supported by the server.
     </Accordion>

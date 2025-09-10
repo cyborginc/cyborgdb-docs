@@ -74,8 +74,10 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 
 | Property | Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally, defaults to 1. |
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
 | `dimension` | `int` | Dimensionality of vector embeddings. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivf". |
 
 #### Example Usage
 
@@ -111,8 +113,10 @@ Suitable for applications requiring high recall with less concern for memory usa
 
 | Property | Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally, defaults to 1. |
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
 | `dimension` | `int` | Dimensionality of vector embeddings. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivfflat". |
 
 #### Example Usage
 
@@ -152,10 +156,12 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 
 | Property | Type | Description |
 |--------------|-------------------------|---------------------------------------|
-| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally, defaults to 1. |
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
 | `dimension` | `int` | Dimensionality of vector embeddings. |
-| `pq_dim` | `int` | Dimensionality of PQ codes after quantization. |
-| `pq_bits` | `int` | Number of bits per quantizer. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivfpq". |
+| `pq_dim()` | `int` | Dimensionality of PQ codes after quantization. |
+| `pq_bits()` | `int` | Number of bits per quantizer. |
 
 #### Example Usage
 
@@ -179,77 +185,3 @@ print(f"pq_bits: {index_config.pq_bits}")  # Will show 8
 ```
 
 <Tip>If `dimension` is not provided, it will be auto-determined based on the first vector embedding added to the index.</Tip>
-
----
-
-## TrainingConfig
-
-Configuration parameters for index training, used with the `train_index()` method.
-
-### Parameters
-
-| Parameter | Type | Default | Description |
-|--------------|-------------|---------|-------------|
-| `n_lists` | `int` | `0` | Number of inverted lists to create during training. Auto-determined if 0. |
-| `batch_size` | `int` | `0` | Size of training batches. Auto-determined if 0. |
-| `max_iters` | `int` | `0` | Maximum training iterations. Auto-determined if 0. |
-| `tolerance` | `float` | `1e-6` | Convergence tolerance for training algorithm. |
-| `max_memory` | `int` | `0` | Maximum memory usage in MB. Auto-determined if 0. |
-
-### Example Usage
-
-```python
-import cyborgdb_core as cyborgdb
-
-# Default configuration (auto-determined)
-training_config = cyborgdb.TrainingConfig()
-
-# Custom configuration
-training_config = cyborgdb.TrainingConfig(
-    n_lists=100,
-    batch_size=2048,
-    max_iters=50,
-    tolerance=1e-7,
-    max_memory=4096
-)
-
-# Train the index
-index.train_index(training_config)
-```
-
----
-
-## QueryParams
-
-Configuration parameters for similarity search queries.
-
-### Parameters
-
-| Parameter | Type | Default | Description |
-|--------------|-------------|---------|-------------|
-| `top_k` | `int` | `100` | Number of nearest neighbors to return. |
-| `n_probes` | `int` | `1` | Number of inverted lists to probe during search. |
-| `filters` | `str` | `""` | JSON-like metadata filters for post-query filtering. |
-| `include` | `list[str]` | `[]` | Fields to include in results (`distance`, `metadata`). |
-| `greedy` | `bool` | `False` | Whether to use faster approximate search. |
-
-### Example Usage
-
-```python
-import cyborgdb_core as cyborgdb
-
-# Default query parameters
-query_params = cyborgdb.QueryParams()
-
-# Custom query parameters
-query_params = cyborgdb.QueryParams(
-    top_k=50,
-    n_probes=10,
-    filters='{"category": "research"}',
-    include=["distance", "metadata"],
-    greedy=True
-)
-
-# Execute query
-results = index.query(query_vectors, query_params)
-```

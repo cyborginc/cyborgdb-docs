@@ -201,7 +201,8 @@
                       "versions/v0.12.x/service/python-sdk/encrypted-index/train",
                       "versions/v0.12.x/service/python-sdk/encrypted-index/get",
                       "versions/v0.12.x/service/python-sdk/encrypted-index/delete",
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/delete-index"
+                      "versions/v0.12.x/service/python-sdk/encrypted-index/delete-index",
+                      "versions/v0.12.x/service/python-sdk/encrypted-index/list-ids"
                     ]
                   },
                   {

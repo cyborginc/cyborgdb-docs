@@ -1,0 +1,31 @@
+---
+title: "List IDs"
+mode: "wide"
+---
+
+Lists all vector IDs currently stored in the encrypted index.
+
+```python
+index.list_ids()
+```
+
+### Returns
+
+`List[str]` - List of vector IDs currently stored in the index.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors preventing the deletion.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# List all vector IDs
+vector_ids = index.list_ids()

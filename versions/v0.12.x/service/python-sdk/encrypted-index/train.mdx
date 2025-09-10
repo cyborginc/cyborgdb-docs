@@ -19,10 +19,10 @@ index.train(
 ### Parameters
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `n_lists` | `int` | `0` | Number of inverted lists to use for the index. Defaults to `0` which will auto-select based on the dataset size |
-| `batch_size` | `int` | `2048` | Number of vectors to process per training batch |
-| `max_iters` | `int` | `100` | Maximum number of training iterations |
-| `tolerance` | `float` | `1e-6` | Convergence tolerance for training completion |
+| `n_lists` | `int` | `None` | _(Optional)_ Number of inverted lists to use for the index. Defaults to `0` which will auto-select based on the dataset size |
+| `batch_size` | `int` | `2048` | _(Optional)_ Number of vectors to process per training batch |
+| `max_iters` | `int` | `100` | _(Optional)_ Maximum number of training iterations |
+| `tolerance` | `float` | `1e-6` | _(Optional)_ Convergence tolerance for training completion |
 
 <Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
 

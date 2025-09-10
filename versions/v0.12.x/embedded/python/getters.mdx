@@ -74,16 +74,82 @@ print("Index type:", index.index_type())
 Retrieves the configuration details of the current index.
 
 ```python
-def index_config(self) -> IndexConfig
+def index_config(self) -> dict
 ```
 
 ### Returns
 
-[`IndexConfig`](./types#indexconfig): Dictionary of index configuration parameters.
+`dict`: A dictionary containing the configuration of the index with the following keys:
+- `dimension`: The dimensionality of the vectors
+- `metric`: The distance metric used (e.g., 'euclidean', 'cosine')
+- `index_type`: The type of the index (e.g., 'ivf', 'ivfpq', 'ivfflat')
+- `n_lists`: The number of inverted lists in the index
+- `pq_dim`: The PQ dimension (if applicable)
+- `pq_bits`: The PQ bits (if applicable)
 
 ### Example Usage
 
 ```python
 # Retrieve index config
-print("Index configuration:", index.index_config())
+config = index.index_config()
+print(f"Dimension: {config['dimension']}")
+print(f"Metric: {config['metric']}")
+print(f"Index type: {config['index_type']}")
+```
+
+---
+
+## get_num_vectors
+
+Returns the number of vectors currently stored in the index.
+
+```python
+def get_num_vectors(self) -> int
+```
+
+### Returns
+
+`int`: The number of vectors in the index.
+
+### Example Usage
+
+```python
+# Get the number of vectors in the index
+num_vectors = index.get_num_vectors()
+print(f"The index contains {num_vectors} vectors.")
+```
+
+---
+
+## list_ids
+
+Lists all item IDs currently stored in the index.
+
+```python
+def list_ids(self) -> List[str]
+```
+
+### Returns
+
+`List[str]`: A list containing all item IDs in the index.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the index was not created or loaded yet.
+        - Throws if an error occurs during retrieval.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# List all IDs in the index
+all_ids = index.list_ids()
+print(f"Total items in index: {len(all_ids)}")
+
+# Print first 10 IDs
+for id in all_ids[:10]:
+    print(f"ID: {id}")
 ```

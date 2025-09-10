@@ -78,6 +78,34 @@ if not trained:
 
 ---
 
+## is_training
+
+```python
+def is_training() -> bool
+```
+
+Returns whether the index is currently in the process of training.
+
+### Returns
+
+`bool`: `True` if the index is currently training, `False` otherwise.
+
+### Example Usage
+
+```python
+import time
+
+index.train()  # Start training
+
+while index.is_training():
+    print('Index is still training...')
+    time.sleep(5)  # Wait before checking again
+print('Index training complete')
+
+```
+
+---
+
 ## index_config
 
 ```python
