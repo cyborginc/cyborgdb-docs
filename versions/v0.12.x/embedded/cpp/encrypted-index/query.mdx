@@ -43,6 +43,6 @@ cyborg::Array2D<float> queries{/*...*/}; // Populate with one or more query vect
 cyborg::QueryParams params(10, 5);  // top_k = 10, n_probes = 5
 
 QueryResults results = index->Query(queries, params);
-std::cout << "ID: " << result.ids[j] << ", Distance: " << result.distances[j] << std::endl;
+std::cout << "ID: " << results.ids[j] << ", Distance: " << results.distances[j] << std::endl;
 // Process query results...
 ```

@@ -341,6 +341,43 @@ auto all_distances = results.distances();
 
 ---
 
+## ItemID
+
+`ItemID` is a type alias for unique identifiers used throughout CyborgDB.
+
+```cpp
+using ItemID = std::string;
+```
+
+`ItemID` is used to uniquely identify vectors and items within an encrypted index. Currently implemented as `std::string` for flexibility and human-readable identifiers.
+
+---
+
+## IndexType
+
+The `IndexType` enum defines the supported index types in CyborgDB:
+
+```cpp
+enum IndexType {
+#ifdef LITE
+    IVFFLAT  // Only IVFFLAT available in Lite mode
+#else
+    IVF,     // Inverted File index
+    IVFPQ,   // Inverted File with Product Quantization
+    IVFFLAT  // Inverted File with flat (uncompressed) storage
+#endif
+};
+```
+
+<Note>
+In **Lite mode** (`#ifdef LITE`), only `IVFFLAT` is available. The full version supports all three index types:
+- `IVF`: Fastest retrieval, lowest recall, smallest index size
+- `IVFPQ`: Balanced memory usage and recall with product quantization
+- `IVFFLAT`: Highest recall, largest index size, no compression
+</Note>
+
+---
+
 ### `Item`
 
 `Item` struct holds the individual results from a `Get` operation, including the requested fields.
