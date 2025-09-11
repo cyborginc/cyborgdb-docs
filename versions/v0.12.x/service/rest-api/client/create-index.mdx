@@ -31,19 +31,22 @@ Create a new encrypted index with the specified configuration.
   <ParamField body="index_key" type="string" required="true">
     32-byte encryption key as hex string
   </ParamField>
-  <ParamField body="index_config" type="object" required="true">
-    Index configuration object containing:
+  <ParamField body="index_config" type="object">
+    Index configuration object. Optional when using `embedding_model` (defaults to IVFFlat).
+    When provided, must contain:
     - `type`: Index type (`ivfflat`, `ivf`, `ivfpq`)
-    - `dimension`: Embedding dimension (required for `ivfflat` and `ivf`)
+    - `dimension`: Embedding dimension (optional)
     - `pq_dim`: Product quantization dimension (required for `ivfpq`)
     - `pq_bits`: Number of bits per sub-vector (required for `ivfpq`)
     See [Index Types](#index-types) for details.
   </ParamField>
   <ParamField body="metric" type="string">
-    Distance metric to use for the index, defaults to `euclidean`
+    Distance metric to use for the index. Options: `euclidean`, `cosine`, `squared_euclidean`.
+    Defaults to `euclidean`
   </ParamField>
   <ParamField body="embedding_model" type="string">
-    Optional sentence-transformers model for automatic embedding generation
+    Optional sentence-transformers model for automatic embedding generation.
+    When specified, `dimension` in `index_config` becomes optional as it will be inferred from the model
   </ParamField>
 </Expandable>
 
@@ -131,6 +134,7 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
 ## With Auto-Embedding
 
 ```bash
+# With explicit index config
 curl -X POST "http://localhost:8000/v1/indexes/create" \
      -H "X-API-Key: cyborg_your_api_key_here" \
      -H "Content-Type: application/json" \
@@ -142,6 +146,21 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
        },
        "embedding_model": "all-MiniLM-L6-v2"
      }'
+
+# Minimal configuration - index_config defaults to IVFFlat
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "auto_index",
+       "index_key": "your_64_character_hex_key_here",
+       "embedding_model": "all-MiniLM-L6-v2"
+     }'
 ```
 
-<Note>When `embedding_model` is specified, the `dimension` parameter in `index_config` is optional as it will be inferred from the embedding model.</Note>
+<Note>
+When `embedding_model` is specified:
+- The `dimension` parameter in `index_config` is optional 
+- The entire `index_config` object is optional (defaults to IVFFlat with auto-detected dimension)
+- The index will automatically generate embeddings for text content during upsert operations
+</Note>

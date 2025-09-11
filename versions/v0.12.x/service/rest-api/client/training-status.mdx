@@ -1,0 +1,131 @@
+---
+title: "Training Status"
+mode: "wide"
+api: "GET /v1/indexes/training-status"
+playground: "simple"
+---
+
+Get the current training status including indexes being trained and the retrain threshold configuration.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request
+
+This is a GET request with no request body. Authentication is required via the API key header.
+
+## Response
+
+```json
+{
+  "training_indexes": ["my_index", "semantic_index"],
+  "retrain_threshold": 10,
+  "worker_pid": 12345,
+  "global_training": {
+    "my_index": {
+      "status": "in_progress",
+      "started_at": "2024-01-15T10:30:00Z",
+      "progress": 0.75
+    },
+    "semantic_index": {
+      "status": "queued",
+      "queued_at": "2024-01-15T10:35:00Z"
+    }
+  }
+}
+```
+
+<Expandable title="response fields">
+  <ResponseField name="training_indexes" type="array[string]">
+    List of index names currently being trained or queued for training
+  </ResponseField>
+  <ResponseField name="retrain_threshold" type="integer">
+    The multiplier used for the retraining threshold. When the number of vectors exceeds (initial_vectors * retrain_threshold), automatic retraining is triggered
+  </ResponseField>
+  <ResponseField name="worker_pid" type="integer">
+    Process ID of the training worker
+  </ResponseField>
+  <ResponseField name="global_training" type="object">
+    Detailed training status for each index, containing status information and progress metrics
+  </ResponseField>
+</Expandable>
+
+## Training States
+
+The `global_training` object contains detailed status for each index:
+
+- **`queued`**: Index is waiting in the training queue
+- **`in_progress`**: Index is currently being trained
+- **`completed`**: Training finished successfully
+- **`failed`**: Training encountered an error
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `500`: Internal server error
+
+## Example Usage
+
+**Get Training Status:**
+```bash
+curl -X GET "http://localhost:8000/v1/indexes/training-status" \
+     -H "X-API-Key: cyborg_your_api_key_here"
+```
+
+**Monitor Training Progress:**
+```bash
+# Check if any indexes are being trained
+training_count=$(curl -s -X GET "http://localhost:8000/v1/indexes/training-status" \
+     -H "X-API-Key: cyborg_your_api_key_here" | \
+     jq '.training_indexes | length')
+
+if [ "$training_count" -gt 0 ]; then
+    echo "$training_count indexes are currently being trained"
+fi
+```
+
+**Wait for Training Completion:**
+```bash
+# Poll until specific index training is complete
+index_name="my_index"
+
+while true; do
+    is_training=$(curl -s -X GET "http://localhost:8000/v1/indexes/training-status" \
+         -H "X-API-Key: cyborg_your_api_key_here" | \
+         jq --arg idx "$index_name" '.training_indexes | contains([$idx])')
+    
+    if [ "$is_training" = "false" ]; then
+        echo "Training complete for $index_name"
+        break
+    fi
+    
+    echo "Still training $index_name..."
+    sleep 5
+done
+```
+
+**Check Retrain Threshold:**
+```bash
+# Get the current retrain threshold
+threshold=$(curl -s -X GET "http://localhost:8000/v1/indexes/training-status" \
+     -H "X-API-Key: cyborg_your_api_key_here" | \
+     jq '.retrain_threshold')
+
+echo "Indexes will retrain when vector count exceeds ${threshold}x the initial training size"
+```
+
+<Note>
+Training is automatically triggered when:
+1. An index reaches the configured vector threshold (initial_vectors * retrain_threshold)
+2. Manual training is requested via the `/v1/indexes/train` endpoint
+3. The index has never been trained and reaches the minimum vector count
+</Note>
+
+<Tip>Use this endpoint to avoid querying an index while it's being trained, as training can temporarily affect query performance.</Tip>

@@ -19,6 +19,8 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 
 ## Request Body
 
+### Single Query Request
+
 ```json
 {
   "index_name": "my_index",
@@ -32,6 +34,37 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 }
 ```
 
+### Batch Query Request
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "query_vectors": [
+    [0.1, 0.2, 0.3, 0.4],
+    [0.5, 0.6, 0.7, 0.8]
+  ],
+  "top_k": 10,
+  "n_probes": 1,
+  "greedy": false,
+  "filters": {"category": "greeting"},
+  "include": ["distance", "metadata"]
+}
+```
+
+### Semantic Search Request (with embedding model)
+
+```json
+{
+  "index_name": "semantic_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "query_contents": "Find documents about machine learning",
+  "top_k": 10,
+  "filters": {"type": "research"},
+  "include": ["distance", "metadata"]
+}
+```
+
 <Expandable title="parameters">
   <ParamField body="index_name" type="string" required="true">
     Name of the target index
@@ -39,14 +72,21 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="index_key" type="string" required="true">
     32-byte encryption key as hex string
   </ParamField>
-  <ParamField body="query_vectors" type="array[number]" required="true">
-    List of query vectors (single vector for single query, array for batch query)
+  <ParamField body="query_vectors" type="array[number] | array[array[number]]">
+    Query vector(s) for similarity search:
+    - Single query: `[0.1, 0.2, 0.3, ...]` (1D array)
+    - Batch query: `[[0.1, 0.2, ...], [0.4, 0.5, ...]]` (2D array)
+    Required unless `query_contents` is provided
+  </ParamField>
+  <ParamField body="query_contents" type="string">
+    Text content for semantic search (requires index with `embedding_model`).
+    Alternative to `query_vectors` for automatic embedding generation
   </ParamField>
   <ParamField body="top_k" type="integer" default={100}>
     Number of nearest neighbors to return
   </ParamField>
-  <ParamField body="n_probes" type="integer" default={1}>
-    Number of index lists to probe (higher = more recall)
+  <ParamField body="n_probes" type="integer" default="auto">
+    Number of index lists to probe. When set to 0 or omitted, automatically determines optimal value based on index size and query requirements
   </ParamField>
   <ParamField body="greedy" type="boolean" default="false">
     Use greedy search for higher recall
@@ -54,17 +94,14 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="filters" type="object">
     MongoDB-style metadata filters
   </ParamField>
-  <ParamField body="include" type="array[string]" default= {["distance", "metadata"]}>
+  <ParamField body="include" type="array[string]" default={["distance", "metadata"]}>
     Fields to include in response:
     <Expandable title="include options">
       <ParamField body="distance" type="string">
-        Include distance to query vector
+        Include distance/similarity score to query vector
       </ParamField>
       <ParamField body="metadata" type="string">
         Include item metadata key-value pairs
-      </ParamField>
-      <ParamField body="vector" type="string">
-        Include original vector (only for IVFFlat indexes)
       </ParamField>
     </Expandable>
   </ParamField>
@@ -72,7 +109,9 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 
 ## Response
 
-**Single Query:**
+### Single Query Response
+When `query_vectors` is a 1D array or `query_contents` is used:
+
 ```json
 {
   "results": [
@@ -90,7 +129,9 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 }
 ```
 
-**Batch Query:**
+### Batch Query Response
+When `query_vectors` is a 2D array (array of arrays):
+
 ```json
 {
   "results": [
@@ -105,6 +146,10 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   ]
 }
 ```
+
+<Note>The response format automatically matches the request format:
+- Single query → flat array of results
+- Batch query → nested array with results for each query</Note>
 
 ## Metadata Filtering
 
