@@ -1,0 +1,111 @@
+---
+title: "List IDs"
+mode: "wide"
+---
+
+Lists all vector IDs currently stored in the encrypted index.
+
+```typescript
+async listIds(): Promise<{ ids: string[]; count: number }>
+```
+
+### Returns
+
+`Promise<{ ids: string[]; count: number }>`: A Promise that resolves to an object containing:
+- `ids`: Array of all item ID strings in the index
+- `count`: Total number of items in the index
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors preventing the operation.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+// Load an existing index
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey });
+
+try {
+    // List all vector IDs in the index
+    const result = await index.listIds();
+    
+    console.log('Total items in index:', result.count);
+    console.log('Item IDs:', result.ids);
+    // Output: { count: 3, ids: ["doc1", "doc2", "doc3"] }
+
+    // Check if a specific ID exists
+    if (result.ids.includes('doc1')) {
+        console.log('✓ Item doc1 exists in index');
+    }
+    
+    // Use for inventory management
+    if (result.count === 0) {
+        console.log('Index is empty');
+    } else {
+        console.log(`Index contains ${result.count} items`);
+        
+        // Process all IDs
+        for (const id of result.ids) {
+            console.log(`Processing item: ${id}`);
+        }
+    }
+    
+} catch (error) {
+    console.error('Failed to list IDs:', error.message);
+}
+```
+
+### Use Cases
+
+#### Batch Processing
+
+```typescript
+// Get all IDs for batch processing
+const { ids } = await index.listIds();
+
+// Process in chunks
+const chunkSize = 100;
+for (let i = 0; i < ids.length; i += chunkSize) {
+    const chunk = ids.slice(i, i + chunkSize);
+    const items = await index.get({ ids: chunk });
+    // Process chunk...
+}
+```
+
+#### Index Synchronization
+
+```typescript
+// Check for missing items
+const expectedIds = ['doc1', 'doc2', 'doc3', 'doc4'];
+const { ids: actualIds } = await index.listIds();
+
+const missingIds = expectedIds.filter(id => !actualIds.includes(id));
+if (missingIds.length > 0) {
+    console.log('Missing items:', missingIds);
+    // Re-add missing items...
+}
+```
+
+#### Index Statistics
+
+```typescript
+// Get index statistics
+const { count, ids } = await index.listIds();
+
+console.log('Index Statistics:');
+console.log(`- Total vectors: ${count}`);
+console.log(`- First ID: ${ids[0] || 'N/A'}`);
+console.log(`- Last ID: ${ids[ids.length - 1] || 'N/A'}`);
+```
