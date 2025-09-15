@@ -55,7 +55,29 @@ await index.upsert({ items: data });
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Example data
+items := []cyborgdb.VectorItem{
+    {
+        Id:       "item_1",
+        Vector:   []float32{0.1, 0.1, 0.1, 0.1},
+        Metadata: map[string]interface{}{"category": "dog"},
+    },
+    {
+        Id:       "item_2", 
+        Vector:   []float32{0.2, 0.2, 0.2, 0.2},
+        Metadata: map[string]interface{}{"category": "cat"},
+    },
+}
+
+// Upsert data with metadata
+err := index.Upsert(context.Background(), items)
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -104,15 +126,15 @@ filters = {
 
 # Perform query
 results = index.query(
-  query_vectors=query_vector, 
-  top_k=top_k, 
-  filters=filters
+    query_vectors=query_vector, 
+    top_k=top_k, 
+    filters=filters
 )
 ```
 
 ```javascript JavaScript SDK icon="js"
 // Example query
-const queryVector = [0.5, 0.9, 0.2, 0.7];
+const queryVectors = [0.5, 0.9, 0.2, 0.7];
 const topK = 10;
 
 // Example filters
@@ -122,32 +144,49 @@ const filters = {
 
 // Perform query
 const results = await index.query({
-    queryVector,
+    queryVectors,
     topK,
     filters
 });
 ```
 
 ```typescript TypeScript SDK icon="code"
+import { QueryParams, QueryResponse, MetadataFilters } from 'cyborgdb';
+
 // Example query
-const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
+const queryVectors: number[] = [0.5, 0.9, 0.2, 0.7];
 const topK: number = 10;
 
 // Example filters
-const filters = {
+const filters: MetadataFilters = {
     category: {$in: ["dog", "cat"]} // Will match either 'dog' or 'cat'
 };
 
-// Perform query
-const results = await index.query({
-    queryVector,
+// Perform query  
+const params: QueryParams = {
+    queryVectors,
     topK,
     filters
-});
+};
+const results: QueryResponse = await index.query(params);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// Example query
+queryVector := []float32{0.5, 0.9, 0.2, 0.7}
+topK := int32(10)
+
+// Example filters
+filters := map[string]interface{}{
+    "category": map[string]interface{}{"$in": []string{"dog", "cat"}}, // Will match either 'dog' or 'cat'
+}
+
+// Perform query
+results, err := index.Query(context.Background(), cyborgdb.QueryParams{
+    QueryVector: queryVector,
+    TopK:        topK,
+    Filters:     filters,
+})
 ```
 
 ```bash cURL icon="rectangle-terminal"

@@ -46,7 +46,7 @@ const index = await client.createIndex({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client } from 'cyborgdb';
+import { Client, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
 
 // Create a client
 const client = new Client({ 
@@ -55,17 +55,53 @@ const client = new Client({
 });
 
 // Generate an encryption key for the index
-const indexKey = client.generateKey();
+const indexKey: Uint8Array = client.generateKey();
 
 // Create an encrypted index
-const index = await client.createIndex({ 
+const params: CreateIndexParams = {
     indexName: "my_index", 
     indexKey 
-});
+};
+const index: EncryptedIndex = await client.createIndex(params);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Generate encryption key
+    indexKey, err := cyborgdb.GenerateKey()
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Create encrypted index
+    params := &cyborgdb.CreateIndexParams{
+        IndexName: "my_index",
+        IndexKey:  indexKey,
+    }
+    
+    ctx := context.Background()
+    index, err := client.CreateIndex(ctx, params)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    log.Printf("Created index: %s", index.GetIndexName())
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -148,7 +184,7 @@ const index = await client.createIndex({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client } from 'cyborgdb';
+import { Client, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
 
 // Create a client
 const client = new Client({ 
@@ -157,21 +193,61 @@ const client = new Client({
 });
 
 // Generate an encryption key for the index
-const indexKey = client.generateKey();
+const indexKey: Uint8Array = client.generateKey();
 
 // Set embedding model (from HuggingFace)
-const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
+const embeddingModel: string = "sentence-transformers/all-MiniLM-L6-v2";
     
 // Create an encrypted index with managed embedding generation
-const index = await client.createIndex({ 
+const params: CreateIndexParams = {
     indexName: "my_index", 
     indexKey, 
     embeddingModel 
-});
+};
+const index: EncryptedIndex = await client.createIndex(params);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Generate encryption key
+    indexKey, err := cyborgdb.GenerateKey()
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Set embedding model
+    embeddingModel := "sentence-transformers/all-MiniLM-L6-v2"
+    
+    // Create encrypted index with managed embedding generation
+    params := &cyborgdb.CreateIndexParams{
+        IndexName:      "my_index",
+        IndexKey:       indexKey,
+        EmbeddingModel: &embeddingModel,
+    }
+    
+    ctx := context.Background()
+    index, err := client.CreateIndex(ctx, params)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    log.Printf("Created index with embeddings: %s", index.GetIndexName())
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"

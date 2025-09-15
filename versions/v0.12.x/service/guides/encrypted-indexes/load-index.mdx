@@ -47,7 +47,7 @@ const index = await client.loadIndex({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client } from 'cyborgdb';
+import { Client, EncryptedIndex, LoadIndexParams } from 'cyborgdb';
 
 // Create a client
 const client = new Client({ 
@@ -58,14 +58,42 @@ const client = new Client({
 const indexKey: Uint8Array = yourExisting32ByteKey;  // Must be the same key used originally
 
 // Connect to existing index
-const index = await client.loadIndex({ 
+const params: LoadIndexParams = {
     indexName: "my_index", 
     indexKey 
-});
+};
+const index: EncryptedIndex = await client.loadIndex(params);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Provide the same index key used when creating the index
+    indexKey := yourExisting32ByteKey // Must be the same key used originally
+    
+    // Connect to existing index
+    ctx := context.Background()
+    index, err := client.LoadIndex(ctx, "my_index", indexKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    log.Printf("Loaded index: %s", index.GetIndexName())
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"

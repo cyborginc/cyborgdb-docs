@@ -59,12 +59,41 @@ console.log(indexes);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Create client
+client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+if err != nil {
+    log.Fatal(err)
+}
+
+// List all indexes
+ctx := context.Background()
+indexes, err := client.ListIndexes(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(indexes)
+// Example output: ["index_one", "index_two", "index_three"]
 ```
 
 ```bash cURL icon="rectangle-terminal"
 curl -X GET "http://localhost:8000/v1/indexes/list" \
      -H "X-API-Key: your-api-key"
+
+# Response:
+# {
+#   "indexes": ["index_one", "index_two", "index_three"]
+# }
 ```
 </CodeGroup>
 

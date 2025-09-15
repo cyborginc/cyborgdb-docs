@@ -96,7 +96,34 @@ const index = await client.createIndex({ indexName, indexKey });
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "encoding/base64"
+    "io/ioutil"
+    "context"
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Create a client
+client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+
+// Load the encryption key
+keyB64, err := ioutil.ReadFile("index_key.txt")
+if err != nil {
+    panic(err)
+}
+
+indexKey, err := base64.StdEncoding.DecodeString(string(keyB64))
+if err != nil {
+    panic(err)
+}
+
+// Use the encryption key
+index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
+    IndexName: "index_name",
+    IndexKey:  indexKey,
+})
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -304,7 +331,50 @@ const index = await client.createIndex({ indexName: "my_index", indexKey, indexC
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "encoding/base64"
+    "github.com/aws/aws-sdk-go/aws"
+    "github.com/aws/aws-sdk-go/aws/session"
+    "github.com/aws/aws-sdk-go/service/kms"
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Create a client
+client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+
+// Initialize AWS KMS client
+sess, err := session.NewSession()
+if err != nil {
+    panic(err)
+}
+kmsClient := kms.New(sess)
+
+// Load the encrypted key from your configuration
+encryptedKeyB64 := "..." // Replace with your stored encrypted key (Base64-encoded)
+
+// Decode the Base64-encoded encrypted key
+encryptedKey, err := base64.StdEncoding.DecodeString(encryptedKeyB64)
+if err != nil {
+    panic(err)
+}
+
+// Decrypt the key at runtime
+decryptOutput, err := kmsClient.Decrypt(&kms.DecryptInput{
+    CiphertextBlob: encryptedKey,
+})
+if err != nil {
+    panic(err)
+}
+indexKey := decryptOutput.Plaintext // This is your 256-bit key
+
+// Use the key with CyborgDB
+index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
+    IndexName: "my_index",
+    IndexKey:  indexKey,
+})
 ```
 
 ```bash cURL icon="rectangle-terminal"

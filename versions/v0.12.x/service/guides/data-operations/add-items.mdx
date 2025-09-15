@@ -32,7 +32,7 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem } from 'cyborgdb';
+import { VectorItem, UpsertParams } from 'cyborgdb';
 
 // Items to add to the encrypted index
 const items: VectorItem[] = [
@@ -42,11 +42,32 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-await index.upsert({ items });
+const params: UpsertParams = { items };
+await index.upsert(params);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Items to add to the encrypted index
+items := []cyborgdb.VectorItem{
+    {Id: "item_1", Vector: []float32{0.1, 0.2, 0.3, 0.4}},
+    {Id: "item_2", Vector: []float32{0.5, 0.6, 0.7, 0.8}},
+    {Id: "item_3", Vector: []float32{0.9, 0.10, 0.11, 0.12}},
+}
+
+// Add items to the encrypted index
+err := index.Upsert(context.Background(), items)
+if err != nil {
+    log.Fatal(err)
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -107,7 +128,7 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem } from 'cyborgdb';
+import { VectorItem, UpsertParams } from 'cyborgdb';
 
 // Items to add to the encrypted index
 const items: VectorItem[] = [
@@ -117,11 +138,23 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-await index.upsert({ items });
+const params: UpsertParams = { items };
+await index.upsert(params);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// Items to add to the encrypted index
+items := []cyborgdb.VectorItem{
+    {Id: "item_1", Vector: []float32{0.1, 0.2, 0.3, 0.4}, Contents: cyborgdb.NewNullableContents("Hello!")},
+    {Id: "item_2", Vector: []float32{0.5, 0.6, 0.7, 0.8}, Contents: cyborgdb.NewNullableContents("World!")},
+    {Id: "item_3", Vector: []float32{0.9, 0.10, 0.11, 0.12}, Contents: cyborgdb.NewNullableContents("Cyborg!")},
+}
+
+// Add items to the encrypted index
+err := index.Upsert(context.Background(), items)
+if err != nil {
+    log.Fatal(err)
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -172,7 +205,30 @@ index.upsert(items)
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// Items to add to the encrypted index
+items := []cyborgdb.VectorItem{
+    {
+        Id: "item_1", 
+        Vector: []float32{0.1, 0.2, 0.3, 0.4}, 
+        Metadata: map[string]interface{}{"name": "Alice", "age": 30},
+    },
+    {
+        Id: "item_2", 
+        Vector: []float32{0.5, 0.6, 0.7, 0.8}, 
+        Metadata: map[string]interface{}{"name": "Bob", "age": 40},
+    },
+    {
+        Id: "item_3", 
+        Vector: []float32{0.9, 0.10, 0.11, 0.12}, 
+        Metadata: map[string]interface{}{"name": "Charlie", "age": 50},
+    },
+}
+
+// Add items to the encrypted index
+err := index.Upsert(context.Background(), items)
+if err != nil {
+    log.Fatal(err)
+}
 ```
 
 ```javascript JavaScript SDK icon="js"
@@ -188,17 +244,24 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem } from 'cyborgdb';
+import { VectorItem, UpsertParams } from 'cyborgdb';
+
+// Define metadata type (optional)
+interface PersonMetadata {
+    name: string;
+    age: number;
+}
 
 // Items to add to the encrypted index
 const items: VectorItem[] = [
-    {id: "item_1", vector: [0.1, 0.2, 0.3, 0.4], metadata: {name: "Alice", age: 30}},
-    {id: "item_2", vector: [0.5, 0.6, 0.7, 0.8], metadata: {name: "Bob", age: 40}},
-    {id: "item_3", vector: [0.9, 0.10, 0.11, 0.12], metadata: {name: "Charlie", age: 50}}
+    {id: "item_1", vector: [0.1, 0.2, 0.3, 0.4], metadata: {name: "Alice", age: 30} as PersonMetadata},
+    {id: "item_2", vector: [0.5, 0.6, 0.7, 0.8], metadata: {name: "Bob", age: 40} as PersonMetadata},
+    {id: "item_3", vector: [0.9, 0.10, 0.11, 0.12], metadata: {name: "Charlie", age: 50} as PersonMetadata}
 ];
 
 // Add items to the encrypted index
-await index.upsert({ items });
+const params: UpsertParams = { items };
+await index.upsert(params);
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -279,16 +342,17 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem } from 'cyborgdb';
+import { VectorItem, UpsertParams, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
 
 // ... index creation and embedding model setup
-const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
-const index = await client.createIndex({ 
+const embeddingModel: string = "sentence-transformers/all-MiniLM-L6-v2";
+const indexParams: CreateIndexParams = {
     indexName: "my_index", 
     indexKey, 
     indexConfig, 
     embeddingModel 
-});
+};
+const index: EncryptedIndex = await client.createIndex(indexParams);
 
 // Items to add to the encrypted index
 const items: VectorItem[] = [
@@ -297,11 +361,22 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-await index.upsert({ items });
+const params: UpsertParams = { items };
+await index.upsert(params);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// Items to add to the encrypted index
+items := []cyborgdb.VectorItem{
+    {Id: "item_1", Contents: cyborgdb.NewNullableContents("Hello, World!")},
+    {Id: "item_2", Contents: cyborgdb.NewNullableContents("Hello, Cyborg!")},
+}
+
+// Add items to the encrypted index
+err := index.Upsert(context.Background(), items)
+if err != nil {
+    log.Fatal(err)
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"

@@ -93,7 +93,28 @@ const index = await client.createIndex({
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Create a client
+client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+
+// Create the IVFFlat index config
+indexConfig := cyborgdb.IndexIVFFlat{}
+
+// Generate encryption key and create the index
+indexName := "test_index"
+indexKey := client.GenerateKey() // Generate secure 32-byte key
+
+index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
+    IndexName:   indexName,
+    IndexKey:    indexKey,
+    IndexConfig: indexConfig,
+})
 ```
 
 </CodeGroup>
@@ -191,7 +212,35 @@ const index = await client.createIndex({
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Create a client
+client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+
+// Set index parameters
+pqDim := 32  // Dimension must be divisible by pqDim
+pqBits := 8  // Number of bits for each pq dimension
+
+// Create the IVFPQ index config
+indexConfig := cyborgdb.IndexIVFPQ{
+    PqDim:  pqDim,
+    PqBits: pqBits,
+}
+
+// Generate encryption key and create the index
+indexName := "test_index"
+indexKey := client.GenerateKey() // Generate secure 32-byte key
+
+index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
+    IndexName:   indexName,
+    IndexKey:    indexKey,
+    IndexConfig: indexConfig,
+})
 ```
 
 </CodeGroup>
@@ -279,7 +328,28 @@ const index = await client.createIndex({
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Create a client
+client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+
+// Create the IVF index config
+indexConfig := cyborgdb.IndexIVF{}
+
+// Generate encryption key and create the index
+indexName := "test_index"
+indexKey := client.GenerateKey() // Generate secure 32-byte key
+
+index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
+    IndexName:   indexName,
+    IndexKey:    indexKey,
+    IndexConfig: indexConfig,
+})
 ```
 
 </CodeGroup>
@@ -330,7 +400,17 @@ const index = await client.createIndex({
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// Example with cosine similarity
+indexConfig := cyborgdb.IndexIVFFlat{}
+indexName := "index_name"
+indexKey := client.GenerateKey() // Generate secure 32-byte key
+
+index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
+    IndexName:   indexName,
+    IndexKey:    indexKey,
+    IndexConfig: indexConfig,
+    Metric:      "cosine",
+})
 ```
 
 ```bash cURL icon="rectangle-terminal"

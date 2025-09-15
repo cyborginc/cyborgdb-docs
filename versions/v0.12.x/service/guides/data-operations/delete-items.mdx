@@ -24,15 +24,25 @@ await index.delete({ ids: idsToDelete });
 ```
 
 ```typescript TypeScript SDK icon="code"
+import { DeleteParams } from 'cyborgdb';
+
 // IDs of items to delete
 const idsToDelete: string[] = ["item1", "item2", "item3"];
 
 // Delete items from the encrypted index
-await index.delete({ ids: idsToDelete });
+const params: DeleteParams = { ids: idsToDelete };
+await index.delete(params);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// IDs of items to delete
+idsToDelete := []string{"item1", "item2", "item3"}
+
+// Delete items from the encrypted index
+err := index.Delete(context.Background(), idsToDelete)
+if err != nil {
+    log.Fatal(err)
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"

@@ -21,11 +21,11 @@ print(results)
 
 ```javascript JavaScript SDK icon="js"
 // Example query
-const queryVector = [0.5, 0.9, 0.2, 0.7];
+const queryVectors = [0.5, 0.9, 0.2, 0.7];
 const topK = 10;
 
 // Perform query
-const results = await index.query({ queryVector, topK });
+const results = await index.query({ queryVectors, topK });
 
 console.log(results);
 // Example results 
@@ -33,12 +33,15 @@ console.log(results);
 ```
 
 ```typescript TypeScript SDK icon="code"
+import { QueryParams, QueryResponse } from 'cyborgdb';
+
 // Example query
-const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
+const queryVectors: number[] = [0.5, 0.9, 0.2, 0.7];
 const topK: number = 10;
 
 // Perform query
-const results = await index.query({ queryVector, topK });
+const params: QueryParams = { queryVectors, topK };
+const results: QueryResponse = await index.query(params);
 
 console.log(results);
 // Example results
@@ -46,7 +49,22 @@ console.log(results);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// Example query
+queryVector := []float32{0.5, 0.9, 0.2, 0.7}
+params := cyborgdb.QueryParams{
+    QueryVector: queryVector,
+    TopK:        10,
+}
+
+// Perform query
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(results)
+// Example results (nested list format)
+// [[{"id": "item_12", "distance": 0.01}, {"id": "item_7", "distance": 0.04}, ...]]
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -97,7 +115,7 @@ print(results)
 
 ```javascript JavaScript SDK icon="js"
 // Example query with parameters
-const queryVector = [0.5, 0.9, 0.2, 0.7];
+const queryVectors = [0.5, 0.9, 0.2, 0.7];
 const topK = 10;
 const nProbes = 5;
 const filters = {age: {$gt: 18}};
@@ -105,7 +123,7 @@ const include = ["distance", "metadata"];
 
 // Perform query
 const results = await index.query({
-    queryVector,
+    queryVectors,
     topK,
     nProbes,
     filters,
@@ -118,21 +136,24 @@ console.log(results);
 ```
 
 ```typescript TypeScript SDK icon="code"
+import { QueryParams, QueryResponse, MetadataFilters } from 'cyborgdb';
+
 // Example query with parameters
-const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
+const queryVectors: number[] = [0.5, 0.9, 0.2, 0.7];
 const topK: number = 10;
 const nProbes: number = 5;
-const filters = {age: {$gt: 18}};
+const filters: MetadataFilters = {age: {$gt: 18}};
 const include: string[] = ["distance", "metadata"];
 
 // Perform query
-const results = await index.query({
-    queryVector,
+const params: QueryParams = {
+    queryVectors,
     topK,
     nProbes,
     filters,
     include
-});
+};
+const results: QueryResponse = await index.query(params);
 
 console.log(results);
 // Example results  
@@ -140,7 +161,26 @@ console.log(results);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// Example query with parameters
+queryVector := []float32{0.5, 0.9, 0.2, 0.7}
+nProbes := int32(5)
+params := cyborgdb.QueryParams{
+    QueryVector: queryVector,
+    TopK:        10,
+    NProbes:     &nProbes,
+    Filters:     map[string]interface{}{"age": map[string]interface{}{"$gt": 18}},
+    Include:     []string{"distance", "metadata"},
+}
+
+// Perform query
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(results)
+// Example results
+// [[{"id": "item_12", "distance": 0.01, "metadata": {"age": 25}}, ...]]
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -199,15 +239,18 @@ console.log(results);
 ```
 
 ```typescript TypeScript SDK icon="code"
+import { QueryParams, QueryResponse } from 'cyborgdb';
+
 // Example batch query
 const queryVectors: number[][] = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]];
 const topK: number = 10;
 
 // Perform batch query
-const results = await index.query({
+const params: QueryParams = {
     queryVectors,
     topK
-});
+};
+const results: QueryResponse = await index.query(params);
 
 console.log(results);
 // Returns nested results: one list per query vector
@@ -215,7 +258,25 @@ console.log(results);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// Example batch query
+queryVectors := [][]float32{
+    {0.5, 0.9, 0.2, 0.7},
+    {0.1, 0.3, 0.8, 0.6},
+}
+params := cyborgdb.QueryParams{
+    BatchQueryVectors: queryVectors,
+    TopK:              10,
+}
+
+// Perform batch query
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(results)
+// Returns nested results: one list per query vector
+// [[results_for_query_1], [results_for_query_2]]
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -287,9 +348,11 @@ const results = await index.query({
 ```
 
 ```typescript TypeScript SDK icon="code"
+import { QueryParams, QueryResponse, EncryptedIndex } from 'cyborgdb';
+
 // ... index creation and embedding model setup
-const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
-const index = await client.createIndex({ indexName: "my_index", indexKey, indexConfig, embeddingModel });
+const embeddingModel: string = "sentence-transformers/all-MiniLM-L6-v2";
+const index: EncryptedIndex = await client.createIndex({ indexName: "my_index", indexKey, indexConfig, embeddingModel });
 
 // ... Add items to the encrypted index ...
 
@@ -298,14 +361,28 @@ const queryContents: string = "What is the capital of France?";
 const topK: number = 10;
 
 // Perform query
-const results = await index.query({
+const params: QueryParams = {
     queryContents,
     topK
-});
+};
+const results: QueryResponse = await index.query(params);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// Example semantic query
+queryContents := "What is the capital of France?"
+params := cyborgdb.QueryParams{
+    QueryContents: &queryContents,
+    TopK:          10,
+}
+
+// Perform query
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(results)
 ```
 
 ```bash cURL icon="rectangle-terminal"

@@ -76,11 +76,39 @@ await index.deleteIndex();
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Create client
+client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Provide the same index key used when creating the index
+indexKey := []byte("your-existing-32-byte-key") // Must be the same key used originally
+
+// Connect to the existing index
+index, err := client.LoadIndex(context.Background(), "my_index", indexKey)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Delete the index
+err = index.DeleteIndex(context.Background())
+if err != nil {
+    log.Fatal(err)
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"
-curl -X DELETE "http://localhost:8000/v1/indexes/delete" \
+curl -X POST "http://localhost:8000/v1/indexes/delete" \
      -H "X-API-Key: your-api-key" \
      -H "Content-Type: application/json" \
      -d '{

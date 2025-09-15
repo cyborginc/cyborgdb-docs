@@ -36,12 +36,15 @@ console.log(items);
 ```
 
 ```typescript TypeScript SDK icon="code"
+import { GetParams, VectorItem } from 'cyborgdb';
+
 // IDs of items to retrieve
 const ids: string[] = ["item_20", "item_11"];
 const include: string[] = ["contents", "metadata"];
 
 // Retrieve items from the encrypted index
-const items = await index.get({ ids, include });
+const params: GetParams = { ids, include };
+const items: VectorItem[] = await index.get(params);
 
 console.log(items);
 // Example items
@@ -50,7 +53,20 @@ console.log(items);
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+// IDs of items to retrieve
+ids := []string{"item_20", "item_11"}
+include := []string{"contents", "metadata"}
+
+// Retrieve items from the encrypted index
+items, err := index.Get(context.Background(), ids, include)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(items)
+// Example items
+// [{"id": "item_20", "contents": "Hello, World!", "metadata": {"type": "txt"}},
+//  {"id": "item_11", "contents": "Hello, Cyborg!", "metadata": {"type": "md"}}]
 ```
 
 ```bash cURL icon="rectangle-terminal"

@@ -41,7 +41,21 @@ const client = new Client({
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client with API key
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -96,7 +110,32 @@ try {
 ```
 
 ```go Go SDK icon="golang"
-// TODO
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Check service health
+    ctx := context.Background()
+    health, err := client.GetHealth(ctx)
+    if err != nil {
+        fmt.Printf("Service unavailable: %v\n", err)
+        return
+    }
+    fmt.Printf("Service status: %+v\n", health)
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"
