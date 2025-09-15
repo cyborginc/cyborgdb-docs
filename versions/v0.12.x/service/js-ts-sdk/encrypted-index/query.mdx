@@ -70,7 +70,10 @@ const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey })
 const queryVector = [0.15, 0.25, 0.35, 0.45];
 
 try {
-    const results = await index.query(queryVector, undefined, 5);
+    const results = await index.query({ 
+        queryVectors: queryVector, 
+        topK: 5 
+    });
     
     // Single vector query returns flat array
     console.log(`Found ${results.results.length} similar vectors:`);
@@ -92,11 +95,10 @@ try {
 ```typescript
 // Search by text content (requires embedding model configured on index)
 try {
-    const contentResults = await index.query(
-        undefined,              // no vector provided
-        "machine learning tutorial",  // content to embed and search
-        10                      // return top 10 results
-    );
+    const contentResults = await index.query({
+        queryContents: "machine learning tutorial",  // content to embed and search
+        topK: 10                                     // return top 10 results
+    });
     
     console.log('Content-based search results:');
     contentResults.results.forEach((item, i) => {
@@ -116,15 +118,14 @@ try {
 const queryVector = [0.1, 0.2, 0.3, 0.4];
 
 try {
-    const results = await index.query(
-        queryVector,
-        undefined,              // no content search
-        10,                     // topK: return top 10 results
-        5,                      // nProbes: probe 5 clusters for better accuracy
-        { category: 'research', published: true },  // filters: only research documents
-        ['distance', 'metadata', 'contents'],       // include: return all fields
-        false                   // greedy: use exact search
-    );
+    const results = await index.query({
+        queryVectors: queryVector,
+        topK: 10,                                       // return top 10 results
+        nProbes: 5,                                     // probe 5 clusters for better accuracy
+        filters: { category: 'research', published: true },  // only research documents
+        include: ['distance', 'metadata', 'contents'],       // return all fields
+        greedy: false                                        // use exact search
+    });
     
     console.log('Advanced query results:');
     results.results.forEach((item, i) => {

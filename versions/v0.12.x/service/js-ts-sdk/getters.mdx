@@ -188,48 +188,52 @@ try {
 
 ---
 
-## listIds
+## isTraining
 
 ```typescript
-async listIds(): Promise<{ ids: string[]; count: number }>
+async isTraining(): Promise<{
+    training_indexes: string[];
+    retrain_threshold: number;
+}>
 ```
 
-Retrieves a list of all item IDs currently stored in the index from the CyborgDB service.
+Checks if any indexes are currently being trained on the CyborgDB service. This is a Client method, not an EncryptedIndex method.
 
 ### Returns
 
-`Promise<{ ids: string[]; count: number }>`: A Promise that resolves to an object containing:
-- `ids`: Array of all item ID strings in the index
-- `count`: Total number of items in the index
+`Promise<object>`: A Promise that resolves to an object containing:
+- `training_indexes`: Array of index names that are currently being trained
+- `retrain_threshold`: The multiplier used for the retraining threshold
 
 ### Exceptions
 
 - Throws if the API request fails due to network connectivity issues
-- Throws if authentication fails (invalid API key or encryption key)
-- Throws if the index doesn't exist on the server
+- Throws if authentication fails (invalid API key)
+- Throws if the server returns an error response
 
 ### Example Usage
 
 ```typescript
-try {
-    const result = await index.listIds();
-    console.log('Total items in index:', result.count);
-    console.log('Item IDs:', result.ids);
-    // Output: { count: 3, ids: ["doc1", "doc2", "doc3"] }
+import { Client } from 'cyborgdb';
 
-    // Check if a specific ID exists
-    if (result.ids.includes('doc1')) {
-        console.log('✓ Item doc1 exists in index');
-    }
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+try {
+    const trainingStatus = await client.isTraining();
     
-    // Use for inventory management
-    if (result.count === 0) {
-        console.log('Index is empty');
+    console.log('Training status:', trainingStatus);
+    // Output: { training_indexes: ['index1', 'index2'], retrain_threshold: 2.0 }
+    
+    if (trainingStatus.training_indexes.length > 0) {
+        console.log('Indexes currently training:');
+        trainingStatus.training_indexes.forEach(indexName => {
+            console.log(`  - ${indexName}`);
+        });
     } else {
-        console.log(`Index contains ${result.count} items`);
+        console.log('No indexes are currently being trained');
     }
     
 } catch (error) {
-    console.error('Failed to list IDs:', error.message);
+    console.error('Failed to check training status:', error.message);
 }
 ```

@@ -11,7 +11,9 @@ index.list_ids()
 
 ### Returns
 
-`List[str]` - List of vector IDs currently stored in the index.
+`Dict[str, Union[List[str], int]]` - Dictionary containing:
+- `ids`: List of vector IDs currently stored in the index  
+- `count`: Total number of IDs in the index
 
 ### Exceptions
 
@@ -20,12 +22,35 @@ index.list_ids()
         - Throws if the API request fails due to network connectivity issues.
         - Throws if authentication fails (invalid API key).
         - Throws if the encryption key is invalid for the specified index.
-        - Throws if there are internal server errors preventing the deletion.
+        - Throws if the index was not created or loaded yet.
+        - Throws if an error occurs during retrieval.
     </Accordion>
 </AccordionGroup>
 
 ### Example Usage
 
 ```python
-# List all vector IDs
-vector_ids = index.list_ids()
+# Get all IDs in the index
+result = index.list_ids()
+print(f"Total items in index: {result['count']}")
+
+# Print first 10 IDs
+for id in result['ids'][:10]:
+    print(f"ID: {id}")
+
+# Check if a specific ID exists
+target_id = "document_123"
+if target_id in result['ids']:
+    print(f"Document {target_id} exists in the index")
+else:
+    print(f"Document {target_id} not found")
+
+# Use for batch processing
+batch_size = 100
+all_ids = result['ids']
+for i in range(0, len(all_ids), batch_size):
+    batch_ids = all_ids[i:i+batch_size]
+    # Process batch of documents
+    items = index.get(batch_ids)
+    # ... process items ...
+```

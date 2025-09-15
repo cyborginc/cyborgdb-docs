@@ -62,7 +62,7 @@ Dictionary format for upsert operations:
 vector_item = {
     "id": "unique_identifier",           # Required: string
     "vector": [0.1, 0.2, 0.3, ...],    # Optional: List[float]
-    "contents": "text content",          # Optional: string
+    "contents": "text content",          # Optional: string or bytes
     "metadata": {                        # Optional: Dict[str, Any]
         "category": "research",
         "author": "Dr. Smith",

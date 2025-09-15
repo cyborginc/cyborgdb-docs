@@ -7,7 +7,7 @@ Searches for nearest neighbors in the encrypted index using vector similarity se
 
 ```python
 # Single vector query
-index.query(query_vector=vector, top_k=10)
+index.query(query_vectors=vector, top_k=10)
 
 # Batch vector queries
 index.query(query_vectors=vectors, top_k=10)
@@ -29,7 +29,8 @@ index.query(query_contents=text, top_k=10)
 
 ### Returns
 
-`List[List[Dict]]` - List of result lists. For single queries, returns a list with one result list. For batch queries, returns multiple result lists.
+For single queries: `List[Dict]` - A list of result dictionaries.
+For batch queries: `List[List[Dict]]` - A list of result lists, one for each query vector.
 
 #### Result Format
 
@@ -76,8 +77,8 @@ index.query(query_contents=text, top_k=10)
 query_vector = [0.1, 0.2, 0.3, 0.4]
 results = index.query(query_vectors=query_vector, top_k=5)
 
-# Access results (single query returns list with one result list)
-for result in results[0]:
+# Access results (single query returns a flat list)
+for result in results:
     print(f"ID: {result['id']}, Distance: {result['distance']}")
 ```
 
@@ -111,7 +112,7 @@ results = index.query(
     top_k=10
 )
 
-for result in results[0]:
+for result in results:
     print(f"Found: {result['id']}")
     if 'contents' in result:
         print(f"Content: {result['contents'][:100]}...")
@@ -130,7 +131,7 @@ results = index.query(
     greedy=True  # Use greedy search for potentially better results
 )
 
-for result in results[0]:
+for result in results:
     print(f"ID: {result['id']}")
     print(f"Distance: {result['distance']:.4f}")
     print(f"Category: {result['metadata']['category']}")

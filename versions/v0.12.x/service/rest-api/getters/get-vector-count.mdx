@@ -5,7 +5,17 @@ api: "POST /v1/vectors/num_vectors"
 playground: "simple"
 ---
 
-Returns the total number of vectors stored in an index.
+Get the number of vectors stored in an encrypted index.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
 
 ## Request Body
 
@@ -29,19 +39,26 @@ Returns the total number of vectors stored in an index.
 
 ```json
 {
-  "status": "success", 
-  "message": "1500"
+  "status": "success",
+  "message": "1500 vectors in index 'my_index'"
 }
 ```
 
 <Expandable title="response fields">
   <ResponseField name="status" type="string">
-    Status of the request (success/error)
+    Operation status (always "success")
   </ResponseField>
   <ResponseField name="message" type="string">
-    The vector count as a string value
+    Descriptive message containing the vector count
   </ResponseField>
 </Expandable>
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters
+- `500`: Internal server error
 
 ## Example Usage
 

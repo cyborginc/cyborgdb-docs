@@ -10,8 +10,8 @@ client.create_index(
     index_name,
     index_key,
     index_config = None,
-    metric = "euclidean",
     embedding_model = None,
+    metric = "euclidean",
 )
 ```
 
@@ -22,8 +22,8 @@ client.create_index(
 | `index_name` | `str` | - | Unique name for the index |
 | `index_key` | `bytes` | - | 32-byte encryption key |
 | `index_config` | `IndexConfig` | `None` | _(Optional)_ Index configuration object |
-| `metric` | `str` | `"euclidean"` | _(Optional)_ Distance metric to use (`"euclidean"`, `"squared_euclidean"`, or `"cosine"`) |
 | `embedding_model` | `str` | `None` | _(Optional)_ Embedding model identifier |
+| `metric` | `str` | `"euclidean"` | _(Optional)_ Distance metric to use (`"euclidean"`, `"squared_euclidean"`, or `"cosine"`) |
 
 ### Returns
 

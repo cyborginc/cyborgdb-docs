@@ -200,9 +200,9 @@
                       "versions/v0.12.x/service/python-sdk/encrypted-index/query",
                       "versions/v0.12.x/service/python-sdk/encrypted-index/train",
                       "versions/v0.12.x/service/python-sdk/encrypted-index/get",
+                      "versions/v0.12.x/service/python-sdk/encrypted-index/list-ids",
                       "versions/v0.12.x/service/python-sdk/encrypted-index/delete",
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/delete-index",
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/list-ids"
+                      "versions/v0.12.x/service/python-sdk/encrypted-index/delete-index"
                     ]
                   },
                   {
@@ -242,6 +242,7 @@
                       "versions/v0.12.x/service/js-ts-sdk/encrypted-index/query",
                       "versions/v0.12.x/service/js-ts-sdk/encrypted-index/train",
                       "versions/v0.12.x/service/js-ts-sdk/encrypted-index/get",
+                      "versions/v0.12.x/service/js-ts-sdk/encrypted-index/list-ids",
                       "versions/v0.12.x/service/js-ts-sdk/encrypted-index/delete",
                       "versions/v0.12.x/service/js-ts-sdk/encrypted-index/delete-index"
                     ]
@@ -284,6 +285,7 @@
                       "versions/v0.12.x/service/go-sdk/encrypted-index/query",
                       "versions/v0.12.x/service/go-sdk/encrypted-index/train",
                       "versions/v0.12.x/service/go-sdk/encrypted-index/get",
+                      "versions/v0.12.x/service/go-sdk/encrypted-index/list-ids",
                       "versions/v0.12.x/service/go-sdk/encrypted-index/delete",
                       "versions/v0.12.x/service/go-sdk/encrypted-index/delete-index"
                     ]
