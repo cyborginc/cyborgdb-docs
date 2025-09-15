@@ -25,8 +25,6 @@ async createIndex({
 | `metric` | `'euclidean' \| 'squared_euclidean' \| 'cosine'` | _(Optional)_ Distance metric to use for the index. Defaults to `'euclidean'`. |
 | `embeddingModel` | `string` | _(Optional)_ Name of the embedding model used to auto-generate embeddings on the server. Defaults to `undefined`, no auto-generation. |
 
-<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>
-
 ### Returns
 
 `Promise<EncryptedIndex>`: A Promise that resolves to an instance of the newly created encrypted index.
@@ -40,14 +38,9 @@ async createIndex({
         - Throws if the encryption key is not exactly 32 bytes.
         - Throws if the embedding model is not supported by the server.
     </Accordion>
-    <Accordion title="Network/API Errors">
-        - Throws if the API request fails due to network issues.
-        - Throws if the server returns an HTTP error status.
-        - Throws if authentication fails (invalid API key).
-    </Accordion>
-    <Accordion title="Validation Errors">
-        - Throws if field validation fails with detailed error information.
-        - Throws if required configuration parameters are missing or invalid.
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
     </Accordion>
 </AccordionGroup>
 
@@ -74,7 +67,7 @@ try {
 }
 ```
 
-<Tip>For more info on `generateKey`, refer to [Generate Key](./generate-key).</Tip>
+<Note>For more info on `generateKey`, refer to [Generate Key](./generate-key).</Note>
 
 #### IVFFlat Index with Embedding Model
 
@@ -102,18 +95,4 @@ try {
 }
 ```
 
-### Key Management
-
-Always store your encryption key securely after creating an index:
-
-```typescript
-// Generate and store key
-const indexKey: Uint8Array = client.generateKey();
-const keyHex: string = Buffer.from(indexKey).toString('hex');
-
-// Store keyHex in your secure key management system
-console.log('Save this key:', keyHex);
-
-// Later, to reload the key:
-const restoredKey: Uint8Array = new Uint8Array(Buffer.from(keyHex, 'hex'));
-```
+<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>

@@ -3,7 +3,7 @@ title: "Generate Key"
 mode: "wide"
 ---
 
-Generates a cryptographically secure 32-byte encryption key suitable for creating encrypted indexes.
+Generates a cryptographically secure 256-bit (32-byte) encryption key suitable for creating encrypted indexes.
 
 ```python
 @staticmethod
@@ -16,9 +16,15 @@ generate_key() -> bytes
 
 ### Security Notes
 
+The generated key is cryptographically secure and suitable for production use:
+
 - Uses Python's `secrets.token_bytes()` which leverages OS entropy sources for maximum security
-- Each generated key is unique and provides strong 256-bit encryption
-- Keys should be stored securely and backed up - losing a key means losing access to the encrypted index
+- Provides 256 bits of entropy (32 bytes)
+- Compatible with AES-256 encryption used by CyborgDB
+
+<Warning>
+This key must be persisted securely. For more information, see [Managing Encryption Keys](../../guides/advanced/managing-keys).
+</Warning>
 
 ### Example Usage
 

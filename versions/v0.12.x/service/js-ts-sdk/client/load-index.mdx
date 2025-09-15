@@ -19,6 +19,10 @@ async loadIndex({
 | `indexName` | `string` | Name of the existing index to load |
 | `indexKey` | `Uint8Array` | The exact 32-byte encryption key used when creating the index |
 
+<Warning>
+The encryption key must exactly match the key used during index creation.
+</Warning>
+
 ### Returns
 
 `Promise<EncryptedIndex>`: A Promise that resolves to an `EncryptedIndex` instance ready for vector operations (query, upsert, delete, etc.)
@@ -29,13 +33,12 @@ async loadIndex({
     <Accordion title="Error">
         - Throws if the index doesn't exist on the server
         - Throws if the encryption key is incorrect or invalid
-        - Throws if the encryption key is not exactly 32 bytes
-        - Throws if authentication fails (invalid API key)
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
     </Accordion>
-    <Accordion title="Network/API Errors">
-        - Throws if the API request fails due to network issues
-        - Throws if the server returns an HTTP error status
-        - Throws if the server is unreachable or times out
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
     </Accordion>
 </AccordionGroup>
 
@@ -61,9 +64,3 @@ try {
     console.error('Failed to load index:', error.message);
 }
 ```
-
-### Security Notes
-
-- The encryption key must match exactly the key used during index creation
-- Invalid keys will result in authentication errors, not data corruption
-- Keys should be stored securely and never exposed in client-side code

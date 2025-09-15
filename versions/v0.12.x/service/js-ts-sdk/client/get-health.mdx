@@ -19,15 +19,10 @@ async getHealth(): Promise<object>
     <Accordion title="Error">
         - Throws if the health check request fails due to network connectivity issues.
         - Throws if the server is unreachable or times out.
-        - Throws if authentication fails (invalid API key).
     </Accordion>
     <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unhealthy or experiencing issues.
-        - Throws if there are internal server errors preventing health reporting.
-    </Accordion>
-    <Accordion title="Network Errors">
-        - Throws if the API request fails due to network issues.
-        - Throws if SSL verification fails (in secure environments).
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
     </Accordion>
 </AccordionGroup>
 
@@ -47,7 +42,7 @@ try {
 }
 ```
 
-#### Response Fields
+### Response Fields
 
 | Field | Type | Description |
 |-------|------|-------------|

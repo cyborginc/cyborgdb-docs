@@ -3,12 +3,12 @@ title: "Delete"
 mode: "wide"
 ---
 
-Deletes vectors from the encrypted index by their IDs.
+Removes vectors from the index by their IDs. This operation permanently deletes the specified vectors and their associated data.
 
 ```typescript
 async delete({
-    ids: string[]       // required
-}): Promise<object>
+    ids: string[]
+}): Promise<null>
 ```
 
 ### Parameters
@@ -16,10 +16,6 @@ async delete({
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `ids` | `string[]` | Array of vector IDs to delete from the index |
-
-### Returns
-
-`Promise<object>`: A Promise that resolves to a response object containing the operation status and message with details about the deletion.
 
 ### Exceptions
 
@@ -68,18 +64,5 @@ try {
     
 } catch (error) {
     console.error('Failed to delete vectors:', error.message);
-}
-```
-
-### Response Format
-
-The method returns a response object with the following structure:
-
-```typescript
-// Standard successful deletion response
-{
-    "status": "success",
-    "message": "Successfully deleted 3 vectors",
-    // Additional fields may be present depending on implementation
 }
 ```

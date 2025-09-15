@@ -8,12 +8,8 @@ mode: "wide"
 Deletes the current index and all its associated data from the CyborgDB service.
 
 ```typescript
-async deleteIndex(): Promise<object>
+async deleteIndex(): Promise<null>
 ```
-
-### Returns
-
-`Promise<object>`: A Promise that resolves to a response object containing the operation status and message. The method gracefully handles cases where the index was already deleted.
 
 ### Exceptions
 
@@ -50,23 +46,5 @@ try {
     
 } catch (error) {
     console.error('Failed to delete index:', error.message);
-}
-```
-
-### Response Format
-
-The method returns a response object with the following structure:
-
-```typescript
-// Standard successful deletion response
-{
-    "status": "success",
-    "message": "Index 'my-index' deleted successfully"
-}
-
-// When index was already deleted (handled gracefully)
-{
-    "status": "success", 
-    "message": "Index 'my-index' was already deleted"
 }
 ```

@@ -34,15 +34,13 @@ An instance of `EncryptedIndex` configured with the provided parameters.
 <AccordionGroup>
     <Accordion title="Error">
         - Throws if the index name already exists on the server.
-        - Throws if the provided index configuration is invalid.
-        - Throws if the provided metric is not supported.
+        - Throws if the index configuration is invalid or missing required parameters.
         - Throws if the encryption key is not exactly 32 bytes.
         - Throws if the embedding model is not supported by the server.
     </Accordion>
-    <Accordion title="Network/API Errors">
-        - Throws if the API request fails due to network issues.
-        - Throws if the server returns an HTTP error status.
-        - Throws if authentication fails (invalid API key).
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
     </Accordion>
 </AccordionGroup>
 
@@ -63,7 +61,7 @@ index_key = client.generate_key()
 index = client.create_index('documents', index_key)
 ```
 
-<Tip>For more info on `generate_key`, refer to [Generate Key](./generate-key).</Tip>
+<Note>For more info on `generate_key`, refer to [Generate Key](./generate-key).</Note>
 
 #### IVFFlat Index
 
@@ -96,3 +94,5 @@ index_key = client.generate_key()
 config = IndexIVFPQ(pq_dim=64, pq_bits=8)
 index = client.create_index('documents', index_key, config, embedding_model='all-MiniLM-L6-v2')
 ```
+
+<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>

@@ -19,11 +19,10 @@ client.get_health()
     <Accordion title="Error">
         - Throws if the health check request fails due to network connectivity issues.
         - Throws if the server is unreachable or times out.
-        - Throws if authentication fails (invalid API key).
     </Accordion>
     <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unhealthy or experiencing issues.
-        - Throws if there are internal server errors preventing health reporting.
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
     </Accordion>
 </AccordionGroup>
 
@@ -33,3 +32,11 @@ client.get_health()
 health = client.get_health()
 print(f"Service status: {health}")
 ```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Current health status of the service (typically "healthy") |
+| `api_version` | `string` | Version of the API interface (e.g., "v1") |
+| `version` | `string` | Version of the CyborgDB application/service |
