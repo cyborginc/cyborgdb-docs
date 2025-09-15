@@ -8,9 +8,8 @@ To create an encrypted index, you need to specify an index name (must be unique)
 
 <CodeGroup>
 ```python Python icon="python"
-# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 import secrets
 
 # Using `memory` storage for this example
@@ -75,9 +74,8 @@ For improved query performance, you can enable encrypted index caching by settin
 
 <CodeGroup>
 ```python Python icon="python"
-# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 import secrets
 
 # Using `memory` storage for this example
@@ -125,7 +123,7 @@ std::string api_key = "your_api_key_here";  // Replace with your actual API key
 cyborg::Client client(api_key, index_location, config_location);
 
 // Example index config
-cyborg::IndexIVFFlat index_config();
+cyborg::IndexIVFFlat index_config;
 
 // Generate a 32-byte random encryption key
 std::array<uint8_t, 32> index_key;
@@ -136,7 +134,7 @@ std::generate(index_key.begin(), index_key.end(), [&]() { return rd() % 256; });
 std::size_t max_cache_size = 1000000;
 
 // Create an encrypted index
-auto index = client.CreateIndex("my_index", index_key, index_config, DistanceMetric::Euclidean, max_cache_size);
+auto index = client.CreateIndex("my_index", index_key, index_config, max_cache_size);
 ```
 </CodeGroup>
 
@@ -147,9 +145,9 @@ auto index = client.CreateIndex("my_index", index_key, index_config, DistanceMet
 In the Python version of CyborgDB, you can enable automatic embedding generation for the encrypted index by setting `embedding_model` in `create_index()`:
 
 ```python Python icon="python"
-# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
+# or import cyborgdb_lite as cyborgdb
+import secrets
 
 # Using `memory` storage for this example
 index_location = cyborgdb.DBConfig("memory")

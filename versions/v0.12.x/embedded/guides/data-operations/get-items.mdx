@@ -9,13 +9,13 @@ If you have added items to the index with the `item` field, you can retrieve the
 <CodeGroup>
 ```python Python icon="python"
 # IDs of items to retrieve
-ids = ["item_20, item_11"]
+ids = ["item_20", "item_11"]
 include = ["contents", "metadata"]
 
 # Retrieve items from the encrypted index
-item = index.get(ids, include)
+items = index.get(ids, include)
 
-print(item)
+print(items)
 # Example item
 # [{"id": "item_20", "contents": "Hello, World!", "metadata": {"type": "txt"}},
 #  {"id": "item_11", "contents": "Hello, Cyborg!", "metadata": {"type": "md"}}]
@@ -24,7 +24,7 @@ print(item)
 ```cpp C++ icon="brackets-curly"
 // IDs of items to retrieve
 std::vector<std::string> ids = {"item_20", "item_11"};
-std::vector<cyborg::ItemFields> include = {kContents, kMetadata};
+std::vector<cyborg::ItemFields> include = {cyborg::ItemFields::kContents, cyborg::ItemFields::kMetadata};
 
 // Retrieve items from the encrypted index
 std::vector<cyborg::Item> items = index->Get(ids, include);

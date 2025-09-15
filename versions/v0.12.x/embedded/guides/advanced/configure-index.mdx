@@ -25,9 +25,8 @@ To create an `IVFFlat` index, you can use its configuration constructor:
 
 <CodeGroup>
 ```python Python icon="python"
-# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 
 # Create the IVF index config
 index_config = cyborgdb.IndexIVFFlat()
@@ -51,7 +50,7 @@ cyborg::IndexIVFFlat index_config();
 // Create the index
 std::string index_name = "test_index";
 std::array<uint8_t, 32> index_key = {0}; // Set your private key here
-cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_config);
+auto index = client.CreateIndex(index_name, index_key, index_config);
 ```
 </CodeGroup>
 
@@ -68,6 +67,7 @@ To create an `IVFPQ` index, you can use its configuration constructor:
 <CodeGroup>
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 
 # Set index parameters
 pq_dim = 32 # Dimension must be divisible by pq_dim
@@ -94,13 +94,13 @@ index = client.create_index(
 int pq_dim = 32; // Dimension must be divisible by pq_dim
 int pq_bits = 8; // Number of bits for each pq dimension
 
-// Create the IVF index config
-cyborg::IndexIVF index_config(pq_dim, pq_bits);
+// Create the IVFPQ index config
+cyborg::IndexIVFPQ index_config(pq_dim, pq_bits);
 
 // Create the index
 std::string index_name = "test_index";
 std::array<uint8_t, 32> index_key = {0}; // Set your private key here
-cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_config);
+auto index = client.CreateIndex(index_name, index_key, index_config);
 ```
 </CodeGroup>
 
@@ -119,6 +119,7 @@ To create an `IVF` index, you can use its configuration constructor:
 <CodeGroup>
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 
 # Create the IVF index config
 index_config = cyborgdb.IndexIVF()
@@ -143,7 +144,7 @@ cyborg::IndexIVF index_config();
 // Create the index
 std::string index_name = "test_index";
 std::array<uint8_t, 32> index_key = {0}; // Set your private key here
-cyborg::EncryptedIndex index = client.CreateIndex(index_name, index_key, index_config);
+auto index = client.CreateIndex(index_name, index_key, index_config);
 ```
 </CodeGroup>
 
@@ -161,7 +162,7 @@ index = client.create_index(
     index_name="index_name", 
     index_key=index_key, 
     index_config=index_config, 
-    distance_metric="euclidean"
+    metric="euclidean"
 )
 ```
 
@@ -169,7 +170,7 @@ index = client.create_index(
 // Existing setup
 cyborg::IndexIVFFlat index_config();
 
-auto index = client.CreateIndex("index_name", index_key, index_config, DistanceMetric::Euclidean);
+auto index = client.CreateIndex("index_name", index_key, index_config, 0, cyborg::DistanceMetric::kEuclidean);
 ```
 </CodeGroup>
 

@@ -8,13 +8,11 @@ To see which existing encrypted indexes are available to your CyborgDB client, y
 
 <CodeGroup>
 ```python Python icon="python"
-# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 
-# Set index location and config location beforehand...
-
-# Get your API key
+index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
 api_key = "your_api_key_here"  # Replace with your actual API key
 
 client = cyborgdb.Client(

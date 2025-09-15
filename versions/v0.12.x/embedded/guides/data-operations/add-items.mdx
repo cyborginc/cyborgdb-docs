@@ -95,7 +95,7 @@ std::vector<std::string> metadata = {
 };
 
 // Add items to the encrypted index
-index->Upsert(ids, vectors, std::nullopt, metadata);
+index->Upsert(ids, vectors, {}, metadata);
 ```
 </CodeGroup>
 

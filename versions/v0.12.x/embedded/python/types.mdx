@@ -24,6 +24,7 @@ The supported `location` options are:
 
 ```python
 import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 
 index_location = cyborgdb.DBConfig(
     location="redis",
@@ -83,6 +84,7 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 
 ```python
 import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 
 # Basic configuration with auto-detection
 index_config = cyborgdb.IndexIVF()
@@ -122,6 +124,7 @@ Suitable for applications requiring high recall with less concern for memory usa
 
 ```python
 import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 
 # Basic configuration with auto-detection
 index_config = cyborgdb.IndexIVFFlat()
@@ -167,6 +170,7 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 
 ```python
 import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
 
 # Basic configuration (dimension auto-detected)
 index_config = cyborgdb.IndexIVFPQ(pq_dim=64, pq_bits=8)

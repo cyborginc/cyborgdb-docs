@@ -10,9 +10,9 @@ To delete an exiting encrypted index, you can [load it](./load-index) and then c
 
 <CodeGroup>
 ```python Python icon="python"
-# Import cyborgdb_core or cyborgdb_lite:
 import cyborgdb_core as cyborgdb
-import cyborgdb_lite as cyborgdb
+# or import cyborgdb_lite as cyborgdb
+import secrets
 
 # Using `memory` storage for this example
 index_location = cyborgdb.DBConfig("memory") 
@@ -29,8 +29,7 @@ client = cyborgdb.Client(
 )
 
 # Provide the index key used when creating the index
-# Example key (32 bytes)
-index_key = bytes(32)
+index_key = secrets.token_bytes(32)
 
 # Create an encrypted index
 index = client.load_index(

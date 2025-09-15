@@ -56,9 +56,8 @@ Get started with CyborgDB in minutes.
 
         <CodeGroup>
         ```python Python icon="python"
-        # Import cyborgdb_core or cyborgdb_lite:
         import cyborgdb_core as cyborgdb
-        import cyborgdb_lite as cyborgdb
+        # or import cyborgdb_lite as cyborgdb
         import secrets
 
         # Using `memory` storage for this example
@@ -181,11 +180,11 @@ Get started with CyborgDB in minutes.
 
         # Query the encrypted index
         query_vectors = [0.1, 0.2, 0.3, 0.4]
-        results = index.query(query_vectors)
+        results = index.query(query_vectors=query_vectors)
 
         # Print the results
         for result in results:
-            print(f"ID: {result.id}, Distance: {result.distance}")
+            print(f"ID: {result['id']}, Distance: {result['distance']}")
         ```
 
         ```cpp C++ icon="brackets-curly"
@@ -217,7 +216,7 @@ Get started with CyborgDB in minutes.
 
         # Print the items
         for item in items:
-            print(f"ID: {item.id}, Vector: {item.vector}, Contents: {item.contents}")
+            print(f"ID: {item['id']}, Vector: {item['vector']}, Contents: {item['contents']}")
         ```
 
         ```cpp C++ icon="brackets-curly"
