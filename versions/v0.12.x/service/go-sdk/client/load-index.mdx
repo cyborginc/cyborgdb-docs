@@ -3,4 +3,78 @@ title: "Load Index"
 mode: "wide"
 ---
 
-<Warning>This page is under construction</Warning>
+Loads an existing encrypted index by name and key. The provided key must match the one used during index creation.
+
+```go
+func (c *Client) LoadIndex(ctx context.Context, indexName string, indexKey []byte) (*EncryptedIndex, error)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation/timeouts |
+| `indexName` | `string` | Name of the existing index to load |
+| `indexKey` | `[]byte` | 32-byte encryption key used during index creation |
+
+<Warning>
+The encryption key must exactly match the key used during index creation.
+</Warning>
+
+### Returns
+
+| Type | Description |
+|------|-------------|
+| `*EncryptedIndex` | Handle for performing vector operations on the loaded index |
+| `error` | Any error encountered during index loading |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the index doesn't exist on the server
+        - Throws if the encryption key is incorrect or invalid
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/hex"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Replace with your actual encryption key
+    key := []byte("example-index-key-1234567890")
+    
+    // Load existing index
+    ctx := context.Background()
+    index, err := client.LoadIndex(ctx, "my-documents", key)
+    if err != nil {
+        log.Fatal("Failed to load index:", err)
+    }
+    
+    log.Printf("Loaded index: %s", index.GetIndexName())
+    log.Printf("Index type: %s", index.GetIndexType())
+    log.Printf("Is trained: %t", index.IsTrained())
+}
+```

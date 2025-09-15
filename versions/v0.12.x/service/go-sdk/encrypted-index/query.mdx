@@ -3,4 +3,127 @@ title: "Query"
 mode: "wide"
 ---
 
-<Warning>This page is under construction</Warning>
+Searches for nearest neighbors in the encrypted index using vector similarity search. Supports single vector queries, batch queries, and semantic search with text content.
+
+```go
+func (e *EncryptedIndex) Query(ctx context.Context, params QueryParams) (*QueryResponse, error)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation and timeouts |
+| `params` | [`QueryParams`](#queryparams) | Query parameters specifying vectors, filters, and options |
+
+#### QueryParams
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `QueryVector` | `[]float32` | _(Optional)_ Single query vector for similarity search |
+| `BatchQueryVectors` | `[][]float32` | _(Optional)_ Multiple query vectors for batch search |
+| `QueryContents` | `*string` | _(Optional)_ Text content for semantic search |
+| `TopK` | `int32` | Number of nearest neighbors to return (required) |
+| `NProbes` | `*int32` | _(Optional)_ Number of clusters to probe for search |
+| `Filters` | `map[string]interface{}` | _(Optional)_ Metadata filters to apply |
+| `Include` | `[]string` | _(Optional)_ Fields to include in results: "metadata", "vector", "contents" |
+| `Greedy` | `*bool` | _(Optional)_ Use greedy search algorithm |
+
+### Returns
+
+- `*QueryResponse`: Search results containing vectors, distances, and requested fields
+- `error`: Any error encountered during the search operation
+
+### Error Handling
+
+<AccordionGroup>
+    <Accordion title="API Errors">
+        - Returns error if the API request fails due to network connectivity issues
+        - Returns error if authentication fails (invalid API key)
+        - Returns error if the encryption key is invalid for the specified index
+        - Returns error if there are internal server errors during the search
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Returns error if none of QueryVector, BatchQueryVectors, or QueryContents is provided
+        - Returns error if vector dimensions don't match the index configuration
+        - Returns error if parameter values are out of valid ranges
+        - Returns error if the Include parameter contains invalid field names
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Single Vector Query
+
+```go
+// Basic similarity search
+queryVector := []float32{0.1, 0.2, 0.3, 0.4}
+params := cyborgdb.QueryParams{
+    QueryVector: queryVector,
+    TopK:        5,
+    Include:     []string{"metadata"},
+}
+
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatalf("Query failed: %v", err)
+}
+
+for i, result := range results.Results {
+    fmt.Printf("%d. ID: %s, Distance: %.4f\n", i+1, result.Id, result.Distance)
+}
+```
+
+#### Batch Vector Query
+
+```go
+// Query multiple vectors at once
+queryVectors := [][]float32{
+    {0.1, 0.2, 0.3, 0.4},
+    {0.5, 0.6, 0.7, 0.8},
+    {0.9, 1.0, 1.1, 1.2},
+}
+
+params := cyborgdb.QueryParams{
+    BatchQueryVectors: queryVectors,
+    TopK:              3,
+    Include:           []string{"metadata"},
+}
+
+batchResults, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatalf("Batch query failed: %v", err)
+}
+
+// Process each query's results
+for i, queryResults := range batchResults.Results {
+    fmt.Printf("Results for query %d:\n", i+1)
+    for j, result := range queryResults {
+        fmt.Printf("  %d. ID: %s, Distance: %.4f\n", j+1, result.Id, result.Distance)
+    }
+}
+```
+
+#### Semantic Search with Text
+
+```go
+// Search using text content (requires embedding model configured on index)
+textQuery := "machine learning healthcare applications"
+params := cyborgdb.QueryParams{
+    QueryContents: &textQuery,
+    TopK:          10,
+    Include:       []string{"metadata", "contents"},
+}
+
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatalf("Content search failed: %v", err)
+}
+
+for i, result := range results.Results {
+    fmt.Printf("%d. ID: %s, Distance: %.4f\n", i+1, result.Id, result.Distance)
+    if result.Contents != nil && len(*result.Contents) > 100 {
+        fmt.Printf("   Content: %s...\n", (*result.Contents)[:100])
+    }
+}
+```

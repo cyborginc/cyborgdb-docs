@@ -2,4 +2,159 @@
 title: "Getters"
 ---
 
-<Warning>This page is under construction</Warning>
+## GetIndexName
+
+Returns the unique name of the index.
+
+```go
+func (e *EncryptedIndex) GetIndexName() string
+```
+
+**Returns**: `string` - The index name as specified during creation
+
+**Example**:
+```go
+indexName := index.GetIndexName()
+fmt.Printf("Working with index: %s\n", indexName)
+```
+
+---
+
+## GetIndexType
+
+Returns the algorithm type of the index.
+
+```go
+func (e *EncryptedIndex) GetIndexType() string
+```
+
+**Returns**: `string` - Index type ("ivf", "ivfflat", or "ivfpq")
+
+**Example**:
+```go
+indexType := index.GetIndexType()
+fmt.Printf("Index type: %s\n", indexType)
+
+// Use type for conditional logic
+switch indexType {
+case "ivf":
+    fmt.Println("Using IVF (Inverted File) index")
+case "ivfflat":
+    fmt.Println("Using IVFFlat (IVF with flat search) index")
+case "ivfpq":
+    fmt.Println("Using IVFPQ (IVF with Product Quantization) index")
+}
+```
+
+---
+
+## IsTrained
+
+Reports whether the index has been optimized through training.
+
+```go
+func (e *EncryptedIndex) IsTrained() bool
+```
+
+**Returns**: `bool` - `true` if the index has been trained, `false` otherwise
+
+**Note**: This is a cached value that's updated automatically when `Train()` completes successfully.
+
+**Example**:
+```go
+if index.IsTrained() {
+    fmt.Println("Index is trained and optimized")
+} else {
+    fmt.Println("Index may benefit from training")
+    // Optionally trigger training
+    params := cyborgdb.TrainParams{}
+    err := index.Train(context.Background(), params)
+    if err != nil {
+        log.Printf("Training failed: %v", err)
+    }
+}
+```
+
+---
+
+## GetIndexConfig
+
+Returns the detailed configuration of the index.
+
+```go
+func (e *EncryptedIndex) GetIndexConfig() internal.IndexConfig
+```
+
+**Returns**: `internal.IndexConfig` - The index configuration, or empty if not available
+
+**Note**: For indexes loaded via `LoadIndex()`, the configuration may be incomplete.
+
+**Example**:
+```go
+config := index.GetIndexConfig()
+
+// Access configuration based on index type
+switch index.GetIndexType() {
+case "ivf":
+    if config.IndexIVFModel != nil {
+        fmt.Printf("IVF Dimension: %d\n", config.IndexIVFModel.GetDimension())
+    }
+case "ivfflat":
+    if config.IndexIVFFlatModel != nil {
+        fmt.Printf("IVFFlat Dimension: %d\n", config.IndexIVFFlatModel.GetDimension())
+    }
+case "ivfpq":
+    if config.IndexIVFPQModel != nil {
+        fmt.Printf("IVFPQ Dimension: %d\n", config.IndexIVFPQModel.GetDimension())
+        fmt.Printf("PQ Dimension: %d\n", config.IndexIVFPQModel.GetPqDim())
+        fmt.Printf("PQ Bits: %d\n", config.IndexIVFPQModel.GetPqBits())
+    }
+}
+```
+
+---
+
+## CheckTrainingStatus
+
+Queries the server to check if the index is currently being trained and updates the cached training status.
+
+```go
+func (e *EncryptedIndex) CheckTrainingStatus(ctx context.Context) (bool, error)
+```
+
+**Parameters**:
+- `ctx`: `context.Context` - Context for cancellation and timeouts
+
+**Returns**:
+- `bool` - `true` if the index is currently being trained, `false` otherwise
+- `error` - Any error encountered during the status check
+
+**Note**: This method makes an API call and updates the cached `IsTrained()` value if training has completed.
+
+**Example**:
+```go
+isTraining, err := index.CheckTrainingStatus(context.Background())
+if err != nil {
+    log.Printf("Failed to check training status: %v", err)
+    return
+}
+
+if isTraining {
+    fmt.Println("Index is currently being trained")
+    // Wait for training to complete
+    for isTraining {
+        time.Sleep(10 * time.Second)
+        isTraining, err = index.CheckTrainingStatus(context.Background())
+        if err != nil {
+            log.Printf("Error checking training status: %v", err)
+            break
+        }
+        fmt.Println("Still training...")
+    }
+    fmt.Println("Training completed!")
+} else if index.IsTrained() {
+    fmt.Println("Index is trained")
+} else {
+    fmt.Println("Index is not trained and not currently training")
+}
+```

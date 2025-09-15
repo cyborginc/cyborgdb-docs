@@ -3,4 +3,53 @@ title: "Generate Key"
 mode: "wide"
 ---
 
-<Warning>This page is under construction</Warning>
+Generates a cryptographically secure 256-bit (32-byte) encryption key suitable for creating encrypted indexes.
+```go
+func GenerateKey() ([]byte, error)
+```
+
+### Returns
+
+| Type | Description |
+|------|-------------|
+| `[]byte` | A 32-byte encryption key suitable for use with encrypted indexes |
+| `error` | Any error that occurred during key generation |
+
+### Security
+
+The generated key is cryptographically secure and suitable for production use:
+
+- Uses Go's `crypto/rand` package for secure random number generation
+- Provides 256 bits of entropy (32 bytes)
+- Compatible with AES-256 encryption used by CyborgDB
+
+<Warning>
+This key must be persisted securely. For more information, see [Managing Encryption Keys](../../guides/advanced/managing-keys).
+</Warning>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "encoding/hex"
+    "fmt"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Generate a new encryption key
+    key, err := cyborgdb.GenerateKey()
+    if err != nil {
+        log.Fatal("Failed to generate key:", err)
+    }
+    
+    // Convert to hex string for storage/transmission
+    keyHex := hex.EncodeToString(key)
+    fmt.Printf("Generated key: %s\n", keyHex)
+    fmt.Printf("Key length: %d bytes\n", len(key))
+}
+```
