@@ -138,6 +138,8 @@ auto index = client.CreateIndex("my_index", index_key, index_config, max_cache_s
 ```
 </CodeGroup>
 
+The maximum cache size is specified in megabytes. When the cache reaches this size, the least recently used entries will be evicted.
+
 ## Automatic Embedding Generation
 
 <Tip>This feature is only available in Python. To use it, use `pip install cyborgdb-core[embeddings]` or `pip install cyborgdb-core[embeddings]`</Tip>

@@ -19,7 +19,7 @@ std::unique_ptr<cyborg::EncryptedIndex>
 |----------------|-------------------------------|-----------------------------------------------------|
 | `index_name` | `std::string` | Name of the index to load. |
 | `index_key` | `std::array<uint8_t, 32>` | 32-byte encryption key for the index, used to secure index data. |
-| `max_cache_size` | `std::optional<size_t>` | _(Optional)_ Maximum size for the local cache (default is `0`). |
+| `max_cache_size` | `std::optional<size_t>` | _(Optional)_ Maximum size for the local cache in megabytes (default is `0`). |
 | `logger` | [`cyborg::Logger*`](./logger) | _(Optional)_ Pointer to a logger instance for capturing operation logs (default is `nullptr`). |
 
 ### Returns

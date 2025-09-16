@@ -131,6 +131,8 @@ auto index = client.LoadIndex("my_index", index_key, max_cache_size);
 ```
 </CodeGroup>
 
+The maximum cache size is specified in megabytes. When the cache reaches this size, the least recently used entries will be evicted.
+
 ## API Reference
 
 For more information on loading an encrypted index, refer to the API reference:
