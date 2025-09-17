@@ -1,0 +1,251 @@
+---
+title: "CyborgDB Embedded Quickstart"
+sidebarTitle: "Quickstart"
+mode: "wide"
+---
+
+Get started with CyborgDB in minutes.
+
+<Tip>CyborgDB's embedded library is offered as two packages: `cyborgdb_core` and `cyborgdb_lite`. This guide shows how to get started with either. For more details on the difference between both packages, read more [here](./about#available-libraries).</Tip>
+
+<Steps>
+    <Step title="Get an API Key">
+        To use CyborgDB, you need an API key. You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+        Make sure to keep your API key secure and do not share it publicly.
+    </Step>
+    <Step title="Install CyborgDB">
+        Install CyborgDB on your machine:
+
+        <CodeGroup>
+        ```bash Python
+        # Ensure that Python 3.9 - 3.13 is installed
+        # Or create a virtual environment with Python 3.9 - 3.13:
+        conda create -n cyborg-env python=3.12
+
+        # Activate the virtual environment:
+        conda activate cyborg-env
+
+        # Install CyborgDB:
+        pip install cyborgdb-core -i https://dl.cloudsmith.io/<token>/cyborg/cyborgdb/python/simple/
+
+        # Or install CyborgDB Lite for evaluation/non-commercial use:
+        pip install cyborgdb-lite
+
+        # For automatic embedding generation, install with:
+        pip install cyborgdb-core[embeddings] -i https://dl.cloudsmith.io...
+        pip install cyborgdb-lite[embeddings]   
+        ```
+
+        ```bash C++
+        # Ensure that Conan is installed
+
+        # Add the repository to your Conan remotes:
+        conan remote add cyborgdb https://dl.cloudsmith.io/<token>/cyborg/cyborgdb/conan
+        conan remote login cyborgdb -p <token> cyborg
+
+        # Install CyborgDB:
+        conan install cyborgdb_core -r cyborgdb
+        ```
+        </CodeGroup>
+
+        <Note>You will need to replace `<token>` with your token provided by Cyborg.</Note>
+    </Step>
+    <Step title="Create a Client">
+        Create a CyborgDB client:
+
+        <CodeGroup>
+        ```python Python icon="python"
+        import cyborgdb_core as cyborgdb
+        # or import cyborgdb_lite as cyborgdb
+        import secrets
+
+        # Using `memory` storage for this example
+        # `redis` and `postgres` are also supported
+        
+        index_location = cyborgdb.DBConfig("memory")  # Where encrypted index is stored (for queries)
+        config_location = cyborgdb.DBConfig("memory") # Where encrypted index config is stored (for config/loading)
+        items_location = cyborgdb.DBConfig("memory")  # Where item contents are stored (for upsert/get)
+
+        # Get your API key
+        api_key = "your_api_key_here"  # Replace with your actual API key
+        
+        # Create a client
+        client = cyborgdb.Client(
+            api_key=api_key, 
+            index_location=index_location, 
+            config_location=config_location, 
+            items_location=items_location
+        )
+        ```
+
+        ```cpp C++ icon="brackets-curly"
+        #include "cyborgdb_core/client.hpp"
+        #include "cyborgdb_core/encrypted_index.hpp"
+        #include <array>
+        #include <string>
+        #include <openssl/rand.h>
+
+        // Using `memory` storage for this example
+        // `redis` and `postgres` are also supported
+
+        cyborg::DBConfig index_location(cyborg::Location::kMemory);  // Where encrypted index is stored (for queries)
+        cyborg::DBConfig config_location(cyborg::Location::kMemory); // Where encrypted index config is stored (for config/loading)
+        cyborg::DBConfig items_location(cyborg::Location::kMemory);  // Where item contents are stored (for upsert/get)
+
+        // Get your API key
+        std::string api_key = "your_api_key_here";  // Replace with your actual API key
+        
+        // Create a client
+        cyborg::Client client(api_key, index_location, config_location, items_location, 0, false);
+        ```
+        </CodeGroup>
+
+        For more info, refer to [Create a Client](../encrypted-indexes/create-client).
+    </Step>
+    <Step title="Create an Encrypted Index">
+        Create an encrypted index with CyborgDB:
+
+        <CodeGroup>
+        ```python Python icon="python"
+        # ... Continuing from the previous step
+        
+        # Generate an encryption key for the index
+        index_key = secrets.token_bytes(32)
+
+        # Create an encrypted index
+        index = client.create_index(
+            index_name="my_index", 
+            index_key=index_key
+        )
+        ```
+
+        ```cpp C++ icon="brackets-curly"
+        /// ... Continuing from the previous step
+
+        // Generate a 32-byte random encryption key
+        std::array<uint8_t, 32> index_key;
+        if (RAND_bytes(index_key.data(), index_key.size()) != 1) {
+            throw std::runtime_error("Failed to generate secure random key");
+        }
+
+        // Create an encrypted index
+        auto index = client.CreateIndex("my_index", index_key);
+        ```
+        </CodeGroup>
+
+        For more info, refer to [Create an Encrypted Index](../encrypted-indexes/create-index).
+    </Step>
+    <Step title="Add Items to Encrypted Index">
+        Add data to the encrypted index via Upsert:
+
+        <CodeGroup>
+        ```python Python icon="python"
+        # ... Continuing from the previous step
+
+        # Add items to the encrypted index
+        items = [
+            {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "contents": "Hello!"},
+            {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8], "contents": "Bonjour!"},
+            {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "contents": "Hola!"}
+        ]
+
+        index.upsert(items)
+        ```
+
+        ```cpp C++ icon="brackets-curly"
+        // ... Continuing from the previous step
+
+        // Add items to the encrypted index
+        std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
+        cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
+        std::vector<std::vector<uint8_t>> contents = {
+            std::vector<uint8_t>{'H', 'e', 'l', 'l', 'o', '!'},
+            std::vector<uint8_t>{'B', 'o', 'n', 'j', 'o', 'u', 'r', '!'},
+            std::vector<uint8_t>{'H', 'o', 'l', 'a', '!'}
+        };
+
+        index->Upsert(ids, vectors, contents);
+        ```
+        </CodeGroup>
+
+        For more info, refer to [Add Items](../data-operations/add-items).
+    </Step>
+    <Step title="Query Encrypted Index">
+        Query the encrypted index for similar vectors.
+
+        <CodeGroup>
+        ```python Python icon="python"
+        # ... Continuing from the previous step
+
+        # Query the encrypted index
+        query_vectors = [0.1, 0.2, 0.3, 0.4]
+        results = index.query(query_vectors=query_vectors)
+
+        # Print the results
+        for result in results:
+            print(f"ID: {result['id']}, Distance: {result['distance']}")
+        ```
+
+        ```cpp C++ icon="brackets-curly"
+        // ... Continuing from the previous step
+        std::vector<float> query_vector = {0.1, 0.2, 0.3, 0.4};
+        
+        // Query using the standard params
+        std::vector<cyborg::QueryResult> results = index->Query(query_vector);
+
+        // Print the results
+        for (const auto& result : results) {
+            std::cout << "ID: " << result.id << ", Distance: " << result.distance << std::endl;
+        }
+        ```
+        </CodeGroup>
+
+        For more info, refer to [Query an Encrypted Index](../data-operations/query).
+    </Step>
+    <Step title="Retrieve Items from Encrypted Index">
+        Retrieve data from the encrypted index:
+
+        <CodeGroup>
+        ```python Python icon="python"
+        # ... Continuing from the previous step
+
+        # Retrieve items from the encrypted index
+        ids = ["item_1", "item_2", "item_3"]
+        items = index.get(ids)
+
+        # Print the items
+        for item in items:
+            print(f"ID: {item['id']}, Vector: {item['vector']}, Contents: {item['contents']}")
+        ```
+
+        ```cpp C++ icon="brackets-curly"
+        // ... Continuing from the previous step
+
+        // Retrieve items from the encrypted index
+        std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
+        std::vector<cyborg::ItemFields> include = {cyborg::ItemFields::kContents};
+        std::vector<cyborg::Item> items = index->Get(ids, include);
+
+        // Print the items
+        for (const auto& item : items) {
+            std::cout << "ID: " << item.id << ", Contents: " << std::string(item.contents.begin(), item.contents.end()) << std::endl;
+        }
+        ```
+        </CodeGroup>
+
+        For more info, refer to [Get Items](../data-operations/get-items).
+    </Step>
+    <Step title="Next Steps">
+        Learn more about CyborgDB:
+
+        <CardGroup>
+            <Card title="Python API Reference" href="../../python/introduction" icon="python">
+                Explore the Python API reference to learn how to use CyborgDB in your applications.
+            </Card>
+            <Card title="C++ API Reference" href="../../cpp/introduction" icon="brackets-curly">
+                Explore the C++ API reference to learn how to use CyborgDB in your applications.
+            </Card>
+        </CardGroup>
+    </Step>
+</Steps>

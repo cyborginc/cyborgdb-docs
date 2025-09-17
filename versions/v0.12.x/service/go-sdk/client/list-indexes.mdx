@@ -1,0 +1,76 @@
+---
+title: "List Indexes"
+mode: "wide"
+---
+
+Returns the names of all encrypted indexes in your project.
+
+```go
+func (c *Client) ListIndexes(ctx context.Context) ([]string, error)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation/timeouts |
+
+### Returns
+
+| Type | Description |
+|------|-------------|
+| `[]string` | List of index names (empty slice if no indexes exist) |
+| `error` | Any error encountered during the operation |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // List all indexes
+    ctx := context.Background()
+    indexes, err := client.ListIndexes(ctx)
+    if err != nil {
+        log.Fatal("Failed to list indexes:", err)
+    }
+    
+    if len(indexes) == 0 {
+        fmt.Println("No indexes found")
+        return
+    }
+    
+    fmt.Printf("Found %d indexes:\n", len(indexes))
+    for i, indexName := range indexes {
+        fmt.Printf("%d. %s\n", i+1, indexName)
+    }
+}
+```

@@ -1,0 +1,98 @@
+---
+title: "Create Index"
+mode: "wide"
+---
+
+Creates and returns an `EncryptedIndex` instance based on the provided configuration.
+
+```typescript
+async createIndex({
+    indexName: string,                                      // required
+    indexKey: Uint8Array,                                   // required
+    indexConfig?: IndexConfig,                              // optional, default: IndexIVFFlat()
+    metric?: 'euclidean' | 'squared_euclidean' | 'cosine',  // optional, default: 'euclidean'
+    embeddingModel?: string                                 // optional, default: undefined
+}): Promise<EncryptedIndex>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---------------|--------------------|----------------------------------------------------------------------------------------|
+| `indexName` | `string` | Name of the index to create. Must be unique within the CyborgDB service. |
+| `indexKey` | `Uint8Array` | 32-byte encryption key for the index, used to secure the index data. |
+| `indexConfig` | [`IndexIVFPQ`](../types#indexivfpq) \| [`IndexIVFFlat`](../types#indexivfflat) \| [`IndexIVF`](../types#indexivf) | _(Optional)_ Configuration object specifying the index type (`ivf`, `ivfpq`, or `ivfflat`). Defaults to `IndexIVFFlat()`. |
+| `metric` | `'euclidean' \| 'squared_euclidean' \| 'cosine'` | _(Optional)_ Distance metric to use for the index. Defaults to `'euclidean'`. |
+| `embeddingModel` | `string` | _(Optional)_ Name of the embedding model used to auto-generate embeddings on the server. Defaults to `undefined`, no auto-generation. |
+
+### Returns
+
+`Promise<EncryptedIndex>`: A Promise that resolves to an instance of the newly created encrypted index.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the index name already exists on the server.
+        - Throws if the index configuration is invalid or missing required parameters.
+        - Throws if the encryption key is not exactly 32 bytes.
+        - Throws if the embedding model is not supported by the server.
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Automatic Index Config
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+const indexName = "my_vector_index";
+const indexKey: Uint8Array = client.generateKey(); // Generate secure 32-byte key
+
+try {
+    const index = await client.createIndex({
+        indexName,
+        indexKey
+    });
+    console.log('Index created successfully:', index);
+} catch (error) {
+    console.error('Failed to create index:', error.message);
+}
+```
+
+<Note>For more info on `generateKey`, refer to [Generate Key](./generate-key).</Note>
+
+#### IVFFlat Index with Embedding Model
+
+```typescript
+import { Client, IndexIVFFlat } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+const indexName = "semantic_search_index";
+const indexKey: Uint8Array = client.generateKey();
+
+const indexConfig: IndexIVFFlat = new IndexIVFFlat();
+
+try {
+    const index = await client.createIndex({
+        indexName,
+        indexKey,
+        indexConfig,
+        embeddingModel: 'all-MiniLM-L6-v2'  // Embedding model
+    });
+    
+    console.log('IVFPQ index with embeddings created successfully');
+} catch (error) {
+    console.error('Index creation failed:', error.message);
+}
+```
+
+<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>

@@ -1,0 +1,191 @@
+---
+title: "Types"
+---
+
+## DBConfig
+
+The `DBConfig` class specifies the storage location for the index, with options for in-memory storage, databases, or file-based storage.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
+| `location` | `string` | - | DB location (`redis`, `postgres`, `memory`) |
+| `table_name` | `string` | None | _(Optional)_ Table name (`postgres`-only) |
+| `connection_string` | `string` | None | _(Optional)_ Connection string to access DB. |
+
+The supported `location` options are:
+
+- `"redis"`: Use for high-speed, in-memory storage (recommended for `index_location`).
+- `"postgres"`: Use for reliable, SQL-based storage (recommended for `config_location`).
+- `"memory"` Use for temporary in-memory storage (for benchmarking and evaluation purposes).
+
+### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
+
+index_location = cyborgdb.DBConfig(
+    location="redis",
+    connection_string="redis://localhost"
+)
+
+config_location = cyborgdb.DBConfig(
+    location="postgres",
+    table_name="config_table",
+    connection_string="host=localhost dbname=postgres"
+)
+```
+
+For more info, you can read about supported backing stores [here](../../intro/backing-stores).
+
+---
+
+## DistanceMetric
+
+`DistanceMetric` is a string representing the distance metric used for the index. Options include:
+
+- `"cosine"`: Cosine similarity.
+- `"euclidean"`: Euclidean distance.
+- `"squared_euclidean"`: Squared Euclidean distance.
+
+---
+
+## IndexConfig
+
+The `IndexConfig` class defines the parameters for the type of index to be created. Each index type (e.g., `ivf`, `ivfflat`, `ivfpq`) has unique configuration options:
+
+
+### IndexIVF
+
+Ideal for large-scale datasets where fast retrieval is prioritized over high recall:
+
+|  Speed  | Recall | Index Size |
+| :-----: | :----: | :--------: |
+| Fastest | Lowest |  Smallest  |
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|--------------|-------------------------|---------|---------------------------------------|
+| `dimension` | `int` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+
+#### Properties (Read-Only)
+
+| Property | Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
+| `dimension` | `int` | Dimensionality of vector embeddings. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivf". |
+
+#### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
+
+# Basic configuration with auto-detection
+index_config = cyborgdb.IndexIVF()
+
+# Explicit dimension configuration
+index_config = cyborgdb.IndexIVF(dimension=128)
+
+# Access read-only properties
+print(f"n_lists: {index_config.n_lists}")  # Will show 1 (default)
+print(f"dimension: {index_config.dimension}")  # Will show 128
+```
+
+### IndexIVFFlat
+
+Suitable for applications requiring high recall with less concern for memory usage:
+
+| Speed | Recall  | Index Size |
+| :---: | :-----: | :--------: |
+| Fast  | Highest |  Biggest   |
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
+| `dimension` | `int` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+
+#### Properties (Read-Only)
+
+| Property | Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
+| `dimension` | `int` | Dimensionality of vector embeddings. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivfflat". |
+
+#### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
+
+# Basic configuration with auto-detection
+index_config = cyborgdb.IndexIVFFlat()
+
+# Explicit dimension configuration
+index_config = cyborgdb.IndexIVFFlat(dimension=128)
+
+# Access read-only properties
+print(f"n_lists: {index_config.n_lists}")  # Will show 1 (default)
+print(f"dimension: {index_config.dimension}")  # Will show 128
+```
+
+<Tip>`IndexIVFFlat` is the default index configuration and is suitable for most use cases.</Tip>
+
+### IndexIVFPQ
+
+Product Quantization compresses embeddings, making it suitable for balancing memory use and recall:
+
+| Speed | Recall | Index Size |
+| :---: | :----: | :--------: |
+| Fast  |  High  |   Medium   |
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
+| `dimension` | `int` | `None` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if not provided. |
+| `pq_dim` | `int` | - | _(Required)_ Dimensionality of PQ codes after quantization. |
+| `pq_bits` | `int` | - | _(Required)_ Number of bits per quantizer (between 1 and 16). |
+
+#### Properties (Read-Only)
+
+| Property | Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
+| `dimension` | `int` | Dimensionality of vector embeddings. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivfpq". |
+| `pq_dim()` | `int` | Dimensionality of PQ codes after quantization. |
+| `pq_bits()` | `int` | Number of bits per quantizer. |
+
+#### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
+
+# Basic configuration (dimension auto-detected)
+index_config = cyborgdb.IndexIVFPQ(pq_dim=64, pq_bits=8)
+
+# Explicit configuration
+index_config = cyborgdb.IndexIVFPQ(
+    dimension=128,
+    pq_dim=64, 
+    pq_bits=8
+)
+
+# Access read-only properties
+print(f"n_lists: {index_config.n_lists}")  # Will show 1 (default)
+print(f"pq_dim: {index_config.pq_dim}")    # Will show 64
+print(f"pq_bits: {index_config.pq_bits}")  # Will show 8
+```
+
+<Tip>If `dimension` is not provided, it will be auto-determined based on the first vector embedding added to the index.</Tip>

@@ -1,0 +1,42 @@
+---
+title: "List Indexes"
+mode: "wide"
+---
+
+Returns a list of all encrypted index names accessible via the client at the set [`DBConfig`](../types#dbconfig).
+
+```python
+def list_indexes(self)
+```
+
+### Returns
+
+`List[str]`: A list of index names.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="RuntimeError">
+        - Throws if the list of indexes could not be retrieved.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
+
+index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+
+client = cyborgdb.Client(
+    api_key=api_key,
+    index_location=index_location,
+    config_location=config_location
+)
+
+print(client.list_indexes())
+# Example output:
+# ["index_one", "index_two", "index_three"]
+```

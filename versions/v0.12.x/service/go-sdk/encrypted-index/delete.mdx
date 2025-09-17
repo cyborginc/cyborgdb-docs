@@ -1,0 +1,76 @@
+---
+title: "Delete"
+mode: "wide"
+---
+
+Removes vectors from the index by their IDs. This operation permanently deletes the specified vectors and their associated data.
+
+```go
+func (e *EncryptedIndex) Delete(ctx context.Context, ids []string) error
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation and timeouts |
+| `ids` | `[]string` | Slice of vector IDs to delete |
+
+### Error Handling
+
+<AccordionGroup>
+    <Accordion title="API Errors">
+        - Returns error if the API request fails due to network connectivity issues
+        - Returns error if authentication fails (invalid API key)
+        - Returns error if the encryption key is invalid for the specified index
+        - Returns error if there are internal server errors during deletion
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Returns error if the IDs slice is empty
+        - The operation succeeds even if some IDs don't exist in the index
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    client, err := cyborgdb.NewClient(cyborgdb.ClientConfig{
+        BaseURL: "http://localhost:8000",
+        APIKey:  "your-api-key",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Load an existing index
+    indexKey := "your-64-character-hex-key"
+    index, err := client.LoadIndex(context.Background(), cyborgdb.LoadIndexParams{
+        IndexName: "my-vector-index",
+        IndexKey:  indexKey,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Delete specific vectors by ID
+    ids := []string{"doc1", "doc2", "doc3"}
+    
+    err = index.Delete(context.Background(), ids)
+    if err != nil {
+        log.Fatalf("Delete failed: %v", err)
+    }
+
+    fmt.Printf("Successfully deleted %d vectors\n", len(ids))
+}
+```

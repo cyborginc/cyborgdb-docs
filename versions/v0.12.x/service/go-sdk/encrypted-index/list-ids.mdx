@@ -1,0 +1,84 @@
+---
+title: "List IDs"
+mode: "wide"
+---
+
+Lists all vector IDs currently stored in the encrypted index.
+
+```go
+func (e *EncryptedIndex) ListIDs(ctx context.Context) (*ListIDsResponse, error)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation and timeouts |
+
+### Returns
+
+- `*ListIDsResponse`: Contains all vector IDs:
+    - `Ids`: Slice of all vector ID strings in the index
+- `error`: Any error encountered during the operation
+
+### Error Handling
+
+<AccordionGroup>
+    <Accordion title="API Errors">
+        - Returns error if the API request fails due to network connectivity issues
+        - Returns error if authentication fails (invalid API key)
+        - Returns error if the encryption key is invalid for the specified index
+        - Returns error if there are internal server errors during the operation
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    client, err := cyborgdb.NewClient(cyborgdb.ClientConfig{
+        BaseURL: "http://localhost:8000",
+        APIKey:  "your-api-key",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Load an existing index
+    indexKey := "your-64-character-hex-key"
+    index, err := client.LoadIndex(context.Background(), cyborgdb.LoadIndexParams{
+        IndexName: "my-vector-index",
+        IndexKey:  indexKey,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // List all vector IDs
+    response, err := index.ListIDs(context.Background())
+    if err != nil {
+        log.Fatalf("ListIDs failed: %v", err)
+    }
+
+    fmt.Printf("Index contains %d vectors:\n", len(response.Ids))
+    for i, id := range response.Ids {
+        fmt.Printf("%d. %s\n", i+1, id)
+        
+        // Limit output for large indexes
+        if i >= 9 && len(response.Ids) > 10 {
+            fmt.Printf("... and %d more\n", len(response.Ids)-10)
+            break
+        }
+    }
+}
+```

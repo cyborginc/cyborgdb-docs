@@ -1,0 +1,69 @@
+---
+title: "Train"
+mode: "wide"
+---
+
+Trains the encrypted index to optimize it for efficient similarity search queries. Training is essential for IVF-based indexes to achieve optimal query performance and accuracy.
+
+<Tip>In CyborgDB Service, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added.</Tip>
+
+```python
+index.train(
+    n_lists=0,
+    batch_size=2048,
+    max_iters=100,
+    tolerance=1e-6
+)
+```
+
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `n_lists` | `int` | `None` | _(Optional)_ Number of inverted lists to use for the index. Defaults to `0` which will auto-select based on the dataset size |
+| `batch_size` | `int` | `2048` | _(Optional)_ Number of vectors to process per training batch |
+| `max_iters` | `int` | `100` | _(Optional)_ Maximum number of training iterations |
+| `tolerance` | `float` | `1e-6` | _(Optional)_ Convergence tolerance for training completion |
+
+<Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
+
+### Returns
+
+`None`
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are insufficient resources to complete training.
+    </Accordion>
+    <Accordion title="Training Errors">
+        - Throws if the index has no vectors to train on.
+        - Throws if the index configuration is incompatible with training.
+        - Throws if training parameters are out of valid ranges.
+        - Throws if training fails to converge within the specified parameters.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Basic Index Training
+
+```python
+# Train the index after adding the data
+index.train()
+```
+
+#### Custom Training Parameters
+
+```python
+# Train with custom parameters for large dataset
+index.train(
+    n_lists=100,        # Number of inverted lists
+    batch_size=4096,    # Larger batches for better performance
+    max_iters=200,      # More iterations for better convergence
+    tolerance=1e-7      # Stricter convergence criteria
+)
+```

@@ -1,0 +1,124 @@
+---
+title: "Get"
+mode: "wide"
+---
+
+Retrieves vectors from the encrypted index by their IDs, with options to specify which fields to include in the results.
+
+```typescript
+async get({
+    ids: string[],     // required
+    include?: string[]  // optional, default: ["vector", "contents", "metadata"]
+}): Promise<Array<object>>
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ids` | `string[]` | - | Array of vector IDs to retrieve from the index |
+| `include` | `string[]` | `["vector", "contents", "metadata"]` | _(Optional)_ Fields to include in the response. Valid options: `"vector"`, `"contents"`, `"metadata"` |
+
+### Returns
+
+`Promise<Array<object>>`: A Promise that resolves to an array of retrieved vector items, each containing the requested fields based on the `include` parameter.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors preventing the retrieval.
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Throws if the `ids` parameter is null, undefined, or empty.
+        - Throws if the `include` parameter contains invalid field names.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+// Load an existing index
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey });
+
+// Add some vectors first
+await index.upsert({
+    items: [
+        { 
+            id: 'doc1', 
+            vector: [0.1, 0.2, 0.3, 0.4], 
+            contents: 'This is the first document content',
+                metadata: { title: 'Document 1', category: 'research', date: '2024-01-15' }
+        },
+        { 
+            id: 'doc2', 
+            vector: [0.4, 0.5, 0.6, 0.7], 
+            contents: 'This is the second document content',
+            metadata: { title: 'Document 2', category: 'tutorial', date: '2024-01-16' }
+        }
+    ]
+});
+
+// Retrieve vectors with all fields (default behavior)
+try {
+    const vectors = await index.get({ ids: ['doc1', 'doc2'] });
+
+    vectors.forEach(item => {
+        console.log(`ID: ${item.id}`);
+        console.log(`Vector dimensions: ${item.vector?.length}`);
+        console.log(`Contents: ${item.contents}`);
+        console.log(`Metadata: ${JSON.stringify(item.metadata)}`);
+        console.log('---');
+    });
+    
+} catch (error: any) {
+    console.error('Failed to retrieve vectors:', error.message);
+}
+```
+
+### Response Format
+
+The method returns an array of objects with the following structure:
+
+```typescript
+// Example response with all fields
+[
+    {
+        "id": "doc1",
+        "vector": [0.1, 0.2, 0.3, 0.4],
+        "contents": "Document content as string or Buffer",
+        "metadata": {
+            "title": "Document 1",
+            "category": "research",
+            "date": "2024-01-15"
+        }
+    },
+    {
+        "id": "doc2",
+        "vector": [0.4, 0.5, 0.6, 0.7],
+        "contents": "Another document content",
+        "metadata": {
+            "title": "Document 2", 
+            "category": "tutorial",
+            "date": "2024-01-16"
+        }
+    }
+]
+```
+
+### Response Item Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique identifier of the vector (always included) |
+| `vector` | `number[]` | The vector data (included if `"vector"` in include array) |
+| `contents` | `Buffer` \| `string` | The content data, automatically decoded from base64 if needed (included if `"contents"` in include array) |
+| `metadata` | `any` | Associated metadata object (included if `"metadata"` in include array) |

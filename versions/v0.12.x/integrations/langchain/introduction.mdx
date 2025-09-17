@@ -1,0 +1,81 @@
+---
+title: "CyborgDB - LangChain Integration"
+sidebarTitle: "LangChain Introduction"
+description: "`v0.12.x`"
+mode: "wide"
+---
+
+CyborgDB provides a seamless integration with [LangChain](https://www.langchain.com/), enabling developers to leverage encrypted vector search for large language models (LLMs) and RAG pipelines. This integration is implemented via the `CyborgVectorStore` class, which conforms to the `VectorStore` interface from `langchain-core`.
+
+## Installation (Python Client SDK)
+
+To use the LangChain integration with the CyborgDB Python Client SDK, you need to install the `cyborgdb` package with the `langchain` extra:
+
+```bash
+pip install cyborgdb[langchain]
+```
+
+This will install the necessary dependencies for the LangChain integration.
+
+## Installation (Embedded Library)
+
+To install CyborgDB with LangChain support, you must install either `cyborgdb-core` or `cyborgdb-lite` with the `langchain` extra. You can do this using pip:
+
+```bash
+# For cyborgdb-core
+pip install cyborgdb-core[langchain]
+
+# For cyborgdb-lite
+pip install cyborgdb-lite[langchain]
+```
+
+<Tip>To learn more about the differences between `cyborgdb`, `cyborgdb-core`, and `cyborgdb-lite`, refer to the [Deployment Models Guide](../../intro/deployment-models).</Tip>
+
+## Usage
+
+To use CyborgDB with LangChain, you can import the `CyborgVectorStore` class from the `cyborgdb_core.integrations.langchain` or `cyborgdb_lite.integrations.langchain` module, depending on which version you are using.
+
+```python
+from cyborgdb.integrations.langchain import CyborgVectorStore
+# or
+from cyborgdb_core.integrations.langchain import CyborgVectorStore
+# or
+from cyborgdb_lite.integrations.langchain import CyborgVectorStore
+```
+
+## Key Classes
+
+### `CyborgVectorStore`
+
+Implements the LangChain-compatible vector store interface. Supports:
+
+- `.add_texts()` / `.add_documents()`  
+- `.similarity_search()` / `.similarity_search_with_score()`  
+- `.max_marginal_relevance_search()`  
+- `.get_document()` and `.delete()`  
+- Async variants (`.aadd_texts()`, `.asimilarity_search()`, etc.)  
+- Reversible document ID tracking  
+- Configurable distance metric (`cosine`, `euclidean`, `squared_euclidean`)
+
+### `DBConfig`
+
+Configuration object for defining the location of index data (`memory`, `redis`, `postgres`, etc.).
+
+## Usage Example
+
+```python
+from cyborgdb_core.integrations.langchain import CyborgVectorStore
+from cyborgdb_core import DBConfig
+
+store = CyborgVectorStore.from_texts(
+    texts=["hello world", "goodbye world"],
+    embedding="all-MiniLM-L6-v2",  # sentence-transformer name
+    index_key=CyborgVectorStore.generate_key(),
+    api_key="your-api-key",
+    index_location=DBConfig("memory"),
+    config_location=DBConfig("memory"),
+    index_type="ivfflat",
+    metric="cosine"
+)
+
+docs = store.similarity_search("hello")

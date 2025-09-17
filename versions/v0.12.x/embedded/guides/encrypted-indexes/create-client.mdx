@@ -1,0 +1,147 @@
+---
+title: "Create Client"
+mode: "wide"
+---
+
+The `Client` class provides an interface to initialize, create, load and list Encrypted Indexes. Encrypted Indexes, in turn, expose data-related functionality such as upserting, querying, and deleting.
+
+## Creating the Client
+
+To create the client, you must define the [backing store locations](../../../intro/backing-stores) which it will use. At minimum, you must set an `index_location` (where the index will reside) and a `config_location` (where the index metadata will reside). For example:
+
+<CodeGroup>
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
+
+# Using `memory` storage for this example
+# `redis` and `postgres` are also supported
+
+index_location = cyborgdb.DBConfig("memory")  # Where encrypted index is stored (for queries)
+config_location = cyborgdb.DBConfig("memory") # Where encrypted index config is stored (for config/loading)
+
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
+# Create a client
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location
+)
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
+#include <array>
+#include <random>
+
+// Using `memory` storage for this example
+// `redis` and `postgres` are also supported
+
+cyborg::DBConfig index_location(cyborg::Location::kMemory);  // Where encrypted index is stored (for queries)
+cyborg::DBConfig config_location(cyborg::Location::kMemory); // Where encrypted index config is stored (for config/loading)
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
+
+// Create a client
+cyborg::Client client(api_key, index_location, config_location);
+```
+</CodeGroup>
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+Bear in mind that all contents stored in the backing stores is end-to-end encrypted, meaning that **no index contents will be stored in plaintext**. For performance reasons, you may wish to use a "fast" backing store option for `index_location`, such as Redis.
+
+## Creating the Client with Item Storage
+
+If you wish to store encrypted items in the index, you will also need to set a `item_location`:
+
+<CodeGroup>
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+# or import cyborgdb_lite as cyborgdb
+
+# Using `redis` storage for the index and config
+# Using `postgres` storage for the items
+index_location = cyborgdb.DBConfig(location="redis", connection_string="redis://localhost")
+config_location = cyborgdb.DBConfig(location="redis", connection_string="redis://localhost")
+item_location = cyborgdb.DBConfig(location="postgres", table_name="item_table", connection_string="host=localhost dbname=postgres")
+
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
+# Construct the Client object
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location,
+    items_location=item_location
+)
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/client.hpp"
+
+// Using `redis` storage for the index and config
+// Using `postgres` storage for the items
+cyborg::DBConfig index_location(cyborg::Location::kRedis, "redis://localhost");
+cyborg::DBConfig config_location(cyborg::Location::kRedis, "redis://localhost");
+cyborg::DBConfig item_location(cyborg::Location::kPostgres, "host=localhost dbname=postgres");
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
+
+// Construct the Client object
+cyborg::Client client(api_key, index_location, config_location, item_location);
+```
+</CodeGroup>
+
+Item contents will be encrypted prior to being uploaded to the backing store. In most applications, these are accessed less frequently than the index, so a "slower" backing store option can be used, such as PostgreSQL.
+
+## Setting Device Configurations
+
+CyborgDB can be accelerated in two ways:
+
+- CPU Multithreading (via `OpenMP`) -> can scale with the number of CPU cores available
+- GPU Acceleration (via `CUDA` & `cuVS`) -> can increase the speed of certain operations (e.g., ingestion) by an order of magnitude.
+
+You can control either of these with the optional `cpu_threads` and `gpu_accelerate` flags:
+
+<CodeGroup>
+```python Python icon="python"
+# ... existing setup (with api_key defined above)
+client = cyborgdb.Client(
+    api_key=api_key,
+    index_location=index_location, 
+    config_location=config_location,
+    items_location=item_location,
+    cpu_threads=4,
+    gpu_accelerate=False
+)
+```
+
+```cpp C++ icon="brackets-curly"
+// ... existing setup (with api_key defined above)
+cyborg::Client client(api_key, index_location, config_location, item_location, 4, false);
+```
+</CodeGroup>
+
+<Info>`gpu_accelerate` can only be set to `True` if running on a CUDA-enabled system with the CUDA driver installed.</Info>
+
+By default, `cpu_threads` will use all available cores, and `gpu_accelerate` will be set to `False`.
+
+## API Reference
+
+For more information on the `Client` class, refer to the API Reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../python/client" icon="python">
+        API reference for `Client` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../cpp/client" icon="brackets-curly">
+        API reference for `cyborg::Client` in C++
+    </Card>
+</CardGroup>

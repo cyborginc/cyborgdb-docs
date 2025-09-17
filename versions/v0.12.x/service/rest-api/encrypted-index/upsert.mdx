@@ -1,0 +1,169 @@
+---
+title: "Upsert Vectors"
+mode: "wide"
+api: "POST /v1/vectors/upsert"
+playground: "simple"
+---
+
+Add new vectors or update existing ones in the encrypted index.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "items": [
+    {
+      "id": "item_1",
+      "vector": [0.1, 0.2, 0.3, 0.4],
+      "contents": "Hello world!",
+      "metadata": {"category": "greeting", "language": "en"}
+    },
+    {
+      "id": "item_2",
+      "vector": [0.5, 0.6, 0.7, 0.8],
+      "contents": "Bonjour monde!",
+      "metadata": {"category": "greeting", "language": "fr"}
+    }
+  ]
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the target index
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="items" type="array[object]" required="true">
+    List of items to upsert, each containing:
+
+    <Expandable title="items parameters">
+      <ParamField body="id" type="string" required="true">
+        Unique identifier for the item
+      </ParamField>
+      <ParamField body="vector" type="array[number]" required="false">
+        Vector embedding (required if index does not use automatic embedding generation)
+      </ParamField>
+      <ParamField body="contents" type="string">
+        Text content associated with the vector
+      </ParamField>
+      <ParamField body="metadata" type="object">
+        Key-value pairs for additional metadata
+      </ParamField>
+    </Expandable>
+  </ParamField>
+</Expandable>
+
+## Response
+
+```json
+{
+  "status": "success",
+  "message": "2 items upserted successfully"
+}
+```
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters or vector dimensions
+- `500`: Internal server error
+
+## Example Usage
+
+**Basic Upsert:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {
+           "id": "item_1",
+           "vector": [0.1, 0.2, 0.3, 0.4],
+           "contents": "Hello world!"
+         }
+       ]
+     }'
+```
+
+**With Metadata:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {
+           "id": "doc_1",
+           "vector": [0.1, 0.2, 0.3, 0.4],
+           "contents": "Important document content",
+           "metadata": {
+             "category": "documentation",
+             "author": "admin",
+             "created": "2024-01-15",
+             "priority": "high"
+           }
+         }
+       ]
+     }'
+```
+
+**Auto-Generated Embeddings:**
+```bash
+# For indexes created with embedding_model
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "semantic_index",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {
+           "id": "text_1",
+           "contents": "This text will be automatically embedded",
+           "metadata": {"type": "auto_embedded"}
+         }
+       ]
+     }'
+```
+
+**Batch Upsert:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {"id": "batch_1", "vector": [0.1, 0.2, 0.3]},
+         {"id": "batch_2", "vector": [0.4, 0.5, 0.6]},
+         {"id": "batch_3", "vector": [0.7, 0.8, 0.9]},
+         {"id": "batch_4", "vector": [0.2, 0.3, 0.4]},
+         {"id": "batch_5", "vector": [0.5, 0.6, 0.7]}
+       ]
+     }'
+```
+
+<Note>When `embedding_model` is configured for the index, the `vector` parameter becomes optional. If provided, it will be used directly; if omitted, a vector will be auto-generated from the `contents` field.</Note>
+
+<Tip>For large datasets, use batch upserts with multiple items in a single request to improve performance and reduce network overhead.</Tip>

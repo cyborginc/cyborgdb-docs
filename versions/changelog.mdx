@@ -1,11 +1,33 @@
 ---
 title: CyborgDB Release Notes
 sidebarTitle: Release Notes
+mode: wide
 ---
 
 CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
 
----
+<Update label="v0.12.0" description="2025-08-28">
+
+## CyborgDB v0.12.0
+
+### Deployment Model
+
+- Embedded Library (Python & C++)
+- REST API (Microservice via Python or Docker)
+- Client SDK (Python, JavaScript, TypeScript & Go)
+
+### New Features
+
+- Go Client SDK now available:
+    - [`go get github.com/cyborginc/cyborgdb-go`](https://pkg.go.dev/github.com/cyborginc/cyborgdb-go)
+- Automatic index management enabled by default in CyborgDB Service:
+    - Simplifies setup and reduces manual configuration
+    - `IndexConfig` classes now optional - CyborgDB can auto-configure indexes on the fly based on data & usage characteristics
+    - Training & retraining now handled automatically, optimizing index performance without manual intervention
+    - Queries can now automatically determine the optimal number of clusters to search
+- LangChain integration now available for Python Client SDK
+
+</Update>
 
 <Update label="v0.11.0" description="2025-06-26">
 
@@ -66,7 +88,6 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 - `cyborgdb_lite` is now available for **evaluation** and **non-commercial use** on [PyPI](https://pypi.org/project/cyborgdb-lite/)
 
 </Update>
-
 
 <Update label="v0.9.1" description="2025-03-28">
 

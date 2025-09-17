@@ -1,0 +1,353 @@
+---
+title: "Types"
+---
+
+## DBConfig
+
+The `DBConfig` class specifies the storage location for the index, with options for in-memory storage, databases, or file-based storage.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
+| `location` | `string` | - | DB location (`redis`, `postgres`, `memory`, `s3`, `gcs`, `local`) |
+| `table_name` | `string` | None | _(Optional)_ Table name (`postgres`-only) |
+| `connection_string` | `string` | None | _(Optional)_ Connection string to access DB |
+| `bucket` | `string` | None | _(Optional)_ Bucket name for cloud storage (`s3`, `gcs`) |
+| `access_key` | `string` | None | _(Optional)_ Access key for cloud storage |
+| `secret_key` | `string` | None | _(Optional)_ Secret key for cloud storage |
+| `region` | `string` | None | _(Optional)_ Region for cloud storage |
+| `endpoint` | `string` | None | _(Optional)_ Custom endpoint for S3-compatible storage |
+| `path` | `string` | None | _(Optional)_ Path for local file storage |
+
+The supported `location` options are:
+
+- `"redis"`: Use for high-speed, in-memory storage (recommended for `index_location`)
+- `"postgres"`: Use for reliable, SQL-based storage (recommended for `config_location`)
+- `"memory"`: Use for temporary in-memory storage (for benchmarking and evaluation purposes)
+- `"s3"`: Use for Amazon S3 or S3-compatible storage
+- `"gcs"`: Use for Google Cloud Storage
+- `"local"`: Use for local file system storage
+
+### Example Usage
+
+```python
+from cyborgdb_core import DBConfig
+
+# Redis configuration
+index_location = DBConfig(
+    location="redis",
+    connection_string="redis://localhost:6379"
+)
+
+# PostgreSQL configuration
+config_location = DBConfig(
+    location="postgres",
+    table_name="config_table",
+    connection_string="host=localhost dbname=vectordb user=postgres"
+)
+
+# S3 configuration
+s3_location = DBConfig(
+    location="s3",
+    bucket="my-vector-index",
+    access_key="YOUR_ACCESS_KEY",
+    secret_key="YOUR_SECRET_KEY",
+    region="us-east-1"
+)
+
+# Memory configuration (for testing)
+memory_location = DBConfig(location="memory")
+```
+
+---
+
+## Embeddings
+
+The LangChain integration supports multiple embedding model types:
+
+### Supported Embedding Types
+
+| Type | Description | Example |
+|------|-------------|---------|
+| `str` | Model name string for SentenceTransformers | `"sentence-transformers/all-MiniLM-L6-v2"` |
+| `SentenceTransformer` | SentenceTransformer model instance | `SentenceTransformer("all-MiniLM-L6-v2")` |
+| `Embeddings` | Any LangChain Embeddings implementation | `OpenAIEmbeddings()`, `HuggingFaceEmbeddings()` |
+
+### Example Usage
+
+```python
+from sentence_transformers import SentenceTransformer
+from langchain_openai import OpenAIEmbeddings
+from cyborgdb_core.langchain import CyborgVectorStore
+
+# Using model name string
+store1 = CyborgVectorStore(
+    index_name="docs",
+    index_key=key,
+    api_key="your-api-key",
+    embedding="sentence-transformers/all-MiniLM-L6-v2",  # String model name
+    index_location=DBConfig("memory"),
+    config_location=DBConfig("memory")
+)
+
+# Using SentenceTransformer instance
+model = SentenceTransformer("all-mpnet-base-v2")
+store2 = CyborgVectorStore(
+    index_name="docs",
+    index_key=key,
+    api_key="your-api-key",
+    embedding=model,  # SentenceTransformer instance
+    index_location=DBConfig("memory"),
+    config_location=DBConfig("memory")
+)
+
+# Using LangChain Embeddings
+openai_embeddings = OpenAIEmbeddings()
+store3 = CyborgVectorStore(
+    index_name="docs",
+    index_key=key,
+    api_key="your-api-key",
+    embedding=openai_embeddings,  # LangChain Embeddings
+    index_location=DBConfig("memory"),
+    config_location=DBConfig("memory")
+)
+```
+
+---
+
+## DistanceMetric
+
+`DistanceMetric` is a string representing the distance metric used for the index. Options include:
+
+- `"cosine"`: Cosine similarity (recommended for normalized embeddings)
+- `"euclidean"`: Euclidean distance
+- `"squared_euclidean"`: Squared Euclidean distance
+
+### Metric Characteristics
+
+| Metric | Range | Best Match | Use Case |
+|--------|-------|------------|----------|
+| `cosine` | [0, 2] | 0 | Text embeddings, normalized vectors |
+| `euclidean` | [0, ∞) | 0 | Raw feature vectors |
+| `squared_euclidean` | [0, ∞) | 0 | When avoiding sqrt computation |
+
+---
+
+## IndexType
+
+The index type determines the algorithm used for approximate nearest neighbor search.
+
+### Available Index Types
+
+| Type | Description | Speed | Recall | Index Size |
+|------|-------------|-------|--------|------------|
+| `"ivfflat"` | Inverted file with flat storage | Fast | Highest | Biggest |
+| `"ivf"` | Inverted file with compression | Fastest | Lowest | Smallest |
+| `"ivfpq"` | Inverted file with product quantization | Fast | High | Medium |
+
+**Note**: `cyborgdb-lite` only supports `"ivfflat"` index type.
+
+### Example Usage
+
+```python
+# IVFFlat index (highest recall)
+store = CyborgVectorStore(
+    index_name="high_recall_index",
+    index_key=key,
+    api_key="your-api-key",
+    embedding="all-MiniLM-L6-v2",
+    index_location=DBConfig("memory"),
+    config_location=DBConfig("memory"),
+    index_type="ivfflat",
+    index_config_params={"n_lists": 1024}
+)
+
+# IVFPQ index (balanced performance)
+store = CyborgVectorStore(
+    index_name="balanced_index",
+    index_key=key,
+    api_key="your-api-key",
+    embedding="all-MiniLM-L6-v2",
+    index_location=DBConfig("memory"),
+    config_location=DBConfig("memory"),
+    index_type="ivfpq",
+    index_config_params={
+        "n_lists": 1024,
+        "pq_dim": 64,
+        "pq_bits": 8
+    }
+)
+```
+
+---
+
+## IndexConfigParams
+
+Optional parameters for configuring the index, passed as a dictionary.
+
+### Parameters by Index Type
+
+#### IVFFlat & IVF
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `n_lists` | `int` | 1024 | Number of inverted lists (clusters) |
+
+#### IVFPQ
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `n_lists` | `int` | 1024 | Number of inverted lists (clusters) |
+| `pq_dim` | `int` | 8 | Dimensionality after product quantization |
+| `pq_bits` | `int` | 8 | Bits per quantized dimension (1-16) |
+
+### Tuning Guidelines
+
+<Tip>
+- **n_lists**: Use √n where n is the expected number of vectors. Common values: 256, 512, 1024, 2048
+- **pq_dim**: Should divide the embedding dimension evenly. Lower values = more compression
+- **pq_bits**: 8 bits provides good balance. Lower = more compression, higher = better accuracy
+</Tip>
+
+---
+
+## Document
+
+LangChain Document object used for storing text with metadata.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `page_content` | `str` | The text content of the document |
+| `metadata` | `dict` | Optional metadata associated with the document |
+
+### Example Usage
+
+```python
+from langchain_core.documents import Document
+
+# Create a document
+doc = Document(
+    page_content="This is the content of my document",
+    metadata={
+        "source": "manual",
+        "author": "John Doe",
+        "timestamp": "2024-01-01"
+    }
+)
+
+# Add to vector store
+store.add_documents([doc])
+```
+
+---
+
+## Filter Format
+
+Metadata filters use a dictionary format for querying documents.
+
+### Simple Filters
+
+```python
+# Exact match
+filter = {"category": "technology"}
+
+# Multiple conditions (AND)
+filter = {
+    "category": "technology",
+    "year": 2024
+}
+```
+
+### Advanced Filters
+
+```python
+# Range queries
+filter = {
+    "price": {"$gte": 100, "$lte": 500}
+}
+
+# IN queries
+filter = {
+    "tags": {"$in": ["python", "machine-learning"]}
+}
+
+# Nested fields
+filter = {
+    "metadata.author": "John Doe"
+}
+```
+
+### Supported Operators
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `$eq` | Equal to | `{"age": {"$eq": 25}}` |
+| `$ne` | Not equal to | `{"status": {"$ne": "archived"}}` |
+| `$gt` | Greater than | `{"price": {"$gt": 100}}` |
+| `$gte` | Greater than or equal | `{"score": {"$gte": 0.8}}` |
+| `$lt` | Less than | `{"quantity": {"$lt": 10}}` |
+| `$lte` | Less than or equal | `{"rating": {"$lte": 5}}` |
+| `$in` | In array | `{"tags": {"$in": ["ai", "ml"]}}` |
+| `$nin` | Not in array | `{"category": {"$nin": ["draft", "deleted"]}}` |
+
+---
+
+## Return Types
+
+### Query Results
+
+Query operations return documents with optional scores:
+
+```python
+# similarity_search returns List[Document]
+docs = store.similarity_search("query", k=5)
+# Returns: [Document(...), Document(...), ...]
+
+# similarity_search_with_score returns List[Tuple[Document, float]]
+results = store.similarity_search_with_score("query", k=5)
+# Returns: [(Document(...), 0.95), (Document(...), 0.87), ...]
+```
+
+### Score Normalization
+
+Scores are normalized to [0, 1] range where:
+- **1.0** = Perfect match
+- **0.0** = Worst match
+
+The normalization depends on the distance metric used.
+
+---
+
+## Async Support
+
+All methods have async variants prefixed with `a`:
+
+| Sync Method | Async Method |
+|-------------|--------------|
+| `add_texts` | `aadd_texts` |
+| `add_documents` | `aadd_documents` |
+| `similarity_search` | `asimilarity_search` |
+| `similarity_search_with_score` | `asimilarity_search_with_score` |
+| `max_marginal_relevance_search` | `amax_marginal_relevance_search` |
+| `delete` | `adelete` |
+
+### Example Usage
+
+```python
+import asyncio
+
+async def main():
+    # Async text addition
+    ids = await store.aadd_texts(["async text 1", "async text 2"])
+    
+    # Async search
+    docs = await store.asimilarity_search("query", k=5)
+    
+    # Async deletion
+    success = await store.adelete(ids)
+
+asyncio.run(main())
+```

@@ -1,0 +1,112 @@
+---
+title: "Get Encrypted Items"
+sidebarTitle: "Get Items"
+mode: "wide"
+---
+
+You can retrieve specific items from the index by their IDs using the `get()` method:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# IDs of items to retrieve
+ids = ["item_20", "item_11"]
+include = ["contents", "metadata"]
+
+# Retrieve items from the encrypted index
+items = index.get(ids, include)
+
+print(items)
+# Example items
+# [{"id": "item_20", "contents": "Hello, World!", "metadata": {"type": "txt"}},
+#  {"id": "item_11", "contents": "Hello, Cyborg!", "metadata": {"type": "md"}}]
+```
+
+```javascript JavaScript SDK icon="js"
+// IDs of items to retrieve
+const ids = ["item_20", "item_11"];
+const include = ["contents", "metadata"];
+
+// Retrieve items from the encrypted index
+const items = await index.get({ ids, include });
+
+console.log(items);
+// Example items
+// [{id: "item_20", contents: "Hello, World!", metadata: {type: "txt"}},
+//  {id: "item_11", contents: "Hello, Cyborg!", metadata: {type: "md"}}]
+```
+
+```typescript TypeScript SDK icon="code"
+import { GetParams, VectorItem } from 'cyborgdb';
+
+// IDs of items to retrieve
+const ids: string[] = ["item_20", "item_11"];
+const include: string[] = ["contents", "metadata"];
+
+// Retrieve items from the encrypted index
+const params: GetParams = { ids, include };
+const items: VectorItem[] = await index.get(params);
+
+console.log(items);
+// Example items
+// [{id: "item_20", contents: "Hello, World!", metadata: {type: "txt"}},
+//  {id: "item_11", contents: "Hello, Cyborg!", metadata: {type: "md"}}]
+```
+
+```go Go SDK icon="golang"
+// IDs of items to retrieve
+ids := []string{"item_20", "item_11"}
+include := []string{"contents", "metadata"}
+
+// Retrieve items from the encrypted index
+items, err := index.Get(context.Background(), ids, include)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(items)
+// Example items
+// [{"id": "item_20", "contents": "Hello, World!", "metadata": {"type": "txt"}},
+//  {"id": "item_11", "contents": "Hello, Cyborg!", "metadata": {"type": "md"}}]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/get" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["item_20", "item_11"],
+       "include": ["contents", "metadata"]
+     }'
+```
+</CodeGroup>
+
+## Include Fields
+
+You can specify which fields to include in the response:
+
+- **`vector`**: The vector data itself
+- **`contents`**: Text or binary content associated with the vector
+- **`metadata`**: Structured metadata object
+
+If you don't specify `include`, the default is `["vector", "contents", "metadata"]`.
+
+## API Reference
+
+For more information on getting items from an encrypted index, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/get" icon="rectangle-terminal">
+        REST API reference for `/v1/vectors/get`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/get" icon="python">
+        API reference for `get()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/get" icon="js">
+        API reference for `get()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/encrypted-index/get" icon="golang">
+        API reference for `Get()` in Go
+    </Card>
+</CardGroup>

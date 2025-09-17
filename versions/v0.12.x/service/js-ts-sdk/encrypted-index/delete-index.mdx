@@ -1,0 +1,50 @@
+---
+title: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+Deletes the current index and all its associated data from the CyborgDB service.
+
+```typescript
+async deleteIndex(): Promise<null>
+```
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if there are internal server errors preventing the deletion.
+    </Accordion>
+    <Accordion title="Index Errors">
+        - Returns success status if the index was already deleted or doesn't exist.
+        - Throws if the encryption key is invalid for the specified index (unless already deleted).
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+// Load an existing index
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex({ indexName: 'temporary-index', indexKey });
+
+// Delete the index when no longer needed
+try {
+    const result = await index.deleteIndex();
+    console.log('Index deletion result:', result);
+    // Possible outputs:
+    // { status: 'success', message: "Index 'temporary-index' deleted successfully" }
+    // { status: 'success', message: "Index 'temporary-index' was already deleted" }
+    
+} catch (error) {
+    console.error('Failed to delete index:', error.message);
+}
+```

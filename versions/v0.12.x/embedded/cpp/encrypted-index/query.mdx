@@ -1,0 +1,48 @@
+---
+title: "Query"
+mode: "wide"
+---
+
+Retrieves the nearest neighbors for given query vectors.
+
+```cpp
+QueryResults Query(Array2D<float>& query_vectors,
+                   const QueryParams& query_params = QueryParams());
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `query_vectors` | [`Array2D<float>`](../types#array2d) | Query vectors to search. |
+| `query_params` | [`QueryParams`](../types#queryparams) | _(Optional)_ Parameters for querying, such as `top_k` and `n_probes`. |
+
+<Tip> If this function is called on an index where `TrainIndex()` has not been executed, the query will use encrypted exhaustive search.
+This may cause queries to be slower, especially when there are many vector embeddings in the index.</Tip>
+
+### Returns
+
+[`QueryResults`](#queryresults): Results `top_k` containing decrypted nearest neighbors IDs and distances.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::invalid_argument">
+        - Throws if the query vectors have incompatible dimensions with the index.
+        - Throws if the index was not created or loaded yet.
+    </Accordion>
+    <Accordion title="std::runtime_exception">
+        - Throws if the query could not be executed.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+cyborg::Array2D<float> queries{/*...*/}; // Populate with one or more query vectors
+cyborg::QueryParams params(10, 5);  // top_k = 10, n_probes = 5
+
+QueryResults results = index->Query(queries, params);
+std::cout << "ID: " << results.ids[j] << ", Distance: " << results.distances[j] << std::endl;
+// Process query results...
+```

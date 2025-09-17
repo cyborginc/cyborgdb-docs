@@ -1,0 +1,41 @@
+---
+title: "Health Check"
+mode: "wide"
+api: "GET /v1/health"
+playground: "simple"
+---
+
+Check if the API service is running and accessible.
+
+## Parameters
+
+None
+
+## Authentication
+
+Not required
+
+## Response
+
+```json
+{
+  "api_version": "v1",
+  "version": "0.12.0"
+}
+```
+
+## Example Usage
+
+```bash
+curl http://localhost:8000/v1/health
+
+# Or with HTTPS
+curl https://your-domain.com:8000/v1/health
+```
+
+## Use Cases
+
+- **Health monitoring**: Check if the service is operational
+- **Load balancer checks**: Verify service availability
+- **Deployment validation**: Confirm successful service startup
+- **Network connectivity**: Test basic API accessibility

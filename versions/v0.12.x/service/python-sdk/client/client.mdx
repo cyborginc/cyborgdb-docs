@@ -1,0 +1,50 @@
+---
+title: "Client"
+mode: "wide"
+---
+
+`Client` is the main class exposed by the CyborgDB Python SDK. It provides an interface to interact with the CyborgDB vector database service, allowing you to create and manage encrypted indexes.
+
+## Constructor
+
+```python
+Client(base_url, api_key, verify_ssl)
+```
+
+Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
+
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `base_url` | `str` | - | Base URL of the CyborgDB microservice endpoint |
+| `api_key` | `str` | - | API key for authentication with the microservice |
+| `verify_ssl` | `bool` | `None` | _(Optional)_ SSL verification (auto-detected for localhost) |
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+### Example Usage
+
+```python
+from cyborgdb import Client
+
+# Create client with API key
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+```
+
+## Error Handling
+
+The `Client` class includes comprehensive error handling that processes different types of API errors:
+
+- **HTTP Errors**: Status codes and response details are logged and converted to meaningful error messages
+- **Validation Errors**: Field validation failures are formatted with detailed information
+- **Network Errors**: Connection and timeout issues are handled gracefully
+
+All methods throw standard Python exceptions with descriptive messages for easier debugging and error handling in your application.
+
+## Type Safety
+
+The Python SDK provides type hints for better development experience:
+
+- Type annotations for all method parameters and return values
+- IDE support with autocomplete and type checking
+- Runtime validation of critical parameters

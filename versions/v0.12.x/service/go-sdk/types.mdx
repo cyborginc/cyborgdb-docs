@@ -1,0 +1,170 @@
+---
+title: "Types"
+mode: "wide"
+---
+
+## VectorItem
+
+Represents a single vector with its associated data.
+
+```go
+type VectorItem struct {
+    Id       string                 `json:"id"`                // Unique identifier
+    Vector   []float32              `json:"vector,omitempty"`  // Vector data
+    Contents NullableContents       `json:"contents,omitempty"` // Optional text content  
+    Metadata map[string]interface{} `json:"metadata,omitempty"` // Optional metadata
+}
+```
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `Id` | `string` | Unique identifier for the vector (required) |
+| `Vector` | `[]float32` | The vector data as float32 slice |
+| `Contents` | `NullableContents` | Optional text content associated with the vector |
+| `Metadata` | `map[string]interface{}` | Optional key-value pairs for filtering and retrieval |
+
+
+---
+
+## CreateIndexParams
+
+Parameters for creating a new encrypted vector index.
+
+```go
+type CreateIndexParams struct {
+    IndexName      string     `json:"index_name"`            // Unique identifier for the index
+    IndexKey       []byte     `json:"index_key"`             // 32-byte encryption key
+    IndexConfig    IndexModel `json:"index_config,omitempty"` // Index configuration
+    Metric         *string    `json:"metric,omitempty"`       // Distance metric
+    EmbeddingModel *string    `json:"embedding_model,omitempty"` // Associated embedding model
+}
+```
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `IndexName` | `string` | Yes | Unique identifier for the index |
+| `IndexKey` | `[]byte` | Yes | 32-byte encryption key (use GenerateKey() to create) |
+| `IndexConfig` | `IndexModel` | No | Index configuration (IVF, IVFFlat, or IVFPQ) |
+| `Metric` | `*string` | No | Distance metric ("euclidean", "cosine", "dot_product") |
+| `EmbeddingModel` | `*string` | No | Name of embedding model to associate |
+
+---
+
+## Index Configuration Types
+
+### IndexModel Interface
+
+All index configuration types implement this interface.
+
+```go
+type IndexModel interface {
+    ToIndexConfig() *internal.IndexConfig
+}
+```
+
+### IVF Configuration
+
+Create an IVF (Inverted File) index configuration.
+
+```go
+func IndexIVF(dimension int32) *indexIVF
+```
+
+
+### IVFFlat Configuration  
+
+Create an IVFFlat (Inverted File Flat) index configuration for higher accuracy.
+
+```go
+func IndexIVFFlat(dimension int32) *indexIVFFlat
+```
+
+
+### IVFPQ Configuration
+
+Create an IVFPQ (Inverted File with Product Quantization) index configuration for memory efficiency.
+
+```go
+func IndexIVFPQ(dimension int32, pqDim int32, pqBits int32) *indexIVFPQ
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dimension` | `int32` | The dimensionality of vectors that will be stored |
+| `pqDim` | `int32` | Product quantization dimension (typically dimension/8 or dimension/16) |
+| `pqBits` | `int32` | Bits per PQ code (typically 8, higher = more accurate but larger) |
+
+---
+
+## Response Types
+
+### QueryResponse
+
+Response from similarity search operations.
+
+```go
+type QueryResponse = internal.QueryResponse
+```
+
+Contains search results with similar vectors and their metadata.
+
+### QueryResultItem
+
+A single result from a similarity search query.
+
+```go  
+type QueryResultItem = internal.QueryResultItem
+```
+
+Represents one matching vector with its similarity score and metadata.
+
+### GetResponse
+
+Response from Get operations containing retrieved vectors.
+
+```go
+type GetResponse = internal.GetResponseModel
+```
+
+### ListIDsResponse
+
+Response from ListIDs operations.
+
+```go
+type ListIDsResponse = internal.ListIDsResponse  
+```
+
+Contains the list of vector IDs in the index.
+
+---
+
+## TrainParams
+
+Parameters for training an encrypted vector index.
+
+```go
+type TrainParams struct {
+    BatchSize  *int32   `json:"batch_size,omitempty"`  // Number of vectors per training batch
+    MaxIters   *int32   `json:"max_iters,omitempty"`   // Maximum training iterations  
+    Tolerance  *float64 `json:"tolerance,omitempty"`   // Convergence tolerance
+    MaxMemory  *int32   `json:"max_memory,omitempty"`  // Maximum memory usage in MB
+    NLists     *int32   `json:"n_lists,omitempty"`     // Number of IVF clusters
+}
+```
+
+#### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `BatchSize` | `*int32` | Number of vectors processed per training batch (default: 2048) |
+| `MaxIters` | `*int32` | Maximum training iterations (default: 100) |
+| `Tolerance` | `*float64` | Convergence tolerance for training (default: 1e-6) |
+| `MaxMemory` | `*int32` | Maximum memory usage in MB, 0 = no limit (default: 0) |
+| `NLists` | `*int32` | Number of IVF clusters, 0 = auto-determine (default: 0) |
+

@@ -1,0 +1,98 @@
+---
+title: "Create Index"
+mode: "wide"
+---
+
+Creates and returns an `EncryptedIndex` instance based on the provided configuration.
+
+```python
+client.create_index(
+    index_name,
+    index_key,
+    index_config = None,
+    embedding_model = None,
+    metric = "euclidean",
+)
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `index_name` | `str` | - | Unique name for the index |
+| `index_key` | `bytes` | - | 32-byte encryption key |
+| `index_config` | `IndexConfig` | `None` | _(Optional)_ Index configuration object |
+| `embedding_model` | `str` | `None` | _(Optional)_ Embedding model identifier |
+| `metric` | `str` | `"euclidean"` | _(Optional)_ Distance metric to use (`"euclidean"`, `"squared_euclidean"`, or `"cosine"`) |
+
+### Returns
+
+An instance of `EncryptedIndex` configured with the provided parameters.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the index name already exists on the server.
+        - Throws if the index configuration is invalid or missing required parameters.
+        - Throws if the encryption key is not exactly 32 bytes.
+        - Throws if the embedding model is not supported by the server.
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Automatic Index Config
+
+```python
+from cyborgdb import Client
+
+# Initialize client
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+
+# Generate a secure encryption key
+index_key = client.generate_key()
+
+# Create an index
+index = client.create_index('documents', index_key)
+```
+
+<Note>For more info on `generate_key`, refer to [Generate Key](./generate-key).</Note>
+
+#### IVFFlat Index
+
+```python
+from cyborgdb import Client, IndexIVFFlat
+
+# Initialize client
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+
+# Generate a secure encryption key
+index_key = client.generate_key()
+
+# Create a basic IVFFlat index
+config = IndexIVFFlat()
+index = client.create_index('documents', index_key, config)
+```
+
+#### IVFPQ Index with Embedding Model
+
+```python
+from cyborgdb import Client, IndexIVFPQ
+
+# Initialize client
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+
+# Generate a secure encryption key
+index_key = client.generate_key()
+
+# Create an IVFPQ index with automatic embedding generation
+config = IndexIVFPQ(pq_dim=64, pq_bits=8)
+index = client.create_index('documents', index_key, config, embedding_model='all-MiniLM-L6-v2')
+```
+
+<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>

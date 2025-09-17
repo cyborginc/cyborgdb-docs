@@ -1,0 +1,226 @@
+---
+title: "Metadata Filtering"
+mode: "wide"
+---
+
+CyborgDB supports metadata tagging and filtering, enabling fine-grained search filters in addition to encrypted vector search. Metadata, like vectors, are end-to-end encrypted and never exposed in plaintext outside of the client.
+
+## Supported Metadata
+
+The following metadata types are supported:
+
+- Boolean
+- String
+- List of strings
+- Numbers (will be stored as fp64)
+
+## Adding Items with Metadata
+
+To add items with metadata tags, you can pass a dictionary of key-value pairs to the `metadata` field during `upsert`:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Example data
+data = [
+    {"id": "item_1", "vector": [0.1, 0.1, 0.1, 0.1], "metadata": {"category": "dog"}},
+    {"id": "item_2", "vector": [0.2, 0.2, 0.2, 0.2], "metadata": {"category": "cat"}}
+]
+
+# Upsert data with metadata
+index.upsert(data)
+```
+
+```javascript JavaScript SDK icon="js"
+// Example data
+const data = [
+    {id: "item_1", vector: [0.1, 0.1, 0.1, 0.1], metadata: {category: "dog"}},
+    {id: "item_2", vector: [0.2, 0.2, 0.2, 0.2], metadata: {category: "cat"}}
+];
+
+// Upsert data with metadata
+await index.upsert({ items: data });
+```
+
+```typescript TypeScript SDK icon="code"
+import { VectorItem } from 'cyborgdb';
+
+// Example data
+const data: VectorItem[] = [
+    {id: "item_1", vector: [0.1, 0.1, 0.1, 0.1], metadata: {category: "dog"}},
+    {id: "item_2", vector: [0.2, 0.2, 0.2, 0.2], metadata: {category: "cat"}}
+];
+
+// Upsert data with metadata
+await index.upsert({ items: data });
+```
+
+```go Go SDK icon="golang"
+package main
+
+import (
+    "context"
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Example data
+items := []cyborgdb.VectorItem{
+    {
+        Id:       "item_1",
+        Vector:   []float32{0.1, 0.1, 0.1, 0.1},
+        Metadata: map[string]interface{}{"category": "dog"},
+    },
+    {
+        Id:       "item_2", 
+        Vector:   []float32{0.2, 0.2, 0.2, 0.2},
+        Metadata: map[string]interface{}{"category": "cat"},
+    },
+}
+
+// Upsert data with metadata
+err := index.Upsert(context.Background(), items)
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {
+           "id": "item_1",
+           "vector": [0.1, 0.1, 0.1, 0.1],
+           "metadata": {"category": "dog"}
+         },
+         {
+           "id": "item_2",
+           "vector": [0.2, 0.2, 0.2, 0.2],
+           "metadata": {"category": "cat"}
+         }
+       ]
+     }'
+```
+</CodeGroup>
+
+This metadata will be encrypted and stored in the index.
+
+<Tip>Metadata field names and string values are **case-sensitive**. Ensure that the metadata field names and values are consistent when filtering queries.</Tip> 
+
+## Filtering Queries with Metadata
+
+CyborgDB supports a subset of [MongoDB's Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/). For more details, see [Metadata Query Operators](#metadata-query-operators)
+
+To filter a query with metadata, you can pass a dictionary of filters to the `filters` field during `query`:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Example query
+query_vector = [0.5, 0.9, 0.2, 0.7]
+top_k = 10
+
+# Example filters
+filters = {
+    "category": {"$in": ["dog", "cat"]} # Will match either 'dog' or 'cat'
+}
+
+# Perform query
+results = index.query(
+    query_vectors=query_vector, 
+    top_k=top_k, 
+    filters=filters
+)
+```
+
+```javascript JavaScript SDK icon="js"
+// Example query
+const queryVectors = [0.5, 0.9, 0.2, 0.7];
+const topK = 10;
+
+// Example filters
+const filters = {
+    category: {$in: ["dog", "cat"]} // Will match either 'dog' or 'cat'
+};
+
+// Perform query
+const results = await index.query({
+    queryVectors,
+    topK,
+    filters
+});
+```
+
+```typescript TypeScript SDK icon="code"
+import { QueryParams, QueryResponse, MetadataFilters } from 'cyborgdb';
+
+// Example query
+const queryVectors: number[] = [0.5, 0.9, 0.2, 0.7];
+const topK: number = 10;
+
+// Example filters
+const filters: MetadataFilters = {
+    category: {$in: ["dog", "cat"]} // Will match either 'dog' or 'cat'
+};
+
+// Perform query  
+const params: QueryParams = {
+    queryVectors,
+    topK,
+    filters
+};
+const results: QueryResponse = await index.query(params);
+```
+
+```go Go SDK icon="golang"
+// Example query
+queryVector := []float32{0.5, 0.9, 0.2, 0.7}
+topK := int32(10)
+
+// Example filters
+filters := map[string]interface{}{
+    "category": map[string]interface{}{"$in": []string{"dog", "cat"}}, // Will match either 'dog' or 'cat'
+}
+
+// Perform query
+results, err := index.Query(context.Background(), cyborgdb.QueryParams{
+    QueryVector: queryVector,
+    TopK:        topK,
+    Filters:     filters,
+})
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.5, 0.9, 0.2, 0.7],
+       "top_k": 10,
+       "filters": {
+         "category": {"$in": ["dog", "cat"]}
+       }
+     }'
+```
+</CodeGroup>
+
+## Metadata Indexing
+
+All metadata fields are indexed using encrypted indexing. This allows CyborgDB to securely exclude clusters which don't match the provided metadata filters. As a result, searches with metadata filter should be as fast or faster than those without.
+
+## Metadata Query Operators
+
+CyborgDB supports a subset of [MongoDB's Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/). Specifically, the following operators are supported:
+
+| Filter | Types | Description |
+| :---: | :---: | --- |
+| `$exists` | `any` | Matches vectors that have this field |
+| `$eq` | `Boolean`, `Number`, `String` | Matches vectors with the metadata that is equal to the filter value |
+| `$ne` | `Boolean`, `Number`, `String` | Matches vectors with the metadata that is not equal to the filter value |
+| `$in` | `Number`, `String` | Matches vectors with metadata that is in the filter array |
+| `$nin` | `Number`, `String` | Matches vectors with metadata that is not in the filter array |
+| `$gt` | `Number` | Matches vectors with metadata that is greater than the filter value |
+| `$gte` | `Number` | Matches vectors with metadata that is greater than or equal to the filter value |
+| `$lt` | `Number` | Matches vectors with metadata that is less than the filter value |
+| `$lte` | `Number` | Matches vectors with metadata that is less than or equal to the filter value |
