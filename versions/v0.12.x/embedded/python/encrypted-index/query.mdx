@@ -26,7 +26,7 @@ def query(self,
 | `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
 | `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance`, `metadata`, and `vector` (`vector` only for `IVFFlat` indexes). |
+| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 
 <Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index), then the `query_string` can be used instead of `query_vectors`.</Note>
@@ -126,7 +126,7 @@ def query(self,
 | `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
 | `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance`, `metadata`, and `vector` (`vector` only for `IVFFlat` indexes). |
+| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 
 <Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
@@ -135,7 +135,7 @@ For more info on metadata, see [Metadata Filtering](../../guides/data-operations
 
 ### Returns
 
-`List[List[Dict[str, Union[int, float, Dict[]]]]]`: List of results for each query vector. Each result is a list of `top_k` dictionaries, each containing `id`, as well as `distance`, `metadata`, and `vector` based on `include`.
+`List[List[Dict[str, Union[int, float, Dict[]]]]]`: List of results for each query vector. Each result is a list of `top_k` dictionaries, each containing `id`, as well as `distance` and `metadata` based on `include`.
 
 ### Exceptions
 

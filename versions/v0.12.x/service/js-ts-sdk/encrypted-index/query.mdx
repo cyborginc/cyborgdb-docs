@@ -26,7 +26,7 @@ async query({
 | `topK` | `number` | `100` | _(Optional)_ Number of nearest neighbors to return per query |
 | `nProbes` | `number` | `0` | _(Optional)_ Number of cluster centers to search (higher = better recall). Auto-determined by default. |
 | `filters` | `object` | `{}` | _(Optional)_ Metadata filters to apply to the search |
-| `include` | `string[]` | `["distance", "metadata"]` | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
+| `include` | `string[]` | `["distance", "metadata"]` | _(Optional)_ Fields to include: `"distance"`, `"metadata"` |
 | `greedy` | `boolean` | `false` | _(Optional)_ Use faster approximate search |
 
 ### Returns
@@ -220,8 +220,6 @@ try {
             "id": "doc1",
             "distance": 0.234,
             "metadata": { "title": "Document 1", "category": "research" },
-            "contents": "Document content...",  // if included
-            "vector": [0.1, 0.2, 0.3]          // if included
         }
     ]
 }
