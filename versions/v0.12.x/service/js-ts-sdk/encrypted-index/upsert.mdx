@@ -40,8 +40,10 @@ Each `VectorItem` must contain an `id` and `vector`, with optional fields:
 |-------|------|----------|-------------|
 | `id` | `string` | Yes | Unique identifier for the vector item |
 | `vector` | `number[]` | Yes | The vector representation |
-| `contents` | `string` \| `Buffer` | Optional | Original text or binary content associated with the vector |
+| `contents` | `string` \| `Buffer` | Optional | Content associated with the vector (accepts both strings and bytes, encoded to bytes and encrypted before storage) |
 | `metadata` | `object` | Optional | Additional structured data associated with the vector |
+
+<Tip>The `contents` field accepts both strings and Buffers. All contents are encoded to bytes and encrypted before storage, and will be returned as Buffers when retrieved with `get()`.</Tip>
 
 ### Returns
 

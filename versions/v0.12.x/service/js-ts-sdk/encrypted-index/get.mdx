@@ -94,7 +94,7 @@ The method returns an array of objects with the following structure:
     {
         "id": "doc1",
         "vector": [0.1, 0.2, 0.3, 0.4],
-        "contents": "Document content as string or Buffer",
+        "contents": Buffer, // Always returned as Buffer (bytes)
         "metadata": {
             "title": "Document 1",
             "category": "research",
@@ -104,9 +104,9 @@ The method returns an array of objects with the following structure:
     {
         "id": "doc2",
         "vector": [0.4, 0.5, 0.6, 0.7],
-        "contents": "Another document content",
+        "contents": Buffer, // Always returned as Buffer (bytes)
         "metadata": {
-            "title": "Document 2", 
+            "title": "Document 2",
             "category": "tutorial",
             "date": "2024-01-16"
         }
@@ -114,11 +114,13 @@ The method returns an array of objects with the following structure:
 ]
 ```
 
+<Tip>The `contents` field is always returned as a Buffer (bytes), regardless of whether it was originally stored as a string or Buffer. All contents are encoded to bytes and encrypted before storage.</Tip>
+
 ### Response Item Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | `string` | Unique identifier of the vector (always included) |
 | `vector` | `number[]` | The vector data (included if `"vector"` in include array) |
-| `contents` | `Buffer` \| `string` | The content data, automatically decoded from base64 if needed (included if `"contents"` in include array) |
+| `contents` | `Buffer` | The content data as Buffer (bytes), always returned as bytes (included if `"contents"` in include array) |
 | `metadata` | `any` | Associated metadata object (included if `"metadata"` in include array) |

@@ -23,6 +23,8 @@ def get(self,
 
 `List[Dict]`: Decrypted item fields for each item, including `id` and specified fields (e.g., `vector`, `contents`, and `metadata`).
 
+<Tip>The `contents` field is always returned as bytes, regardless of whether it was originally stored as a string or bytes. All contents are encoded to bytes and encrypted before storage.</Tip>
+
 ### Exceptions
 
 <AccordionGroup>
@@ -44,14 +46,14 @@ index = client.load_index(
 items = index.get(["item_1", "item_2"])
 
 print(items)
-# Example output:
-# [{"id": "item_1", "vector": [0.1, 0.2], "contents": "Example contents...", "metadata": {"type": "txt"}},
-#  {"id": "item_2", "vector": [0.3, 0.4], "contents": "Example contents...", "metadata": {"type": "md"}},
+# Example output (contents returned as bytes):
+# [{"id": "item_1", "vector": [0.1, 0.2], "contents": b"Example contents...", "metadata": {"type": "txt"}},
+#  {"id": "item_2", "vector": [0.3, 0.4], "contents": b"Example contents...", "metadata": {"type": "md"}},
 
 # Retrieve only the item contents
 items = index.get(["item_1", "item_2"], include=["contents"])
 print(items)
-# Example output:
-# [{"id": "item_1", "contents": "Example contents..."},
-#  {"id": "item_2", "contents": "Example contents..."}]
+# Example output (contents returned as bytes):
+# [{"id": "item_1", "contents": b"Example contents..."},
+#  {"id": "item_2", "contents": b"Example contents..."}]
 ```
