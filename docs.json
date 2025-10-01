@@ -79,9 +79,10 @@
                 ]
               },
               {
-                "group": "Changelog",
+                "group": "Resources",
                 "pages": [
-                  "versions/changelog"
+                  "versions/changelog",
+                  "versions/v0.12.x/intro/open-source"
                 ]
               }
             ]

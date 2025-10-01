@@ -98,9 +98,9 @@ curl -X POST "http://localhost:8000/v1/vectors/upsert" \
 
 ## Adding Items with Contents
 
-It's also possible to store item contents alongside vectors. To do this, include `contents` in the `upsert()` call. 
+It's also possible to store item contents alongside vectors. To do this, include `contents` in the `upsert()` call.
 
-The contents field will be encrypted using the index key.
+The contents field accepts both strings and bytes (except for C++, which only accepts bytes). All contents are encoded to bytes and encrypted before storage using the index key, and will be returned as bytes when retrieved with `get()`.
 
 <CodeGroup>
 ```python Python SDK icon="python"

@@ -24,12 +24,14 @@ index.get(ids, include=["vector", "contents", "metadata"])
   {
     "id": str, # Vector identifier (always included)
     "vector": List[float], # Vector data (if included)
-    "contents": str, # Vector contents (if included)
+    "contents": bytes, # Vector contents as bytes (if included, always returned as bytes)
     "metadata": Dict # Vector metadata (if included)
   },
   ...
 ]
 ```
+
+<Tip>The `contents` field is always returned as bytes, regardless of whether it was originally stored as a string or bytes. All contents are encoded to bytes and encrypted before storage.</Tip>
 
 ### Exceptions
 

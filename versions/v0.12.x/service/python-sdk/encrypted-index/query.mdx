@@ -127,7 +127,7 @@ results = index.query(
     top_k=20,
     n_probes=5,  # Search more clusters for better recall
     filters={'category': 'healthcare', 'priority': 'high'},
-    include=['distance', 'metadata', 'contents'],  # Include content in results
+    include=['distance', 'metadata'],
     greedy=True  # Use greedy search for potentially better results
 )
 

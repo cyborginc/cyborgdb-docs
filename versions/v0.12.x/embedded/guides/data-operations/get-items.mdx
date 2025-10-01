@@ -4,7 +4,9 @@ sidebarTitle: "Get Items"
 mode: "wide"
 ---
 
-If you have added items to the index with the `item` field, you can retrieve them via `get()`:
+If you have added items to the index with the `item` field, you can retrieve them via `get()`.
+
+<Tip>The `contents` field is always returned as bytes in Python or `std::vector<uint8_t>` in C++, regardless of whether it was originally stored as a string or bytes. All contents are encoded to bytes and encrypted before storage.</Tip>
 
 <CodeGroup>
 ```python Python icon="python"
@@ -16,9 +18,9 @@ include = ["contents", "metadata"]
 items = index.get(ids, include)
 
 print(items)
-# Example item
-# [{"id": "item_20", "contents": "Hello, World!", "metadata": {"type": "txt"}},
-#  {"id": "item_11", "contents": "Hello, Cyborg!", "metadata": {"type": "md"}}]
+# Example item (contents returned as bytes)
+# [{"id": "item_20", "contents": b"Hello, World!", "metadata": {"type": "txt"}},
+#  {"id": "item_11", "contents": b"Hello, Cyborg!", "metadata": {"type": "md"}}]
 ```
 
 ```cpp C++ icon="brackets-curly"

@@ -33,9 +33,9 @@ For more info on `Array2D` in C++, see the [API Reference](../../cpp/types#array
 
 ## Adding Items with Contents
 
-It's also possible to store item contents alongside vectors. To do this, include `contents` (which must be bytes) to the `upsert()` call. 
+It's also possible to store item contents alongside vectors. To do this, include `contents` to the `upsert()` call.
 
-The bytes in the `contents` field will be encrypted using the index key.
+For Python, the contents field accepts both strings and bytes. For C++, the contents field only accepts bytes. All contents are encoded to bytes and encrypted before storage using the index key, and will be returned as bytes when retrieved with `get()`.
 
 <CodeGroup>
 ```python Python icon="python"

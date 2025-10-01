@@ -22,8 +22,10 @@ Where each `item` dictionary has the following fields:
 |-----------|-----------------------------------|-----------------------------------------------------------------------------------------------|
 | `id` | `str` | Unique string identifier for the item. |
 | `vector` | `List[float]` | Embedding vector as a list of floats (_optional_ if index is configured to compute embeddings). |
-| `contents` | `bytes`, `str` or `Image` | Item contents (_optional_). Must be a `str` or `Image` if index is configured to compute embeddings. |
+| `contents` | `bytes`, `str` or `Image` | Item contents (_optional_). Accepts strings, bytes, or images; all are encoded to bytes and encrypted before storage. Must be a `str` or `Image` if index is configured to compute embeddings. |
 | `metadata` | `Dict[str, any]` | Dictionary of key-value metadata pairs associated with the vector (_optional_). |
+
+<Tip>The `contents` field accepts strings, bytes, or images. All contents are encoded to bytes and encrypted before storage, and will be returned as bytes when retrieved with `get()`.</Tip>
 
 <Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index)), then the `vector` parameter is optional.
 If `vector` provided, then it will be used (its dimensionality must match that of the `embedding_model`).
