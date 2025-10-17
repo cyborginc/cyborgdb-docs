@@ -1,0 +1,166 @@
+---
+title: "Create Index"
+mode: "wide"
+api: "POST /v1/indexes/create"
+playground: "simple"
+---
+
+Create a new encrypted index with the specified configuration.
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "index_config": {
+    "type": "ivfpq",
+    "dimension": 384,
+    "pq_dim": 64,
+    "pq_bits": 8
+  },
+  "metric": "euclidean",
+  "embedding_model": "all-MiniLM-L6-v2"
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Unique name for the index
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="index_config" type="object">
+    Index configuration object. Optional when using `embedding_model` (defaults to IVFFlat).
+    When provided, must contain:
+    - `type`: Index type (`ivfflat`, `ivf`, `ivfpq`)
+    - `dimension`: Embedding dimension (optional)
+    - `pq_dim`: Product quantization dimension (required for `ivfpq`)
+    - `pq_bits`: Number of bits per sub-vector (required for `ivfpq`)
+    See [Index Types](#index-types) for details.
+  </ParamField>
+  <ParamField body="metric" type="string">
+    Distance metric to use for the index. Options: `euclidean`, `cosine`, `squared_euclidean`.
+    Defaults to `euclidean`
+  </ParamField>
+  <ParamField body="embedding_model" type="string">
+    Optional sentence-transformers model for automatic embedding generation.
+    When specified, `dimension` in `index_config` becomes optional as it will be inferred from the model
+  </ParamField>
+</Expandable>
+
+## Index Types
+
+### IVFFlat (Recommended)
+
+Suitable for applications requiring high recall with moderate memory usage:
+
+```json
+{
+  "type": "ivfflat",
+  "dimension": 384
+}
+```
+
+**Speed:** Fast | **Recall:** Highest | **Index Size:** Biggest
+
+### IVF
+
+Ideal for large-scale datasets where fast retrieval is prioritized:
+
+```json
+{
+  "type": "ivf",
+  "dimension": 384
+}
+```
+
+**Speed:** Fastest | **Recall:** Lowest | **Index Size:** Smallest
+
+### IVFPQ
+
+Product Quantization compresses embeddings, balancing memory use and recall:
+
+```json
+{
+  "type": "ivfpq",
+  "dimension": 384,
+  "pq_dim": 64,
+  "pq_bits": 8,
+}
+```
+
+**Speed:** Fast | **Recall:** High | **Index Size:** Medium
+
+## Distance Metrics
+
+- `"euclidean"`: Euclidean distance
+- `"cosine"`: Cosine similarity  
+- `"squared_euclidean"`: Squared Euclidean distance
+
+## Response
+
+```json
+{
+  "status": "success",
+  "message": "Index 'my_index' created successfully"
+}
+```
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `409`: Index name already exists
+- `422`: Invalid request parameters
+- `500`: Internal server error
+
+## Example Usage
+
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "index_config": {
+         "type": "ivfflat",
+         "dimension": 384
+       }
+     }'
+```
+
+## With Auto-Embedding
+
+```bash
+# With explicit index config
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "semantic_search_index",
+       "index_key": "your_64_character_hex_key_here",
+       "index_config": {
+         "type": "ivfflat"
+       },
+       "embedding_model": "all-MiniLM-L6-v2"
+     }'
+
+# Minimal configuration - index_config defaults to IVFFlat
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "auto_index",
+       "index_key": "your_64_character_hex_key_here",
+       "embedding_model": "all-MiniLM-L6-v2"
+     }'
+```
+
+<Note>
+When `embedding_model` is specified:
+- The `dimension` parameter in `index_config` is optional 
+- The entire `index_config` object is optional (defaults to IVFFlat with auto-detected dimension)
+- The index will automatically generate embeddings for text content during upsert operations
+</Note>

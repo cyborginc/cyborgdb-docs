@@ -1,0 +1,76 @@
+---
+title: "Load Index"
+mode: "wide"
+---
+
+Loads and returns an existing `EncryptedIndex` instance based on its name and key.
+
+```python
+client.load_index(
+    index_name,
+    index_key
+)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index_name` | `str` | Name of an existing index |
+| `index_key` | `bytes` | 32-byte encryption key |
+
+<Warning>
+The encryption key must exactly match the key used during index creation.
+</Warning>
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the index doesn't exist on the server
+        - Throws if the encryption key is incorrect or invalid
+        - Throws if the encryption key is not exactly 32 bytes
+        - Throws if authentication fails (invalid API key)
+    </Accordion>
+    <Accordion title="Network/API Errors">
+        - Throws if the API request fails due to network issues
+        - Throws if the server returns an HTTP error status
+        - Throws if the server is unreachable or times out
+    </Accordion>
+</AccordionGroup>
+
+### Returns
+
+An instance of `EncryptedIndex` if the index exists and the key is valid.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the index doesn't exist on the server
+        - Throws if the encryption key is incorrect or invalid
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+Basic usage of the `load_index` method to retrieve an existing index:
+
+```python
+from cyborgdb import Client
+
+# Create a client
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+
+# Provide the same index key used when creating the index
+index_key = your_existing_32_byte_key
+
+# Connect to existing index
+index = client.load_index("my_index", index_key)
+```

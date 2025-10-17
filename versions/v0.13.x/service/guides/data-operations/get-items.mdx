@@ -1,0 +1,114 @@
+---
+title: "Get Encrypted Items"
+sidebarTitle: "Get Items"
+mode: "wide"
+---
+
+You can retrieve specific items from the index by their IDs using the `get()` method:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# IDs of items to retrieve
+ids = ["item_20", "item_11"]
+include = ["contents", "metadata"]
+
+# Retrieve items from the encrypted index
+items = index.get(ids, include)
+
+print(items)
+# Example items (contents returned as bytes)
+# [{"id": "item_20", "contents": b"Hello, World!", "metadata": {"type": "txt"}},
+#  {"id": "item_11", "contents": b"Hello, Cyborg!", "metadata": {"type": "md"}}]
+```
+
+```javascript JavaScript SDK icon="js"
+// IDs of items to retrieve
+const ids = ["item_20", "item_11"];
+const include = ["contents", "metadata"];
+
+// Retrieve items from the encrypted index
+const items = await index.get({ ids, include });
+
+console.log(items);
+// Example items (contents returned as Buffer)
+// [{id: "item_20", contents: <Buffer 48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21>, metadata: {type: "txt"}},
+//  {id: "item_11", contents: <Buffer 48 65 6c 6c 6f 2c 20 43 79 62 6f 72 67 21>, metadata: {type: "md"}}]
+```
+
+```typescript TypeScript SDK icon="code"
+import { GetParams, VectorItem } from 'cyborgdb';
+
+// IDs of items to retrieve
+const ids: string[] = ["item_20", "item_11"];
+const include: string[] = ["contents", "metadata"];
+
+// Retrieve items from the encrypted index
+const params: GetParams = { ids, include };
+const items: VectorItem[] = await index.get(params);
+
+console.log(items);
+// Example items (contents returned as Buffer)
+// [{id: "item_20", contents: <Buffer 48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21>, metadata: {type: "txt"}},
+//  {id: "item_11", contents: <Buffer 48 65 6c 6c 6f 2c 20 43 79 62 6f 72 67 21>, metadata: {type: "md"}}]
+```
+
+```go Go SDK icon="golang"
+// IDs of items to retrieve
+ids := []string{"item_20", "item_11"}
+include := []string{"contents", "metadata"}
+
+// Retrieve items from the encrypted index
+items, err := index.Get(context.Background(), ids, include)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(items)
+// Example items (contents returned as []byte)
+// [{"id": "item_20", "contents": []byte("Hello, World!"), "metadata": {"type": "txt"}},
+//  {"id": "item_11", "contents": []byte("Hello, Cyborg!"), "metadata": {"type": "md"}}]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/get" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "ids": ["item_20", "item_11"],
+       "include": ["contents", "metadata"]
+     }'
+```
+</CodeGroup>
+
+## Include Fields
+
+You can specify which fields to include in the response:
+
+- **`vector`**: The vector data itself
+- **`contents`**: Content associated with the vector (always returned as bytes/Buffer)
+- **`metadata`**: Structured metadata object
+
+<Tip>The `contents` field is always returned as bytes (Python), Buffer (JavaScript/TypeScript), or []byte (Go), regardless of whether it was originally stored as a string or bytes. All contents are encoded to bytes and encrypted before storage.</Tip>
+
+If you don't specify `include`, the default is `["vector", "contents", "metadata"]`.
+
+## API Reference
+
+For more information on getting items from an encrypted index, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/get" icon="rectangle-terminal">
+        REST API reference for `/v1/vectors/get`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/get" icon="python">
+        API reference for `get()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/get" icon="js">
+        API reference for `get()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/encrypted-index/get" icon="golang">
+        API reference for `Get()` in Go
+    </Card>
+</CardGroup>

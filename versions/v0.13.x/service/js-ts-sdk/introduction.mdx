@@ -1,0 +1,36 @@
+---
+title: "CyborgDB - JavaScript/TypeScript SDK Reference"
+sidebarTitle: "JS/TS SDK Introduction"
+description: "`v0.12.x`"
+mode: "wide"
+---
+
+The **CyborgDB** JavaScript and TypeScript SDK allows you to securely interact with encrypted indexes from both Node.js and browser environments. It supports all core operations including index creation, data insertion, and encrypted querying.
+
+The package is available on [npm](https://www.npmjs.com/package/cyborgdb) and the source code is available on [GitHub](https://github.com/cyborginc/cyborgdb-js).
+
+## Installation
+
+```bash
+npm install cyborgdb
+```
+
+## Prerequisites
+
+Before using the CyborgDB JavaScript/TypeScript SDK, you need to have the CyborgDB service running:
+
+```bash
+# Install the CyborgDB service
+pip install cyborgdb-service
+
+# Or pull the Docker image
+docker pull cyborginc/cyborgdb-service
+
+# Start the service
+cyborgdb-service
+
+# Or run the Docker container
+docker run -p 8000:8000 cyborginc/cyborgdb-service
+```
+
+For detailed service setup instructions, see our quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).

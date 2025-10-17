@@ -1,0 +1,48 @@
+---
+title: "Logger"
+mode: "wide"
+---
+
+The `Logger` class provides logging capabilities for CyborgDB operations.
+
+## Configure Logger
+
+```python
+def configure(self,
+              level: str,
+              to_file: bool = False,
+              file_path: str = None)
+```
+
+Configures the logger with the specified log level and output options.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `level` | `str` | - | Log level. Must be one of: "debug", "info", "warning", "error", "critical". |
+| `to_file` | `bool` | `False` | Whether to write logs to a file instead of stdout/stderr. |
+| `file_path` | `str` | `"cyborgdb_client.log"` | _(Optional)_ Path to the log file. Only used when `to_file` is `True`. |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the log level is invalid.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# Get the logger instance
+logger = cyborgdb.Logger.instance()
+
+# Configure logger to write INFO level logs to console
+logger.configure(level="info")
+
+# Configure logger to write ERROR level logs to a file
+logger.configure(level="error", to_file=True, file_path="/path/to/logs/cyborgdb.log")
+```
+
+<Tip>The DEBUG level is only available in debug builds of the library.</Tip>
