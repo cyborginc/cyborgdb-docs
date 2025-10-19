@@ -50,14 +50,48 @@ For more info, you can read about supported backing stores [here](../../intro/ba
 
 ---
 
+## GPUConfig
+
+`GPUConfig` is an enum that specifies which operations should use GPU acceleration. It uses bitflags that can be combined using the `|` (OR) operator.
+
+### Enum Values
+
+```cpp
+enum GPUConfig : uint8_t {
+    kNone = 0,                        // No GPU usage
+    kUpsert = 1 << 0,                 // Use GPU for upsert operations
+    kTrain = 1 << 1,                  // Use GPU for training operations
+    kQuery = 1 << 2,                  // Use GPU for query operations
+    kAll = kUpsert | kTrain | kQuery  // Use GPU for all operations
+};
+```
+
+### Example Usage
+
+```cpp
+// Enable GPU for all operations
+cyborg::GPUConfig config1 = cyborg::kAll;
+
+// Enable GPU only for training and query
+cyborg::GPUConfig config2 = cyborg::kTrain | cyborg::kQuery;
+
+// Enable GPU only for upsert
+cyborg::GPUConfig config3 = cyborg::kUpsert;
+
+// Disable GPU completely
+cyborg::GPUConfig config4 = cyborg::kNone;
+```
+
+---
+
 ## DeviceConfig
 
-`DeviceConfig` class holds the configuration details for the device used in vector search operations, such as the number of CPU threads and whether to accelerate computations using a GPU.
+`DeviceConfig` class holds the configuration details for the device used in vector search operations, such as the number of CPU threads and GPU acceleration settings.
 
 ### Constructor
 
 ```cpp
-DeviceConfig(const int cpu_threads = 0, const bool gpu_accelerate = false);
+DeviceConfig(const int cpu_threads = 0, const GPUConfig gpu_config = kNone);
 ```
 
 ### Parameters
@@ -65,21 +99,22 @@ DeviceConfig(const int cpu_threads = 0, const bool gpu_accelerate = false);
 | Parameter | Type | Description |
 |------------------------|-------------------------|-------------------------|
 | `cpu_threads` | `int` | _(Optional)_ Number of CPU threads to use. Defaults to `0` (use all available cores). |
-| `gpu_accelerate` | `bool` | _(Optional)_ Whether to use GPU acceleration. Defaults to `false`. |
+| `gpu_config` | [`GPUConfig`](#gpuconfig) | _(Optional)_ GPU operations configuration. Defaults to `kNone` (no GPU). |
 
 ### Methods
 
 | Method | Return Type | Description |
 |------------------------|-------------------------|-------------------------|
 | `cpu_threads() const` | `int` | Get the number of CPU threads configured. |
-| `gpu_accelerate() const` | `bool` | Check if GPU acceleration is enabled. |
+| `gpu_config() const` | [`GPUConfig`](#gpuconfig) | Get the GPU operations configuration. |
 
 ### Example Usage
 
 ```cpp
-cyborg::DeviceConfig device_config(4, true);  // 4 CPU threads, GPU enabled
-int threads = device_config.cpu_threads();    // Returns 4
-bool use_gpu = device_config.gpu_accelerate(); // Returns true
+// 4 CPU threads, GPU enabled for training and query
+cyborg::DeviceConfig device_config(4, cyborg::kTrain | cyborg::kQuery);
+int threads = device_config.cpu_threads();           // Returns 4
+cyborg::GPUConfig gpu = device_config.gpu_config();  // Returns kTrain | kQuery
 ```
 
 ---
@@ -361,22 +396,16 @@ The `IndexType` enum defines the supported index types in CyborgDB:
 
 ```cpp
 enum IndexType {
-#ifdef LITE
-    IVFFLAT  // Only IVFFLAT available in Lite mode
-#else
     IVF,     // Inverted File index
     IVFPQ,   // Inverted File with Product Quantization
     IVFFLAT  // Inverted File with flat (uncompressed) storage
-#endif
 };
 ```
 
-<Note>
-In **Lite mode** (`#ifdef LITE`), only `IVFFLAT` is available. The full version supports all three index types:
+All three index types are available:
 - `IVF`: Fastest retrieval, lowest recall, smallest index size
 - `IVFPQ`: Balanced memory usage and recall with product quantization
 - `IVFFLAT`: Highest recall, largest index size, no compression
-</Note>
 
 ---
 
