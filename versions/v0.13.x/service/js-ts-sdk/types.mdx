@@ -23,9 +23,7 @@ import { CreateIndexRequest, IndexIVF } from 'cyborgdb';
 const createRequest: CreateIndexRequest = {
     indexConfig: {
         type: 'ivf',
-        dimension: 768,
-        nLists: 1024,
-        metric: 'cosine'
+        dimension: 768
     },
     indexKey: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // 64 hex chars (32 bytes)
     indexName: 'my-vector-index',
@@ -72,13 +70,13 @@ Interface for performing similarity search in the encrypted index.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `queryVector` | `number[] \| number[][] \| null` | No | - | Vector(s) for similarity search |
+| `queryVectors` | `number[] \| number[][] \| null` | No | - | Vector(s) for similarity search |
 | `queryContents` | `string \| null` | No | - | Text content for semantic search (requires embedding model) |
 | `topK` | `number` | No | `100` | Number of nearest neighbors to return |
 | `nProbes` | `number` | No | `1` | Number of lists to probe during query |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
 | `filters` | `object \| null` | No | - | JSON-like dictionary for metadata filtering |
-| `include` | `string[]` | No | `["distances"]` | Fields to include in response |
+| `include` | `string[]` | No | `["distance"]` | Fields to include in response |
 
 ### Example Usage
 
@@ -86,7 +84,7 @@ Interface for performing similarity search in the encrypted index.
 import { QueryRequest } from 'cyborgdb';
 
 const queryRequest: QueryRequest = {
-    queryVector: [0.1, 0.2, 0.3, /* ... */],
+    queryVectors: [0.1, 0.2, 0.3, /* ... */],
     topK: 10,
     nProbes: 5,
     greedy: false,
@@ -110,7 +108,7 @@ Interface for performing batch similarity searches with multiple vectors.
 | `nProbes` | `number` | No | `1` | Number of lists to probe during each query |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
 | `filters` | `object` | No | - | JSON-like dictionary for metadata filtering |
-| `include` | `string[]` | No | `["distances"]` | Fields to include in response |
+| `include` | `string[]` | No | `["distance"]` | Fields to include in response |
 
 ### Example Usage
 
@@ -254,6 +252,7 @@ Standard IVF (Inverted File) index configuration, ideal for balanced performance
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
+| `type` | `'ivf'` | Yes | - | Index type identifier |
 | `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
 
 #### Example Usage
@@ -261,7 +260,10 @@ Standard IVF (Inverted File) index configuration, ideal for balanced performance
 ```typescript
 import { IndexIVF } from 'cyborgdb';
 
-const indexConfig: IndexIVF = new IndexIVF();
+const indexConfig: IndexIVF = {
+    type: 'ivf',
+    dimension: 768
+};
 ```
 
 ### IndexIVFFlat
@@ -276,6 +278,7 @@ IVFFlat index configuration, suitable for highest accuracy requirements:
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
+| `type` | `'ivfflat'` | Yes | - | Index type identifier |
 | `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
 
 #### Example Usage
@@ -283,7 +286,10 @@ IVFFlat index configuration, suitable for highest accuracy requirements:
 ```typescript
 import { IndexIVFFlat } from 'cyborgdb';
 
-const indexConfig: IndexIVFFlat = new IndexIVFFlat();
+const indexConfig: IndexIVFFlat = {
+    type: 'ivfflat',
+    dimension: 1536
+};
 ```
 
 ### IndexIVFPQ
@@ -298,6 +304,7 @@ IVFPQ (Product Quantization) index configuration, optimized for memory efficienc
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
+| `type` | `'ivfpq'` | Yes | - | Index type identifier |
 | `pqDim` | `number` | Yes | - | Dimensionality after quantization |
 | `pqBits` | `number` | Yes | - | Number of bits per quantizer (1-16) |
 | `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
@@ -307,10 +314,12 @@ IVFPQ (Product Quantization) index configuration, optimized for memory efficienc
 ```typescript
 import { IndexIVFPQ } from 'cyborgdb';
 
-const indexConfig: IndexIVFPQ = new IndexIVFPQ({
+const indexConfig: IndexIVFPQ = {
+    type: 'ivfpq',
     pqDim: 64,
-    pqBits: 8
-});
+    pqBits: 8,
+    dimension: 768
+};
 ```
 
 ---
@@ -329,18 +338,13 @@ Response class for vector retrieval operations.
 
 ### QueryResponse
 
-Response class for similarity search operations with helper methods.
+Response class for similarity search operations.
 
 #### Properties
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `results` | `QueryResultItem[] \| QueryResultItem[][]` | Search results (flat for single queries, nested for batch) |
-
-#### Helper Methods
-
-- **`isBatchResponse(): boolean`**: Determines if response contains batch results
-- **`getFirstResultSet(): QueryResultItem[]`**: Returns first result set from response
+| `results` | `QueryResultItem[] \| QueryResultItem[][]` | Search results (flat array for single queries, nested array for batch queries) |
 
 #### Example Usage
 
@@ -348,7 +352,10 @@ Response class for similarity search operations with helper methods.
 import { QueryResponse } from 'cyborgdb';
 
 function processQueryResults(response: QueryResponse) {
-    if (response.isBatchResponse()) {
+    // Check if batch response by inspecting the structure
+    if (Array.isArray(response.results) &&
+        response.results.length > 0 &&
+        Array.isArray(response.results[0])) {
         // Handle batch results
         const batchResults = response.results as QueryResultItem[][];
         batchResults.forEach((batch, index) => {
@@ -359,10 +366,6 @@ function processQueryResults(response: QueryResponse) {
         const singleResults = response.results as QueryResultItem[];
         console.log('Results:', singleResults);
     }
-    
-    // Always get first result set
-    const firstResults = response.getFirstResultSet();
-    console.log('First result:', firstResults[0]);
 }
 ```
 

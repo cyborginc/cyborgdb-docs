@@ -85,7 +85,7 @@ try {
     console.log('Index is now trained:', isTrained);
     
     // Index is now optimized for queries
-    const queryResults = await index.query([0.1, 0.2, 0.3, 0.4], undefined, 5);
+    const queryResults = await index.query({ queryVectors: [0.1, 0.2, 0.3, 0.4], topK: 5 });
     console.log('Query after training:', queryResults);
     
 } catch (error: any) {

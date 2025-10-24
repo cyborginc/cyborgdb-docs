@@ -79,7 +79,10 @@ const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-
 const indexName = "semantic_search_index";
 const indexKey: Uint8Array = client.generateKey();
 
-const indexConfig: IndexIVFFlat = new IndexIVFFlat();
+const indexConfig: IndexIVFFlat = {
+    type: 'ivfflat',
+    dimension: 384
+};
 
 try {
     const index = await client.createIndex({

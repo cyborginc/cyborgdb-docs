@@ -151,8 +151,8 @@ const queryVectors = [
 ];
 
 try {
-    const batchResults = await index.query(queryVectors, undefined, 3);
-    
+    const batchResults = await index.query({ queryVectors, topK: 3 });
+
     // Batch query returns nested arrays - one per input vector
     console.log(`Batch query completed for ${queryVectors.length} vectors:`);
     
@@ -194,15 +194,14 @@ const dateRangeFilter = {
 };
 
 try {
-    const filteredResults = await index.query(
-        queryVector,
-        undefined,
-        15,
-        3,
-        complexFilter,  // Use complex filter
-        ['distance', 'metadata']
-    );
-    
+    const filteredResults = await index.query({
+        queryVectors: queryVector,
+        topK: 15,
+        nProbes: 3,
+        filters: complexFilter,  // Use complex filter
+        include: ['distance', 'metadata']
+    });
+
     console.log(`Found ${filteredResults.results.length} filtered results`);
     
 } catch (error: any) {
