@@ -11,9 +11,7 @@ index.list_ids()
 
 ### Returns
 
-`Dict[str, Union[List[str], int]]` - Dictionary containing:
-- `ids`: List of vector IDs currently stored in the index  
-- `count`: Total number of IDs in the index
+`List[str]` - List of all vector IDs currently stored in the index
 
 ### Exceptions
 
@@ -31,23 +29,22 @@ index.list_ids()
 
 ```python
 # Get all IDs in the index
-result = index.list_ids()
-print(f"Total items in index: {result['count']}")
+all_ids = index.list_ids()
+print(f"Total items in index: {len(all_ids)}")
 
 # Print first 10 IDs
-for id in result['ids'][:10]:
+for id in all_ids[:10]:
     print(f"ID: {id}")
 
 # Check if a specific ID exists
 target_id = "document_123"
-if target_id in result['ids']:
+if target_id in all_ids:
     print(f"Document {target_id} exists in the index")
 else:
     print(f"Document {target_id} not found")
 
 # Use for batch processing
 batch_size = 100
-all_ids = result['ids']
 for i in range(0, len(all_ids), batch_size):
     batch_ids = all_ids[i:i+batch_size]
     # Process batch of documents

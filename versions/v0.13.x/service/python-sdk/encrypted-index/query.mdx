@@ -24,7 +24,7 @@ index.query(query_contents=text, top_k=10)
 | `top_k` | `int` | `100` | _(Optional)_ Number of results to return per query |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of clusters to probe for search |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filters to apply |
-| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ Fields to include in results |
+| `include` | `List[str]` | `None` | _(Optional)_ Fields to include in results. `None` includes all available fields |
 | `greedy` | `bool` | `False` | _(Optional)_ Use greedy search algorithm |
 
 ### Returns
@@ -34,16 +34,33 @@ For batch queries: `List[List[Dict]]` - A list of result lists, one for each que
 
 #### Result Format
 
+**Single Query Result:**
 ```python
 [
-  [
+  {
+    "id": str, # Vector identifier
+    "distance": float, # Similarity distance
+    "metadata": Dict, # Vector metadata (if included)
+    "contents": str, # Vector contents (if included)
+    "vector": List[float] # Vector data (if included)
+  },
+  ...
+]
+```
+
+**Batch Query Result:**
+```python
+[
+  [  # Results for first query vector
     {
-      "id": str, # Vector identifier
-      "distance": float, # Similarity distance
-      "metadata": Dict, # Vector metadata (if included)
-      "contents": str, # Vector contents (if included)
-      "vector": List[float] # Vector data (if included)
+      "id": str,
+      "distance": float,
+      "metadata": Dict,
+      ...
     },
+    ...
+  ],
+  [  # Results for second query vector
     ...
   ],
   ...
