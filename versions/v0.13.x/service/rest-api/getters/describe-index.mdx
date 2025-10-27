@@ -40,14 +40,14 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 ```json
 {
   "index_name": "my_index",
-  "index_key": "64_character_hex_string_representing_32_bytes",
+  "index_type": "ivfflat",
+  "is_trained": true,
   "index_config": {
     "type": "ivfflat",
-    "dimension": 384
-  },
-  "status": "ready",
-  "vector_count": 10000,
-  "created_at": "2023-10-01T12:00:00Z"
+    "dimension": 384,
+    "metric": "euclidean",
+    "n_lists": 1024
+  }
 }
 ```
 
@@ -55,22 +55,19 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ResponseField name="index_name" type="string">
     Name of the index
   </ResponseField>
-  <ResponseField name="index_key" type="string">
-    Encryption key used for the index
+  <ResponseField name="index_type" type="string">
+    Type of index (e.g., `ivf`, `ivfflat`, `ivfpq`)
+  </ResponseField>
+  <ResponseField name="is_trained" type="boolean">
+    Whether the index has been trained for optimized queries
   </ResponseField>
   <ResponseField name="index_config" type="object">
-    Configuration details of the index, including:
-    - `type`: Index type (e.g., ivfflat)
+    Full configuration details of the index, including:
+    - `type`: Index type
     - `dimension`: Embedding dimension
-  </ResponseField>
-  <ResponseField name="status" type="string">
-    Current status of the index (e.g., ready, training)
-  </ResponseField>
-  <ResponseField name="vector_count" type="integer">
-    Total number of vectors indexed
-  </ResponseField>
-  <ResponseField name="created_at" type="string">
-    Timestamp when the index was created
+    - `metric`: Distance metric used
+    - `n_lists`: Number of inverted lists (after training)
+    - Additional type-specific properties (e.g., `pq_dim`, `pq_bits` for IVFPQ)
   </ResponseField>
 </Expandable>
 

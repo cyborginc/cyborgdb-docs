@@ -53,12 +53,25 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 
 ## Response
 
+**Training Completed:**
 ```json
 {
   "status": "success",
   "message": "Index 'my_index' trained successfully"
 }
 ```
+
+**Training Already In Progress:**
+```json
+{
+  "status": "in_progress",
+  "message": "Index 'my_index' is already being trained"
+}
+```
+
+<Note>
+If an index is already being trained (either manually or via automatic training trigger), the API will return an `in_progress` status instead of starting a new training session.
+</Note>
 
 ## Exceptions
 

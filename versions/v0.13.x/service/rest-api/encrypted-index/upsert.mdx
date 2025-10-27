@@ -69,12 +69,27 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 
 ## Response
 
+**Standard Success Response:**
 ```json
 {
   "status": "success",
-  "message": "2 items upserted successfully"
+  "message": "Upserted 2 vectors"
 }
 ```
+
+**With Auto-Training Triggered:**
+```json
+{
+  "status": "success",
+  "message": "Upserted 2 vectors",
+  "training_triggered": true,
+  "training_message": "Index training has been triggered (vectors: 5000, threshold: 10000)"
+}
+```
+
+<Note>
+When the number of vectors in an index exceeds the automatic training threshold, the upsert response will include `training_triggered` and `training_message` fields. Training happens asynchronously in the background.
+</Note>
 
 ## Exceptions
 
