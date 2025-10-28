@@ -66,3 +66,66 @@ All methods return Go-idiomatic error values as the second return parameter for 
 ## Type Safety
 
 The Go SDK provides full type safety with strongly typed method parameters and return values, IDE support with autocomplete and documentation, and compile-time validation of API usage.
+
+## Error Variables
+
+The SDK exports specific error variables that you can check for particular error conditions:
+
+### Client Errors
+
+```go
+import "github.com/cyborginc/cyborgdb-go"
+
+// ErrInvalidKeyLength is returned when an index key is not exactly 32 bytes
+var ErrInvalidKeyLength = errors.New("index key must be exactly 32 bytes")
+
+// ErrKeyGeneration is returned when key generation fails
+var ErrKeyGeneration = errors.New("failed to generate key")
+
+// ErrInvalidURL is returned when the base URL is invalid
+var ErrInvalidURL = errors.New("invalid base URL")
+```
+
+### EncryptedIndex Errors
+
+```go
+// ErrQueryVectorsInvalidType is returned when query vectors have invalid types
+var ErrQueryVectorsInvalidType = errors.New("queryVectors must be []float32 for single vector queries or [][]float32 for batch queries")
+
+// ErrMissingQueryInput is returned when no query input is provided
+var ErrMissingQueryInput = errors.New("either queryVectors or queryContents must be provided")
+
+// ErrUnexpectedTrainingStatus is returned when training status response is unexpected
+var ErrUnexpectedTrainingStatus = errors.New("unexpected training status response format")
+```
+
+### Example Usage
+
+```go
+import (
+    "errors"
+    "fmt"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func createIndex(client *cyborgdb.Client, key []byte) error {
+    params := &cyborgdb.CreateIndexParams{
+        IndexName: "my-index",
+        IndexKey:  key,
+        IndexConfig: cyborgdb.IndexIVFFlat(768),
+    }
+
+    _, err := client.CreateIndex(context.Background(), params)
+    if err != nil {
+        // Check for specific error types
+        if errors.Is(err, cyborgdb.ErrInvalidKeyLength) {
+            return fmt.Errorf("provided key has wrong length: %w", err)
+        }
+        return fmt.Errorf("failed to create index: %w", err)
+    }
+
+    return nil
+}
+```
