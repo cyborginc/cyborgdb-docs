@@ -38,8 +38,9 @@ await index.train({ n_lists: 128 });
 err := index.Train(context.Background())
 
 // Or train with a specific number of clusters
-err = index.Train(context.Background(), cyborgdb.TrainRequest{
-    NLists: 128,
+nLists := int32(128)
+err = index.Train(context.Background(), cyborgdb.TrainParams{
+    NLists: &nLists,
 })
 ```
 
