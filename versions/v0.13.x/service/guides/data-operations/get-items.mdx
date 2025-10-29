@@ -16,9 +16,9 @@ include = ["contents", "metadata"]
 items = index.get(ids, include)
 
 print(items)
-# Example items (contents returned as bytes)
-# [{"id": "item_20", "contents": b"Hello, World!", "metadata": {"type": "txt"}},
-#  {"id": "item_11", "contents": b"Hello, Cyborg!", "metadata": {"type": "md"}}]
+# Example items (contents returned in their original format - string or bytes)
+# [{"id": "item_20", "contents": "Hello, World!", "metadata": {"type": "txt"}},
+#  {"id": "item_11", "contents": "Hello, Cyborg!", "metadata": {"type": "md"}}]
 ```
 
 ```javascript JavaScript SDK icon="js"
@@ -87,10 +87,10 @@ curl -X POST "http://localhost:8000/v1/vectors/get" \
 You can specify which fields to include in the response:
 
 - **`vector`**: The vector data itself
-- **`contents`**: Content associated with the vector (always returned as bytes/Buffer)
+- **`contents`**: Content associated with the vector (returned in original format)
 - **`metadata`**: Structured metadata object
 
-<Tip>The `contents` field is always returned as bytes (Python), Buffer (JavaScript/TypeScript), or []byte (Go), regardless of whether it was originally stored as a string or bytes. All contents are encoded to bytes and encrypted before storage.</Tip>
+<Tip>In Python, the `contents` field is returned in its original format (string or bytes) as it was stored. String contents remain strings, and bytes contents remain bytes after decryption. In JavaScript/TypeScript, contents are returned as Buffer. In Go, contents are returned as []byte.</Tip>
 
 If you don't specify `include`, the default is `["vector", "contents", "metadata"]`.
 
