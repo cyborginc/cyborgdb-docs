@@ -99,6 +99,75 @@ print(f"Index type: {config['index_type']}")
 
 ---
 
+## n_lists
+
+Returns the number of inverted lists in the index. This property is set during training and initially defaults to 1.
+
+```python
+@property
+def n_lists(self) -> int
+```
+
+### Returns
+
+`int`: The number of inverted lists in the index.
+
+### Example Usage
+
+```python
+# Access the n_lists property
+num_lists = index.n_lists
+print(f"Index has {num_lists} inverted lists")
+```
+
+---
+
+## dimension
+
+Returns the dimensionality of the vectors in the index.
+
+```python
+@property
+def dimension(self) -> int
+```
+
+### Returns
+
+`int`: The dimensionality of the vectors.
+
+### Example Usage
+
+```python
+# Access the dimension property
+vector_dim = index.dimension
+print(f"Vector dimension: {vector_dim}")
+```
+
+---
+
+## metric
+
+Returns the distance metric used by the index.
+
+```python
+@property
+def metric(self) -> str
+```
+
+### Returns
+
+`str`: The distance metric used (e.g., `"euclidean"`, `"cosine"`, `"squared_euclidean"`).
+
+### Example Usage
+
+```python
+# Access the metric property
+dist_metric = index.metric
+print(f"Distance metric: {dist_metric}")
+```
+
+---
+
 ## get_num_vectors
 
 Returns the number of vectors currently stored in the index.

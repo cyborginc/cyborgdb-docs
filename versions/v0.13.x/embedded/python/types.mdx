@@ -51,7 +51,8 @@ The `GPUConfig` class configures which operations should use GPU acceleration. G
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
 | `upsert` | `bool` | `False` | _(Optional)_ Enable GPU for upsert operations |
 | `train` | `bool` | `False` | _(Optional)_ Enable GPU for training operations |
-| `query` | `bool` | `False` | _(Optional)_ Enable GPU for query operations |
+
+<Warning>The `query` parameter is not available in the constructor. To enable GPU for query operations, you must enable both `upsert=True` and `train=True`, or use the bitflag operations directly in C++.</Warning>
 
 ### Properties (Read-Only)
 
@@ -68,11 +69,11 @@ The `GPUConfig` class configures which operations should use GPU acceleration. G
 ```python
 import cyborgdb_core as cyborgdb
 
-# Enable GPU for all operations
-gpu_config1 = cyborgdb.GPUConfig(upsert=True, train=True, query=True)
+# Enable GPU for upsert and training (query will also be enabled via properties)
+gpu_config1 = cyborgdb.GPUConfig(upsert=True, train=True)
 
-# Enable GPU only for training and query
-gpu_config2 = cyborgdb.GPUConfig(train=True, query=True)
+# Enable GPU only for training
+gpu_config2 = cyborgdb.GPUConfig(train=True)
 
 # Disable GPU (default)
 gpu_config3 = cyborgdb.GPUConfig()

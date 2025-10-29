@@ -12,7 +12,7 @@ def query(self,
           query_vectors: List[float] = None,
           query_contents: Union[str, Image] = None,
           top_k: int = 100,
-          n_probes: int = 1,
+          n_probes: int = 0,
           filters: Dict[str, Any] = None,
           include: List[str] = ["distance", "metadata"],
           greedy: bool = False)
@@ -24,7 +24,7 @@ def query(self,
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
 | `query_vectors` | `List[float]` | - | A single query vector as a list of floats (for single query). |
 | `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
-| `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
+| `n_probes` | `int` | `0` (auto) | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When set to `0` or omitted, automatically determines the optimal value. |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
@@ -112,7 +112,7 @@ Retrieves the nearest neighbors for one or more query vectors.
 def query(self,
           query_vectors: Union[np.ndarray, List[List[float]]],
           top_k: int = 100,
-          n_probes: int = 1,
+          n_probes: int = 0,
           filters: Dict[str, Any] = None,
           include: List[str] = ["distance", "metadata"],
           greedy: bool = False)
@@ -124,7 +124,7 @@ def query(self,
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
 | `query_vectors` | `np.ndarray` or `List[List[float]]` | - | A 2D NumPy array or list of lists, where each inner list represents a query vector (for batch query). |
 | `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
-| `n_probes` | `int` | `1` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. |
+| `n_probes` | `int` | `0` (auto) | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When set to `0` or omitted, automatically determines the optimal value. |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |

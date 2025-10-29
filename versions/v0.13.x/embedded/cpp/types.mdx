@@ -147,14 +147,14 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 #### Constructor
 
 ```cpp
-IndexIVF(size_t dimension = 0, std::optional<std::string> embedding_model = "");
+IndexIVF(size_t dimension = 0, std::optional<std::string> embedding_model = std::nullopt);
 ```
 
 #### Parameters
 | Parameter | Type | Default | Description |
 |--------------|-------------------------|---------|---------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -176,14 +176,14 @@ Suitable for applications requiring high recall with less concern for memory usa
 #### Constructor
 
 ```cpp
-IndexIVFFlat(size_t dimension = 0, std::optional<std::string> embedding_model = "");
+IndexIVFFlat(size_t dimension = 0, std::optional<std::string> embedding_model = std::nullopt);
 ```
 
 #### Parameters
 | Parameter | Type | Default | Description |
 |--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -207,8 +207,8 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 #### Constructor
 
 ```cpp
-IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8, 
-           std::optional<std::string> embedding_model = "");
+IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
+           std::optional<std::string> embedding_model = std::nullopt);
 ```
 
 #### Parameters
@@ -218,7 +218,7 @@ IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
 | `pq_dim` | `size_t` | `16` | Dimensionality of embeddings after quantization (less than or equal to `dimension`). |
 | `pq_bits` | `size_t` | `8` | Number of bits per dimension for PQ embeddings (between 1 and 16). |
-| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -243,11 +243,19 @@ IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
 Array2D(size_t rows, size_t cols, const T& initial_value = T());
 Array2D(std::vector<T>&& data, size_t cols);
 Array2D(const std::vector<T>& data, size_t cols);
+Array2D(std::initializer_list<std::initializer_list<T>> init_list);
+Array2D(Array2D&& other) noexcept;
+Array2D(const Array2D& other);
+Array2D();
 ```
 
-- **`Array2D(size_t rows, size_t cols, const T& initial_value = T())`**: Creates an empty 2D array with specified dimensions.
-- **`Array2D(std::vector<T>&& data, size_t cols)`**: Initializes the 2D array from a 1D vector.
+- **`Array2D(size_t rows, size_t cols, const T& initial_value = T())`**: Creates a 2D array with specified dimensions, initialized with the given value.
+- **`Array2D(std::vector<T>&& data, size_t cols)`**: Initializes the 2D array from a 1D vector (move semantics).
 - **`Array2D(const std::vector<T>& data, size_t cols)`**: Initializes the 2D array from a 1D vector (copy).
+- **`Array2D(std::initializer_list<std::initializer_list<T>> init_list)`**: Initializes from a nested initializer list (e.g., `{{1, 2}, {3, 4}}`).
+- **`Array2D(Array2D&& other) noexcept`**: Move constructor - transfers ownership without copying.
+- **`Array2D(const Array2D& other)`**: Copy constructor - creates a deep copy.
+- **`Array2D()`**: Default constructor - creates an empty array (0 rows, 0 columns).
 
 ### Access Methods
 
@@ -290,22 +298,34 @@ The `TrainingConfig` struct defines parameters for training an index, allowing c
 ### Constructor
 
 ```cpp
-TrainingConfig(size_t n_lists = 0,
-               size_t batch_size = 0,
-               size_t max_iters = 0,
-               double tolerance = 1e-6,
-               size_t max_memory = 0);
+TrainingConfig(std::optional<size_t> n_lists = std::nullopt,
+               std::optional<size_t> batch_size = std::nullopt,
+               std::optional<size_t> max_iters = std::nullopt,
+               std::optional<double> tolerance = std::nullopt,
+               std::optional<size_t> max_memory = std::nullopt);
 ```
 
 ### Parameters
 
 | Parameter | Type | Description |
 |-------------------|----------|---------------------------------------------------------------------------------------------|
-| `n_lists` | `uint64_t` | _(Optional)_ Number of inverted lists to create. Defaults to `0`, which auto-determines. |
-| `batch_size` | `size_t` | _(Optional)_ Size of each batch for training. Defaults to `0`, which auto-determines. |
-| `max_iters` | `size_t` | _(Optional)_ Maximum iterations for training. Defaults to `0`, which auto-determines. |
-| `tolerance` | `double` | _(Optional)_ Convergence tolerance for training. Defaults to `1e-6`. |
-| `max_memory` | `size_t` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `0`, no limit. |
+| `n_lists` | `std::optional<size_t>` | _(Optional)_ Number of inverted lists to create. Defaults to `std::nullopt` (auto-determines, typically `0`). |
+| `batch_size` | `std::optional<size_t>` | _(Optional)_ Size of each batch for training. Defaults to `std::nullopt` (auto-determines, typically `2048`). |
+| `max_iters` | `std::optional<size_t>` | _(Optional)_ Maximum iterations for training. Defaults to `std::nullopt` (auto-determines, typically `100`). |
+| `tolerance` | `std::optional<double>` | _(Optional)_ Convergence tolerance for training. Defaults to `std::nullopt` (uses `1e-6`). |
+| `max_memory` | `std::optional<size_t>` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `std::nullopt` (no limit). |
+
+### Struct Members
+
+Note: The struct members are stored in this order (different from constructor parameter order):
+
+```cpp
+size_t batch_size;   // Batch size (default: 2048)
+size_t max_iters;    // Maximum iterations (default: 100)
+double tolerance;    // Convergence tolerance (default: 1e-6)
+size_t max_memory;   // Maximum memory in MB (default: 0, no limit)
+size_t n_lists;      // Number of inverted lists (default: 0, auto-determine)
+```
 
 ---
 
@@ -316,11 +336,11 @@ The `QueryParams` struct defines parameters for querying the index, controlling 
 ### Constructor
 
 ```cpp
-QueryParams(size_t top_k = 100,
-            size_t n_probes = 0,
-            std::string filters = "",
-            std::vector<ResultFields> include = {},
-            bool greedy = false);
+explicit QueryParams(size_t top_k = 100,
+                     size_t n_probes = 0,
+                     std::string filters = "",
+                     std::vector<ResultFields> include = {},
+                     bool greedy = false);
 ```
 
 ### Parameters
@@ -350,10 +370,9 @@ For more info on metadata, see [Metadata Filtering](../guides/data-operations/me
 | Method | Return Type | Description |
 |--------------------------|------------------------------|------------------------------------------------------|
 | `Result operator[](size_t query_idx)` | `Result` | Returns read-write access to IDs and distances for a specific query. |
-| `const std::vector<std::vector<std::string>>& ids() const` | `std::vector<std::vector<std::string>>&` | Get read-only access to all IDs. |
-| `const Array2D<float>& distances() const` | `const Array2D<float>&` | Get read-only access to all distances. |
-| `const std::vector<float>& vectors() const` | `const std::vectorfloat>&` | Get read-only access to all vectors. |
-| `const std::vector<std::vector<std::string>>& metadatas() const` | `const std::vector<std::vector<std::string>>&` | Get read-only access to all metadatas. |
+| `const Array2D<ItemID>& ids() const` | `const Array2D<ItemID>&` | Get read-only access to all IDs as a 2D array. |
+| `const Array2D<float>& distances() const` | `const Array2D<float>&` | Get read-only access to all distances as a 2D array. |
+| `std::vector<std::vector<std::string>>& metadata()` | `std::vector<std::vector<std::string>>&` | Get read-write access to all metadata. |
 | `size_t num_queries() const` | `size_t` | Returns the number of queries. |
 | `size_t top_k() const` | `size_t` | Returns the number of top-k items per query. |
 | `bool empty() const` | `bool` | Checks if the results are empty. |
