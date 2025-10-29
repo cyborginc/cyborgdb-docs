@@ -27,14 +27,14 @@ Where each dictionary can contain:
   {
     "id": str, # Unique identifier for the vector
     "vector": List[float], # The vector data
-    "contents": str | bytes, # Optional content (accepts both strings and bytes, encoded to bytes and encrypted before storage)
+    "contents": str | bytes, # Optional content (accepts both strings and bytes). Bytes are base64-encoded, strings are passed directly. All contents are encrypted before storage.
     "metadata": Dict # Optional key-value pairs for filtering and retrieval
   },
   ...
 ]
 ```
 
-<Tip>The `contents` field accepts both strings and bytes. All contents are encoded to bytes and encrypted before storage, and will be returned as bytes when retrieved with `get()`.</Tip>
+<Tip>The `contents` field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption, while strings are passed as-is. Contents are returned in their original format (string or bytes) when retrieved with `get()`.</Tip>
 
 #### Option 2: Separate Arrays
 
