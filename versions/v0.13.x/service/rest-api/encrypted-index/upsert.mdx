@@ -87,8 +87,19 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 }
 ```
 
+**With Training Check Warning:**
+```json
+{
+  "status": "success",
+  "message": "Upserted 2 vectors",
+  "warning": "Training check failed but upsert succeeded"
+}
+```
+
 <Note>
 When the number of vectors in an index exceeds the automatic training threshold, the upsert response will include `training_triggered` and `training_message` fields. Training happens asynchronously in the background.
+
+In rare cases where the training check encounters an error but the upsert operation itself succeeds, a `warning` field will be included instead. The vectors are still successfully upserted in this scenario.
 </Note>
 
 ## Exceptions

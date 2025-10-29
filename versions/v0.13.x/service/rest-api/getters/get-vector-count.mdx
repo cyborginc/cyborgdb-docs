@@ -66,7 +66,7 @@ count=$(curl -s -X POST "http://localhost:8000/v1/vectors/num_vectors" \
      -d '{
        "index_name": "my_index",
        "index_key": "your_64_character_hex_key_here"
-     }' | jq -r '.message')
+     }' | jq -r '.result')
 
 echo "Index contains $count vectors"
 ```
