@@ -92,7 +92,7 @@ You can specify which fields to include in the response:
 
 <Tip>In Python, the `contents` field is returned in its original format (string or bytes) as it was stored. String contents remain strings, and bytes contents remain bytes after decryption. In JavaScript/TypeScript, contents are returned as Buffer. In Go, contents are returned as []byte.</Tip>
 
-If you don't specify `include`, the default is `["vector", "contents", "metadata"]`.
+If you don't specify `include`, the default is `["vector", "contents", "metadata"]`. Note: `id` is always included in results.
 
 ## API Reference
 

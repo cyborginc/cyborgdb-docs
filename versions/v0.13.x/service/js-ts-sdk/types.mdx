@@ -72,11 +72,11 @@ Interface for performing similarity search in the encrypted index.
 |-----------|------|----------|---------|-------------|
 | `queryVectors` | `number[] \| number[][] \| null` | No | - | Vector(s) for similarity search |
 | `queryContents` | `string \| null` | No | - | Text content for semantic search (requires embedding model) |
-| `topK` | `number` | No | `100` | Number of nearest neighbors to return |
-| `nProbes` | `number` | No | `1` | Number of lists to probe during query |
+| `topK` | `number` | No | `undefined` (server default: 100) | Number of nearest neighbors to return |
+| `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during query. Auto-determined when undefined for optimal performance. |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
-| `filters` | `object \| null` | No | - | JSON-like dictionary for metadata filtering |
-| `include` | `string[]` | No | `["distance"]` | Fields to include in response |
+| `filters` | `object \| null` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
+| `include` | `string[]` | No | `undefined` (server default: `["distance", "metadata"]`) | Fields to include in response. Note: `id` is always included. |
 
 ### Example Usage
 
@@ -104,11 +104,11 @@ Interface for performing batch similarity searches with multiple vectors.
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `queryVectors` | `number[][]` | Yes | - | Array of vectors for batch similarity search |
-| `topK` | `number` | No | `100` | Number of nearest neighbors to return per query |
-| `nProbes` | `number` | No | `1` | Number of lists to probe during each query |
+| `topK` | `number` | No | `undefined` (server default: 100) | Number of nearest neighbors to return per query |
+| `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during each query. Auto-determined when undefined. |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
-| `filters` | `object` | No | - | JSON-like dictionary for metadata filtering |
-| `include` | `string[]` | No | `["distance"]` | Fields to include in response |
+| `filters` | `object` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
+| `include` | `string[]` | No | `undefined` (server default: `["distance", "metadata"]`) | Fields to include in response. Note: `id` is always included. |
 
 ### Example Usage
 
