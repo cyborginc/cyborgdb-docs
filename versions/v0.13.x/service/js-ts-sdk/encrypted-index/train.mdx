@@ -9,10 +9,11 @@ Trains the encrypted index to optimize it for efficient similarity search querie
 
 ```typescript
 async train({
-    nLists?: number,         // optional, default: 0
-    batchSize?: number,      // optional, default: 2048
-    maxIters?: number,       // optional, default: 100
-    tolerance?: number       // optional, default: 1e-6
+    nLists?: number,         // optional, default: undefined (server auto-selects)
+    batchSize?: number,      // optional, default: undefined (server uses 2048)
+    maxIters?: number,       // optional, default: undefined (server uses 100)
+    tolerance?: number,      // optional, default: undefined (server uses 1e-6)
+    maxMemory?: number       // optional, default: undefined (no limit)
 }): Promise<object>
 ```
 
@@ -20,10 +21,11 @@ async train({
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `nLists` | `number` | `0` | _(Optional)_ Number of inverted lists to use for the index. Defaults to `0` which will auto-select based on the dataset size |
-| `batchSize` | `number` | `2048` | _(Optional)_ Size of each batch processed during training. Larger values may improve training quality but use more memory |
-| `maxIters` | `number` | `100` | _(Optional)_ Maximum number of iterations for the training algorithm. More iterations may improve accuracy but take longer |
-| `tolerance` | `number` | `1e-6` | _(Optional)_ Convergence tolerance for training. Smaller values result in more precise training but may take longer |
+| `nLists` | `number` | `undefined` (server default: auto) | _(Optional)_ Number of inverted lists to use for the index. When undefined, server auto-selects based on the dataset size |
+| `batchSize` | `number` | `undefined` (server default: 2048) | _(Optional)_ Size of each batch processed during training. Larger values may improve training quality but use more memory |
+| `maxIters` | `number` | `undefined` (server default: 100) | _(Optional)_ Maximum number of iterations for the training algorithm. More iterations may improve accuracy but take longer |
+| `tolerance` | `number` | `undefined` (server default: 1e-6) | _(Optional)_ Convergence tolerance for training. Smaller values result in more precise training but may take longer |
+| `maxMemory` | `number` | `undefined` | _(Optional)_ Maximum memory usage in MB during training. When undefined, no memory limit is enforced |
 
 <Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
 

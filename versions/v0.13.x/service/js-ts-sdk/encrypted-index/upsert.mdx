@@ -11,10 +11,12 @@ Adds new vectors to the encrypted index or updates existing vectors if they have
 
 ```typescript
 async upsert({
-    items?: VectorItem[],    // optional, required if ids and vectors not provided
-    ids?: string[],         // optional, used for bulk operations
-    vectors?: number[][]    // optional, used for bulk operations
+    items?: VectorItem[],    // Pattern 1: Provide items array
+    ids?: string[],         // Pattern 2: Provide ids and vectors together
+    vectors?: number[][]    // Pattern 2: Provide ids and vectors together
 }): Promise<object>
+
+// Note: Must provide either 'items' OR both 'ids' and 'vectors'
 ```
 
 ### Parameters

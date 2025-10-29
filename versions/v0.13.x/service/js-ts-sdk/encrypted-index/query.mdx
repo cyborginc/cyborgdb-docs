@@ -23,10 +23,10 @@ async query({
 |-----------|------|---------|-------------|
 | `queryVectors` | `number[]` \| `number[][]` | - | Single vector `[0.1, 0.2]` or batch vectors `[[0.1, 0.2], [0.3, 0.4]]` |
 | `queryContents` | `string` | - | _(Optional)_ Text content to embed and search (alternative to queryVectors) |
-| `topK` | `number` | `100` | _(Optional)_ Number of nearest neighbors to return per query |
-| `nProbes` | `number` | `0` | _(Optional)_ Number of cluster centers to search (higher = better recall). Auto-determined by default. |
-| `filters` | `object` | `{}` | _(Optional)_ Metadata filters to apply to the search |
-| `include` | `string[]` | `["distance", "metadata"]` | _(Optional)_ Fields to include: `"distance"`, `"metadata"` |
+| `topK` | `number` | `undefined` (server default: 100) | _(Optional)_ Number of nearest neighbors to return per query |
+| `nProbes` | `number` | `undefined` (auto) | _(Optional)_ Number of cluster centers to search (higher = better recall). Auto-determined when undefined. |
+| `filters` | `object` | `undefined` | _(Optional)_ Metadata filters to apply to the search (no filtering when undefined) |
+| `include` | `string[]` | `undefined` (server default: `["distance", "metadata"]`) | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
 | `greedy` | `boolean` | `false` | _(Optional)_ Use faster approximate search |
 
 ### Returns

@@ -161,7 +161,7 @@ try {
     console.log('Number of lists:', config.nLists);
 
     // Type-specific properties
-    if (config.indexType === 'ivf_pq') {
+    if (config.type === 'ivf_pq' || config.type === 'ivfpq') {
         const pqConfig = config as IndexIVFPQ;
         console.log('PQ dimension:', pqConfig.pqDim);
         console.log('PQ bits:', pqConfig.pqBits);
