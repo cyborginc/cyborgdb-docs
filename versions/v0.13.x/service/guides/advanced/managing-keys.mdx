@@ -99,31 +99,43 @@ const index = await client.createIndex({ indexName, indexKey });
 package main
 
 import (
+    "context"
     "encoding/base64"
     "io/ioutil"
-    "context"
+    "log"
+
     "github.com/cyborginc/cyborgdb-go"
 )
 
-// Create a client
-client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+func main() {
+    // Create a client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-// Load the encryption key
-keyB64, err := ioutil.ReadFile("index_key.txt")
-if err != nil {
-    panic(err)
+    // Load the encryption key
+    keyB64, err := ioutil.ReadFile("index_key.txt")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    indexKey, err := base64.StdEncoding.DecodeString(string(keyB64))
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Use the encryption key
+    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
+        IndexName: "index_name",
+        IndexKey:  indexKey,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Printf("Created index: %s", index.GetIndexName())
 }
-
-indexKey, err := base64.StdEncoding.DecodeString(string(keyB64))
-if err != nil {
-    panic(err)
-}
-
-// Use the encryption key
-index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
-    IndexName: "index_name",
-    IndexKey:  indexKey,
-})
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -336,45 +348,56 @@ package main
 import (
     "context"
     "encoding/base64"
-    "github.com/aws/aws-sdk-go/aws"
+    "log"
+
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/service/kms"
     "github.com/cyborginc/cyborgdb-go"
 )
 
-// Create a client
-client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+func main() {
+    // Create a client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-// Initialize AWS KMS client
-sess, err := session.NewSession()
-if err != nil {
-    panic(err)
+    // Initialize AWS KMS client
+    sess, err := session.NewSession()
+    if err != nil {
+        log.Fatal(err)
+    }
+    kmsClient := kms.New(sess)
+
+    // Load the encrypted key from your configuration
+    encryptedKeyB64 := "..." // Replace with your stored encrypted key (Base64-encoded)
+
+    // Decode the Base64-encoded encrypted key
+    encryptedKey, err := base64.StdEncoding.DecodeString(encryptedKeyB64)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Decrypt the key at runtime
+    decryptOutput, err := kmsClient.Decrypt(&kms.DecryptInput{
+        CiphertextBlob: encryptedKey,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+    indexKey := decryptOutput.Plaintext // This is your 256-bit key
+
+    // Use the key with CyborgDB
+    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
+        IndexName: "my_index",
+        IndexKey:  indexKey,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Printf("Created index: %s", index.GetIndexName())
 }
-kmsClient := kms.New(sess)
-
-// Load the encrypted key from your configuration
-encryptedKeyB64 := "..." // Replace with your stored encrypted key (Base64-encoded)
-
-// Decode the Base64-encoded encrypted key
-encryptedKey, err := base64.StdEncoding.DecodeString(encryptedKeyB64)
-if err != nil {
-    panic(err)
-}
-
-// Decrypt the key at runtime
-decryptOutput, err := kmsClient.Decrypt(&kms.DecryptInput{
-    CiphertextBlob: encryptedKey,
-})
-if err != nil {
-    panic(err)
-}
-indexKey := decryptOutput.Plaintext // This is your 256-bit key
-
-// Use the key with CyborgDB
-index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
-    IndexName: "my_index",
-    IndexKey:  indexKey,
-})
 ```
 
 ```bash cURL icon="rectangle-terminal"

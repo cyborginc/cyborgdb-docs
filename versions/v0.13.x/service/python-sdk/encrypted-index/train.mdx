@@ -9,20 +9,20 @@ Trains the encrypted index to optimize it for efficient similarity search querie
 
 ```python
 index.train(
-    n_lists=0,
-    batch_size=2048,
-    max_iters=100,
-    tolerance=1e-6
+    n_lists=None,
+    batch_size=None,
+    max_iters=None,
+    tolerance=None
 )
 ```
 
 ### Parameters
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `n_lists` | `int` | `None` | _(Optional)_ Number of inverted lists to use for the index. Defaults to `0` which will auto-select based on the dataset size |
-| `batch_size` | `int` | `2048` | _(Optional)_ Number of vectors to process per training batch |
-| `max_iters` | `int` | `100` | _(Optional)_ Maximum number of training iterations |
-| `tolerance` | `float` | `1e-6` | _(Optional)_ Convergence tolerance for training completion |
+| `n_lists` | `int` | `None` | _(Optional)_ Number of inverted lists to use for the index. When `None`, auto-selects based on the dataset size |
+| `batch_size` | `int` | `None` | _(Optional)_ Number of vectors to process per training batch. When `None`, the server uses 2048 |
+| `max_iters` | `int` | `None` | _(Optional)_ Maximum number of training iterations. When `None`, the server uses 100 |
+| `tolerance` | `float` | `None` | _(Optional)_ Convergence tolerance for training completion. When `None`, the server uses 1e-6 |
 
 <Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
 

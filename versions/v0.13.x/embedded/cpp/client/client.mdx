@@ -13,7 +13,7 @@ cyborg::Client(const std::string& api_key,
                const DBConfig& config_location,
                const DBConfig& items_location,
                const int cpu_threads,
-               const bool gpu_accelerate);
+               const GPUConfig gpu_config);
 ```
 Initializes a new instance of `Client`.
 
@@ -26,7 +26,7 @@ Initializes a new instance of `Client`.
 | `config_location` | [`DBConfig`](../types#DBConfig) | Configuration for index metadata storage. |
 | `items_location` | [`DBConfig`](../types#DBConfig) | Configuration intended to be used in a future release. Pass in a DBConfig with a Location of 'None'. |
 | `cpu_threads` | `int` | Number of CPU threads to use (e.g., `0` to use all available cores).|
-| `gpu_accelerate` | `bool` | Whether to enable GPU acceleration (requires CUDA).|
+| `gpu_config` | [`GPUConfig`](../types#gpuconfig) | GPU operations configuration (requires CUDA). Use bitflags: `kNone` (no GPU), `kUpsert` (GPU for upsert), `kTrain` (GPU for training), `kQuery` (GPU for query), or `kAll` (GPU for all operations). Combine with `\|` operator.|
 
 ### Exceptions
 
@@ -52,7 +52,79 @@ cyborg::DBConfig index_location(Location::kMemory);
 cyborg::DBConfig config_location(Location::kRedis, "index_metadata", "redis://localhost");
 cyborg::DBConfig items_location(Location::kNone); // No item storage
 int cpu_threads = 4;
-bool use_gpu = true;
 
-cyborg::Client client(api_key, index_location, config_location, items_location, cpu_threads, use_gpu);
+// Example 1: Enable GPU for all operations
+cyborg::GPUConfig gpu_config_all = cyborg::kAll;
+cyborg::Client client1(api_key, index_location, config_location, items_location, cpu_threads, gpu_config_all);
+
+// Example 2: Enable GPU for specific operations (upsert, train, and query)
+cyborg::GPUConfig gpu_config_selective = cyborg::kUpsert | cyborg::kTrain | cyborg::kQuery;
+cyborg::Client client2(api_key, index_location, config_location, items_location, cpu_threads, gpu_config_selective);
+
+// Example 3: Enable GPU only for training and query
+cyborg::GPUConfig gpu_config_train_query = cyborg::kTrain | cyborg::kQuery;
+cyborg::Client client3(api_key, index_location, config_location, items_location, cpu_threads, gpu_config_train_query);
+
+// Example 4: Disable GPU completely
+cyborg::GPUConfig gpu_config_none = cyborg::kNone;
+cyborg::Client client4(api_key, index_location, config_location, items_location, cpu_threads, gpu_config_none);
+```
+
+---
+
+## Methods
+
+### `cpu_threads()`
+
+```cpp
+int cpu_threads() const;
+```
+
+Returns the number of CPU threads configured for this client.
+
+**Returns:** `int` - The number of CPU threads.
+
+**Example:**
+```cpp
+int threads = client.cpu_threads();
+std::cout << "Using " << threads << " CPU threads" << std::endl;
+```
+
+---
+
+### `gpu_accelerate()`
+
+```cpp
+bool gpu_accelerate() const;
+```
+
+Checks if GPU acceleration is enabled for any operations.
+
+**Returns:** `bool` - `true` if GPU is enabled for any operation, `false` otherwise.
+
+**Example:**
+```cpp
+if (client.gpu_accelerate()) {
+    std::cout << "GPU acceleration is enabled" << std::endl;
+}
+```
+
+---
+
+### `gpu_config()`
+
+```cpp
+GPUConfig gpu_config() const;
+```
+
+Returns the GPU operations configuration for this client.
+
+**Returns:** [`GPUConfig`](../types#gpuconfig) - The GPU operations configuration.
+
+**Example:**
+```cpp
+cyborg::GPUConfig config = client.gpu_config();
+if (config & cyborg::kTrain) {
+    std::cout << "GPU is enabled for training" << std::endl;
+}
 ```

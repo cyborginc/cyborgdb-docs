@@ -50,14 +50,48 @@ For more info, you can read about supported backing stores [here](../../intro/ba
 
 ---
 
+## GPUConfig
+
+`GPUConfig` is an enum that specifies which operations should use GPU acceleration. It uses bitflags that can be combined using the `|` (OR) operator.
+
+### Enum Values
+
+```cpp
+enum GPUConfig : uint8_t {
+    kNone = 0,                        // No GPU usage
+    kUpsert = 1 << 0,                 // Use GPU for upsert operations
+    kTrain = 1 << 1,                  // Use GPU for training operations
+    kQuery = 1 << 2,                  // Use GPU for query operations
+    kAll = kUpsert | kTrain | kQuery  // Use GPU for all operations
+};
+```
+
+### Example Usage
+
+```cpp
+// Enable GPU for all operations
+cyborg::GPUConfig config1 = cyborg::kAll;
+
+// Enable GPU only for training and query
+cyborg::GPUConfig config2 = cyborg::kTrain | cyborg::kQuery;
+
+// Enable GPU only for upsert
+cyborg::GPUConfig config3 = cyborg::kUpsert;
+
+// Disable GPU completely
+cyborg::GPUConfig config4 = cyborg::kNone;
+```
+
+---
+
 ## DeviceConfig
 
-`DeviceConfig` class holds the configuration details for the device used in vector search operations, such as the number of CPU threads and whether to accelerate computations using a GPU.
+`DeviceConfig` class holds the configuration details for the device used in vector search operations, such as the number of CPU threads and GPU acceleration settings.
 
 ### Constructor
 
 ```cpp
-DeviceConfig(const int cpu_threads = 0, const bool gpu_accelerate = false);
+DeviceConfig(const int cpu_threads = 0, const GPUConfig gpu_config = kNone);
 ```
 
 ### Parameters
@@ -65,21 +99,22 @@ DeviceConfig(const int cpu_threads = 0, const bool gpu_accelerate = false);
 | Parameter | Type | Description |
 |------------------------|-------------------------|-------------------------|
 | `cpu_threads` | `int` | _(Optional)_ Number of CPU threads to use. Defaults to `0` (use all available cores). |
-| `gpu_accelerate` | `bool` | _(Optional)_ Whether to use GPU acceleration. Defaults to `false`. |
+| `gpu_config` | [`GPUConfig`](#gpuconfig) | _(Optional)_ GPU operations configuration. Defaults to `kNone` (no GPU). |
 
 ### Methods
 
 | Method | Return Type | Description |
 |------------------------|-------------------------|-------------------------|
 | `cpu_threads() const` | `int` | Get the number of CPU threads configured. |
-| `gpu_accelerate() const` | `bool` | Check if GPU acceleration is enabled. |
+| `gpu_config() const` | [`GPUConfig`](#gpuconfig) | Get the GPU operations configuration. |
 
 ### Example Usage
 
 ```cpp
-cyborg::DeviceConfig device_config(4, true);  // 4 CPU threads, GPU enabled
-int threads = device_config.cpu_threads();    // Returns 4
-bool use_gpu = device_config.gpu_accelerate(); // Returns true
+// 4 CPU threads, GPU enabled for training and query
+cyborg::DeviceConfig device_config(4, cyborg::kTrain | cyborg::kQuery);
+int threads = device_config.cpu_threads();           // Returns 4
+cyborg::GPUConfig gpu = device_config.gpu_config();  // Returns kTrain | kQuery
 ```
 
 ---
@@ -112,14 +147,14 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 #### Constructor
 
 ```cpp
-IndexIVF(size_t dimension = 0, std::optional<std::string> embedding_model = "");
+IndexIVF(size_t dimension = 0, std::optional<std::string> embedding_model = std::nullopt);
 ```
 
 #### Parameters
 | Parameter | Type | Default | Description |
 |--------------|-------------------------|---------|---------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -141,14 +176,14 @@ Suitable for applications requiring high recall with less concern for memory usa
 #### Constructor
 
 ```cpp
-IndexIVFFlat(size_t dimension = 0, std::optional<std::string> embedding_model = "");
+IndexIVFFlat(size_t dimension = 0, std::optional<std::string> embedding_model = std::nullopt);
 ```
 
 #### Parameters
 | Parameter | Type | Default | Description |
 |--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -172,8 +207,8 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 #### Constructor
 
 ```cpp
-IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8, 
-           std::optional<std::string> embedding_model = "");
+IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
+           std::optional<std::string> embedding_model = std::nullopt);
 ```
 
 #### Parameters
@@ -183,7 +218,7 @@ IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
 | `pq_dim` | `size_t` | `16` | Dimensionality of embeddings after quantization (less than or equal to `dimension`). |
 | `pq_bits` | `size_t` | `8` | Number of bits per dimension for PQ embeddings (between 1 and 16). |
-| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -208,11 +243,19 @@ IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
 Array2D(size_t rows, size_t cols, const T& initial_value = T());
 Array2D(std::vector<T>&& data, size_t cols);
 Array2D(const std::vector<T>& data, size_t cols);
+Array2D(std::initializer_list<std::initializer_list<T>> init_list);
+Array2D(Array2D&& other) noexcept;
+Array2D(const Array2D& other);
+Array2D();
 ```
 
-- **`Array2D(size_t rows, size_t cols, const T& initial_value = T())`**: Creates an empty 2D array with specified dimensions.
-- **`Array2D(std::vector<T>&& data, size_t cols)`**: Initializes the 2D array from a 1D vector.
+- **`Array2D(size_t rows, size_t cols, const T& initial_value = T())`**: Creates a 2D array with specified dimensions, initialized with the given value.
+- **`Array2D(std::vector<T>&& data, size_t cols)`**: Initializes the 2D array from a 1D vector (move semantics).
 - **`Array2D(const std::vector<T>& data, size_t cols)`**: Initializes the 2D array from a 1D vector (copy).
+- **`Array2D(std::initializer_list<std::initializer_list<T>> init_list)`**: Initializes from a nested initializer list (e.g., `{{1, 2}, {3, 4}}`).
+- **`Array2D(Array2D&& other) noexcept`**: Move constructor - transfers ownership without copying.
+- **`Array2D(const Array2D& other)`**: Copy constructor - creates a deep copy.
+- **`Array2D()`**: Default constructor - creates an empty array (0 rows, 0 columns).
 
 ### Access Methods
 
@@ -255,22 +298,34 @@ The `TrainingConfig` struct defines parameters for training an index, allowing c
 ### Constructor
 
 ```cpp
-TrainingConfig(size_t n_lists = 0,
-               size_t batch_size = 0,
-               size_t max_iters = 0,
-               double tolerance = 1e-6,
-               size_t max_memory = 0);
+TrainingConfig(std::optional<size_t> n_lists = std::nullopt,
+               std::optional<size_t> batch_size = std::nullopt,
+               std::optional<size_t> max_iters = std::nullopt,
+               std::optional<double> tolerance = std::nullopt,
+               std::optional<size_t> max_memory = std::nullopt);
 ```
 
 ### Parameters
 
 | Parameter | Type | Description |
 |-------------------|----------|---------------------------------------------------------------------------------------------|
-| `n_lists` | `uint64_t` | _(Optional)_ Number of inverted lists to create. Defaults to `0`, which auto-determines. |
-| `batch_size` | `size_t` | _(Optional)_ Size of each batch for training. Defaults to `0`, which auto-determines. |
-| `max_iters` | `size_t` | _(Optional)_ Maximum iterations for training. Defaults to `0`, which auto-determines. |
-| `tolerance` | `double` | _(Optional)_ Convergence tolerance for training. Defaults to `1e-6`. |
-| `max_memory` | `size_t` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `0`, no limit. |
+| `n_lists` | `std::optional<size_t>` | _(Optional)_ Number of inverted lists to create. Defaults to `std::nullopt` (auto-determines, typically `0`). |
+| `batch_size` | `std::optional<size_t>` | _(Optional)_ Size of each batch for training. Defaults to `std::nullopt` (auto-determines, typically `2048`). |
+| `max_iters` | `std::optional<size_t>` | _(Optional)_ Maximum iterations for training. Defaults to `std::nullopt` (auto-determines, typically `100`). |
+| `tolerance` | `std::optional<double>` | _(Optional)_ Convergence tolerance for training. Defaults to `std::nullopt` (uses `1e-6`). |
+| `max_memory` | `std::optional<size_t>` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `std::nullopt` (no limit). |
+
+### Struct Members
+
+Note: The struct members are stored in this order (different from constructor parameter order):
+
+```cpp
+size_t batch_size;   // Batch size (default: 2048)
+size_t max_iters;    // Maximum iterations (default: 100)
+double tolerance;    // Convergence tolerance (default: 1e-6)
+size_t max_memory;   // Maximum memory in MB (default: 0, no limit)
+size_t n_lists;      // Number of inverted lists (default: 0, auto-determine)
+```
 
 ---
 
@@ -281,11 +336,11 @@ The `QueryParams` struct defines parameters for querying the index, controlling 
 ### Constructor
 
 ```cpp
-QueryParams(size_t top_k = 100,
-            size_t n_probes = 0,
-            std::string filters = "",
-            std::vector<ResultFields> include = {},
-            bool greedy = false);
+explicit QueryParams(size_t top_k = 100,
+                     size_t n_probes = 0,
+                     std::string filters = "",
+                     std::vector<ResultFields> include = {},
+                     bool greedy = false);
 ```
 
 ### Parameters
@@ -315,10 +370,9 @@ For more info on metadata, see [Metadata Filtering](../guides/data-operations/me
 | Method | Return Type | Description |
 |--------------------------|------------------------------|------------------------------------------------------|
 | `Result operator[](size_t query_idx)` | `Result` | Returns read-write access to IDs and distances for a specific query. |
-| `const std::vector<std::vector<std::string>>& ids() const` | `std::vector<std::vector<std::string>>&` | Get read-only access to all IDs. |
-| `const Array2D<float>& distances() const` | `const Array2D<float>&` | Get read-only access to all distances. |
-| `const std::vector<float>& vectors() const` | `const std::vectorfloat>&` | Get read-only access to all vectors. |
-| `const std::vector<std::vector<std::string>>& metadatas() const` | `const std::vector<std::vector<std::string>>&` | Get read-only access to all metadatas. |
+| `const Array2D<ItemID>& ids() const` | `const Array2D<ItemID>&` | Get read-only access to all IDs as a 2D array. |
+| `const Array2D<float>& distances() const` | `const Array2D<float>&` | Get read-only access to all distances as a 2D array. |
+| `std::vector<std::vector<std::string>>& metadata()` | `std::vector<std::vector<std::string>>&` | Get read-write access to all metadata. |
 | `size_t num_queries() const` | `size_t` | Returns the number of queries. |
 | `size_t top_k() const` | `size_t` | Returns the number of top-k items per query. |
 | `bool empty() const` | `bool` | Checks if the results are empty. |
@@ -361,22 +415,16 @@ The `IndexType` enum defines the supported index types in CyborgDB:
 
 ```cpp
 enum IndexType {
-#ifdef LITE
-    IVFFLAT  // Only IVFFLAT available in Lite mode
-#else
     IVF,     // Inverted File index
     IVFPQ,   // Inverted File with Product Quantization
     IVFFLAT  // Inverted File with flat (uncompressed) storage
-#endif
 };
 ```
 
-<Note>
-In **Lite mode** (`#ifdef LITE`), only `IVFFLAT` is available. The full version supports all three index types:
+All three index types are available:
 - `IVF`: Fastest retrieval, lowest recall, smallest index size
 - `IVFPQ`: Balanced memory usage and recall with product quantization
 - `IVFFLAT`: Highest recall, largest index size, no compression
-</Note>
 
 ---
 

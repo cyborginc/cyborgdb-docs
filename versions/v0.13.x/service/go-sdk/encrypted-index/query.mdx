@@ -26,7 +26,7 @@ func (e *EncryptedIndex) Query(ctx context.Context, params QueryParams) (*QueryR
 | `TopK` | `int32` | Number of nearest neighbors to return (required) |
 | `NProbes` | `*int32` | _(Optional)_ Number of clusters to probe for search |
 | `Filters` | `map[string]interface{}` | _(Optional)_ Metadata filters to apply |
-| `Include` | `[]string` | _(Optional)_ Fields to include in results: `"metadata"`, `"distance"` |
+| `Include` | `[]string` | _(Optional)_ Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"` |
 | `Greedy` | `*bool` | _(Optional)_ Use greedy search algorithm |
 
 ### Returns
@@ -95,13 +95,9 @@ if err != nil {
     log.Fatalf("Batch query failed: %v", err)
 }
 
-// Process each query's results
-for i, queryResults := range batchResults.Results {
-    fmt.Printf("Results for query %d:\n", i+1)
-    for j, result := range queryResults {
-        fmt.Printf("  %d. ID: %s, Distance: %.4f\n", j+1, result.Id, result.Distance)
-    }
-}
+// Note: Batch queries return nested results ([][]QueryResultItem)
+// You may need to type assert the Results field based on your query type
+fmt.Printf("Batch query returned %d result sets\n", len(batchResults.Results))
 ```
 
 #### Semantic Search with Text

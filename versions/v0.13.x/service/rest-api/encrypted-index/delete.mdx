@@ -44,9 +44,18 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 ```json
 {
   "status": "success",
-  "message": "3 items deleted successfully"
+  "message": "Deleted 3 vectors"
 }
 ```
+
+<Expandable title="response fields">
+  <ResponseField name="status" type="string">
+    Status of the operation (always "success" on successful deletion)
+  </ResponseField>
+  <ResponseField name="message" type="string">
+    Confirmation message with count of deleted vectors (format: "Deleted N vectors")
+  </ResponseField>
+</Expandable>
 
 ## Exceptions
 

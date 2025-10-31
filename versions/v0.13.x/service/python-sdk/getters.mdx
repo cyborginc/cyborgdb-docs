@@ -32,7 +32,7 @@ print(f'Index name: {index_name}')
 index_type: str
 ```
 
-Returns the type of the index (for example, `'ivf'`, `'ivfpq'`, or `'ivfflat'`).
+Returns the type of the index (for example, `'ivf'`, `'ivf_pq'`, or `'ivf_flat'`).
 
 ### Returns
 
@@ -45,9 +45,9 @@ index_type = index.index_type
 print(f'Index type: {index_type}')
 # Output: "ivf"
 
-if index_type == 'ivfpq':
+if index_type == 'ivf_pq':
     print('Using IVFPQ index for memory efficiency')
-elif index_type == 'ivfflat':
+elif index_type == 'ivf_flat':
     print('Using IVFFlat index for high accuracy')
 ```
 
@@ -142,7 +142,7 @@ if config.get('type') == 'ivfpq':
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `type` | `str` | Index type (`'ivf'`, `'ivfflat'`, or `'ivfpq'`) |
+| `type` | `str` | Index type (`'ivf'`, `'ivf_flat'`, or `'ivf_pq'`) |
 | `dimension` | `int` | Vector dimensionality |
 | `metric` | `str` | Distance metric (`'cosine'`, `'euclidean'`, etc.) |
 | `n_lists` | `int` | Number of inverted lists for clustering |

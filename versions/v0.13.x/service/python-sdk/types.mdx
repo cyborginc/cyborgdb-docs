@@ -48,11 +48,13 @@ IVFPQ (Product Quantization) index configuration, optimized for memory efficienc
 from cyborgdb import IndexIVFPQ
 
 config = IndexIVFPQ(
-    pq_dim=64,
-    pq_bits=8,
-    dimension=1536 # optional, defaults to auto-detect
+    pq_dim=64,        # required: product quantization dimension
+    pq_bits=8,        # required: bits per quantization code
+    dimension=1536    # optional, defaults to auto-detect
 )
 ```
+
+<Note>Both `pq_dim` and `pq_bits` are required parameters for IndexIVFPQ. Unlike IndexIVF and IndexIVFFlat, these parameters must be explicitly specified.</Note>
 
 ## Vector Item Format
 
@@ -76,19 +78,29 @@ vector_item = {
 Results returned from query operations:
 
 ```python
-# Single query result format
-query_results = [
-    [
-        {
-            "id": "doc1",                    # string
-            "distance": 0.125,               # float (lower = more similar)
-            "metadata": {                    # Dict (if included)
-                "category": "research"
-            },
-            "contents": "text content",      # string (if included)
-            "vector": [0.1, 0.2, ...]      # List[float] (if included)
+# Single query result format (flat list)
+single_query_results = [
+    {
+        "id": "doc1",                    # string (always included)
+        "distance": 0.125,               # float (always included, lower = more similar)
+        "metadata": {                    # Dict (if included in query)
+            "category": "research"
         },
-        # ... more results
+        "contents": "text content",      # string (if included in query)
+        "vector": [0.1, 0.2, ...]      # List[float] (if included in query)
+    },
+    # ... more results
+]
+
+# Batch query result format (nested list)
+batch_query_results = [
+    [  # Results for first query vector
+        {"id": "doc1", "distance": 0.125, ...},
+        {"id": "doc2", "distance": 0.234, ...}
+    ],
+    [  # Results for second query vector
+        {"id": "doc3", "distance": 0.156, ...},
+        {"id": "doc4", "distance": 0.278, ...}
     ]
 ]
 ```
@@ -143,7 +155,9 @@ Many operations support field selection through the `include` parameter:
 - **`vector`**: The vector data itself
 - **`contents`**: Text or binary content associated with the vector
 - **`metadata`**: Structured metadata object
-- **`distance`**: Similarity distance (query operations only)
+- **`distance`**: Similarity distance (query operations only, always included automatically)
+
+<Note>The `id` and `distance` fields are always included in query results regardless of the `include` parameter.</Note>
 
 ### Example Usage
 

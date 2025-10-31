@@ -23,6 +23,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 {
   "index_name": "my_index",
   "index_key": "64_character_hex_string_representing_32_bytes",
+  "n_lists": null,
   "batch_size": 2048,
   "max_iters": 100,
   "tolerance": 0.000001,
@@ -37,6 +38,9 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="index_key" type="string" required="true">
     32-byte encryption key as hex string
   </ParamField>
+  <ParamField body="n_lists" type="integer" default="null (auto)">
+    Number of inverted lists to create. When `null` or omitted, automatically determines optimal value based on dataset size
+  </ParamField>
   <ParamField body="batch_size" type="integer" default={2048}>
     Size of each training batch
   </ParamField>
@@ -47,18 +51,31 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
     Convergence tolerance
   </ParamField>
   <ParamField body="max_memory" type="integer" default={0}>
-    Maximum memory usage (0 = no limit)
+    Maximum memory usage in MB (0 = no limit)
   </ParamField>
 </Expandable>
 
 ## Response
 
+**Training Completed:**
 ```json
 {
   "status": "success",
   "message": "Index 'my_index' trained successfully"
 }
 ```
+
+**Training Already In Progress:**
+```json
+{
+  "status": "in_progress",
+  "message": "Index 'my_index' is already being trained"
+}
+```
+
+<Note>
+If an index is already being trained (either manually or via automatic training trigger), the API will return an `in_progress` status instead of starting a new training session.
+</Note>
 
 ## Exceptions
 

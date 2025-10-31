@@ -97,24 +97,39 @@ package main
 
 import (
     "context"
+    "log"
+
     "github.com/cyborginc/cyborgdb-go"
 )
 
-// Create a client
-client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+func main() {
+    // Create a client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-// Create the IVFFlat index config
-indexConfig := cyborgdb.IndexIVFFlat{}
+    // Create the IVFFlat index config (specify dimension, e.g., 768 for many embedding models)
+    indexConfig := cyborgdb.IndexIVFFlat(768)
 
-// Generate encryption key and create the index
-indexName := "test_index"
-indexKey := client.GenerateKey() // Generate secure 32-byte key
+    // Generate encryption key and create the index
+    indexName := "test_index"
+    indexKey, err := cyborgdb.GenerateKey()
+    if err != nil {
+        log.Fatal(err)
+    }
 
-index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
-    IndexName:   indexName,
-    IndexKey:    indexKey,
-    IndexConfig: indexConfig,
-})
+    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
+        IndexName:   indexName,
+        IndexKey:    indexKey,
+        IndexConfig: indexConfig,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Printf("Created index: %s", index.GetIndexName())
+}
 ```
 
 </CodeGroup>
@@ -216,31 +231,44 @@ package main
 
 import (
     "context"
+    "log"
+
     "github.com/cyborginc/cyborgdb-go"
 )
 
-// Create a client
-client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+func main() {
+    // Create a client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-// Set index parameters
-pqDim := 32  // Dimension must be divisible by pqDim
-pqBits := 8  // Number of bits for each pq dimension
+    // Set index parameters
+    dimension := int32(768)  // Vector dimension
+    pqDim := int32(32)       // Dimension must be divisible by pqDim
+    pqBits := int32(8)       // Number of bits for each pq dimension
 
-// Create the IVFPQ index config
-indexConfig := cyborgdb.IndexIVFPQ{
-    PqDim:  pqDim,
-    PqBits: pqBits,
+    // Create the IVFPQ index config
+    indexConfig := cyborgdb.IndexIVFPQ(dimension, pqDim, pqBits)
+
+    // Generate encryption key and create the index
+    indexName := "test_index"
+    indexKey, err := cyborgdb.GenerateKey()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
+        IndexName:   indexName,
+        IndexKey:    indexKey,
+        IndexConfig: indexConfig,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Printf("Created index: %s", index.GetIndexName())
 }
-
-// Generate encryption key and create the index
-indexName := "test_index"
-indexKey := client.GenerateKey() // Generate secure 32-byte key
-
-index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
-    IndexName:   indexName,
-    IndexKey:    indexKey,
-    IndexConfig: indexConfig,
-})
 ```
 
 </CodeGroup>
@@ -332,24 +360,39 @@ package main
 
 import (
     "context"
+    "log"
+
     "github.com/cyborginc/cyborgdb-go"
 )
 
-// Create a client
-client := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+func main() {
+    // Create a client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-// Create the IVF index config
-indexConfig := cyborgdb.IndexIVF{}
+    // Create the IVF index config (specify dimension, e.g., 768)
+    indexConfig := cyborgdb.IndexIVF(768)
 
-// Generate encryption key and create the index
-indexName := "test_index"
-indexKey := client.GenerateKey() // Generate secure 32-byte key
+    // Generate encryption key and create the index
+    indexName := "test_index"
+    indexKey, err := cyborgdb.GenerateKey()
+    if err != nil {
+        log.Fatal(err)
+    }
 
-index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
-    IndexName:   indexName,
-    IndexKey:    indexKey,
-    IndexConfig: indexConfig,
-})
+    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
+        IndexName:   indexName,
+        IndexKey:    indexKey,
+        IndexConfig: indexConfig,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Printf("Created index: %s", index.GetIndexName())
+}
 ```
 
 </CodeGroup>
@@ -400,17 +443,43 @@ const index = await client.createIndex({
 ```
 
 ```go Go SDK icon="golang"
-// Example with cosine similarity
-indexConfig := cyborgdb.IndexIVFFlat{}
-indexName := "index_name"
-indexKey := client.GenerateKey() // Generate secure 32-byte key
+package main
 
-index, err := client.CreateIndex(context.Background(), cyborgdb.CreateIndexRequest{
-    IndexName:   indexName,
-    IndexKey:    indexKey,
-    IndexConfig: indexConfig,
-    Metric:      "cosine",
-})
+import (
+    "context"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create a client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Example with cosine similarity
+    indexConfig := cyborgdb.IndexIVFFlat(768)
+    indexName := "index_name"
+    indexKey, err := cyborgdb.GenerateKey()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    metric := "cosine"
+    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
+        IndexName:   indexName,
+        IndexKey:    indexKey,
+        IndexConfig: indexConfig,
+        Metric:      &metric,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Printf("Created index: %s", index.GetIndexName())
+}
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -432,6 +501,7 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
 The currently supported distance metrics are:
 
 - `"cosine"`: Cosine similarity.
+- `"dot_product"`: Dot product similarity.
 - `"euclidean"`: Euclidean distance.
 - `"squared_euclidean"`: Squared Euclidean distance.
 

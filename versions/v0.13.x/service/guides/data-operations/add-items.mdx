@@ -95,12 +95,11 @@ curl -X POST "http://localhost:8000/v1/vectors/upsert" \
 ```
 </CodeGroup>
 
-
 ## Adding Items with Contents
 
 It's also possible to store item contents alongside vectors. To do this, include `contents` in the `upsert()` call.
 
-The contents field accepts both strings and bytes (except for C++, which only accepts bytes). All contents are encoded to bytes and encrypted before storage using the index key, and will be returned as bytes when retrieved with `get()`.
+The contents field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption, while strings are passed as-is. All contents are encrypted before storage using the index key. In Python, contents are returned in their original format (string or bytes) when retrieved with `get()`. In JavaScript/TypeScript, contents are returned as Buffer. In Go, contents are returned as []byte.
 
 <CodeGroup>
 ```python Python SDK icon="python"

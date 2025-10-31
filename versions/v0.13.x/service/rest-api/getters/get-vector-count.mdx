@@ -39,17 +39,13 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 
 ```json
 {
-  "status": "success",
-  "message": "1500 vectors in index 'my_index'"
+  "result": 1500
 }
 ```
 
 <Expandable title="response fields">
-  <ResponseField name="status" type="string">
-    Operation status (always "success")
-  </ResponseField>
-  <ResponseField name="message" type="string">
-    Descriptive message containing the vector count
+  <ResponseField name="result" type="integer">
+    Total number of vectors stored in the index
   </ResponseField>
 </Expandable>
 
@@ -70,7 +66,7 @@ count=$(curl -s -X POST "http://localhost:8000/v1/vectors/num_vectors" \
      -d '{
        "index_name": "my_index",
        "index_key": "your_64_character_hex_key_here"
-     }' | jq -r '.message')
+     }' | jq -r '.result')
 
 echo "Index contains $count vectors"
 ```

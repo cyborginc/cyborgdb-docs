@@ -11,10 +11,12 @@ Adds new vectors to the encrypted index or updates existing vectors if they have
 
 ```typescript
 async upsert({
-    items?: VectorItem[],    // optional, required if ids and vectors not provided
-    ids?: string[],         // optional, used for bulk operations
-    vectors?: number[][]    // optional, used for bulk operations
+    items?: VectorItem[],    // Pattern 1: Provide items array
+    ids?: string[],         // Pattern 2: Provide ids and vectors together
+    vectors?: number[][]    // Pattern 2: Provide ids and vectors together
 }): Promise<object>
+
+// Note: Must provide either 'items' OR both 'ids' and 'vectors'
 ```
 
 ### Parameters
@@ -112,7 +114,7 @@ const vectorItems: VectorItem[] = [
 
 // Upsert vectors
 try {
-    const result = await index.upsert(vectorItems);
+    const result = await index.upsert({ items: vectorItems });
     console.log('Upsert result:', result);
     // Typical output: { status: 'success', message: 'Upserted 2 vectors' }
     
@@ -134,9 +136,9 @@ const vectors = [
 ];
 
 try {
-    const result = await index.upsert(ids, vectors);
+    const result = await index.upsert({ ids, vectors });
     console.log('Bulk upsert result:', result);
-    
+
     // This approach is more efficient for large datasets
     // where you only need IDs and vectors (no metadata/contents)
 } catch (error: any) {
@@ -155,7 +157,7 @@ const initialVector: VectorItem = {
     metadata: { version: 1, status: 'draft' }
 };
 
-await index.upsert([initialVector]);
+await index.upsert({ items: [initialVector] });
 
 // Update the same vector with new data
 const updatedVector: VectorItem = {
@@ -171,7 +173,7 @@ const updatedVector: VectorItem = {
 };
 
 try {
-    const updateResult = await index.upsert([updatedVector]);
+    const updateResult = await index.upsert({ items: [updatedVector] });
     console.log('Update result:', updateResult);
     
     // Verify the update
@@ -214,8 +216,8 @@ async function processBatchDocuments(
     
     try {
         console.log(`Processing batch of ${vectorItems.length} documents`);
-        
-        const result = await index.upsert(vectorItems);
+
+        const result = await index.upsert({ items: vectorItems });
         console.log('Batch upsert completed:', result);
         
         return {

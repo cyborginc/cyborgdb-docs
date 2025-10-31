@@ -21,11 +21,11 @@ index.query(query_contents=text, top_k=10)
 |-----------|------|---------|-------------|
 | `query_vectors` | `List[List[float]]` or `List[float]` or `np.ndarray` | `None` | _(Optional)_ Multiple query vectors for batch search |
 | `query_contents` | `str` | `None` | _(Optional)_ Text content for semantic search |
-| `top_k` | `int` | `100` | _(Optional)_ Number of results to return per query |
+| `top_k` | `int` | `None` | _(Optional)_ Number of results to return per query. When `None`, the server determines the default (typically 100) |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of clusters to probe for search |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filters to apply |
-| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ Fields to include in results |
-| `greedy` | `bool` | `False` | _(Optional)_ Use greedy search algorithm |
+| `include` | `List[str]` | `None` | _(Optional)_ Fields to include in results. `None` includes all available fields. Note: `id` and `distance` are always included regardless of this parameter |
+| `greedy` | `bool` | `None` | _(Optional)_ Use greedy search algorithm. When `None`, the server determines the default behavior |
 
 ### Returns
 
@@ -34,16 +34,33 @@ For batch queries: `List[List[Dict]]` - A list of result lists, one for each que
 
 #### Result Format
 
+**Single Query Result:**
+```python
+[  # Returns a flat list of results
+  {
+    "id": str, # Vector identifier (always included)
+    "distance": float, # Similarity distance (always included)
+    "metadata": Dict, # Vector metadata (if included)
+    "contents": str, # Vector contents (if included)
+    "vector": List[float] # Vector data (if included)
+  },
+  ...
+]
+```
+
+**Batch Query Result:**
 ```python
 [
-  [
+  [  # Results for first query vector
     {
-      "id": str, # Vector identifier
-      "distance": float, # Similarity distance
-      "metadata": Dict, # Vector metadata (if included)
-      "contents": str, # Vector contents (if included)
-      "vector": List[float] # Vector data (if included)
+      "id": str,
+      "distance": float,
+      "metadata": Dict,
+      ...
     },
+    ...
+  ],
+  [  # Results for second query vector
     ...
   ],
   ...
@@ -127,7 +144,7 @@ results = index.query(
     top_k=20,
     n_probes=5,  # Search more clusters for better recall
     filters={'category': 'healthcare', 'priority': 'high'},
-    include=['distance', 'metadata'],
+    include=['distance', 'metadata', 'contents'],  # Must include 'contents' to access it
     greedy=True  # Use greedy search for potentially better results
 )
 

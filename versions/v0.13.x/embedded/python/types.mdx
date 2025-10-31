@@ -24,7 +24,6 @@ The supported `location` options are:
 
 ```python
 import cyborgdb_core as cyborgdb
-# or import cyborgdb_lite as cyborgdb
 
 index_location = cyborgdb.DBConfig(
     location="redis",
@@ -39,6 +38,53 @@ config_location = cyborgdb.DBConfig(
 ```
 
 For more info, you can read about supported backing stores [here](../../intro/backing-stores).
+
+---
+
+## GPUConfig
+
+The `GPUConfig` class configures which operations should use GPU acceleration. GPU acceleration requires CUDA support.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
+| `upsert` | `bool` | `False` | _(Optional)_ Enable GPU for upsert operations |
+| `train` | `bool` | `False` | _(Optional)_ Enable GPU for training operations |
+
+<Warning>The `query` parameter is not available in the constructor. To enable GPU for query operations, you must enable both `upsert=True` and `train=True`, or use the bitflag operations directly in C++.</Warning>
+
+### Properties (Read-Only)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `upsert` | `bool` | Whether GPU is enabled for upsert operations |
+| `train` | `bool` | Whether GPU is enabled for training operations |
+| `query` | `bool` | Whether GPU is enabled for query operations |
+| `all` | `bool` | Whether all GPU operations are enabled |
+| `none` | `bool` | Whether no GPU operations are enabled |
+
+### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+
+# Enable GPU for upsert and training (query will also be enabled via properties)
+gpu_config1 = cyborgdb.GPUConfig(upsert=True, train=True)
+
+# Enable GPU only for training
+gpu_config2 = cyborgdb.GPUConfig(train=True)
+
+# Disable GPU (default)
+gpu_config3 = cyborgdb.GPUConfig()
+
+# Check GPU configuration
+if gpu_config1.all:
+    print("All GPU operations enabled")
+
+if gpu_config2.train and gpu_config2.query:
+    print("GPU enabled for training and query")
+```
 
 ---
 
@@ -84,7 +130,6 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 
 ```python
 import cyborgdb_core as cyborgdb
-# or import cyborgdb_lite as cyborgdb
 
 # Basic configuration with auto-detection
 index_config = cyborgdb.IndexIVF()
@@ -124,7 +169,6 @@ Suitable for applications requiring high recall with less concern for memory usa
 
 ```python
 import cyborgdb_core as cyborgdb
-# or import cyborgdb_lite as cyborgdb
 
 # Basic configuration with auto-detection
 index_config = cyborgdb.IndexIVFFlat()
@@ -170,7 +214,6 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 
 ```python
 import cyborgdb_core as cyborgdb
-# or import cyborgdb_lite as cyborgdb
 
 # Basic configuration (dimension auto-detected)
 index_config = cyborgdb.IndexIVFPQ(pq_dim=64, pq_bits=8)

@@ -15,8 +15,8 @@ top_k = 10
 results = index.query(query_vectors=query_vector, top_k=top_k)
 
 print(results)
-# Example results (nested list format)
-# [[{"id": "item_12", "distance": 0.01}, {"id": "item_7", "distance": 0.04}, ...]]
+# Example results (flat list for single query)
+# [{"id": "item_12", "distance": 0.01}, {"id": "item_7", "distance": 0.04}, ...]
 ```
 
 ```javascript JavaScript SDK icon="js"
@@ -28,8 +28,8 @@ const topK = 10;
 const results = await index.query({ queryVectors, topK });
 
 console.log(results);
-// Example results 
-// [[{id: "item_12", distance: 0.01}, {id: "item_7", distance: 0.04}, ...]]
+// Example results (flat list for single query)
+// [{id: "item_12", distance: 0.01}, {id: "item_7", distance: 0.04}, ...]
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -44,8 +44,8 @@ const params: QueryParams = { queryVectors, topK };
 const results: QueryResponse = await index.query(params);
 
 console.log(results);
-// Example results
-// [[{id: "item_12", distance: 0.01}, {id: "item_7", distance: 0.04}, ...]]
+// Example results (flat list for single query)
+// [{id: "item_12", distance: 0.01}, {id: "item_7", distance: 0.04}, ...]
 ```
 
 ```go Go SDK icon="golang"
@@ -53,7 +53,7 @@ console.log(results);
 queryVector := []float32{0.5, 0.9, 0.2, 0.7}
 params := cyborgdb.QueryParams{
     QueryVector: queryVector,
-    TopK:        10,
+    TopK:        int32(10),
 }
 
 // Perform query
@@ -63,8 +63,8 @@ if err != nil {
 }
 
 fmt.Println(results)
-// Example results (nested list format)
-// [[{"id": "item_12", "distance": 0.01}, {"id": "item_7", "distance": 0.04}, ...]]
+// Example results (flat list for single query)
+// [{"id": "item_12", "distance": 0.01}, {"id": "item_7", "distance": 0.04}, ...]
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -84,11 +84,11 @@ curl -X POST "http://localhost:8000/v1/vectors/query" \
 
 You can specify additional parameters for the query, such as:
 
-- `top_k`: the number of results to return.
-- `n_probes`: the number of clusters to search for each query vector.
-- `filters`: metadata filters to apply to the query (dictionary format).
-- `include`: item fields to return (e.g., `["distance", "metadata"]`).
-- `greedy`: whether to perform a greedy search (higher recall but slower).
+- `top_k`: the number of results to return. Default: `None` (server typically uses `100`).
+- `n_probes`: the number of clusters to search for each query vector. Default: `None` (auto-determined by server).
+- `filters`: metadata filters to apply to the query (dictionary format). Default: `None`.
+- `include`: item fields to return (e.g., `["distance", "metadata", "contents", "vector"]`). Default: `None` (includes all available fields). Note: `id` and `distance` are always included.
+- `greedy`: whether to perform a greedy search (higher recall but slower). Default: `None` (server determines behavior).
 
 <CodeGroup>
 ```python Python SDK icon="python"
@@ -109,8 +109,8 @@ results = index.query(
 )
 
 print(results)
-# Example results
-# [[{"id": "item_12", "distance": 0.01, "metadata": {"age": 25}}, ...]]
+# Example results (flat list for single query)
+# [{"id": "item_12", "distance": 0.01, "metadata": {"age": 25}}, ...]
 ```
 
 ```javascript JavaScript SDK icon="js"
@@ -131,8 +131,8 @@ const results = await index.query({
 });
 
 console.log(results);
-// Example results
-// [[{id: "item_12", distance: 0.01, metadata: {age: 25}}, ...]]
+// Example results (flat list for single query)
+// [{id: "item_12", distance: 0.01, metadata: {age: 25}}, ...]
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -156,8 +156,8 @@ const params: QueryParams = {
 const results: QueryResponse = await index.query(params);
 
 console.log(results);
-// Example results  
-// [[{id: "item_12", distance: 0.01, metadata: {age: 25}}, ...]]
+// Example results (flat list for single query)
+// [{id: "item_12", distance: 0.01, metadata: {age: 25}}, ...]
 ```
 
 ```go Go SDK icon="golang"
@@ -166,7 +166,7 @@ queryVector := []float32{0.5, 0.9, 0.2, 0.7}
 nProbes := int32(5)
 params := cyborgdb.QueryParams{
     QueryVector: queryVector,
-    TopK:        10,
+    TopK:        int32(10),
     NProbes:     &nProbes,
     Filters:     map[string]interface{}{"age": map[string]interface{}{"$gt": 18}},
     Include:     []string{"distance", "metadata"},
@@ -179,8 +179,8 @@ if err != nil {
 }
 
 fmt.Println(results)
-// Example results
-// [[{"id": "item_12", "distance": 0.01, "metadata": {"age": 25}}, ...]]
+// Example results (flat list for single query)
+// [{"id": "item_12", "distance": 0.01, "metadata": {"age": 25}}, ...]
 ```
 
 ```bash cURL icon="rectangle-terminal"
@@ -265,7 +265,7 @@ queryVectors := [][]float32{
 }
 params := cyborgdb.QueryParams{
     BatchQueryVectors: queryVectors,
-    TopK:              10,
+    TopK:              int32(10),
 }
 
 // Perform batch query
@@ -373,7 +373,7 @@ const results: QueryResponse = await index.query(params);
 queryContents := "What is the capital of France?"
 params := cyborgdb.QueryParams{
     QueryContents: &queryContents,
-    TopK:          10,
+    TopK:          int32(10),
 }
 
 // Perform query

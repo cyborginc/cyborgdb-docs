@@ -215,6 +215,8 @@ CyborgDB supports a subset of [MongoDB's Query and Projection Operators](https:/
 
 | Filter | Types | Description |
 | :---: | :---: | --- |
+| `$and` | `array` | Logical AND - matches vectors that satisfy all conditions in the array |
+| `$or` | `array` | Logical OR - matches vectors that satisfy at least one condition in the array |
 | `$exists` | `any` | Matches vectors that have this field |
 | `$eq` | `Boolean`, `Number`, `String` | Matches vectors with the metadata that is equal to the filter value |
 | `$ne` | `Boolean`, `Number`, `String` | Matches vectors with the metadata that is not equal to the filter value |

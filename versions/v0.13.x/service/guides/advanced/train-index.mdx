@@ -38,13 +38,14 @@ await index.train({ n_lists: 128 });
 err := index.Train(context.Background())
 
 // Or train with a specific number of clusters
-err = index.Train(context.Background(), cyborgdb.TrainRequest{
-    NLists: 128,
+nLists := int32(128)
+err = index.Train(context.Background(), cyborgdb.TrainParams{
+    NLists: &nLists,
 })
 ```
 
 ```bash cURL icon="rectangle-terminal"
-curl -X POST "http://localhost:8000/v1/vectors/train" \
+curl -X POST "http://localhost:8000/v1/indexes/train" \
      -H "X-API-Key: your-api-key" \
      -H "Content-Type: application/json" \
      -d '{
@@ -62,10 +63,10 @@ Parameters are available to customize the training process:
 
 | Parameter | Type | Default | Description |
 |---------------|--------|---------|-------------------------------------------------------|
-| `n_lists` | `int` | `0` | _(Optional)_ Number of inverted index lists to create in the index. If `0`, it will auto-determine based on the number of vectors in the index. |
-| `batch_size` | `int` | `0` | _(Optional)_ Size of each batch for training. `0` auto-selects the batch size. |
-| `max_iters` | `int` | `0` | _(Optional)_ Maximum number of iterations for training. `0` auto-selects the iteration count. |
-| `tolerance` | `float`| `1e-6` | _(Optional)_ Convergence tolerance for training. |
+| `n_lists` | `int` | `None` (auto) | _(Optional)_ Number of inverted index lists to create in the index. When `None` or omitted, auto-determines based on the number of vectors in the index. |
+| `batch_size` | `int` | `None` | _(Optional)_ Number of vectors to process per training batch. When `None`, the server uses 2048. |
+| `max_iters` | `int` | `None` | _(Optional)_ Maximum number of training iterations. When `None`, the server uses 100. |
+| `tolerance` | `float`| `None` | _(Optional)_ Convergence tolerance for training completion. When `None`, the server uses 1e-6. |
 
 `n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
 

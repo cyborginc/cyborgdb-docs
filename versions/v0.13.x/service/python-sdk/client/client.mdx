@@ -8,7 +8,7 @@ mode: "wide"
 ## Constructor
 
 ```python
-Client(base_url, api_key, verify_ssl)
+Client(base_url, api_key, verify_ssl=None)
 ```
 
 Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
@@ -18,7 +18,7 @@ Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB micros
 |-----------|------|---------|-------------|
 | `base_url` | `str` | - | Base URL of the CyborgDB microservice endpoint |
 | `api_key` | `str` | - | API key for authentication with the microservice |
-| `verify_ssl` | `bool` | `None` | _(Optional)_ SSL verification (auto-detected for localhost) |
+| `verify_ssl` | `bool` | `None` | _(Optional)_ SSL verification. When `None`, automatically disabled for `localhost` and `http://` URLs |
 
 You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
 
