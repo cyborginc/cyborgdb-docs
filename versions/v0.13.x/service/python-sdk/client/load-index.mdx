@@ -23,6 +23,10 @@ client.load_index(
 The encryption key must exactly match the key used during index creation.
 </Warning>
 
+### Returns
+
+An instance of `EncryptedIndex` if the index exists and the key is valid.
+
 ### Exceptions
 
 <AccordionGroup>
@@ -36,25 +40,6 @@ The encryption key must exactly match the key used during index creation.
         - Throws if the API request fails due to network issues
         - Throws if the server returns an HTTP error status
         - Throws if the server is unreachable or times out
-    </Accordion>
-</AccordionGroup>
-
-### Returns
-
-An instance of `EncryptedIndex` if the index exists and the key is valid.
-
-### Exceptions
-
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the index doesn't exist on the server
-        - Throws if the encryption key is incorrect or invalid
-        - Throws if the server returns an HTTP error status.
-        - Throws if authentication fails (invalid API key).
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unavailable or unreachable.
-        - Throws if there are internal server errors on the CyborgDB service.
     </Accordion>
 </AccordionGroup>
 

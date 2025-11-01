@@ -79,7 +79,7 @@ The LangChain integration supports multiple embedding model types:
 ```python
 from sentence_transformers import SentenceTransformer
 from langchain_openai import OpenAIEmbeddings
-from cyborgdb_core.langchain import CyborgVectorStore
+from cyborgdb_core.integrations.langchain import CyborgVectorStore
 
 # Using model name string
 store1 = CyborgVectorStore(
@@ -145,8 +145,6 @@ The index type determines the algorithm used for approximate nearest neighbor se
 | `"ivfflat"` | Inverted file with flat storage | Fast | Highest | Biggest |
 | `"ivf"` | Inverted file with compression | Fastest | Lowest | Smallest |
 | `"ivfpq"` | Inverted file with product quantization | Fast | High | Medium |
-
-**Note**: `cyborgdb-lite` only supports `"ivfflat"` index type.
 
 ### Example Usage
 

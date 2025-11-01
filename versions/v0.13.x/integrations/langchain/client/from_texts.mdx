@@ -8,10 +8,13 @@ Creates a CyborgVectorStore instance from a list of texts.
 ```python
 @classmethod
 from_texts(
+    cls,
     texts: List[str],
     embedding: Union[str, Embeddings, SentenceTransformer],
     metadatas: Optional[List[dict]] = None,
-    **kwargs
+    *,
+    ids: Optional[List[str]] = None,
+    **kwargs: Any
 ) -> CyborgVectorStore
 ```
 

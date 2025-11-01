@@ -45,6 +45,7 @@ package main
 
 import (
     "context"
+    "encoding/hex"
     "fmt"
     "log"
 
@@ -52,20 +53,19 @@ import (
 )
 
 func main() {
-    client, err := cyborgdb.NewClient(cyborgdb.ClientConfig{
-        BaseURL: "http://localhost:8000",
-        APIKey:  "your-api-key",
-    })
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
     if err != nil {
         log.Fatal(err)
     }
 
     // Load an existing index
-    indexKey := "your-64-character-hex-key"
-    index, err := client.LoadIndex(context.Background(), cyborgdb.LoadIndexParams{
-        IndexName: "my-vector-index",
-        IndexKey:  indexKey,
-    })
+    indexKeyHex := "your-64-character-hex-key-here"
+    indexKey, err := hex.DecodeString(indexKeyHex)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    index, err := client.LoadIndex(context.Background(), "my-vector-index", indexKey)
     if err != nil {
         log.Fatal(err)
     }
@@ -73,7 +73,7 @@ func main() {
     // Retrieve specific vectors by ID
     ids := []string{"doc1", "doc2", "doc3"}
     include := []string{"vector", "metadata"}
-    
+
     results, err := index.Get(context.Background(), ids, include)
     if err != nil {
         log.Fatalf("Get failed: %v", err)
@@ -82,14 +82,14 @@ func main() {
     fmt.Printf("Retrieved %d vectors:\n", len(results.Results))
     for i, result := range results.Results {
         fmt.Printf("%d. ID: %s\n", i+1, result.Id)
-        
+
         if result.Metadata != nil {
             fmt.Printf("   Metadata: %v\n", result.Metadata)
         }
-        
+
         if result.Vector != nil {
             fmt.Printf("   Vector dimensions: %d\n", len(result.Vector))
-            fmt.Printf("   Vector preview: [%.3f, %.3f, ...]\n", 
+            fmt.Printf("   Vector preview: [%.3f, %.3f, ...]\n",
                 result.Vector[0], result.Vector[1])
         }
     }

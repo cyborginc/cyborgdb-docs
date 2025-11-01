@@ -132,7 +132,7 @@ try {
         console.log(`${i + 1}. ${item.id}`);
         console.log(`   Distance: ${item.distance}`);
         console.log(`   Category: ${item.metadata?.category}`);
-        console.log(`   Content Preview: ${item.contents?.substring(0, 100)}...`);
+        console.log(`   Content Preview: ${item.contents?.toString().substring(0, 100)}...`);
     });
     
 } catch (error: any) {

@@ -9,7 +9,6 @@ If you've previously created an encrypted index, you can connect to it to add, q
 <CodeGroup>
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
-# or import cyborgdb_lite as cyborgdb
 import secrets
 
 # Using `memory` storage for this example
@@ -71,7 +70,6 @@ For improved query performance, you can enable encrypted index caching by settin
 <CodeGroup>
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
-# or import cyborgdb_lite as cyborgdb
 import secrets
 
 # Using `memory` storage for this example
@@ -105,11 +103,11 @@ index = client.load_index(
 ```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
+#include <openssl/rand.h>
 #include <array>
-#include <random>
 
 // Using `memory` storage for this example
-cyborg::DBConfig index_location(cyborg::Location::kMemory); 
+cyborg::DBConfig index_location(cyborg::Location::kMemory);
 cyborg::DBConfig config_location(cyborg::Location::kMemory);
 
 // Get your API key
@@ -118,10 +116,11 @@ std::string api_key = "your_api_key_here";  // Replace with your actual API key
 // Create a client
 cyborg::Client client(api_key, index_location, config_location);
 
-// Generate a 32-byte random encryption key
+// Generate a 32-byte secure encryption key using OpenSSL
 std::array<uint8_t, 32> index_key;
-std::random_device rd;
-std::generate(index_key.begin(), index_key.end(), [&]() { return rd() % 256; });
+if (RAND_bytes(index_key.data(), index_key.size()) != 1) {
+    throw std::runtime_error("Failed to generate secure random key");
+}
 
 // Set max cache size at 1MB
 std::size_t max_cache_size = 1000000;

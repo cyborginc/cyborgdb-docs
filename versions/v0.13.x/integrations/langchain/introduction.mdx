@@ -1,7 +1,7 @@
 ---
 title: "CyborgDB - LangChain Integration"
 sidebarTitle: "LangChain Introduction"
-description: "`v0.12.x`"
+description: "`v0.13.x`"
 mode: "wide"
 ---
 
@@ -19,28 +19,23 @@ This will install the necessary dependencies for the LangChain integration.
 
 ## Installation (Embedded Library)
 
-To install CyborgDB with LangChain support, you must install either `cyborgdb-core` or `cyborgdb-lite` with the `langchain` extra. You can do this using pip:
+To install CyborgDB with LangChain support, you must install either `cyborgdb-core` with the `langchain` extra. You can do this using pip:
 
 ```bash
 # For cyborgdb-core
 pip install cyborgdb-core[langchain]
-
-# For cyborgdb-lite
-pip install cyborgdb-lite[langchain]
 ```
 
-<Tip>To learn more about the differences between `cyborgdb`, `cyborgdb-core`, and `cyborgdb-lite`, refer to the [Deployment Models Guide](../../intro/deployment-models).</Tip>
+<Tip>To learn more about the differences between `cyborgdb` and `cyborgdb-core`, refer to the [Deployment Models Guide](../../intro/deployment-models).</Tip>
 
 ## Usage
 
-To use CyborgDB with LangChain, you can import the `CyborgVectorStore` class from the `cyborgdb_core.integrations.langchain` or `cyborgdb_lite.integrations.langchain` module, depending on which version you are using.
+To use CyborgDB with LangChain, you can import the `CyborgVectorStore` class from the `cyborgdb_core.integrations.langchain` module.
 
 ```python
 from cyborgdb.integrations.langchain import CyborgVectorStore
 # or
 from cyborgdb_core.integrations.langchain import CyborgVectorStore
-# or
-from cyborgdb_lite.integrations.langchain import CyborgVectorStore
 ```
 
 ## Key Classes
@@ -52,7 +47,7 @@ Implements the LangChain-compatible vector store interface. Supports:
 - `.add_texts()` / `.add_documents()`  
 - `.similarity_search()` / `.similarity_search_with_score()`  
 - `.max_marginal_relevance_search()`  
-- `.get_document()` and `.delete()`  
+- `.get_by_ids()` and `.delete()`  
 - Async variants (`.aadd_texts()`, `.asimilarity_search()`, etc.)  
 - Reversible document ID tracking  
 - Configurable distance metric (`cosine`, `euclidean`, `squared_euclidean`)

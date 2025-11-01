@@ -121,13 +121,13 @@ You can filter query results based on metadata fields. For example, to filter it
 {"age": {"$gt": 18}}
 ```
 
-This filter will return items where the `age` field is greater than `18`. You can also use other comparison operators such as `$lt`, `$gte`, `$lte`, `$eq`, and `$neq`.
+This filter will return items where the `age` field is greater than `18`. You can also use other comparison operators such as `$lt`, `$gte`, `$lte`, `$eq`, and `$ne`.
 
 For more details on metadata filters, see the [Metadata Filtering](./metadata-filtering) guide.
 
 ## Automatic Embedding Generation
 
-<Tip>This feature is only available in Python. To use it, use `pip install cyborgdb-core[embeddings]` or `pip install cyborgdb-core[embeddings]`</Tip>
+<Tip>This feature is only available in Python. To use it, use `pip install cyborgdb-core[embeddings]`</Tip>
 
 If you provided an `embedding_model` during index creation, you can automatically generate embeddings for queries by providing `query_contents` to the `query()` call:
 

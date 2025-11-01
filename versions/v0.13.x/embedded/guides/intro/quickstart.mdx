@@ -6,8 +6,6 @@ mode: "wide"
 
 Get started with CyborgDB in minutes.
 
-<Tip>CyborgDB's embedded library is offered as two packages: `cyborgdb_core` and `cyborgdb_lite`. This guide shows how to get started with either. For more details on the difference between both packages, read more [here](./about#available-libraries).</Tip>
-
 <Steps>
     <Step title="Get an API Key">
         To use CyborgDB, you need an API key. You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
@@ -19,22 +17,17 @@ Get started with CyborgDB in minutes.
 
         <CodeGroup>
         ```bash Python
-        # Ensure that Python 3.9 - 3.13 is installed
-        # Or create a virtual environment with Python 3.9 - 3.13:
-        conda create -n cyborg-env python=3.12
-
-        # Activate the virtual environment:
-        conda activate cyborg-env
-
         # Install CyborgDB:
-        pip install cyborgdb-core -i https://dl.cloudsmith.io/<token>/cyborg/cyborgdb/python/simple/
-
-        # Or install CyborgDB Lite for evaluation/non-commercial use:
-        pip install cyborgdb-lite
+        pip install cyborgdb-core
 
         # For automatic embedding generation, install with:
-        pip install cyborgdb-core[embeddings] -i https://dl.cloudsmith.io...
-        pip install cyborgdb-lite[embeddings]   
+        pip install cyborgdb-core[embeddings]
+
+        # For LangChain integration, install with:
+        pip install cyborgdb-core[langchain]
+
+        # Or with all extras:
+        pip install cyborgdb-core[all]
         ```
 
         ```bash C++
@@ -57,7 +50,6 @@ Get started with CyborgDB in minutes.
         <CodeGroup>
         ```python Python icon="python"
         import cyborgdb_core as cyborgdb
-        # or import cyborgdb_lite as cyborgdb
         import secrets
 
         # Using `memory` storage for this example

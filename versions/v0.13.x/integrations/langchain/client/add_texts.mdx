@@ -9,8 +9,9 @@ Adds text documents to the vector store with optional metadata.
 add_texts(
     texts: Iterable[str],
     metadatas: Optional[List[dict]] = None,
+    *,
     ids: Optional[List[str]] = None,
-    **kwargs
+    **kwargs: Any
 ) -> List[str]
 ```
 

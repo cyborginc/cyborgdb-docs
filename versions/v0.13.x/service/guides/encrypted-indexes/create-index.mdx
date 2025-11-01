@@ -117,7 +117,7 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
 
 This creates a new encrypted index with the IVFFlat type by default. For more details on IVFFlat and other index options, see [Configure an Encrypted Index](../advanced/configure-index).
 
-<Note>You can also specify optional parameters like `metric` (distance metric: `"euclidean"`, `"squared_euclidean"`, `"cosine"`, or `"dot_product"`) and `index_config` when creating an index. See the [API Reference](#api-reference) and [Configure an Encrypted Index](../advanced/configure-index) for more details.</Note>
+<Note>You can also specify optional parameters like `metric` (distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`) and `index_config` when creating an index. See the [API Reference](#api-reference) and [Configure an Encrypted Index](../advanced/configure-index) for more details.</Note>
 
 <Warning>The example above creates a random 32 byte (256-bit) index key.
 This is fine for evaluation purposes, but for production use, we recommend that you use an HSM or KMS solution.
