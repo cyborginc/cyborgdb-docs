@@ -1,0 +1,75 @@
+---
+title: "__init__"
+mode: "wide"
+---
+
+Initializes a new CyborgVectorStore instance for use with LangChain.
+
+```python
+CyborgVectorStore(
+    index_name: str,
+    index_key: bytes,
+    api_key: str,
+    embedding: Union[str, Embeddings, SentenceTransformer],
+    index_location: DBConfig,
+    config_location: DBConfig,
+    items_location: Optional[DBConfig] = None,
+    index_type: str = "ivfflat",
+    index_config_params: Optional[Dict[str, Any]] = None,
+    dimension: Optional[int] = None,
+    metric: str = "cosine"
+)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `index_name` | `str` | Name of the index (must be unique) |
+| `index_key` | `bytes` | 32-byte encryption key for securing index data |
+| `api_key` | `str` | API key for CyborgDB authentication |
+| `embedding` | `Union[str, Embeddings, SentenceTransformer]` | Embedding model name or instance |
+| `index_location` | `DBConfig` | Configuration for index data storage location |
+| `config_location` | `DBConfig` | Configuration for index config storage location |
+| `items_location` | `Optional[DBConfig]` | _(Optional)_ Location for item data storage (default: memory) |
+| `index_type` | `str` | Type of index: "ivfflat", "ivf", or "ivfpq" (default: "ivfflat") |
+| `index_config_params` | `Optional[Dict[str, Any]]` | _(Optional)_ Additional index configuration parameters |
+| `dimension` | `Optional[int]` | _(Optional)_ Embedding dimension (auto-inferred if not provided) |
+| `metric` | `str` | Distance metric: "cosine", "euclidean", or "squared_euclidean" (default: "cosine") |
+
+### Returns
+
+`CyborgVectorStore`: Initialized vector store instance
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if index_type is invalid
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if no embedding model provided and dimension not specified
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+from cyborgdb_core.langchain import CyborgVectorStore
+from cyborgdb_core import DBConfig
+
+# Generate a secure key
+index_key = CyborgVectorStore.generate_key()
+
+# Initialize with string embedding model name
+store = CyborgVectorStore(
+    index_name="my_documents",
+    index_key=index_key,
+    api_key="your-api-key",
+    embedding="sentence-transformers/all-MiniLM-L6-v2",
+    index_location=DBConfig("s3", bucket="my-bucket"),
+    config_location=DBConfig("s3", bucket="my-bucket"),
+    index_type="ivfflat",
+    metric="cosine"
+)
+```

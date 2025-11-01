@@ -1,0 +1,13 @@
+---
+title: "CyborgDB Embedded - C++ API Reference"
+sidebarTitle: "C++ API Introduction"
+description: "`v0.13.x`"
+mode: "wide"
+---
+
+The C++ API for CyborgDB is split into two main classes within the `cyborg` namespace:
+
+- `Client` – Handles configuration, index creation/loading, and listing available indexes.
+- `EncryptedIndex` – Provides data operations on a specific encrypted index such as upserting vectors, training the index, querying, and retrieving stored items.
+
+This API is also exposed via PyBind11 in the [Python API](../python/introduction).

@@ -1,0 +1,61 @@
+---
+title: "from_documents"
+mode: "wide"
+---
+
+Creates a CyborgVectorStore instance from a list of LangChain Document objects.
+
+```python
+@classmethod
+from_documents(
+    documents: List[Document],
+    embedding: Union[str, Embeddings, SentenceTransformer],
+    **kwargs
+) -> CyborgVectorStore
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `documents` | `List[Document]` | List of LangChain Document objects |
+| `embedding` | `Union[str, Embeddings, SentenceTransformer]` | Embedding model or model name |
+| `**kwargs` | `Any` | Additional arguments passed to from_texts |
+
+### Returns
+
+`CyborgVectorStore`: Initialized vector store with documents added
+
+### Example Usage
+
+```python
+from langchain_core.documents import Document
+from cyborgdb_core import DBConfig
+
+# Create documents
+documents = [
+    Document(
+        page_content="Introduction to natural language processing",
+        metadata={"source": "nlp_guide.pdf", "page": 1}
+    ),
+    Document(
+        page_content="Tokenization and text preprocessing",
+        metadata={"source": "nlp_guide.pdf", "page": 15}
+    ),
+    Document(
+        page_content="Word embeddings and semantic similarity",
+        metadata={"source": "nlp_guide.pdf", "page": 42}
+    )
+]
+
+# Create store from documents
+store = CyborgVectorStore.from_documents(
+    documents=documents,
+    embedding="sentence-transformers/all-mpnet-base-v2",
+    index_name="nlp_documents",
+    index_key=CyborgVectorStore.generate_key(),
+    api_key="your-api-key",
+    index_location=DBConfig("memory"),
+    config_location=DBConfig("memory")
+)
+```

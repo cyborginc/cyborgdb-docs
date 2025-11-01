@@ -1,0 +1,239 @@
+---
+title: "Getters"
+---
+
+## getIndexName
+
+```typescript
+async getIndexName(): Promise<string>
+```
+
+Retrieves the name of the encrypted index from the CyborgDB service.
+
+### Returns
+
+`Promise<string>`: A Promise that resolves to the unique name identifier of the index.
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key or encryption key)
+- Throws if the index doesn't exist on the server
+
+### Example Usage
+
+```typescript
+try {
+    const indexName = await index.getIndexName();
+    console.log('Index name:', indexName);
+    // Output: "my-vectors"
+    
+    // Use for verification
+    if (indexName === 'expected-index-name') {
+        console.log('✓ Connected to correct index');
+    }
+} catch (error) {
+    console.error('Failed to get index name:', error.message);
+}
+```
+
+---
+
+## getIndexType
+
+```typescript
+async getIndexType(): Promise<string | undefined>
+```
+
+Retrieves the type of the index from the CyborgDB service.
+
+### Returns
+
+`Promise<string | undefined>`: A Promise that resolves to the index type (`'ivf'`, `'ivf_flat'`, or `'ivf_pq'`), or `undefined` if not set.
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key or encryption key)
+- Throws if the index doesn't exist on the server
+
+### Example Usage
+
+```typescript
+try {
+    const indexType = await index.getIndexType();
+    console.log('Index type:', indexType);
+    // Output: "ivf_flat"
+
+    switch (indexType) {
+        case 'ivf_pq':
+            console.log('Using IVFPQ index for memory efficiency');
+            break;
+        case 'ivf_flat':
+            console.log('Using IVFFlat index for high accuracy');
+            break;
+        case 'ivf':
+            console.log('Using standard IVF index');
+            break;
+        default:
+            console.log('Unknown or undefined index type');
+    }
+} catch (error) {
+    console.error('Failed to get index type:', error.message);
+}
+```
+
+---
+
+## isTrained
+
+```typescript
+async isTrained(): Promise<boolean>
+```
+
+Checks whether the index has been trained by querying the CyborgDB service. Training is required for optimal query performance on IVF-based indexes.
+
+### Returns
+
+`Promise<boolean>`: A Promise that resolves to `true` if the index has been trained, `false` otherwise.
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key or encryption key)
+- Throws if the index doesn't exist on the server
+
+### Example Usage
+
+```typescript
+try {
+    const trained = await index.isTrained();
+    console.log('Index trained:', trained);
+
+    if (!trained) {
+        console.log('Index needs training for optimal performance');
+        await index.train();
+        
+        // Verify training completed
+        const isNowTrained = await index.isTrained();
+        console.log('Training completed:', isNowTrained);
+    } else {
+        console.log('Index is ready for queries');
+    }
+} catch (error) {
+    console.error('Failed to check training status:', error.message);
+}
+```
+
+---
+
+## getIndexConfig
+
+```typescript
+async getIndexConfig(): Promise<IndexIVFFlat | IndexIVF | IndexIVFPQ>
+```
+
+Retrieves the complete index configuration from the CyborgDB service and returns a copy to prevent external modification of the internal state. The return type depends on the index type.
+
+### Returns
+
+- `Promise<IndexIVFFlat>`: For IVF Flat indexes
+- `Promise<IndexIVF>`: For standard IVF indexes  
+- `Promise<IndexIVFPQ>`: For IVF PQ indexes
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key or encryption key)
+- Throws if the index doesn't exist on the server
+
+### Example Usage
+
+```typescript
+try {
+    const config = await index.getIndexConfig();
+    console.log('Index configuration:', config);
+
+    // Access common properties
+    console.log('Index Type:', config.indexType);
+    console.log('Dimension:', config.dimension);
+    console.log('Metric:', config.metric);
+    console.log('Number of lists:', config.nLists);
+
+    // Type-specific properties
+    if (config.type === 'ivf_pq' || config.type === 'ivfpq') {
+        const pqConfig = config as IndexIVFPQ;
+        console.log('PQ dimension:', pqConfig.pqDim);
+        console.log('PQ bits:', pqConfig.pqBits);
+    }
+} catch (error) {
+    console.error('Failed to get index config:', error.message);
+}
+```
+
+### Configuration Properties
+
+#### Common Properties (All Index Types)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `dimension` | `number` | Vector dimensionality |
+
+#### IVFPQ-Specific Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `pqDim` | `number` | Product quantization dimension |
+| `pqBits` | `number` | Number of bits for quantization |
+
+---
+
+## isTraining
+
+```typescript
+async isTraining(): Promise<{
+    training_indexes: string[];
+    retrain_threshold: number;
+}>
+```
+
+Checks if any indexes are currently being trained on the CyborgDB service. This is a Client method, not an EncryptedIndex method.
+
+### Returns
+
+`Promise<object>`: A Promise that resolves to an object containing:
+- `training_indexes`: Array of index names that are currently being trained
+- `retrain_threshold`: The multiplier used for the retraining threshold
+
+### Exceptions
+
+- Throws if the API request fails due to network connectivity issues
+- Throws if authentication fails (invalid API key)
+- Throws if the server returns an error response
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+try {
+    const trainingStatus = await client.isTraining();
+    
+    console.log('Training status:', trainingStatus);
+    // Output: { training_indexes: ['index1', 'index2'], retrain_threshold: 2.0 }
+    
+    if (trainingStatus.training_indexes.length > 0) {
+        console.log('Indexes currently training:');
+        trainingStatus.training_indexes.forEach(indexName => {
+            console.log(`  - ${indexName}`);
+        });
+    } else {
+        console.log('No indexes are currently being trained');
+    }
+    
+} catch (error) {
+    console.error('Failed to check training status:', error.message);
+}
+```

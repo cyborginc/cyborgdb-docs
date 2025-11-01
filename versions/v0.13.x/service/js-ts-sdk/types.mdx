@@ -1,0 +1,481 @@
+---
+title: "Types"
+---
+
+## CreateIndexRequest
+
+The `CreateIndexRequest` interface defines the parameters for creating a new encrypted index.
+
+### Properties
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `indexConfig` | [`IndexConfig`](#indexconfig) | Yes | Configuration model specifying index type and parameters |
+| `indexKey` | `Uint8Array` | Yes | 32-byte encryption key |
+| `indexName` | `string` | Yes | Unique name/identifier for the index |
+| `embeddingModel` | `string \| null` | No | Optional embedding model name for automatic vector generation |
+
+### Example Usage
+
+```typescript
+import { CreateIndexRequest, IndexIVF } from 'cyborgdb';
+
+const createRequest: CreateIndexRequest = {
+    indexConfig: {
+        type: 'ivf',
+        dimension: 768
+    },
+    indexKey: Client.generateKey(), // Uint8Array (32 bytes)
+    indexName: 'my-vector-index',
+    embeddingModel: 'text-embedding-3-small'
+};
+```
+
+---
+
+## UpsertRequest
+
+Interface for adding or updating vectors in an encrypted index.
+
+### Properties
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `items` | [`VectorItem[]`](#vectoritem) | Yes | Array of vector items to insert or update |
+
+### Example Usage
+
+```typescript
+import { UpsertRequest, VectorItem } from 'cyborgdb';
+
+const upsertRequest: UpsertRequest = {
+    items: [
+        {
+            id: 'doc1',
+            vector: [0.1, 0.2, 0.3, /* ... */],
+            contents: 'Document content',
+            metadata: { title: 'Document 1', category: 'research' }
+        }
+    ]
+};
+```
+
+---
+
+## QueryRequest
+
+Interface for performing similarity search in the encrypted index.
+
+### Properties
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `queryVectors` | `number[] \| number[][] \| null` | No | - | Vector(s) for similarity search |
+| `queryContents` | `string \| null` | No | - | Text content for semantic search (requires embedding model) |
+| `topK` | `number` | No | `undefined` (server default: 100) | Number of nearest neighbors to return |
+| `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during query. Auto-determined when undefined for optimal performance. |
+| `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
+| `filters` | `object \| null` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
+| `include` | `string[]` | No | `undefined` (server default: `["distance", "metadata"]`) | Fields to include in response. Note: `id` is always included. |
+
+### Example Usage
+
+```typescript
+import { QueryRequest } from 'cyborgdb';
+
+const queryRequest: QueryRequest = {
+    queryVectors: [0.1, 0.2, 0.3, /* ... */],
+    topK: 10,
+    nProbes: 5,
+    greedy: false,
+    filters: { category: 'research' },
+    include: ['distance', 'metadata', 'vector']
+};
+```
+
+---
+
+## BatchQueryRequest
+
+Interface for performing batch similarity searches with multiple vectors.
+
+### Properties
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `queryVectors` | `number[][]` | Yes | - | Array of vectors for batch similarity search |
+| `topK` | `number` | No | `undefined` (server default: 100) | Number of nearest neighbors to return per query |
+| `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during each query. Auto-determined when undefined. |
+| `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
+| `filters` | `object` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
+| `include` | `string[]` | No | `undefined` (server default: `["distance", "metadata"]`) | Fields to include in response. Note: `id` is always included. |
+
+### Example Usage
+
+```typescript
+import { BatchQueryRequest } from 'cyborgdb';
+
+const batchQueryRequest: BatchQueryRequest = {
+    queryVectors: [
+        [0.1, 0.2, 0.3, /* ... */],
+        [0.4, 0.5, 0.6, /* ... */],
+        [0.7, 0.8, 0.9, /* ... */]
+    ],
+    topK: 5,
+    nProbes: 3,
+    filters: { status: 'published' },
+    include: ['distance', 'metadata']
+};
+```
+
+---
+
+## TrainRequest
+
+Interface for training an index to optimize query performance.
+
+### Properties
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nLists` | `number` | No | Number of inverted lists for indexing |
+| `batchSize` | `number` | No | Size of each batch for training |
+| `maxIters` | `number` | No | Maximum iterations for training |
+| `tolerance` | `number` | No | Convergence tolerance for training |
+
+### Example Usage
+
+```typescript
+import { TrainRequest } from 'cyborgdb';
+
+const trainRequest: TrainRequest = {
+    nLists: 8192,
+    batchSize: 4096,
+    maxIters: 150,
+    tolerance: 1e-8,
+};
+```
+
+---
+
+## DeleteRequest
+
+Interface for deleting vectors from the encrypted index.
+
+### Properties
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `ids` | `string[]` | Yes | Array of vector IDs to delete |
+
+### Example Usage
+
+```typescript
+import { DeleteRequest } from 'cyborgdb';
+
+const deleteRequest: DeleteRequest = {
+    ids: ['doc1', 'doc2', 'doc3']
+};
+```
+
+---
+
+## GetRequest
+
+Interface for retrieving specific vectors from the index.
+
+### Properties
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `ids` | `string[]` | Yes | - | Array of vector IDs to retrieve |
+| `include` | `string[]` | No | `["vector", "contents", "metadata"]` | Fields to include in response |
+
+### Example Usage
+
+```typescript
+import { GetRequest } from 'cyborgdb';
+
+const getRequest: GetRequest = {
+    ids: ['doc1', 'doc2'],
+    include: ['vector', 'metadata']
+};
+```
+
+---
+
+## VectorItem
+
+Class representing a vectorized item for storage in the encrypted index.
+
+### Properties
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | `string` | Yes | Unique identifier for the vector item |
+| `vector` | `number[] \| null` | No* | Vector representation of the item. *Required for upsert operations unless using embedding model |
+| `contents` | `string \| null` | No | Original text or associated content |
+| `metadata` | `object \| null` | No | Additional structured metadata |
+
+### Example Usage
+
+```typescript
+import { VectorItem } from 'cyborgdb';
+
+const vectorItem: VectorItem = {
+    id: 'article_123',
+    vector: [0.1, 0.2, 0.3, /* ... 768 dimensions */],
+    contents: 'This is the content of the article...',
+    metadata: {
+        title: 'Introduction to Vector Databases',
+        author: 'Dr. Smith',
+        published_date: '2024-01-15',
+        category: 'technology',
+        tags: ['vectors', 'database', 'ai']
+    }
+};
+```
+
+---
+
+## Index Configuration Types
+
+### IndexIVF
+
+Standard IVF (Inverted File) index configuration, ideal for balanced performance:
+
+| Speed | Accuracy | Memory Usage |
+|-------|----------|--------------|
+| Fast  | Good     | Medium       |
+
+#### Properties
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `type` | `'ivf'` | Yes | - | Index type identifier |
+| `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
+
+#### Example Usage
+
+```typescript
+import { IndexIVF } from 'cyborgdb';
+
+const indexConfig: IndexIVF = {
+    type: 'ivf',
+    dimension: 768
+};
+```
+
+### IndexIVFFlat
+
+IVFFlat index configuration, suitable for highest accuracy requirements:
+
+| Speed | Accuracy | Memory Usage |
+|-------|----------|--------------|
+| Medium| Highest  | High         |
+
+#### Properties
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `type` | `'ivfflat'` | Yes | - | Index type identifier |
+| `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
+
+#### Example Usage
+
+```typescript
+import { IndexIVFFlat } from 'cyborgdb';
+
+const indexConfig: IndexIVFFlat = {
+    type: 'ivfflat',
+    dimension: 1536
+};
+```
+
+### IndexIVFPQ
+
+IVFPQ (Product Quantization) index configuration, optimized for memory efficiency:
+
+| Speed | Accuracy | Memory Usage |
+|-------|----------|--------------|
+| Fast  | Good     | Low          |
+
+#### Properties
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `type` | `'ivfpq'` | Yes | - | Index type identifier |
+| `pqDim` | `number` | Yes | - | Dimensionality after quantization |
+| `pqBits` | `number` | Yes | - | Number of bits per quantizer (1-16) |
+| `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
+
+#### Example Usage
+
+```typescript
+import { IndexIVFPQ } from 'cyborgdb';
+
+const indexConfig: IndexIVFPQ = {
+    type: 'ivfpq',
+    pqDim: 64,
+    pqBits: 8,
+    dimension: 768
+};
+```
+
+---
+
+## Response Types
+
+### GetResponseModel
+
+Response class for vector retrieval operations.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `results` | `GetResultItemModel[]` | Array of retrieved items with requested fields |
+
+### QueryResponse
+
+Response class for similarity search operations.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `results` | `QueryResultItem[] \| QueryResultItem[][]` | Search results (flat array for single queries, nested array for batch queries) |
+
+#### Example Usage
+
+```typescript
+import { QueryResponse } from 'cyborgdb';
+
+function processQueryResults(response: QueryResponse) {
+    // Check if batch response by inspecting the structure
+    if (Array.isArray(response.results) &&
+        response.results.length > 0 &&
+        Array.isArray(response.results[0])) {
+        // Handle batch results
+        const batchResults = response.results as QueryResultItem[][];
+        batchResults.forEach((batch, index) => {
+            console.log(`Batch ${index}:`, batch);
+        });
+    } else {
+        // Handle single query results
+        const singleResults = response.results as QueryResultItem[];
+        console.log('Results:', singleResults);
+    }
+}
+```
+
+### QueryResultItem
+
+Class representing a single result from similarity search.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `string` | Identifier of the retrieved item |
+| `distance` | `number \| null` | Distance from query vector (lower = more similar) |
+| `metadata` | `object \| null` | Additional metadata for the result |
+| `vector` | `number[] \| null` | Retrieved vector (if included in response) |
+
+---
+
+## Error Types
+
+### ErrorResponseModel
+
+Standard error response class for API errors.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `statusCode` | `number` | HTTP status code of the error |
+| `detail` | `string` | Detailed message describing the error |
+
+### HTTPValidationError
+
+Class for validation errors with detailed field information.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `detail` | `ValidationError[]` | Array of validation errors with field details |
+
+---
+
+## Metadata Filtering
+
+The `filters` parameter in query operations supports a subset of MongoDB query operators for flexible metadata filtering:
+
+### Supported Operators
+
+- **`$eq`**: Equality (`{ "category": "research" }`)
+- **`$ne`**: Not equal (`{ "status": { "$ne": "draft" } }`)
+- **`$gt`**: Greater than (`{ "score": { "$gt": 0.8 } }`)
+- **`$gte`**: Greater than or equal (`{ "year": { "$gte": 2020 } }`)
+- **`$lt`**: Less than (`{ "price": { "$lt": 100 } }`)
+- **`$lte`**: Less than or equal (`{ "rating": { "$lte": 4.5 } }`)
+- **`$in`**: In array (`{ "tag": { "$in": ["ai", "ml"] } }`)
+- **`$nin`**: Not in array (`{ "category": { "$nin": ["spam", "deleted"] } }`)
+- **`$and`**: Logical AND (`{ "$and": [{"a": 1}, {"b": 2}] }`)
+- **`$or`**: Logical OR (`{ "$or": [{"x": 1}, {"y": 2}] }`)
+
+### Filter Examples
+
+```typescript
+// Simple equality filter
+const simpleFilter = { "category": "research" };
+
+// Range filter
+const rangeFilter = { 
+    "published_year": { "$gte": 2020, "$lte": 2024 } 
+};
+
+// Complex compound filter
+const complexFilter = {
+    "$and": [
+        { "category": "research" },
+        { "confidence": { "$gte": 0.9 } },
+        { "$or": [
+            { "language": "en" },
+            { "translated": true }
+        ]}
+    ]
+};
+```
+
+For more information on metadata filtering, see [Metadata Filtering](../guides/data-operations/metadata-filtering).
+
+---
+
+## Field Selection
+
+Many operations support field selection through the `include` parameter:
+
+### Available Fields
+
+- **`vector`**: The vector data itself
+- **`contents`**: Text or binary content associated with the vector
+- **`metadata`**: Structured metadata object
+- **`distance`**: Similarity distance (query operations only)
+
+### Example Usage
+
+```typescript
+// Include only metadata (efficient for existence checks)
+const metadataOnly = { include: ['metadata'] };
+
+// Include vectors and distances (for similarity analysis)
+const vectorsAndDistances = { include: ['vector', 'distance'] };
+
+// Include all available fields
+const allFields = { include: ['vector', 'contents', 'metadata', 'distance'] };
+```
+
+Selecting only necessary fields improves performance by reducing data transfer and processing overhead.

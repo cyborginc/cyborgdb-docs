@@ -1,0 +1,84 @@
+---
+title: "Describe Index"
+mode: "wide"
+api: "POST /v1/indexes/describe"
+playground: "simple"
+---
+
+Get detailed information about an existing index, including its configuration and status.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes"
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to describe
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+</Expandable>
+
+## Response
+
+```json
+{
+  "index_name": "my_index",
+  "index_type": "ivfflat",
+  "is_trained": true,
+  "index_config": {
+    "type": "ivfflat",
+    "dimension": 384,
+    "metric": "euclidean",
+    "n_lists": 1024
+  }
+}
+```
+
+<Expandable title="response fields">
+  <ResponseField name="index_name" type="string">
+    Name of the index
+  </ResponseField>
+  <ResponseField name="index_type" type="string">
+    Type of index (e.g., `ivf`, `ivfflat`, `ivfpq`)
+  </ResponseField>
+  <ResponseField name="is_trained" type="boolean">
+    Whether the index has been trained for optimized queries
+  </ResponseField>
+  <ResponseField name="index_config" type="object">
+    Full configuration details of the index, including:
+    - `type`: Index type
+    - `dimension`: Embedding dimension
+    - `metric`: Distance metric used
+    - `n_lists`: Number of inverted lists (after training)
+    - Additional type-specific properties (e.g., `pq_dim`, `pq_bits` for IVFPQ)
+  </ResponseField>
+</Expandable>
+
+## Example Usage
+
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```

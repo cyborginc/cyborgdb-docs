@@ -6,6 +6,42 @@ mode: wide
 
 CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
 
+<Update label="v0.13.1" description="2025-10-31">
+
+## CyborgDB v0.13.1
+
+### Bug Fixes
+
+- Fixed an issue where `cyborgdb-core` would fail to find runtime dependencies on certain Linux arm64 systems
+- Exposed demo API key creation on Go and TypeScript SDKs
+
+</Update>
+
+<Update label="v0.13.0" description="2025-10-27">
+
+## CyborgDB v0.13.0
+
+### Deployment Model
+
+- Embedded Library (Python & C++)
+- REST API (Microservice via Python or Docker)
+- Client SDK (Python, JavaScript, TypeScript & Go)
+
+### New Features
+
+- Merged `cyborgdb-lite` functionality into `cyborgdb-core`:
+    - `cyborgdb-lite` package has been deprecated and removed
+    - All features previously available in `cyborgdb-lite` are now included in `cyborgdb-core`
+    - Simplified package structure with a single unified library for embedded use
+- CyborgDB Service now supports CUDA with `pip install cyborgdb-service[cuda]`:
+    - Enables existing `cyborgdb-core` CUDA optimizations in the REST API microservice
+- Deprecated support for Python 3.9 due to EOL for:
+    - `cyborgdb-core`
+    - `cyborgdb-service`
+    - `cyborgdb-py`
+
+</Update>
+
 <Update label="v0.12.0" description="2025-08-28">
 
 ## CyborgDB v0.12.0
