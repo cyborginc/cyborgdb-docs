@@ -2,6 +2,72 @@
 title: "Types"
 ---
 
+## JSON Type Definitions
+
+CyborgDB provides strongly-typed JSON types for improved type safety when working with metadata and other JSON-serializable data.
+
+### JsonPrimitive
+
+```typescript
+type JsonPrimitive = string | number | boolean | null;
+```
+
+Represents any valid JSON primitive value.
+
+### JsonValue
+
+```typescript
+type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+```
+
+Represents any valid JSON value. This is a recursive type definition used for metadata and other JSON-serializable data throughout the SDK.
+
+### JsonObject
+
+```typescript
+interface JsonObject {
+  [key: string]: JsonValue;
+}
+```
+
+Represents a JSON object with string keys and JsonValue values.
+
+### JsonArray
+
+```typescript
+type JsonArray = JsonValue[];
+```
+
+Represents a JSON array containing any valid JSON values.
+
+### VectorMetadata
+
+```typescript
+type VectorMetadata = JsonObject;
+```
+
+Type alias for metadata associated with vector items. Metadata must be a valid JSON object.
+
+#### Example Usage
+
+```typescript
+import { VectorMetadata, JsonValue } from 'cyborgdb';
+
+const metadata: VectorMetadata = {
+    title: 'Document Title',
+    author: 'John Doe',
+    tags: ['ai', 'vectors', 'database'],
+    published: true,
+    score: 0.95,
+    nested: {
+        category: 'technology',
+        subcategory: 'ai'
+    }
+};
+```
+
+---
+
 ## CreateIndexRequest
 
 The `CreateIndexRequest` interface defines the parameters for creating a new encrypted index.
@@ -215,7 +281,7 @@ Class representing a vectorized item for storage in the encrypted index.
 | `id` | `string` | Yes | Unique identifier for the vector item |
 | `vector` | `number[] \| null` | No* | Vector representation of the item. *Required for upsert operations unless using embedding model |
 | `contents` | `string \| null` | No | Original text or associated content |
-| `metadata` | `object \| null` | No | Additional structured metadata |
+| `metadata` | [`VectorMetadata`](#vectormetadata) \| `null` | No | Additional structured metadata (must be valid JSON) |
 
 ### Example Usage
 
@@ -326,6 +392,121 @@ const indexConfig: IndexIVFPQ = {
 
 ## Response Types
 
+### UpsertResponse
+
+Response interface for upsert operations.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | `string` | Status of the operation |
+| `upsertedCount` | `number` (optional) | Number of vectors upserted |
+| `message` | `string` (optional) | Additional message or details |
+
+#### Example Usage
+
+```typescript
+import { UpsertResponse } from 'cyborgdb';
+
+const response: UpsertResponse = await index.upsert({
+    items: [
+        { id: 'doc1', vector: [0.1, 0.2, 0.3], contents: 'Content 1' },
+        { id: 'doc2', vector: [0.4, 0.5, 0.6], contents: 'Content 2' }
+    ]
+});
+
+console.log(`Upserted ${response.upsertedCount} vectors`);
+```
+
+### DeleteResponse
+
+Response interface for delete operations.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | `string` | Status of the operation |
+| `deletedCount` | `number` (optional) | Number of vectors deleted |
+| `message` | `string` (optional) | Additional message or details |
+
+#### Example Usage
+
+```typescript
+import { DeleteResponse } from 'cyborgdb';
+
+const response: DeleteResponse = await index.delete({
+    ids: ['doc1', 'doc2', 'doc3']
+});
+
+console.log(`Deleted ${response.deletedCount} vectors`);
+```
+
+### TrainResponse
+
+Response interface for training operations.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | `string` | Status of the training operation |
+| `message` | `string` (optional) | Additional message or details |
+
+#### Example Usage
+
+```typescript
+import { TrainResponse } from 'cyborgdb';
+
+const response: TrainResponse = await index.train({
+    nLists: 8192,
+    batchSize: 4096
+});
+
+console.log(`Training status: ${response.status}`);
+```
+
+### HealthResponse
+
+Response interface for health check operations.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | `string` | Status of the service |
+| `[key: string]` | `string` | Optional additional health information |
+
+#### Example Usage
+
+```typescript
+import { HealthResponse } from 'cyborgdb';
+
+const health: HealthResponse = await client.getHealth();
+console.log(`Service status: ${health.status}`);
+```
+
+### TrainingStatus
+
+Response interface for training status queries.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `training_indexes` | `string[]` | Array of index names currently being trained |
+| `retrain_threshold` | `number` | The multiplier used for the retraining threshold |
+
+#### Example Usage
+
+```typescript
+import { TrainingStatus } from 'cyborgdb';
+
+const status: TrainingStatus = await client.isTraining();
+console.log(`Training indexes: ${status.training_indexes.join(', ')}`);
+```
+
 ### GetResponseModel
 
 Response class for vector retrieval operations.
@@ -335,6 +516,41 @@ Response class for vector retrieval operations.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `results` | `GetResultItemModel[]` | Array of retrieved items with requested fields |
+
+### GetResultItem
+
+Enhanced type-safe result item for get operations. This type extends `GetResultItemModel` with proper typing for metadata and contents fields.
+
+#### Properties
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | `string` | Unique identifier for the vector item |
+| `vector` | `number[]` (optional) | Vector data (if included in response) |
+| `contents` | `Buffer \| Blob \| string` (optional) | The original content |
+| `metadata` | `VectorMetadata` (optional) | Metadata associated with the vector |
+
+#### Example Usage
+
+```typescript
+import { GetResultItem } from 'cyborgdb';
+
+const response = await index.get({
+    ids: ['doc1', 'doc2'],
+    include: ['vector', 'metadata', 'contents']
+});
+
+// Use GetResultItem for type-safe access
+response.results.forEach((item: GetResultItem) => {
+    console.log(`ID: ${item.id}`);
+    if (item.metadata) {
+        console.log(`Title: ${item.metadata.title}`);
+    }
+    if (item.contents) {
+        console.log(`Content: ${item.contents}`);
+    }
+});
+```
 
 ### QueryResponse
 
@@ -479,3 +695,195 @@ const allFields = { include: ['vector', 'contents', 'metadata', 'distance'] };
 ```
 
 Selecting only necessary fields improves performance by reducing data transfer and processing overhead.
+
+---
+
+## Filter Types
+
+### FilterExpression
+
+```typescript
+type FilterExpression = {
+  [key: string]: FilterValue | FilterOperator;
+};
+```
+
+Type for constructing MongoDB-style filter expressions for querying vectors. Supports nested logical operators and field comparisons.
+
+### FilterValue
+
+```typescript
+type FilterValue = JsonPrimitive | JsonArray;
+```
+
+Represents possible filter values in filter expressions - can be any JSON primitive or array.
+
+### FilterOperator
+
+```typescript
+interface FilterOperator {
+  $eq?: FilterValue;
+  $ne?: FilterValue;
+  $gt?: number;
+  $gte?: number;
+  $lt?: number;
+  $lte?: number;
+  $in?: JsonArray;
+  $nin?: JsonArray;
+  $and?: FilterExpression[];
+  $or?: FilterExpression[];
+  $not?: FilterExpression;
+  $exists?: boolean;
+}
+```
+
+Interface defining MongoDB-style query operators for metadata filtering. See the [Metadata Filtering](#metadata-filtering) section for detailed examples.
+
+#### Example Usage
+
+```typescript
+import { FilterExpression } from 'cyborgdb';
+
+// Type-safe filter construction
+const filter: FilterExpression = {
+    category: "research",
+    published_year: { $gte: 2020, $lte: 2024 },
+    $and: [
+        { confidence: { $gte: 0.9 } },
+        { $or: [
+            { language: "en" },
+            { translated: true }
+        ]}
+    ]
+};
+
+const results = await index.query({
+    queryVectors: [0.1, 0.2, 0.3],
+    topK: 10,
+    filters: filter
+});
+```
+
+---
+
+## Utility Functions
+
+The SDK provides type guard and utility functions for safer type checking and error handling.
+
+### isJsonValue
+
+```typescript
+function isJsonValue(value: unknown, visited?: WeakSet<object>): value is JsonValue
+```
+
+Type guard function to check if a value is a valid JSON value. Handles circular references by tracking visited objects.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `value` | `unknown` | Yes | The value to check |
+| `visited` | `WeakSet<object>` | No | Internal parameter for tracking circular references |
+
+#### Returns
+
+`boolean`: Returns `true` if the value is a valid JSON value, `false` otherwise.
+
+#### Example Usage
+
+```typescript
+import { isJsonValue } from 'cyborgdb';
+
+const data = {
+    name: "John",
+    age: 30,
+    tags: ["developer", "typescript"]
+};
+
+if (isJsonValue(data)) {
+    // Safe to use as metadata
+    const item = {
+        id: 'user1',
+        vector: [0.1, 0.2, 0.3],
+        metadata: data
+    };
+}
+
+// Detects invalid JSON (circular references, functions, etc.)
+const circular: any = {};
+circular.self = circular;
+console.log(isJsonValue(circular)); // false
+```
+
+### isError
+
+```typescript
+function isError(error: unknown): error is Error
+```
+
+Type guard to check if an error is an Error instance.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `error` | `unknown` | Yes | The value to check |
+
+#### Returns
+
+`boolean`: Returns `true` if the value is an Error instance, `false` otherwise.
+
+#### Example Usage
+
+```typescript
+import { isError } from 'cyborgdb';
+
+try {
+    await index.query({ queryVectors: [0.1, 0.2] });
+} catch (error) {
+    if (isError(error)) {
+        console.error(`Error message: ${error.message}`);
+        console.error(`Stack trace: ${error.stack}`);
+    } else {
+        console.error('Unknown error type:', error);
+    }
+}
+```
+
+### getErrorMessage
+
+```typescript
+function getErrorMessage(error: unknown): string
+```
+
+Helper function to safely extract error messages from unknown error types.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `error` | `unknown` | Yes | The error to extract a message from |
+
+#### Returns
+
+`string`: A string message extracted from the error. Returns the error's message property if it's an Error, converts to string otherwise.
+
+#### Example Usage
+
+```typescript
+import { getErrorMessage } from 'cyborgdb';
+
+try {
+    await index.upsert({ items: [] });
+} catch (error) {
+    // Safely get error message regardless of error type
+    const message = getErrorMessage(error);
+    console.error(`Operation failed: ${message}`);
+
+    // Log to monitoring service
+    logger.error({
+        operation: 'upsert',
+        error: message
+    });
+}
+```

@@ -6,12 +6,12 @@ mode: "wide"
 Checks the health status of the CyborgDB microservice to verify connectivity and service availability.
 
 ```typescript
-async getHealth(): Promise<object>
+async getHealth(): Promise<HealthResponse>
 ```
 
 ### Returns
 
-`Promise<object>`: A Promise that resolves to the health status response from the CyborgDB service. The exact structure depends on the server implementation but typically includes status information.
+`Promise<HealthResponse>`: A Promise that resolves to the health status response from the CyborgDB service. See the [HealthResponse type](../types#healthresponse) for more details.
 
 ### Exceptions
 
@@ -29,14 +29,15 @@ async getHealth(): Promise<object>
 ### Example Usage
 
 ```typescript
-import { Client } from 'cyborgdb';
+import { Client, HealthResponse } from 'cyborgdb';
 
 const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
 try {
-    const health = await client.getHealth();
+    const health: HealthResponse = await client.getHealth();
     console.log('Service health status:', health);
-    // Typical output: { status: 'healthy', version: '1.2.3', uptime: 12345 }
+    console.log('Status:', health.status);
+    // Typical output: { status: 'healthy', api_version: 'v1', version: '1.2.3' }
 } catch (error) {
     console.error('Health check failed:', error.message);
 }
