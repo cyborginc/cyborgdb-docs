@@ -8,7 +8,7 @@ Removes vectors from the index by their IDs. This operation permanently deletes 
 ```typescript
 async delete({
     ids: string[]
-}): Promise<object>
+}): Promise<DeleteResponse>
 ```
 
 ### Parameters
@@ -32,10 +32,14 @@ async delete({
     </Accordion>
 </AccordionGroup>
 
+### Returns
+
+`Promise<DeleteResponse>`: A Promise that resolves to a response object containing the operation status, message, and count of deleted vectors. See the [DeleteResponse type](../types#deleteresponse) for more details.
+
 ### Example Usage
 
 ```typescript
-import { Client } from 'cyborgdb';
+import { Client, DeleteResponse } from 'cyborgdb';
 
 const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
@@ -54,14 +58,15 @@ await index.upsert({
 
 // Delete specific vectors
 try {
-    const result = await index.delete({ ids: ['doc1', 'doc2'] });
+    const result: DeleteResponse = await index.delete({ ids: ['doc1', 'doc2'] });
     console.log('Deletion result:', result);
-    // Typical output: { status: 'success', message: 'Deleted 2 vectors', deleted_count: 2 }
-    
+    console.log(`Status: ${result.status}`);
+    console.log(`Deleted count: ${result.deletedCount}`);
+
     // Verify deletion by trying to retrieve
     const remaining = await index.get({ ids: ['doc1', 'doc2', 'doc3'] });
     console.log(`Remaining vectors: ${remaining.length}`); // Should be 1 (only doc3)
-    
+
 } catch (error) {
     console.error('Failed to delete vectors:', error.message);
 }

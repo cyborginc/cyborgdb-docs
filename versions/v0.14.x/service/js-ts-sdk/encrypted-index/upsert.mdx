@@ -14,7 +14,7 @@ async upsert({
     items?: VectorItem[],    // Pattern 1: Provide items array
     ids?: string[],         // Pattern 2: Provide ids and vectors together
     vectors?: number[][]    // Pattern 2: Provide ids and vectors together
-}): Promise<object>
+}): Promise<UpsertResponse>
 
 // Note: Must provide either 'items' OR both 'ids' and 'vectors'
 ```
@@ -49,7 +49,7 @@ Each `VectorItem` must contain an `id` and `vector`, with optional fields:
 
 ### Returns
 
-`Promise<object>`: A Promise that resolves to a response object containing the operation status and message with the count of upserted vectors.
+`Promise<UpsertResponse>`: A Promise that resolves to a response object containing the operation status, message, and count of upserted vectors. See the [UpsertResponse type](../types#upsertresponse) for more details.
 
 ### Exceptions
 
@@ -74,7 +74,7 @@ Each `VectorItem` must contain an `id` and `vector`, with optional fields:
 #### Pattern 1: VectorItem Array (Recommended)
 
 ```typescript
-import { Client, VectorItem } from 'cyborgdb';
+import { Client, VectorItem, UpsertResponse } from 'cyborgdb';
 
 const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
@@ -114,10 +114,11 @@ const vectorItems: VectorItem[] = [
 
 // Upsert vectors
 try {
-    const result = await index.upsert({ items: vectorItems });
+    const result: UpsertResponse = await index.upsert({ items: vectorItems });
     console.log('Upsert result:', result);
-    // Typical output: { status: 'success', message: 'Upserted 2 vectors' }
-    
+    console.log(`Status: ${result.status}`);
+    console.log(`Upserted count: ${result.upsertedCount}`);
+
     console.log(`Successfully added ${vectorItems.length} vectors to the index`);
 } catch (error: any) {
     console.error('Upsert failed:', error.message);

@@ -9,7 +9,7 @@ Retrieves vectors from the encrypted index by their IDs, with options to specify
 async get({
     ids: string[],     // required
     include?: string[]  // optional, default: ["vector", "contents", "metadata"]
-}): Promise<Array<object>>
+}): Promise<GetResultItem[]>
 ```
 
 ### Parameters
@@ -21,7 +21,7 @@ async get({
 
 ### Returns
 
-`Promise<Array<object>>`: A Promise that resolves to an array of retrieved vector items, each containing the requested fields based on the `include` parameter.
+`Promise<GetResultItem[]>`: A Promise that resolves to an array of retrieved vector items with type-safe access to fields. Each item contains the requested fields based on the `include` parameter. See the [GetResultItem type](../types#getresultitem) for more details.
 
 ### Exceptions
 
@@ -41,7 +41,7 @@ async get({
 ### Example Usage
 
 ```typescript
-import { Client } from 'cyborgdb';
+import { Client, GetResultItem } from 'cyborgdb';
 
 const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
@@ -69,16 +69,20 @@ await index.upsert({
 
 // Retrieve vectors with all fields (default behavior)
 try {
-    const vectors = await index.get({ ids: ['doc1', 'doc2'] });
+    const vectors: GetResultItem[] = await index.get({ ids: ['doc1', 'doc2'] });
 
     vectors.forEach(item => {
         console.log(`ID: ${item.id}`);
         console.log(`Vector dimensions: ${item.vector?.length}`);
         console.log(`Contents: ${item.contents}`);
-        console.log(`Metadata: ${JSON.stringify(item.metadata)}`);
+        // Type-safe metadata access
+        if (item.metadata) {
+            console.log(`Title: ${item.metadata.title}`);
+            console.log(`Category: ${item.metadata.category}`);
+        }
         console.log('---');
     });
-    
+
 } catch (error: any) {
     console.error('Failed to retrieve vectors:', error.message);
 }
