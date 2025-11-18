@@ -48,6 +48,58 @@
   "navigation": {
     "versions": [
       {
+        "version": "v0.14.x",
+        "tabs": [
+          {
+            "tab": "CyborgDB Service",
+            "dropdowns": [
+              {
+                "dropdown": "JS/TS SDK Reference",
+                "icon": "js",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "versions/v0.14.x/service/js-ts-sdk/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Client",
+                    "pages": [
+                      "versions/v0.14.x/service/js-ts-sdk/client/client",
+                      "versions/v0.14.x/service/js-ts-sdk/client/get-health",
+                      "versions/v0.14.x/service/js-ts-sdk/client/create-index",
+                      "versions/v0.14.x/service/js-ts-sdk/client/load-index",
+                      "versions/v0.14.x/service/js-ts-sdk/client/list-indexes",
+                      "versions/v0.14.x/service/js-ts-sdk/client/generate-key"
+                    ]
+                  },
+                  {
+                    "group": "Encrypted Index",
+                    "pages": [
+                      "versions/v0.14.x/service/js-ts-sdk/encrypted-index/upsert",
+                      "versions/v0.14.x/service/js-ts-sdk/encrypted-index/query",
+                      "versions/v0.14.x/service/js-ts-sdk/encrypted-index/train",
+                      "versions/v0.14.x/service/js-ts-sdk/encrypted-index/get",
+                      "versions/v0.14.x/service/js-ts-sdk/encrypted-index/list-ids",
+                      "versions/v0.14.x/service/js-ts-sdk/encrypted-index/delete",
+                      "versions/v0.14.x/service/js-ts-sdk/encrypted-index/delete-index"
+                    ]
+                  },
+                  {
+                    "group": "Types & Helpers",
+                    "pages": [
+                      "versions/v0.14.x/service/js-ts-sdk/getters",
+                      "versions/v0.14.x/service/js-ts-sdk/types"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
         "version": "v0.13.x",
         "tabs": [
           {
