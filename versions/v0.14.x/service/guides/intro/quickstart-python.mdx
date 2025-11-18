@@ -1,0 +1,298 @@
+---
+title: "Python Service Quickstart"
+sidebarTitle: "Python Quickstart"
+mode: "wide"
+---
+
+**CyborgDB** can be deployed as a Python service using pip installation. This approach provides a lightweight alternative to Docker, allowing you to run the CyborgDB service directly in your Python environment with full control over dependencies and configuration.
+
+<Tip>Looking to use Docker? Check out our [Docker Quickstart Guide](./quickstart-docker).</Tip>
+
+## Overview
+The Python service is ideal for developers who prefer managing Python environments directly, need custom dependency management, or want to integrate CyborgDB service into existing Python applications. It provides the same REST API functionality as the Docker version.
+
+<Steps>
+    <Step title="Get an API Key">
+        To use CyborgDB, you need an API key. You can get one from the [CyborgDB Admin Dashboard](https://cyborgdb.co/).
+
+        Make sure to keep your API key secure and do not share it publicly.
+    </Step>
+
+    <Step title="Check Prerequisites">
+        Ensure you have the required Python version and environment tools:
+
+        - **Python**: 3.9, 3.10, 3.11, 3.12, or 3.13
+        - **Package Manager**: conda (recommended) or pip with virtual environment
+        - **Database**: PostgreSQL or Redis instance (local or managed)
+
+        <Note>While conda is mentioned in the build instructions, the wheel works with any Python environment manager including pip, pipenv, poetry, etc.</Note>
+    </Step>
+
+    <Step title="Choose Your Database Backend">
+        CyborgDB service supports two database backends - choose based on your existing infrastructure:
+        
+        - **PostgreSQL**: Compatible with your existing PostgreSQL infrastructure
+          - Managed services: AWS RDS, Azure Database for PostgreSQL, Google Cloud SQL, DigitalOcean Managed Databases
+          - Self-hosted PostgreSQL instances
+        - **Redis**: Compatible with your existing Redis infrastructure
+          - Managed services: AWS ElastiCache, Azure Cache for Redis, Google Cloud Memorystore, Redis Cloud
+          - Self-hosted Redis instances
+
+        All backends provide identical CyborgDB functionality. For more info, refer to [this guide](../../../intro/backing-stores).
+
+        <Note>Make sure you have your chosen database running and accessible before proceeding.</Note>
+    </Step>
+
+    <Step title="Install CyborgDB Service">
+        Install the CyborgDB service package using conda and pip:
+
+        <CodeGroup>
+        ```bash Conda Environment (Recommended)
+        # Create conda environment
+        conda create -n cyborgdb-service python=3.12
+        conda activate cyborgdb-service
+
+        # Install the service
+        pip install cyborgdb-service
+
+        # If you want to use automatic embedding generation, install with:
+        pip install cyborgdb-service[embeddings]
+        ```
+
+        ```bash Virtual Environment
+        # Create a virtual environment
+        python -m venv cyborgdb-env
+        source cyborgdb-env/bin/activate
+
+        # Install the service
+        pip install cyborgdb-service
+        ```
+
+        ```bash System Python
+        # Install directly (not recommended for production)
+        pip install cyborgdb-service
+        ```
+        </CodeGroup>
+
+        <Warning>Using conda or a virtual environment is strongly recommended to avoid dependency conflicts with other Python packages.</Warning>
+    </Step>
+
+    <Step title="Configure Environment Variables">
+        Set the required environment variables for your database backend:
+
+        <Tabs>
+            <Tab title="PostgreSQL Backend">
+                <CodeGroup>
+                ```bash Linux/macOS
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=postgres
+                export CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=postgres user=postgres password=your_password"
+                ```
+
+                ```bash .env File
+                # Create a .env file in your working directory
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=postgres
+                CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=postgres user=postgres password=your_password
+                ```
+                </CodeGroup>
+            </Tab>
+            
+            <Tab title="Redis Backend">
+                <CodeGroup>
+                ```bash Linux/macOS
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=redis
+                export CYBORGDB_CONNECTION_STRING="host=localhost,port=6379,db=0"
+                ```
+
+                ```bash .env File
+                # Create a .env file in your working directory
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=redis
+                CYBORGDB_CONNECTION_STRING=host=localhost,port=6379,db=0
+                ```
+                </CodeGroup>
+            </Tab>
+        </Tabs>
+
+        <Tip>Using a `.env` file is the most convenient method as it persists your configuration and keeps sensitive data out of your shell history.</Tip>
+
+        For more information on environment variables, refer to [this guide](../advanced/env-vars).
+    </Step>
+
+    <Step title="Start the Service">
+        Run the CyborgDB service using the installed command:
+
+        ```bash
+        cyborgdb-service
+        ```
+
+        The service will start and display startup information including:
+        - Database connection status
+        - Server URL (default: `http://localhost:8000`)
+        - Available API endpoints
+
+        <Note>For additional configuration options, run `cyborgdb-service --help` to see all available command-line arguments and connection string examples.</Note>
+    </Step>
+
+    <Step title="Verify Installation">
+        Once the service is running, verify it's working correctly:
+
+        **Health Check:**
+        ```bash
+        curl http://localhost:8000/v1/health
+        ```
+
+        **API Documentation:**
+        Navigate to [http://localhost:8000/docs](http://localhost:8000/docs) to explore the interactive API documentation.
+
+        You should see a response indicating the service is healthy and ready to accept requests.
+    </Step>
+
+    <Step title="Advanced Configuration">
+        For production deployments, consider these additional configurations:
+
+        <Tabs>
+            <Tab title="Environment Variables">
+                | Variable | Description | Required | Example |
+                |----------|-------------|----------|---------|
+                | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
+                | `CYBORGDB_DB_TYPE` | Database backend type | ✅ | `postgres` or `redis` |
+                | `CYBORGDB_CONNECTION_STRING` | Database connection details | ✅ | See connection formats |
+                | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
+                | `PORT` | Service port | ❌ | `8000` |
+                | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
+                | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
+
+                <Note>For more information on environment variables, refer to [this guide](../advanced/env-vars).</Note>
+
+            </Tab>
+
+            <Tab title="Production Deployment">
+                For production environments, consider using a process manager:
+
+                ```bash
+                # Using gunicorn (install separately)
+                pip install gunicorn
+                gunicorn cyborgdb_service.main:app --port 8000
+
+                # Using systemd service (Linux)
+                sudo systemctl enable cyborgdb-service
+                sudo systemctl start cyborgdb-service
+                ```
+            </Tab>
+
+            <Tab title="HTTPS Configuration">
+                For production deployments, configure HTTPS by providing SSL certificates:
+
+                **Environment Variables:**
+                ```bash
+                export SSL_CERT_PATH=/path/to/certificate.crt
+                export SSL_KEY_PATH=/path/to/private.key
+                ```
+
+                **Complete Production Example:**
+                ```bash
+                # Set all required environment variables including SSL
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=postgres
+                export CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=postgres user=postgres password=your_password"
+                export SSL_CERT_PATH=/etc/ssl/certs/server.crt
+                export SSL_KEY_PATH=/etc/ssl/private/server.key
+
+                # Start service (will automatically use HTTPS)
+                cyborgdb-service
+                ```
+
+                **Using .env File with SSL:**
+                ```bash
+                # Create a .env file with SSL configuration
+                cat > .env << EOF
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=postgres
+                CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=postgres user=postgres password=your_password
+                SSL_CERT_PATH=/path/to/certificate.crt
+                SSL_KEY_PATH=/path/to/private.key
+                EOF
+
+                # Start service
+                cyborgdb-service
+                ```
+
+                **Using Let's Encrypt (Production):**
+                ```bash
+                # Install certbot (Ubuntu/Debian)
+                sudo apt-get install certbot
+
+                # Generate certificate for your domain
+                sudo certbot certonly --standalone -d your-domain.com
+
+                # Set environment variables to Let's Encrypt certificates
+                export SSL_CERT_PATH=/etc/letsencrypt/live/your-domain.com/fullchain.pem
+                export SSL_KEY_PATH=/etc/letsencrypt/live/your-domain.com/privkey.pem
+
+                # Start service with HTTPS
+                cyborgdb-service
+                ```
+
+                <Note>The server automatically switches to HTTPS when both certificate files are provided and exist. Without certificates, it starts in HTTP mode.</Note>
+            </Tab>
+        </Tabs>
+    </Step>
+
+    <Step title="Next Steps">
+        Now that your CyborgDB service is running, you can interact with it using client SDKs:
+
+        **Install Client SDKs:**
+        
+        <CodeGroup>
+        ```bash Python icon="python"
+        pip install cyborgdb
+        ```
+
+        ```bash JavaScript icon="js"
+        npm install cyborgdb
+        ```
+        
+        ```bash TypeScript icon="code"
+        npm install cyborgdb
+        ```
+
+        ```bash Go icon="golang"
+        go get github.com/cyborginc/cyborgdb-go
+        ```
+        </CodeGroup>
+
+        <CardGroup cols={2}>
+            <Card title="REST API Reference" href="../../rest-api/introduction" icon="rectangle-terminal">
+                Learn how to use the REST API for direct integration
+            </Card>
+            <Card title="Python SDK Reference" href="../../python-sdk/introduction" icon="python">
+                Learn how to use the Python SDK for direct integration
+            </Card>
+            <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/introduction" icon="js">
+                Learn how to use the JavaScript/TypeScript SDK for direct integration
+            </Card>
+            <Card title="Go SDK Reference" href="../../go-sdk/introduction" icon="golang">
+                Learn how to use the Go SDK for direct integration
+            </Card>
+        </CardGroup>
+    </Step>
+</Steps>
+
+<Accordion title="Comparison with Docker Service">
+
+| Aspect | Python Service | Docker Service |
+|--------|---------------|----------------|
+| **Installation** | `pip install` | `docker run` |
+| **Dependencies** | Managed by pip/conda | Bundled in container |
+| **Resource Usage** | Lower overhead | Higher overhead |
+| **Environment Isolation** | Python virtualenv | Container isolation |
+| **Deployment Complexity** | Simple Python deployment | Container orchestration |
+| **Configuration** | Environment variables/files | Environment variables |
+| **Best For** | Development, Python-heavy workflows | Production, cloud deployment |
+
+<Tip>Both approaches provide identical CyborgDB functionality. Choose based on your deployment preferences and infrastructure requirements.</Tip>
+
+</Accordion>

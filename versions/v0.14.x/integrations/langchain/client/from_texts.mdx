@@ -1,0 +1,82 @@
+---
+title: "from_texts"
+mode: "wide"
+---
+
+Creates a CyborgVectorStore instance from a list of texts.
+
+```python
+@classmethod
+from_texts(
+    cls,
+    texts: List[str],
+    embedding: Union[str, Embeddings, SentenceTransformer],
+    metadatas: Optional[List[dict]] = None,
+    *,
+    ids: Optional[List[str]] = None,
+    **kwargs: Any
+) -> CyborgVectorStore
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `texts` | `List[str]` | List of text strings to add to the store |
+| `embedding` | `Union[str, Embeddings, SentenceTransformer]` | Embedding model or model name |
+| `metadatas` | `Optional[List[dict]]` | _(Optional)_ List of metadata dictionaries for each text |
+| `**kwargs` | `Any` | Additional arguments passed to constructor and add_texts |
+
+### Keyword Arguments
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ids` | `List[str]` | _(Optional)_ IDs for the texts |
+| `index_name` | `str` | Name of the index (default: "langchain_index") |
+| `index_key` | `bytes` | 32-byte encryption key (required) |
+| `api_key` | `str` | API key for CyborgDB (required) |
+| `index_location` | `DBConfig` | Index storage location (required) |
+| `config_location` | `DBConfig` | Config storage location (required) |
+| `index_type` | `str` | Index type (default: "ivfflat") |
+| `metric` | `str` | Distance metric (default: "cosine") |
+
+### Returns
+
+`CyborgVectorStore`: Initialized vector store with texts added
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if index_key is not provided
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+from cyborgdb_core import DBConfig
+
+# Create store from texts
+texts = [
+    "Introduction to Python",
+    "Advanced Python techniques",
+    "Python for data science"
+]
+metadatas = [
+    {"chapter": 1}, 
+    {"chapter": 2}, 
+    {"chapter": 3}
+]
+
+store = CyborgVectorStore.from_texts(
+    texts=texts,
+    embedding="sentence-transformers/all-MiniLM-L6-v2",
+    metadatas=metadatas,
+    index_name="python_docs",
+    index_key=CyborgVectorStore.generate_key(),
+    api_key="your-api-key",
+    index_location=DBConfig("s3", bucket="my-bucket"),
+    config_location=DBConfig("s3", bucket="my-bucket")
+)
+```

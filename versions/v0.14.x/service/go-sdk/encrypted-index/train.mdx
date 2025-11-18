@@ -1,0 +1,132 @@
+---
+title: "Train"
+mode: "wide"
+---
+
+Trains the encrypted index to optimize it for efficient similarity search queries. Training is essential for IVF-based indexes to achieve optimal query performance and accuracy.
+
+<Tip>In CyborgDB Service, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added.</Tip>
+
+```go
+func (e *EncryptedIndex) Train(ctx context.Context, params TrainParams) error
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation and timeouts (training can take time) |
+| `params` | `TrainParams` | Training parameters specifying optimization options |
+
+#### TrainParams Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `BatchSize` | `*int32` | _(Optional)_ Number of vectors processed per training batch (default: 2048) |
+| `MaxIters` | `*int32` | _(Optional)_ Maximum training iterations (default: 100) |
+| `Tolerance` | `*float64` | _(Optional)_ Convergence tolerance for training (default: 1e-6) |
+| `MaxMemory` | `*int32` | _(Optional)_ Maximum memory usage in MB, 0 = no limit (default: 0) |
+| `NLists` | `*int32` | _(Optional)_ Number of IVF clusters, 0 = auto-determine (default: 0) |
+
+<Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
+
+### Returns
+
+- `error`: Any error encountered during training, or `nil` if successful
+
+### Error Handling
+
+<AccordionGroup>
+    <Accordion title="API Errors">
+        - Returns error if the API request fails due to network connectivity issues
+        - Returns error if authentication fails (invalid API key)
+        - Returns error if the encryption key is invalid for the specified index
+        - Returns error if there are internal server errors during training
+    </Accordion>
+    <Accordion title="Training Errors">
+        - Returns error if the index has insufficient data for training
+        - Returns error if training parameters are invalid or out of range
+        - Returns error if training fails due to memory constraints
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/hex"
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Load an existing index
+    indexKeyHex := "your-64-character-hex-key-here"
+    indexKey, err := hex.DecodeString(indexKeyHex)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    index, err := client.LoadIndex(context.Background(), "my-vector-index", indexKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Basic training with default parameters
+    params := cyborgdb.TrainParams{}
+
+    fmt.Println("Starting index training...")
+    err = index.Train(context.Background(), params)
+    if err != nil {
+        log.Fatalf("Training failed: %v", err)
+    }
+
+    fmt.Println("Training completed successfully!")
+    fmt.Printf("Index is now trained: %t\n", index.IsTrained())
+}
+```
+
+#### Training with Custom Parameters
+
+```go
+// Training with custom parameters for better control
+batchSize := int32(1024)    // Smaller batches for limited memory
+maxIters := int32(200)      // More iterations for better convergence
+tolerance := 1e-7           // Tighter convergence tolerance
+maxMemory := int32(4096)    // Limit to 4GB RAM
+nLists := int32(256)        // Specific number of clusters
+
+params := cyborgdb.TrainParams{
+    BatchSize: &batchSize,
+    MaxIters:  &maxIters,
+    Tolerance: &tolerance,
+    MaxMemory: &maxMemory,
+    NLists:    &nLists,
+}
+
+// Use longer timeout for training large datasets
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+defer cancel()
+
+fmt.Println("Starting training with custom parameters...")
+err := index.Train(ctx, params)
+if err != nil {
+    if ctx.Err() == context.DeadlineExceeded {
+        log.Fatal("Training timed out after 30 minutes")
+    }
+    log.Fatalf("Training failed: %v", err)
+}
+
+fmt.Println("Custom training completed!")
+```
