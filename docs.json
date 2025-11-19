@@ -22,11 +22,11 @@
   "redirects": [
     {
       "source": "/about",
-      "destination": "versions/v0.13.x/intro/about"
+      "destination": "versions/v0.14.x/intro/about"
     },
     {
       "source": "/quickstart",
-      "destination": "/versions/v0.13.x/intro/quickstart"
+      "destination": "/versions/v0.14.x/intro/quickstart"
     },
     {
       "source": "/changelog",
@@ -34,15 +34,15 @@
     },
     {
       "source": "/service",
-      "destination": "/versions/v0.13.x/service/guides/intro/about"
+      "destination": "/versions/v0.14.x/service/guides/intro/about"
     },
     {
       "source": "/embedded",
-      "destination": "/versions/v0.13.x/embedded/guides/intro/about"
+      "destination": "/versions/v0.14.x/embedded/guides/intro/about"
     },
     {
       "source": "/security",
-      "destination": "/versions/v0.13.x/intro/security-overview"
+      "destination": "/versions/v0.14.x/intro/security-overview"
     }
   ],
   "navigation": {

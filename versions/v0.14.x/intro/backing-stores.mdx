@@ -69,11 +69,11 @@ Predictable access patterns with complete control over memory usage.
 
 ---
 
-## Redislite
+## Standalone
 
-**Built-in Redis database for evaluation and testing**
+**Built-in database for evaluation and testing**
 
-Redislite provides a self-contained Redis instance that starts automatically when no external database is configured. Perfect for quick evaluation, development, and testing without setting up external infrastructure.
+Standalone provides a self-contained database instance (backed by redis-lite) that starts automatically when no external database is configured. Perfect for quick evaluation, development, and testing without setting up external infrastructure.
 
 ### Key Benefits
 
@@ -81,7 +81,7 @@ Redislite provides a self-contained Redis instance that starts automatically whe
 Starts automatically when CYBORGDB_DB_TYPE is not set - no external database setup required.
 
 **Redis Compatible**
-Uses the Redis protocol, providing the same API and features as Redis but running as an embedded instance.
+Uses redis-lite, providing the same Redis protocol and features but running as an embedded instance.
 
 **Instant Setup**
 Begin evaluating CyborgDB immediately without infrastructure provisioning or configuration.
@@ -91,7 +91,7 @@ Begin evaluating CyborgDB immediately without infrastructure provisioning or con
 ### Important Limitations
 
 <Warning>
-**Redislite is for EVALUATION PURPOSES ONLY** - It should NOT be used in production environments. For production deployments, use external Redis or PostgreSQL instances with proper persistence, replication, and backup strategies.
+**Standalone is for EVALUATION PURPOSES ONLY** - It should NOT be used in production environments. For production deployments, use external Redis or PostgreSQL instances with proper persistence, replication, and backup strategies.
 </Warning>
 
 ---
@@ -161,7 +161,7 @@ CyborgDB works seamlessly with managed database services, reducing operational o
     - **Maximum Performance** - Need absolute fastest access with zero network overhead
   </Tab>
 
-  <Tab title="Use Redislite">
+  <Tab title="Use Standalone">
     - **Evaluation** - You're evaluating CyborgDB features and capabilities
     - **Quick Start** - You want to start immediately without setting up databases
     - **Testing** - You need a disposable database for integration testing
@@ -203,14 +203,14 @@ from cyborgdb_core import DBConfig
 db_config = DBConfig("memory")
 ```
 
-```python Redislite
+```python Standalone
 from cyborgdb_core import DBConfig
 
-# Redislite is used automatically when no DB type is set
+# Standalone is used automatically when no DB type is set
 # No configuration needed - starts automatically in the service
-# Data stored in ~/.cyborgdb/redislite.db
+# Data stored in ~/.cyborgdb/redislite.db (uses redis-lite backend)
 
-# Note: Redislite is only available in CyborgDB Service,
+# Note: Standalone is only available in CyborgDB Service,
 # not in the embedded library
 ```
 </CodeGroup>
@@ -220,7 +220,7 @@ from cyborgdb_core import DBConfig
 | Backing Store | Latency | Throughput | Durability | Consistency |
 |---------------|:---------:|:------------:|:------------:|:-------------:|
 | **Memory**    | ~1µs    | Very High  | None       | Single Process |
-| **Redislite** | ~100µs  | Medium     | Local Disk | Eventually Consistent |
+| **Standalone** | ~100µs  | Medium     | Local Disk | Eventually Consistent |
 | **Redis**     | ~100µs  | High       | Configurable | Eventually Consistent |
 | **PostgreSQL** | ~1ms   | Medium     | Full       | ACID |
 

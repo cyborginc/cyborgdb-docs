@@ -19,7 +19,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
     </Step>
 
     <Step title="Choose Your Database Backend (Optional)">
-        For **quick evaluation and testing**, you can skip database setup entirely - the service will automatically use a built-in **redislite** instance.
+        For **quick evaluation and testing**, you can skip database setup entirely - the service will automatically use a built-in **standalone** instance (backed by redis-lite).
 
         For **production deployments** or if you have existing database infrastructure, CyborgDB service supports two external database backends:
 
@@ -32,7 +32,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
         All backends provide identical CyborgDB functionality. For more info, refer to [this guide](../../../intro/backing-stores).
 
-        <Warning>**Redislite is for evaluation and testing only** - For production use, configure an external PostgreSQL or Redis database.</Warning>
+        <Warning>**Standalone is for evaluation and testing only** - For production use, configure an external PostgreSQL or Redis database.</Warning>
     </Step>
 
     <Step title="Pull the Docker Image">
@@ -47,24 +47,24 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
     <Step title="Run with Docker (Quick Start)">
         <Tabs>
-            <Tab title="Quick Start (Redislite)">
+            <Tab title="Quick Start (Standalone)">
                 <CodeGroup>
                 ```bash Linux
-                # Minimal configuration - uses built-in redislite
+                # Minimal configuration - uses built-in standalone (backed by redis-lite)
                 sudo docker run -it --network host \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   cyborginc/cyborgdb-service:latest
                 ```
 
                 ```bash macOS
-                # Minimal configuration - uses built-in redislite
+                # Minimal configuration - uses built-in standalone (backed by redis-lite)
                 sudo docker run -it -p 8000:8000 \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   cyborginc/cyborgdb-service:latest
                 ```
                 </CodeGroup>
 
-                <Warning>Redislite is for evaluation and testing only. For production, use PostgreSQL or Redis.</Warning>
+                <Warning>Standalone is for evaluation and testing only. For production, use PostgreSQL or Redis.</Warning>
             </Tab>
 
             <Tab title="PostgreSQL Backend">
@@ -215,14 +215,14 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 | Variable | Description | Required | Example |
                 |----------|-------------|----------|---------|
                 | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
-                | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to redislite) | `postgres` or `redis` |
-                | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to redislite) | See connection formats |
+                | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `postgres` or `redis` |
+                | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See connection formats |
                 | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
                 | `PORT` | Service port | ❌ | `8000` |
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
                 | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
 
-                <Note>If `CYBORGDB_DB_TYPE` and `CYBORGDB_CONNECTION_STRING` are not set, the service uses a built-in redislite database for evaluation. For production, configure an external database. For more information, refer to [this guide](../advanced/env-vars).</Note>
+                <Note>If `CYBORGDB_DB_TYPE` and `CYBORGDB_CONNECTION_STRING` are not set, the service uses a built-in standalone database (backed by redis-lite) for evaluation. For production, configure an external database. For more information, refer to [this guide](../advanced/env-vars).</Note>
 
             </Tab>
 

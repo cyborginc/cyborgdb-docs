@@ -6,6 +6,36 @@ mode: wide
 
 CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
 
+<Update label="v0.14.0" description="2025-01-XX">
+
+## CyborgDB v0.14.0
+
+### Deployment Model
+
+- Embedded Library (Python & C++)
+- REST API (Microservice via Python or Docker)
+- Client SDK (Python, JavaScript, TypeScript & Go)
+
+### New Features
+
+- Introduced **Standalone** database mode for quick evaluation and testing:
+    - Automatically enabled when no external database is configured
+    - Backed by redis-lite for zero-configuration setup
+    - Perfect for rapid prototyping and development without infrastructure overhead
+    - Not recommended for production use - use PostgreSQL or Redis for production deployments
+- Enhanced TypeScript SDK with improved type definitions:
+    - Added comprehensive type exports for better IDE support and type safety
+    - Improved type inference for API methods
+- Updated documentation with new Standalone backing store option
+
+### Improvements
+
+- Simplified quickstart experience with automatic database provisioning
+- Enhanced documentation clarity around backing store options
+- Improved environment variable configuration with sensible defaults
+
+</Update>
+
 <Update label="v0.13.1" description="2025-10-31">
 
 ## CyborgDB v0.13.1

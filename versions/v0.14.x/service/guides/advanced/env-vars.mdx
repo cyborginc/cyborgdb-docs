@@ -20,20 +20,20 @@ These environment variables must be set for the service to run:
 ## Database Configuration
 
 <Note>
-**Default Behavior:** If you don't set `CYBORGDB_DB_TYPE` or `CYBORGDB_CONNECTION_STRING`, the service automatically uses a built-in **redislite** instance for evaluation and testing. Data is stored in `~/.cyborgdb/redislite.db`.
+**Default Behavior:** If you don't set `CYBORGDB_DB_TYPE` or `CYBORGDB_CONNECTION_STRING`, the service automatically uses a built-in **standalone** instance (backed by redis-lite) for evaluation and testing. Data is stored in `~/.cyborgdb/redislite.db`.
 
 **For production deployments**, you should configure an external Redis or PostgreSQL database:
 </Note>
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to redislite) | `postgres` or `redis` |
-| `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to redislite) | See [Connection Formats](#connection-formats) |
+| `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `postgres` or `redis` |
+| `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See [Connection Formats](#connection-formats) |
 
 <Warning>
 **Important:** Both `CYBORGDB_DB_TYPE` and `CYBORGDB_CONNECTION_STRING` must be set together. If you set one, you must set the other. Setting only one will cause a validation error.
 
-**Redislite is for EVALUATION ONLY** - For production use, configure an external PostgreSQL or Redis database.
+**Standalone is for EVALUATION ONLY** - For production use, configure an external PostgreSQL or Redis database.
 </Warning>
 
 ## Optional Environment Variables
@@ -136,23 +136,23 @@ These environment variables must be set for the service to run:
 ## Configuration Examples
 
 <AccordionGroup>
-    <Accordion title="Evaluation/Testing Configuration (Redislite)">
+    <Accordion title="Evaluation/Testing Configuration (Standalone)">
         <CodeGroup>
         ```bash Environment Variables
-        # Minimal configuration - uses built-in redislite
+        # Minimal configuration - uses built-in standalone (backed by redis-lite)
         export CYBORGDB_API_KEY="cyborg_your_api_key_here"
-        # No database configuration needed - redislite starts automatically
+        # No database configuration needed - standalone starts automatically
         ```
 
         ```bash .env File
-        # Minimal configuration - uses built-in redislite
+        # Minimal configuration - uses built-in standalone (backed by redis-lite)
         CYBORGDB_API_KEY=cyborg_your_api_key_here
-        # No database configuration needed - redislite starts automatically
+        # No database configuration needed - standalone starts automatically
         ```
         </CodeGroup>
 
         <Warning>
-        Redislite is for evaluation and testing only. For production, configure an external database.
+        Standalone is for evaluation and testing only. For production, configure an external database.
         </Warning>
     </Accordion>
 
