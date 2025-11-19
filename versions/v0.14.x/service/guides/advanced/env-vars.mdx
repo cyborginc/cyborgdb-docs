@@ -1,0 +1,241 @@
+---
+title: "Environment Variables"
+mode: "wide"
+---
+
+CyborgDB Service uses environment variables to configure various aspects of the service, such as database connections, API keys, SSL settings, and performance tuning. This allows for flexible configuration without hardcoding values in your codebase.
+
+Below are the key environment variables you can set for the CyborgDB service:
+
+## Required Environment Variables
+
+These environment variables must be set for the service to run:
+
+| Variable | Description | Required | Example |
+|----------|-------------|----------|---------|
+| `CYBORGDB_API_KEY` | Your CyborgDB API key for authentication | ✅ | `cyborg_abc123...` |
+| `CYBORGDB_DB_TYPE` | Database backend type | ✅ | `postgres` or `redis` |
+| `CYBORGDB_CONNECTION_STRING` | Database connection details | ✅ | See [Connection Formats](#connection-formats) |
+
+<Warning>The service will not start without these three required variables.</Warning>
+
+## Optional Environment Variables
+
+<AccordionGroup>
+    <Accordion title="Service Configuration">
+        | Variable | Description | Default | Example |
+        |----------|-------------|---------|---------|
+        | `PORT` | Port number for the service | `8000` | `3000` |
+        | `APP_NAME` | Application name for logging | `CyborgDB Service` | `My CyborgDB Instance` |
+        | `CYBORGDB_SERVICE_LOG_LEVEL` | Logging level for the service | `info` | `debug` |
+    </Accordion>
+    <Accordion title="Security Configuration">
+        | Variable | Description | Default | Example |
+        |----------|-------------|---------|---------|
+        | `REQUIRE_API_KEY` | Whether to require API key authentication | `true` | `false` |
+        | `SSL_CERT_PATH` | Path to SSL certificate file for HTTPS | `None` | `/etc/ssl/certs/server.crt` |
+        | `SSL_KEY_PATH` | Path to SSL private key file for HTTPS | `None` | `/etc/ssl/private/server.key` |
+        
+        <Note>When both `SSL_CERT_PATH` and `SSL_KEY_PATH` are provided and the files exist, the service automatically enables HTTPS.</Note>
+    </Accordion>
+    <Accordion title="Database Configuration (Advanced)">
+        These variables provide granular control over database connections. If not set, they fall back to the main database configuration:
+
+        | Variable | Description | Default | Example |
+        |----------|-------------|---------|---------|
+        | `INDEX_LOCATION` | Database type for index storage | `CYBORGDB_DB_TYPE` | `postgres` |
+        | `CONFIG_LOCATION` | Database type for config storage | `CYBORGDB_DB_TYPE` | `redis` |
+        | `ITEMS_LOCATION` | Database type for items storage | `CYBORGDB_DB_TYPE` | `postgres` |
+        | `INDEX_CONNECTION_STRING` | Connection string for index storage | `CYBORGDB_CONNECTION_STRING` | See connection formats |
+        | `CONFIG_CONNECTION_STRING` | Connection string for config storage | `CYBORGDB_CONNECTION_STRING` | See connection formats |
+        | `ITEMS_CONNECTION_STRING` | Connection string for items storage | `CYBORGDB_CONNECTION_STRING` | See connection formats |
+    </Accordion>
+    <Accordion title="Database Table Names">
+        These variables allow you to customize the table/collection names used by the service:
+
+        | Variable | Description | Default | Example |
+        |----------|-------------|---------|---------|
+        | `INDEX_TABLE_NAME` | Table name for indexes | `index` | `cyborgdb_indexes` |
+        | `CONFIG_TABLE_NAME` | Table name for configurations | `config` | `cyborgdb_configs` |
+        | `ITEMS_TABLE_NAME` | Table name for items | `items` | `cyborgdb_items` |
+    </Accordion>
+    <Accordion title="Performance Tuning">
+        These variables allow you to optimize performance based on your hardware and workload:
+
+        | Variable | Description | Default | Example |
+        |----------|-------------|---------|---------|
+        | `CPU_THREADS` | Number of CPU threads to use | `0` (auto-detect) | `4` |
+        | `GPU_ACCELERATE` | Enable GPU acceleration if available | `false` | `true` |
+        | `WORKERS` | Number of worker processes for handling requests | `0` (auto-calculate) | `8` |
+    </Accordion>
+    <Accordion title="System Configuration">
+        These variables control system-level settings:
+
+        | Variable | Description | Default | Example |
+        |----------|-------------|---------|---------|
+        | `KMP_DUPLICATE_LIB_OK` | Allow duplicate OpenMP libraries | `TRUE` | `FALSE` |
+        | `PYTHONUNBUFFERED` | Disable Python output buffering | `1` | `0` |
+    </Accordion>
+</AccordionGroup>
+
+## Connection Formats
+
+<AccordionGroup>
+    <Accordion title="PostgreSQL Connection String">
+    
+    Use the standard PostgreSQL connection string format:
+
+    ```bash
+    CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=cyborgdb user=cyborgdb password=your_password"
+    ```
+
+    **Parameters:**
+    - `host` - Database server hostname
+    - `port` - Database server port (default: 5432)
+    - `dbname` - Database name
+    - `user` - Database username
+    - `password` - Database password
+
+    </Accordion>
+    
+    <Accordion title="Redis Connection String">
+
+        Use a comma-separated format for Redis connections:
+
+        ```bash
+        CYBORGDB_CONNECTION_STRING="host=localhost,port=6379,db=0"
+        ```
+
+        **Parameters:**
+        - `host` - Redis server hostname
+        - `port` - Redis server port (default: 6379)
+        - `db` - Redis database number (default: 0)
+        - `password` - Redis password (optional)
+
+        <Warning>Redis URI format (`redis://` or `rediss://`) is not supported. Use the comma-separated format shown above.</Warning>
+    </Accordion>
+</AccordionGroup>
+
+## Configuration Examples
+
+<AccordionGroup>
+    <Accordion title="Development Configuration">
+        <CodeGroup>
+        ```bash Environment Variables
+        export CYBORGDB_API_KEY="cyborg_your_api_key_here"
+        export CYBORGDB_DB_TYPE="postgres"
+        export CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=cyborgdb user=cyborgdb password=secure_password"
+        ```
+
+        ```bash .env File
+        CYBORGDB_API_KEY=cyborg_your_api_key_here
+        CYBORGDB_DB_TYPE=postgres
+        CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
+        ```
+        </CodeGroup>
+    </Accordion>
+    <Accordion title="Production Configuration">
+        <CodeGroup>
+        ```bash Environment Variables
+        export CYBORGDB_API_KEY="cyborg_your_api_key_here"
+        export CYBORGDB_DB_TYPE="postgres"
+        export CYBORGDB_CONNECTION_STRING="host=db.example.com port=5432 dbname=cyborgdb user=cyborgdb password=secure_password"
+        export PORT="8443"
+        export SSL_CERT_PATH="/etc/ssl/certs/cyborgdb.crt"
+        export SSL_KEY_PATH="/etc/ssl/private/cyborgdb.key"
+        export WORKERS="16"
+        ```
+
+        ```bash .env File
+        CYBORGDB_API_KEY=cyborg_your_api_key_here
+        CYBORGDB_DB_TYPE=postgres
+        CYBORGDB_CONNECTION_STRING=host=db.example.com port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
+        PORT=8443
+        SSL_CERT_PATH=/etc/ssl/certs/cyborgdb.crt
+        SSL_KEY_PATH=/etc/ssl/private/cyborgdb.key
+        WORKERS=16
+        ```
+        </CodeGroup>
+    </Accordion>
+    <Accordion title="Mixed Database Configuration">
+        <CodeGroup>
+            For advanced use cases where you want to use different databases for different components:
+
+            ```bash
+            # Main configuration
+            CYBORGDB_API_KEY="cyborg_your_api_key_here"
+
+            # Use PostgreSQL for indexes and configs
+            INDEX_LOCATION="postgres"
+            CONFIG_LOCATION="postgres"
+            INDEX_CONNECTION_STRING="host=postgres.example.com port=5432 dbname=cyborgdb user=cyborgdb password=password1"
+            CONFIG_CONNECTION_STRING="host=postgres.example.com port=5432 dbname=cyborgdb user=cyborgdb password=password1"
+
+            # Use Redis for items (faster access)
+            ITEMS_LOCATION="redis"
+            ITEMS_CONNECTION_STRING="host=redis.example.com,port=6379,db=0,password=redis_password"
+            ```
+        </CodeGroup>
+    </Accordion>
+</AccordionGroup>
+
+### Docker Configuration
+
+When using Docker, you can pass environment variables using the `-e` flag:
+
+```bash
+docker run -p 8000:8000 \
+  -e CYBORGDB_API_KEY="cyborg_your_api_key_here" \
+  -e CYBORGDB_DB_TYPE="postgres" \
+  -e CYBORGDB_CONNECTION_STRING="host=host.docker.internal port=5432 dbname=cyborgdb user=cyborgdb password=secure_password" \
+  cyborginc/cyborgdb-service:latest
+```
+
+Or use an environment file:
+
+```bash
+docker run -p 8000:8000 --env-file .env cyborginc/cyborgdb-service:latest
+```
+
+## Environment Variable Priority
+
+Environment variables are loaded in the following order (later sources override earlier ones):
+
+1. **Default values** - Set in the application code
+2. **`.env` file** - Local environment file in the working directory
+3. **System environment variables** - Set via `export` or container environment
+4. **Command line arguments** - Passed directly to the application
+
+## Validation and Error Handling
+
+The CyborgDB service performs automatic validation of environment variables on startup:
+
+- **Missing required variables** - Service will exit with error messages
+- **Invalid database types** - Only `postgres` and `redis` are supported
+- **Connection testing** - Database connections are tested on startup
+- **SSL certificate validation** - Certificate files are checked for existence
+
+If validation fails, the service will display helpful error messages with examples of correct configuration.
+
+
+## Troubleshooting
+
+<AccordionGroup>
+    <Accordion title="Missing API Key">
+        - Ensure `CYBORGDB_API_KEY` is set
+        - Check for typos in the variable name
+        - Verify the API key format starts with `cyborg_`
+    </Accordion>
+    <Accordion title="Database Connection Issues">
+        - Verify database is running and accessible
+        - Check connection string format
+        - Test database connectivity manually
+        - Ensure firewall allows connections
+    </Accordion>
+    <Accordion title="SSL Certificate Errors">
+        - Verify certificate files exist at specified paths
+        - Check file permissions (service must be able to read certificates)
+        - Ensure certificate and key files match
+        - Use absolute paths for certificate locations
+    </Accordion>
+</AccordionGroup>

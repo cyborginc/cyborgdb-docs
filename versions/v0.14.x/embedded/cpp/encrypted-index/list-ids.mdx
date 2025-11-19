@@ -1,0 +1,54 @@
+---
+title: "List IDs"
+mode: "wide"
+---
+
+Lists all item IDs currently stored in the index.
+
+```cpp
+std::vector<std::string> ListIDs();
+```
+
+### Returns
+
+`std::vector<std::string>`: A vector containing all item IDs currently stored in the encrypted index.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::runtime_error">
+        - Throws if an error occurs during retrieval of IDs from the index.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+#include "encrypted_index.hpp"
+
+// ... Create or load an encrypted index ...
+
+// Get all IDs in the index
+auto all_ids = index->ListIDs();
+
+// Print all IDs
+std::cout << "Index contains " << all_ids.size() << " items:" << std::endl;
+for (const auto& id : all_ids) {
+    std::cout << "- " << id << std::endl;
+}
+
+// Check if a specific ID exists
+std::string target_id = "item_123";
+bool exists = std::find(all_ids.begin(), all_ids.end(), target_id) != all_ids.end();
+if (exists) {
+    std::cout << "Item " << target_id << " exists in the index" << std::endl;
+}
+```
+
+<Tip>
+Use `ListIDs()` to:
+- Verify what items are stored in your index
+- Check if specific items exist before querying
+- Get a complete inventory of your encrypted index contents
+- Implement custom batch processing logic
+</Tip>

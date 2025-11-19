@@ -1,0 +1,42 @@
+---
+title: "Get Health"
+mode: "wide"
+---
+
+Checks the health status of the CyborgDB microservice to verify connectivity and service availability.
+
+```python
+client.get_health()
+```
+
+### Returns
+
+`Dict[str, str]`: Health status information from the service.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the health check request fails due to network connectivity issues.
+        - Throws if the server is unreachable or times out.
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+health = client.get_health()
+print(f"Service status: {health}")
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Current health status of the service (typically "healthy") |
+| `api_version` | `string` | Version of the API interface (e.g., "v1") |
+| `version` | `string` | Version of the CyborgDB application/service |

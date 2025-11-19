@@ -1,0 +1,26 @@
+---
+title: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+Deletes the current index and all its associated data.  
+
+```cpp
+void DeleteIndex();
+```
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::runtime_error">
+        - Throws if the index could not be deleted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+index->DeleteIndex();
+```
