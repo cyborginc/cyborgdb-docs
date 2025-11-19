@@ -73,15 +73,12 @@ Predictable access patterns with complete control over memory usage.
 
 **Built-in database for evaluation and testing**
 
-Standalone provides a self-contained database instance (backed by redis-lite) that starts automatically when no external database is configured. Perfect for quick evaluation, development, and testing without setting up external infrastructure.
+Standalone provides a self-contained database instance that starts automatically when no external database is configured. Perfect for quick evaluation, development, and testing without setting up external infrastructure.
 
 ### Key Benefits
 
 **Zero Configuration**
 Starts automatically when CYBORGDB_DB_TYPE is not set - no external database setup required.
-
-**Redis Compatible**
-Uses redis-lite, providing the same Redis protocol and features but running as an embedded instance.
 
 **Instant Setup**
 Begin evaluating CyborgDB immediately without infrastructure provisioning or configuration.
@@ -208,7 +205,7 @@ from cyborgdb_core import DBConfig
 
 # Standalone is used automatically when no DB type is set
 # No configuration needed - starts automatically in the service
-# Data stored in ~/.cyborgdb/redislite.db (uses redis-lite backend)
+# Data stored in ~/.cyborgdb/standalone.db
 
 # Note: Standalone is only available in CyborgDB Service,
 # not in the embedded library

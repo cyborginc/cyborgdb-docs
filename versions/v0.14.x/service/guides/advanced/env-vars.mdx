@@ -20,7 +20,7 @@ These environment variables must be set for the service to run:
 ## Database Configuration
 
 <Note>
-**Default Behavior:** If you don't set `CYBORGDB_DB_TYPE` or `CYBORGDB_CONNECTION_STRING`, the service automatically uses a built-in **standalone** instance (backed by redis-lite) for evaluation and testing. Data is stored in `~/.cyborgdb/redislite.db`.
+**Default Behavior:** If you don't set `CYBORGDB_DB_TYPE` or `CYBORGDB_CONNECTION_STRING`, the service automatically uses a built-in **standalone** instance for evaluation and testing. Data is stored in `~/.cyborgdb/standalone.db`.
 
 **For production deployments**, you should configure an external Redis or PostgreSQL database:
 </Note>
@@ -139,13 +139,13 @@ These environment variables must be set for the service to run:
     <Accordion title="Evaluation/Testing Configuration (Standalone)">
         <CodeGroup>
         ```bash Environment Variables
-        # Minimal configuration - uses built-in standalone (backed by redis-lite)
+        # Minimal configuration - uses built-in standalone
         export CYBORGDB_API_KEY="cyborg_your_api_key_here"
         # No database configuration needed - standalone starts automatically
         ```
 
         ```bash .env File
-        # Minimal configuration - uses built-in standalone (backed by redis-lite)
+        # Minimal configuration - uses built-in standalone
         CYBORGDB_API_KEY=cyborg_your_api_key_here
         # No database configuration needed - standalone starts automatically
         ```

@@ -19,7 +19,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
     </Step>
 
     <Step title="Choose Your Database Backend (Optional)">
-        For **quick evaluation and testing**, you can skip database setup entirely - the service will automatically use a built-in **standalone** instance (backed by redis-lite).
+        For **quick evaluation and testing**, you can skip database setup entirely - the service will automatically use a built-in **standalone** instance.
 
         For **production deployments** or if you have existing database infrastructure, CyborgDB service supports two external database backends:
 
@@ -50,14 +50,14 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
             <Tab title="Quick Start (Standalone)">
                 <CodeGroup>
                 ```bash Linux
-                # Minimal configuration - uses built-in standalone (backed by redis-lite)
+                # Minimal configuration - uses built-in standalone
                 sudo docker run -it --network host \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   cyborginc/cyborgdb-service:latest
                 ```
 
                 ```bash macOS
-                # Minimal configuration - uses built-in standalone (backed by redis-lite)
+                # Minimal configuration - uses built-in standalone
                 sudo docker run -it -p 8000:8000 \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   cyborginc/cyborgdb-service:latest
@@ -222,7 +222,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
                 | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
 
-                <Note>If `CYBORGDB_DB_TYPE` and `CYBORGDB_CONNECTION_STRING` are not set, the service uses a built-in standalone database (backed by redis-lite) for evaluation. For production, configure an external database. For more information, refer to [this guide](../advanced/env-vars).</Note>
+                <Note>If `CYBORGDB_DB_TYPE` and `CYBORGDB_CONNECTION_STRING` are not set, the service uses a built-in standalone database for evaluation. For production, configure an external database. For more information, refer to [this guide](../advanced/env-vars).</Note>
 
             </Tab>
 
