@@ -14,10 +14,27 @@ These environment variables must be set for the service to run:
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
 | `CYBORGDB_API_KEY` | Your CyborgDB API key for authentication | ✅ | `cyborg_abc123...` |
-| `CYBORGDB_DB_TYPE` | Database backend type | ✅ | `postgres` or `redis` |
-| `CYBORGDB_CONNECTION_STRING` | Database connection details | ✅ | See [Connection Formats](#connection-formats) |
 
-<Warning>The service will not start without these three required variables.</Warning>
+<Warning>The service requires CYBORGDB_API_KEY to start. Database configuration is optional - see below for details.</Warning>
+
+## Database Configuration
+
+<Note>
+**Default Behavior:** If you don't set `CYBORGDB_DB_TYPE` or `CYBORGDB_CONNECTION_STRING`, the service automatically uses a built-in **standalone** instance for evaluation and testing. Data is stored in `~/.cyborgdb/standalone.db`.
+
+**For production deployments**, you should configure an external Redis or PostgreSQL database:
+</Note>
+
+| Variable | Description | Required | Example |
+|----------|-------------|----------|---------|
+| `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `postgres` or `redis` |
+| `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See [Connection Formats](#connection-formats) |
+
+<Warning>
+**Important:** Both `CYBORGDB_DB_TYPE` and `CYBORGDB_CONNECTION_STRING` must be set together. If you set one, you must set the other. Setting only one will cause a validation error.
+
+**Standalone is for EVALUATION ONLY** - For production use, configure an external PostgreSQL or Redis database.
+</Warning>
 
 ## Optional Environment Variables
 
@@ -119,7 +136,27 @@ These environment variables must be set for the service to run:
 ## Configuration Examples
 
 <AccordionGroup>
-    <Accordion title="Development Configuration">
+    <Accordion title="Evaluation/Testing Configuration (Standalone)">
+        <CodeGroup>
+        ```bash Environment Variables
+        # Minimal configuration - uses built-in standalone
+        export CYBORGDB_API_KEY="cyborg_your_api_key_here"
+        # No database configuration needed - standalone starts automatically
+        ```
+
+        ```bash .env File
+        # Minimal configuration - uses built-in standalone
+        CYBORGDB_API_KEY=cyborg_your_api_key_here
+        # No database configuration needed - standalone starts automatically
+        ```
+        </CodeGroup>
+
+        <Warning>
+        Standalone is for evaluation and testing only. For production, configure an external database.
+        </Warning>
+    </Accordion>
+
+    <Accordion title="Development Configuration (External Database)">
         <CodeGroup>
         ```bash Environment Variables
         export CYBORGDB_API_KEY="cyborg_your_api_key_here"

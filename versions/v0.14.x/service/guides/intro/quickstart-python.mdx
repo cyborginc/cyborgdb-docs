@@ -23,14 +23,15 @@ The Python service is ideal for developers who prefer managing Python environmen
 
         - **Python**: 3.9, 3.10, 3.11, 3.12, or 3.13
         - **Package Manager**: conda (recommended) or pip with virtual environment
-        - **Database**: PostgreSQL or Redis instance (local or managed)
 
         <Note>While conda is mentioned in the build instructions, the wheel works with any Python environment manager including pip, pipenv, poetry, etc.</Note>
     </Step>
 
-    <Step title="Choose Your Database Backend">
-        CyborgDB service supports two database backends - choose based on your existing infrastructure:
-        
+    <Step title="Choose Your Database Backend (Optional)">
+        For **quick evaluation and testing**, you can skip database setup entirely - the service will automatically use a built-in **standalone** instance.
+
+        For **production deployments** or if you have existing database infrastructure, CyborgDB service supports two external database backends:
+
         - **PostgreSQL**: Compatible with your existing PostgreSQL infrastructure
           - Managed services: AWS RDS, Azure Database for PostgreSQL, Google Cloud SQL, DigitalOcean Managed Databases
           - Self-hosted PostgreSQL instances
@@ -40,7 +41,7 @@ The Python service is ideal for developers who prefer managing Python environmen
 
         All backends provide identical CyborgDB functionality. For more info, refer to [this guide](../../../intro/backing-stores).
 
-        <Note>Make sure you have your chosen database running and accessible before proceeding.</Note>
+        <Warning>**Standalone is for evaluation and testing only** - For production use, configure an external PostgreSQL or Redis database.</Warning>
     </Step>
 
     <Step title="Install CyborgDB Service">
@@ -78,9 +79,28 @@ The Python service is ideal for developers who prefer managing Python environmen
     </Step>
 
     <Step title="Configure Environment Variables">
-        Set the required environment variables for your database backend:
+        Set the required environment variables for your deployment:
 
         <Tabs>
+            <Tab title="Quick Start (Standalone)">
+                <CodeGroup>
+                ```bash Linux/macOS
+                # Minimal configuration - uses built-in standalone
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                # No database configuration needed - standalone starts automatically
+                ```
+
+                ```bash .env File
+                # Create a .env file in your working directory
+                # Minimal configuration - uses built-in standalone
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                # No database configuration needed - standalone starts automatically
+                ```
+                </CodeGroup>
+
+                <Warning>Standalone is for evaluation and testing only. For production, use PostgreSQL or Redis.</Warning>
+            </Tab>
+
             <Tab title="PostgreSQL Backend">
                 <CodeGroup>
                 ```bash Linux/macOS
@@ -97,7 +117,7 @@ The Python service is ideal for developers who prefer managing Python environmen
                 ```
                 </CodeGroup>
             </Tab>
-            
+
             <Tab title="Redis Backend">
                 <CodeGroup>
                 ```bash Linux/macOS
@@ -158,14 +178,14 @@ The Python service is ideal for developers who prefer managing Python environmen
                 | Variable | Description | Required | Example |
                 |----------|-------------|----------|---------|
                 | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
-                | `CYBORGDB_DB_TYPE` | Database backend type | ✅ | `postgres` or `redis` |
-                | `CYBORGDB_CONNECTION_STRING` | Database connection details | ✅ | See connection formats |
+                | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `postgres` or `redis` |
+                | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See connection formats |
                 | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
                 | `PORT` | Service port | ❌ | `8000` |
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
                 | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
 
-                <Note>For more information on environment variables, refer to [this guide](../advanced/env-vars).</Note>
+                <Note>If `CYBORGDB_DB_TYPE` and `CYBORGDB_CONNECTION_STRING` are not set, the service uses a built-in standalone database for evaluation. For production, configure an external database. For more information, refer to [this guide](../advanced/env-vars).</Note>
 
             </Tab>
 

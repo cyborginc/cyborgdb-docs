@@ -14,7 +14,7 @@ async train({
     maxIters?: number,       // optional, default: undefined (server uses 100)
     tolerance?: number,      // optional, default: undefined (server uses 1e-6)
     maxMemory?: number       // optional, default: undefined (no limit)
-}): Promise<object>
+}): Promise<TrainResponse>
 ```
 
 ### Parameters
@@ -31,7 +31,7 @@ async train({
 
 ### Returns
 
-`Promise<object>`: A Promise that resolves to a response object containing the operation status and training completion message.
+`Promise<TrainResponse>`: A Promise that resolves to a response object containing the operation status and training completion message. See the [TrainResponse type](../types#trainresponse) for more details.
 
 ### Exceptions
 
@@ -53,7 +53,7 @@ async train({
 ### Example Usage
 
 ```typescript
-import { Client } from 'cyborgdb';
+import { Client, TrainResponse } from 'cyborgdb';
 
 const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
@@ -74,13 +74,13 @@ await index.upsert({
 try {
     console.log('Starting index training...');
     const startTime = Date.now();
-    
-    const result = await index.train();
-    
+
+    const result: TrainResponse = await index.train();
+
     const duration = Date.now() - startTime;
     console.log(`Training completed in ${duration}ms`);
     console.log('Training result:', result);
-    // Typical output: { status: 'success', message: "Index 'my-vector-index' trained successfully" }
+    console.log(`Status: ${result.status}, Message: ${result.message}`);
     
     // Verify training completed
     const isTrained = await index.isTrained();

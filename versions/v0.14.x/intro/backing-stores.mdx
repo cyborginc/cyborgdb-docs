@@ -69,6 +69,30 @@ Predictable access patterns with complete control over memory usage.
 
 ---
 
+## Standalone (for evaluation purposes only)
+
+**Built-in database for evaluation and testing**
+
+Standalone provides a self-contained database instance that starts automatically when no external database is configured. Perfect for quick evaluation, development, and testing without setting up external infrastructure.
+
+### Key Benefits
+
+**Zero Configuration**
+Starts automatically when CYBORGDB_DB_TYPE is not set - no external database setup required.
+
+**Instant Setup**
+Begin evaluating CyborgDB immediately without infrastructure provisioning or configuration.
+
+**Best For:** Evaluation and testing, rapid prototyping, development environments, and learning CyborgDB features without infrastructure overhead.
+
+### Important Limitations
+
+<Warning>
+**Standalone is for EVALUATION PURPOSES ONLY** - It should NOT be used in production environments. For production deployments, use external Redis or PostgreSQL instances with proper persistence, replication, and backup strategies.
+</Warning>
+
+---
+
 ## Future Backing Stores
 
 CyborgDB is designed to be extensible, allowing for future backing stores to be added as needed. Have one in mind? [Let us know!](https://www.cyborg.co/contact)
@@ -133,6 +157,14 @@ CyborgDB works seamlessly with managed database services, reducing operational o
     - **Simplicity** - You want to minimize external dependencies
     - **Maximum Performance** - Need absolute fastest access with zero network overhead
   </Tab>
+
+  <Tab title="Use Standalone">
+    - **Evaluation** - You're evaluating CyborgDB features and capabilities
+    - **Quick Start** - You want to start immediately without setting up databases
+    - **Testing** - You need a disposable database for integration testing
+    - **Learning** - You're learning CyborgDB without infrastructure complexity
+    - **Prototyping** - Building proof-of-concept with minimal setup overhead
+  </Tab>
 </Tabs>
 
 ## Configuration Examples
@@ -167,6 +199,17 @@ from cyborgdb_core import DBConfig
 # In-memory storage (no external dependencies)
 db_config = DBConfig("memory")
 ```
+
+```python Standalone
+from cyborgdb_core import DBConfig
+
+# Standalone is used automatically when no DB type is set
+# No configuration needed - starts automatically in the service
+# Data stored in ~/.cyborgdb/standalone.db
+
+# Note: Standalone is only available in CyborgDB Service,
+# not in the embedded library
+```
 </CodeGroup>
 
 ## Performance Characteristics
@@ -174,6 +217,7 @@ db_config = DBConfig("memory")
 | Backing Store | Latency | Throughput | Durability | Consistency |
 |---------------|:---------:|:------------:|:------------:|:-------------:|
 | **Memory**    | ~1µs    | Very High  | None       | Single Process |
+| **Standalone** | ~100µs  | Medium     | Local Disk | Eventually Consistent |
 | **Redis**     | ~100µs  | High       | Configurable | Eventually Consistent |
 | **PostgreSQL** | ~1ms   | Medium     | Full       | ACID |
 

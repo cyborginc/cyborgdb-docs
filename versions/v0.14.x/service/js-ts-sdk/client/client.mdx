@@ -63,12 +63,18 @@ All methods throw standard JavaScript `Error` objects with descriptive messages 
 
 ## Type Safety
 
-The TypeScript SDK provides full type safety with:
+The TypeScript SDK provides comprehensive type safety with:
 
-- Strongly typed method parameters and return values
-- Type definitions for all configuration objects including `CreateIndexRequest`, `IndexIVFPQ`, `IndexIVFFlat`, `IndexIVF`, and `IndexOperationRequest`
-- IntelliSense support in compatible IDEs
-- Compile-time validation of API usage
+- **Strongly typed method parameters and return values**: All methods have explicit return types (e.g., `Promise<HealthResponse>`, `Promise<TrainResponse>`)
+- **JSON type definitions**: Use `JsonValue`, `JsonObject`, `VectorMetadata`, and related types for type-safe metadata handling
+- **Filter expressions**: `FilterExpression` and `FilterOperator` types for MongoDB-style query filtering
+- **Response types**: Dedicated interfaces like `UpsertResponse`, `DeleteResponse`, `TrainResponse`, `HealthResponse`, and `TrainingStatus`
+- **Utility functions**: Type guards (`isJsonValue`, `isError`) and helpers (`getErrorMessage`) for safer error handling
+- **Configuration objects**: Full type definitions for `CreateIndexRequest`, `IndexIVFPQ`, `IndexIVFFlat`, `IndexIVF`, and `IndexOperationRequest`
+- **IntelliSense support**: Full autocomplete and inline documentation in compatible IDEs
+- **Compile-time validation**: Catch type errors at compile time rather than runtime
+
+For detailed information on all available types, see the [Types reference](../types).
 
 ## Development Features
 
