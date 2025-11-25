@@ -55,7 +55,7 @@ from cyborgdb import Client
 client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
 # Generate a secure encryption key
-index_key = client.generate_key()
+index_key = client.generate_key(save=True)
 
 # Create an index
 index = client.create_index('documents', index_key)
@@ -72,7 +72,7 @@ from cyborgdb import Client, IndexIVFFlat
 client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
 # Generate a secure encryption key
-index_key = client.generate_key()
+index_key = client.generate_key(save=True)
 
 # Create a basic IVFFlat index
 config = IndexIVFFlat()
@@ -88,7 +88,7 @@ from cyborgdb import Client, IndexIVFPQ
 client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
 # Generate a secure encryption key
-index_key = client.generate_key()
+index_key = client.generate_key(save=True)
 
 # Create an IVFPQ index with automatic embedding generation
 config = IndexIVFPQ(pq_dim=64, pq_bits=8)

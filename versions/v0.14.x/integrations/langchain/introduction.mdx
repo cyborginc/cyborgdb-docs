@@ -65,7 +65,7 @@ from cyborgdb_core import DBConfig
 store = CyborgVectorStore.from_texts(
     texts=["hello world", "goodbye world"],
     embedding="all-MiniLM-L6-v2",  # sentence-transformer name
-    index_key=CyborgVectorStore.generate_key(),
+    index_key=CyborgVectorStore.generate_key(save=True),
     api_key="your-api-key",
     index_location=DBConfig("memory"),
     config_location=DBConfig("memory"),

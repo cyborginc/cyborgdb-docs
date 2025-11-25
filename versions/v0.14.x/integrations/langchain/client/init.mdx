@@ -59,7 +59,7 @@ from cyborgdb_core.langchain import CyborgVectorStore
 from cyborgdb_core import DBConfig
 
 # Generate a secure key
-index_key = CyborgVectorStore.generate_key()
+index_key = CyborgVectorStore.generate_key(save=True)
 
 # Initialize with string embedding model name
 store = CyborgVectorStore(

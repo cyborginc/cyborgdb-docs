@@ -7,8 +7,14 @@ Generates a cryptographically secure 256-bit (32-byte) encryption key suitable f
 
 ```python
 @staticmethod
-generate_key() -> bytes
+generate_key(save: bool = False) -> bytes
 ```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `save` | `bool` | `False` | Whether to save/load the generated key to/from a file on your local machine |
 
 ### Returns
 
@@ -21,6 +27,7 @@ The generated key is cryptographically secure and suitable for production use:
 - Uses Python's `secrets.token_bytes()` which leverages OS entropy sources for maximum security
 - Provides 256 bits of entropy (32 bytes)
 - Compatible with AES-256 encryption used by CyborgDB
+- If `save=True`, the key is stored in the file `~/.cyborgdb/index_key` for future retrieval
 
 <Warning>
 This key must be persisted securely. For more information, see [Managing Encryption Keys](../../guides/advanced/managing-keys).
@@ -34,7 +41,7 @@ from cyborgdb import Client
 client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
 # Generate a secure encryption key
-index_key = client.generate_key()
+index_key = client.generate_key(save=True)
 print(f'Generated key length: {len(index_key)}')  # Output: 32
 
 index = client.create_index(

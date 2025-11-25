@@ -17,7 +17,7 @@ client = Client(
 )
 
 # Generate an encryption key for the index
-index_key = client.generate_key()
+index_key = client.generate_key(save=True)
 
 # Create an encrypted index
 index = client.create_index(
@@ -149,7 +149,7 @@ client = Client(
 )
 
 # Generate an encryption key for the index
-index_key = client.generate_key()
+index_key = client.generate_key(save=True)
 
 # Set embedding model (from HuggingFace)
 embedding_model = "sentence-transformers/all-MiniLM-L6-v2"

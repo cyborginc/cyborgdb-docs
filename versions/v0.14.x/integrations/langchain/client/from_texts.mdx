@@ -74,7 +74,7 @@ store = CyborgVectorStore.from_texts(
     embedding="sentence-transformers/all-MiniLM-L6-v2",
     metadatas=metadatas,
     index_name="python_docs",
-    index_key=CyborgVectorStore.generate_key(),
+    index_key=CyborgVectorStore.generate_key(save=True),
     api_key="your-api-key",
     index_location=DBConfig("s3", bucket="my-bucket"),
     config_location=DBConfig("s3", bucket="my-bucket")

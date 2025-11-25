@@ -38,7 +38,7 @@ index_config = IndexIVFFlat()
 
 # Generate encryption key and create the index
 index_name = "test_index"
-index_key = client.generate_key()  # Generate secure 32-byte key
+index_key = client.generate_key(save=True)  # Generate secure 32-byte key
 index = client.create_index(
     index_name=index_name, 
     index_key=index_key, 
@@ -163,7 +163,7 @@ index_config = IndexIVFPQ(pq_dim, pq_bits)
 
 # Generate encryption key and create the index
 index_name = "test_index"
-index_key = client.generate_key()  # Generate secure 32-byte key
+index_key = client.generate_key(save=True)  # Generate secure 32-byte key
 
 index = client.create_index(
     index_name=index_name, 
@@ -300,7 +300,7 @@ index_config = IndexIVF()
 
 # Generate encryption key and create the index
 index_name = "test_index"
-index_key = client.generate_key()  # Generate secure 32-byte key
+index_key = client.generate_key(save=True)  # Generate secure 32-byte key
 
 index = client.create_index(
     index_name=index_name, 

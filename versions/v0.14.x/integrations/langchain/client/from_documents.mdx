@@ -53,7 +53,7 @@ store = CyborgVectorStore.from_documents(
     documents=documents,
     embedding="sentence-transformers/all-mpnet-base-v2",
     index_name="nlp_documents",
-    index_key=CyborgVectorStore.generate_key(),
+    index_key=CyborgVectorStore.generate_key(save=True),
     api_key="your-api-key",
     index_location=DBConfig("memory"),
     config_location=DBConfig("memory")

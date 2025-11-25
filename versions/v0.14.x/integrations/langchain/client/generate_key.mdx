@@ -7,8 +7,13 @@ Generates a secure random 32-byte encryption key for index encryption.
 
 ```python
 @staticmethod
-generate_key() -> bytes
+generate_key(save: bool = False) -> bytes
 ```
+
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `save` | `bool` | `False` | Whether to save/load the generated key to/from a local file |
 
 ### Returns
 
@@ -18,7 +23,7 @@ generate_key() -> bytes
 
 ```python
 # Generate a new encryption key
-index_key = CyborgVectorStore.generate_key()
+index_key = CyborgVectorStore.generate_key(save=True)
 print(f"Key length: {len(index_key)} bytes")
 
 # Use the key to create a store

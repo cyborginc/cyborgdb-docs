@@ -49,7 +49,7 @@ Already using AI frameworks? Get started even faster with our native integration
     store = CyborgVectorStore.from_texts(
         texts=["hello world", "goodbye world"],
         embedding="all-MiniLM-L6-v2",
-        index_key=CyborgVectorStore.generate_key(),
+        index_key=CyborgVectorStore.generate_key(save=True),
         # ... other config
     )
     ```
