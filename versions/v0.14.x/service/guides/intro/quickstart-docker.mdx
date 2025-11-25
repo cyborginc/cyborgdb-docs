@@ -51,8 +51,9 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 <CodeGroup>
                 ```bash Linux
                 # Minimal configuration - uses built-in standalone
-                sudo docker run -it --network host \
+                sudo docker run -it --rm --network host \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -v cyborgdb-data:/home/cyborguser/.cyborgdb \
                   cyborginc/cyborgdb-service:latest
                 ```
 
@@ -60,6 +61,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 # Minimal configuration - uses built-in standalone
                 sudo docker run -it -p 8000:8000 \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -v cyborgdb-data:/home/cyborguser/.cyborgdb \
                   cyborginc/cyborgdb-service:latest
                 ```
                 </CodeGroup>
@@ -92,7 +94,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 ```bash Linux
                 sudo docker run -it --network host \
                   -e CYBORGDB_DB_TYPE=redis \
-                  -e "CYBORGDB_CONNECTION_STRING=host=localhost,port=6379,db=0" \
+                  -e "CYBORGDB_CONNECTION_STRING=host:localhost,port:6379,db:0" \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   cyborginc/cyborgdb-service:latest
                 ```
@@ -100,7 +102,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 ```bash macOS
                 sudo docker run -it -p 8000:8000 \
                   -e CYBORGDB_DB_TYPE=redis \
-                  -e 'CYBORGDB_CONNECTION_STRING=host=host.docker.internal,port=6379,db=0' \
+                  -e 'CYBORGDB_CONNECTION_STRING=host:host.docker.internal,port:6379,db:0' \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   cyborginc/cyborgdb-service:latest
                 ```
@@ -130,18 +132,18 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                     ports:
                       - "8000:8000"
                     environment:
-                      - CYBORGDB_DB_TYPE=postgres
-                      - CYBORGDB_CONNECTION_STRING=host=postgres port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
-                      - CYBORGDB_API_KEY=cyborg_your_api_key_here
+                      - CYBORGDB_DB_TYPE: postgres
+                      - CYBORGDB_CONNECTION_STRING: host=postgres port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
+                      - CYBORGDB_API_KEY: cyborg_your_api_key_here
                     depends_on:
                       - postgres
                   
                   postgres:
                     image: postgres:15
                     environment:
-                      - POSTGRES_DB=cyborgdb
-                      - POSTGRES_USER=cyborgdb
-                      - POSTGRES_PASSWORD=secure_password
+                      - POSTGRES_DB: cyborgdb
+                      - POSTGRES_USER: cyborgdb
+                      - POSTGRES_PASSWORD: secure_password
                     volumes:
                       - postgres_data:/var/lib/postgresql/data
                     ports:
@@ -168,9 +170,9 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                     ports:
                       - "8000:8000"
                     environment:
-                      - CYBORGDB_DB_TYPE=redis
-                      - CYBORGDB_CONNECTION_STRING=host=redis,port=6379,db=0
-                      - CYBORGDB_API_KEY=cyborg_your_api_key_here
+                      - CYBORGDB_DB_TYPE: redis
+                      - CYBORGDB_CONNECTION_STRING: host:redis,port:6379,db:0
+                      - CYBORGDB_API_KEY: cyborg_your_api_key_here
                     depends_on:
                       - redis
                   
@@ -202,7 +204,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         ```
 
         **API Documentation:**
-        Navigate to [http://localhost:8000/docs](http://localhost:8000/docs) to explore the interactive API documentation.
+        Navigate to [http://localhost:8000/v1/docs](http://localhost:8000/v1/docs) to explore the interactive API documentation.
 
         You should see a response indicating the service is healthy and ready to accept requests.
     </Step>
@@ -217,7 +219,6 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
                 | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `postgres` or `redis` |
                 | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See connection formats |
-                | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
                 | `PORT` | Service port | ❌ | `8000` |
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
                 | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
@@ -315,8 +316,8 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
 <Accordion title="Technical Specifications">
 
-- **Base Image**: `continuumio/miniconda3:latest`
-- **Python Version**: 3.12
+- **Base Image**: `python:3.11-slim`
+- **Python Version**: 3.11
 - **PyTorch**: CPU-optimized for maximum compatibility
 - **Docker Image Size**: ~1.8GB
 - **Platform**: linux/amd64, linux/arm64
