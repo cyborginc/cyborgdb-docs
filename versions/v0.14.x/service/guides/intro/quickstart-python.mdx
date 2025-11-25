@@ -123,14 +123,14 @@ The Python service is ideal for developers who prefer managing Python environmen
                 ```bash Linux/macOS
                 export CYBORGDB_API_KEY=cyborg_your_api_key_here
                 export CYBORGDB_DB_TYPE=redis
-                export CYBORGDB_CONNECTION_STRING="host=localhost,port=6379,db=0"
+                export CYBORGDB_CONNECTION_STRING="host:localhost,port:6379,db:0"
                 ```
 
                 ```bash .env File
                 # Create a .env file in your working directory
                 CYBORGDB_API_KEY=cyborg_your_api_key_here
                 CYBORGDB_DB_TYPE=redis
-                CYBORGDB_CONNECTION_STRING=host=localhost,port=6379,db=0
+                CYBORGDB_CONNECTION_STRING=host:localhost,port:6379,db:0
                 ```
                 </CodeGroup>
             </Tab>
@@ -165,7 +165,7 @@ The Python service is ideal for developers who prefer managing Python environmen
         ```
 
         **API Documentation:**
-        Navigate to [http://localhost:8000/docs](http://localhost:8000/docs) to explore the interactive API documentation.
+        Navigate to [http://localhost:8000/v1/docs](http://localhost:8000/v1/docs) to explore the interactive API documentation.
 
         You should see a response indicating the service is healthy and ready to accept requests.
     </Step>
@@ -180,7 +180,6 @@ The Python service is ideal for developers who prefer managing Python environmen
                 | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
                 | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `postgres` or `redis` |
                 | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See connection formats |
-                | `CYBORGDB_VERSION` | Service version (optional) | ❌ | `0.11.1` |
                 | `PORT` | Service port | ❌ | `8000` |
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
                 | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
