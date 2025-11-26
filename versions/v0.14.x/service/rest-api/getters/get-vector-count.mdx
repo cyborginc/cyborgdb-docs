@@ -1,0 +1,72 @@
+---
+title: "Get Vector Count"
+mode: "wide"
+api: "POST /v1/vectors/num_vectors"
+playground: "simple"
+---
+
+Get the number of vectors stored in an encrypted index.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes"
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to count vectors for
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+</Expandable>
+
+## Response
+
+```json
+{
+  "result": 1500
+}
+```
+
+<Expandable title="response fields">
+  <ResponseField name="result" type="integer">
+    Total number of vectors stored in the index
+  </ResponseField>
+</Expandable>
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters
+- `500`: Internal server error
+
+## Example Usage
+
+```bash
+# Get vector count
+count=$(curl -s -X POST "http://localhost:8000/v1/vectors/num_vectors" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }' | jq -r '.result')
+
+echo "Index contains $count vectors"
+```

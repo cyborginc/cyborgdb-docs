@@ -1,0 +1,194 @@
+---
+title: "Create a New Encrypted Index"
+sidebarTitle: "Create New Index"
+mode: "wide"
+---
+
+To create an encrypted index, you need to specify an index name (must be unique) and an index key:
+
+<CodeGroup>
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+import secrets
+
+# Using `memory` storage for this example
+index_location = cyborgdb.DBConfig("memory") 
+config_location = cyborgdb.DBConfig("memory")
+
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
+# Create a client
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location
+)
+
+# Generate an encryption key for the index
+index_key = secrets.token_bytes(32)
+
+# Create an encrypted index
+index = client.create_index(
+    index_name="my_index", 
+    index_key=index_key
+)
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
+#include <openssl/rand.h>
+#include <array>
+
+// Using `memory` storage for this example
+cyborg::DBConfig index_location(cyborg::Location::kMemory);
+cyborg::DBConfig config_location(cyborg::Location::kMemory);
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
+
+// Create a client
+cyborg::Client client(api_key, index_location, config_location);
+
+// Generate a 32-byte secure encryption key using OpenSSL
+std::array<uint8_t, 32> index_key;
+if (RAND_bytes(index_key.data(), index_key.size()) != 1) {
+    throw std::runtime_error("Failed to generate secure random key");
+}
+
+// Create an encrypted index
+auto index = client.CreateIndex("my_index", index_key);
+```
+</CodeGroup>
+
+This creates a new encrypted index with the IVFFlat type by default. For more details on IVFFlat and other index options, see [Configure an Encrypted Index](../advanced/configure-index).
+
+<Warning>The example above creates a random 32 byte (256-bit) index key.
+This is fine for evaluation purposes, but for production use, we recommend that you use an HSM or KMS solution.
+For more details, see [Managing Encryption Keys](../advanced/managing-keys).</Warning>
+
+## Encrypted Index Caching
+
+For improved query performance, you can enable encrypted index caching by setting a `max_cache_size`:
+
+<CodeGroup>
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+import secrets
+
+# Using `memory` storage for this example
+index_location = cyborgdb.DBConfig("memory") 
+config_location = cyborgdb.DBConfig("memory")
+
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
+# Create a client
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location
+)
+
+# Generate an encryption key for the index
+index_key = secrets.token_bytes(32)
+
+# Set max cache size at 1MB
+max_cache_size = 1000000
+
+# Create an encrypted index
+index = client.create_index(
+    index_name="my_index", 
+    index_key=index_key, 
+    max_cache_size=max_cache_size
+)
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
+#include <openssl/rand.h>
+#include <array>
+
+// Using `memory` storage for this example
+cyborg::DBConfig index_location(cyborg::Location::kMemory);
+cyborg::DBConfig config_location(cyborg::Location::kMemory);
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
+
+// Create a client
+cyborg::Client client(api_key, index_location, config_location);
+
+// Example index config
+cyborg::IndexIVFFlat index_config;
+
+// Generate a 32-byte secure encryption key using OpenSSL
+std::array<uint8_t, 32> index_key;
+if (RAND_bytes(index_key.data(), index_key.size()) != 1) {
+    throw std::runtime_error("Failed to generate secure random key");
+}
+
+// Set max cache size at 1MB
+std::size_t max_cache_size = 1000000;
+
+// Create an encrypted index
+auto index = client.CreateIndex("my_index", index_key, index_config, max_cache_size);
+```
+</CodeGroup>
+
+The maximum cache size is specified in megabytes. When the cache reaches this size, the least recently used entries will be evicted.
+
+## Automatic Embedding Generation
+
+<Tip>This feature is only available in Python. To use it, use `pip install cyborgdb-core[embeddings]`</Tip>
+
+In the Python version of CyborgDB, you can enable automatic embedding generation for the encrypted index by setting `embedding_model` in `create_index()`:
+
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+import secrets
+
+# Using `memory` storage for this example
+index_location = cyborgdb.DBConfig("memory")
+config_location = cyborgdb.DBConfig("memory")
+items_location = cyborgdb.DBConfig("memory")
+
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
+# Create a client
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location, 
+    items_location=items_location
+)
+
+# Generate an encryption key for the index
+index_key = secrets.token_bytes(32)
+
+# Set embedding model (from HuggingFace)
+embedding_model = "all-MiniLM-L6-v2"
+
+# Create an encrypted index with managed embedding generation
+index = client.create_index(
+    index_name="my_index", 
+    index_key=index_key, 
+    embedding_model=embedding_model
+)
+```
+
+## API Reference
+
+For more information on creating encrypted indexes, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../python/client/create-index" icon="python">
+        API reference for `create_index()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../cpp/client/create-index" icon="brackets-curly">
+        API reference for `CreateIndex()` in C++
+    </Card>
+</CardGroup>

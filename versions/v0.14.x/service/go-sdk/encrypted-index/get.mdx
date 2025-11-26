@@ -1,0 +1,106 @@
+---
+title: "Get"
+mode: "wide"
+---
+
+Retrieves specific vectors from the index by their IDs. This method allows efficient retrieval of vectors and their metadata without performing similarity search.
+
+```go
+func (e *EncryptedIndex) Get(ctx context.Context, ids []string, include []string) (*GetResponse, error)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation and timeouts |
+| `ids` | `[]string` | Slice of vector IDs to retrieve |
+| `include` | `[]string` | Fields to include in response: "vector", "metadata", "contents" |
+
+### Returns
+
+- `*GetResponse`: Retrieved vectors with requested fields
+- `error`: Any error encountered, including IDs not found
+
+### Error Handling
+
+<AccordionGroup>
+    <Accordion title="API Errors">
+        - Returns error if the API request fails due to network connectivity issues
+        - Returns error if authentication fails (invalid API key)
+        - Returns error if the encryption key is invalid for the specified index
+        - Returns error if there are internal server errors during retrieval
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Returns error if the IDs slice is empty
+        - Returns error if any ID is not found in the index
+        - Returns error if the include parameter contains invalid field names
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/hex"
+    "fmt"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Load an existing index
+    indexKeyHex := "your-64-character-hex-key-here"
+    indexKey, err := hex.DecodeString(indexKeyHex)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    index, err := client.LoadIndex(context.Background(), "my-vector-index", indexKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Retrieve specific vectors by ID
+    ids := []string{"doc1", "doc2", "doc3"}
+    include := []string{"vector", "metadata"}
+
+    results, err := index.Get(context.Background(), ids, include)
+    if err != nil {
+        log.Fatalf("Get failed: %v", err)
+    }
+
+    fmt.Printf("Retrieved %d vectors:\n", len(results.Results))
+    for i, result := range results.Results {
+        fmt.Printf("%d. ID: %s\n", i+1, result.Id)
+
+        if result.Metadata != nil {
+            fmt.Printf("   Metadata: %v\n", result.Metadata)
+        }
+
+        if result.Vector != nil {
+            fmt.Printf("   Vector dimensions: %d\n", len(result.Vector))
+            fmt.Printf("   Vector preview: [%.3f, %.3f, ...]\n",
+                result.Vector[0], result.Vector[1])
+        }
+    }
+}
+```
+
+### Response Item Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `Id` | `string` | Vector identifier (always included) |
+| `Vector` | `[]float32` | Vector data (if included) |
+| `Contents` | `string` | Vector contents (if included) |
+| `Metadata` | `map[string]interface{}` | Vector metadata (if included) |

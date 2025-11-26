@@ -1,0 +1,91 @@
+---
+title: "Getter Functions"
+---
+
+## is_trained
+
+```cpp
+bool is_trained() const;
+```
+
+Returns whether the index has been trained.
+
+---
+
+## index_name
+
+```cpp
+std::string index_name() const;
+```
+
+Returns the name of the index.
+
+---
+
+## index_type
+
+```cpp
+IndexType index_type() const;
+```
+
+Returns the type of the index (for example, `ivf`, `ivfpq`, or `ivfflat`).
+
+---
+
+## index_config
+
+```cpp
+IndexConfig* index_config() const;
+```
+
+Returns a pointer to the index configuration.
+
+---
+
+## ListIDs
+
+```cpp
+std::vector<std::string> ListIDs();
+```
+
+Returns a vector containing all item IDs currently stored in the index.
+
+### Exceptions
+
+- **std::runtime_error**: Thrown if an error occurs during retrieval.
+
+---
+
+## NumVectors
+
+```cpp
+size_t NumVectors();
+```
+
+Returns the total number of vectors currently stored in the encrypted index.
+
+### Returns
+
+`size_t`: The number of vectors in the index.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::runtime_error">
+        - Throws if the index was not created or loaded yet.
+        - Throws if an error occurs while retrieving the count.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+// Get the number of vectors in the index
+size_t vector_count = index->NumVectors();
+std::cout << "Index contains " << vector_count << " vectors" << std::endl;
+
+// Use count for validation or progress reporting
+if (vector_count == 0) {
+    std::cout << "Index is empty, consider adding vectors" << std::endl;
+}
+```
