@@ -121,6 +121,31 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         For a complete setup with database included, use Docker Compose:
 
         <Tabs>
+            <Tab title="Quick Start (Standalone)">
+                Create a `docker-compose.yml` file:
+
+                ```yaml
+                version: '3.8'
+                services:
+                  cyborgdb:
+                    image: cyborginc/cyborgdb-service:latest
+                    ports:
+                      - "8000:8000"
+                    environment:
+                      - CYBORGDB_API_KEY=${CYBORGDB_API_KEY}
+                    volumes:
+                      - cyborgdb-data:/home/cyborguser/.cyborgdb
+                      - ./logs:/app/logs
+
+                volumes:
+                  cyborgdb-data:
+                ```
+
+                Then run:
+                ```bash
+                docker-compose up -d
+                ```
+            </Tab>
             <Tab title="With PostgreSQL">
                 Create a `docker-compose.yml` file:
 
