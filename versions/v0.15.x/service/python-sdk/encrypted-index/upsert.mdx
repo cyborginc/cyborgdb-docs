@@ -1,0 +1,80 @@
+---
+title: "Upsert"
+mode: "wide"
+---
+
+Adds new vectors to the index or updates existing ones. Supports both dictionary format and separate arrays for IDs and vectors.
+
+```python
+# Option 1: Dictionary format
+index.upsert(items)
+
+# Option 2: Separate arrays  
+index.upsert(ids, vectors)
+```
+
+### Parameters
+
+#### Option 1: Dictionary Format
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `items` | `List[Dict]` | - | List of dictionaries containing vector data |
+
+Where each dictionary can contain:
+
+```python
+[
+  {
+    "id": str, # Unique identifier for the vector
+    "vector": List[float], # The vector data
+    "contents": str | bytes, # Optional content (accepts both strings and bytes). Bytes are base64-encoded, strings are passed directly. All contents are encrypted before storage.
+    "metadata": Dict # Optional key-value pairs for filtering and retrieval
+  },
+  ...
+]
+```
+
+<Tip>The `contents` field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption, while strings are passed as-is. Contents are returned in their original format (string or bytes) when retrieved with `get()`.</Tip>
+
+#### Option 2: Separate Arrays
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ids` | `List[str]` | - | List of unique vector identifiers |
+| `vectors` | `List[List[float]]` or `np.ndarray` | - | Vector data as 2D array |
+
+### Returns
+
+`None`
+
+### Example Usage
+
+#### Dictionary Format
+
+```python
+# Basic vector upsert
+items = [
+    {
+        'id': 'doc1',
+        'vector': [0.1, 0.2, 0.3, 0.4]
+    },
+    {
+        'id': 'doc2', 
+        'vector': [0.5, 0.6, 0.7, 0.8]
+    }
+]
+
+index.upsert(items)
+```
+
+#### Separate Arrays
+
+```python
+import numpy as np
+
+# Using separate arrays
+ids = ['vec1', 'vec2', 'vec3']
+vectors = np.random.rand(3, 128).astype(np.float32)
+
+index.upsert(ids, vectors)
+```

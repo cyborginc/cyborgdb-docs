@@ -1,0 +1,155 @@
+---
+title: "Getters"
+---
+
+## index_name
+
+```python
+@property
+index_name: str
+```
+
+Returns the name of the encrypted index.
+
+### Returns
+
+`str`: The unique name identifier of the index.
+
+### Example Usage
+
+```python
+index_name = index.index_name
+print(f'Index name: {index_name}')
+# Output: "my-vectors"
+```
+
+---
+
+## index_type
+
+```python
+@property
+index_type: str
+```
+
+Returns the type of the index (for example, `'ivf'`, `'ivf_pq'`, or `'ivf_flat'`).
+
+### Returns
+
+`str`: The index type.
+
+### Example Usage
+
+```python
+index_type = index.index_type
+print(f'Index type: {index_type}')
+# Output: "ivf"
+
+if index_type == 'ivf_pq':
+    print('Using IVFPQ index for memory efficiency')
+elif index_type == 'ivf_flat':
+    print('Using IVFFlat index for high accuracy')
+```
+
+---
+
+## is_trained
+
+```python
+def is_trained() -> bool
+```
+
+Returns whether the index has been trained. Training is required for optimal query performance on IVF-based indexes.
+
+### Returns
+
+`bool`: `True` if the index has been trained, `False` otherwise.
+
+### Example Usage
+
+```python
+trained = index.is_trained()
+print(f'Index trained: {trained}')
+
+if not trained:
+    print('Index needs training for optimal performance')
+    index.train()
+```
+
+---
+
+## is_training
+
+```python
+def is_training() -> bool
+```
+
+Returns whether the index is currently in the process of training.
+
+### Returns
+
+`bool`: `True` if the index is currently training, `False` otherwise.
+
+### Example Usage
+
+```python
+import time
+
+index.train()  # Start training
+
+while index.is_training():
+    print('Index is still training...')
+    time.sleep(5)  # Wait before checking again
+print('Index training complete')
+
+```
+
+---
+
+## index_config
+
+```python
+@property
+index_config: Dict[str, Any]
+```
+
+Returns the index configuration object as a dictionary. The structure depends on the index type.
+
+### Returns
+
+`Dict[str, Any]`: Configuration dictionary containing index parameters.
+
+### Example Usage
+
+```python
+config = index.index_config
+print(f'Index configuration: {config}')
+
+# Access common properties
+print(f"Dimension: {config.get('dimension')}")
+print(f"Metric: {config.get('metric')}")
+print(f"Number of lists: {config.get('n_lists')}")
+
+# Type-specific properties
+if config.get('type') == 'ivfpq':
+    print(f"PQ dimension: {config.get('pq_dim')}")
+    print(f"PQ bits: {config.get('pq_bits')}")
+```
+
+### Configuration Properties
+
+#### Common Properties (All Index Types)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `type` | `str` | Index type (`'ivf'`, `'ivf_flat'`, or `'ivf_pq'`) |
+| `dimension` | `int` | Vector dimensionality |
+| `metric` | `str` | Distance metric (`'cosine'`, `'euclidean'`, etc.) |
+| `n_lists` | `int` | Number of inverted lists for clustering |
+
+#### IVFPQ-Specific Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `pq_dim` | `int` | Product quantization dimension |
+| `pq_bits` | `int` | Number of bits for quantization |

@@ -1,0 +1,81 @@
+---
+title: "Delete an Encrypted Index"
+sidebarTitle: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+To delete an exiting encrypted index, you can [load it](./load-index) and then call the `delete_index()` method.
+
+<CodeGroup>
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+import secrets
+
+# Using `memory` storage for this example
+index_location = cyborgdb.DBConfig("memory") 
+config_location = cyborgdb.DBConfig("memory")
+
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your actual API key
+
+# Create a client
+client = cyborgdb.Client(
+    api_key=api_key, 
+    index_location=index_location, 
+    config_location=config_location
+)
+
+# Provide the index key used when creating the index
+index_key = secrets.token_bytes(32)
+
+# Create an encrypted index
+index = client.load_index(
+    index_name="my_index", 
+    index_key=index_key
+)
+
+# Delete the index
+index.delete_index()
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
+#include <array>
+
+// Using `memory` storage for this example
+cyborg::DBConfig index_location(cyborg::Location::kMemory); 
+cyborg::DBConfig config_location(cyborg::Location::kMemory);
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your actual API key
+
+// Create a client
+cyborg::Client client(api_key, index_location, config_location);
+
+// Provide the index key used when creating the index
+// Example key (32 bytes)
+std::array<uint8_t, 32> index_key;
+
+// Create an encrypted index
+auto index = client.LoadIndex("my_index", index_key);
+
+// Delete the index
+index->DeleteIndex();
+```
+</CodeGroup>
+
+## API Reference
+
+For more information on deleting an encrypted index, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../python/encrypted-index/delete-index" icon="python">
+        API reference for `delete_index()` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../cpp/encrypted-index/delete-index" icon="brackets-curly">
+        API reference for `DeleteIndex()` in C++
+    </Card>
+</CardGroup>

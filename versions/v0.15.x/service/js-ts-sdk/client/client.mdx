@@ -1,0 +1,86 @@
+---
+title: "Client"
+mode: "wide"
+---
+
+`Client` is the main class exposed by CyborgDB TypeScript SDK. It provides an interface to interact with the CyborgDB vector database service, exposing functionality to create and list indexes. Operations within encrypted indexes (such as upsert and query) are contained within the `EncryptedIndex` class returned by `createIndex`.
+
+## Constructor
+
+```typescript
+new Client({
+    baseUrl: string,        // required
+    apiKey?: string,        // optional
+    verifySsl?: boolean     // optional, default: true
+})
+```
+
+Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `baseUrl` | `string` | Base URL of the CyborgDB microservice endpoint |
+| `apiKey` | `string` | _(Optional)_ API key for authentication with the microservice |
+| `verifySsl` | `boolean` | _(Optional)_ SSL verification setting. If not provided, auto-detects based on URL |
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+### SSL Verification
+
+The constructor includes intelligent SSL verification handling:
+
+- **Auto-detection**: For `localhost` and `127.0.0.1` URLs, SSL verification is automatically disabled for development convenience
+- **HTTP URLs**: SSL verification is automatically disabled for `http://` URLs
+- **Production Safety**: SSL verification is enabled by default for HTTPS URLs in production
+- **Manual Override**: You can explicitly set `verifySsl` to override the auto-detection behavior
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+// Create client with API key (SSL auto-detected)
+const client = new Client({ baseUrl: 'https://api.cyborgdb.co', apiKey: 'your-api-key' });
+
+// Create client for local development (SSL auto-disabled)
+const localClient = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+// Create client with explicit SSL verification disabled
+const devClient = new Client({ baseUrl: 'https://dev.cyborgdb.co', apiKey: 'dev-api-key', verifySsl: false });
+```
+
+## Error Handling
+
+The `Client` class includes comprehensive error handling that processes different types of API errors:
+
+- **HTTP Errors**: Status codes and response details are logged and converted to meaningful error messages
+- **Validation Errors**: Field validation failures are formatted with detailed information
+- **Network Errors**: Connection and timeout issues are handled gracefully
+
+All methods throw standard JavaScript `Error` objects with descriptive messages for easier debugging and error handling in your application.
+
+## Type Safety
+
+The TypeScript SDK provides comprehensive type safety with:
+
+- **Strongly typed method parameters and return values**: All methods have explicit return types (e.g., `Promise<HealthResponse>`, `Promise<TrainResponse>`)
+- **JSON type definitions**: Use `JsonValue`, `JsonObject`, `VectorMetadata`, and related types for type-safe metadata handling
+- **Filter expressions**: `FilterExpression` and `FilterOperator` types for MongoDB-style query filtering
+- **Response types**: Dedicated interfaces like `UpsertResponse`, `DeleteResponse`, `TrainResponse`, `HealthResponse`, and `TrainingStatus`
+- **Utility functions**: Type guards (`isJsonValue`, `isError`) and helpers (`getErrorMessage`) for safer error handling
+- **Configuration objects**: Full type definitions for `CreateIndexRequest`, `IndexIVFPQ`, `IndexIVFFlat`, `IndexIVF`, and `IndexOperationRequest`
+- **IntelliSense support**: Full autocomplete and inline documentation in compatible IDEs
+- **Compile-time validation**: Catch type errors at compile time rather than runtime
+
+For detailed information on all available types, see the [Types reference](../types).
+
+## Development Features
+
+The client includes several development-friendly features:
+
+- **Automatic SSL detection** for local development environments
+- **Console warnings** when SSL verification is disabled in production-like environments
+- **Node.js specific configurations** for SSL handling in server environments
+- **Standardized headers** with proper Content-Type and Accept headers

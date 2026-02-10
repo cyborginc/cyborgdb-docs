@@ -1,0 +1,67 @@
+---
+title: "Load Index"
+mode: "wide"
+---
+
+Loads an existing encrypted index and returns an instance of `EncryptedIndex`.
+
+```python
+def load_index(self, 
+               index_name: str, 
+               index_key: bytes, 
+               max_cache_size: int = 0,
+               logger: Logger = None)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|--------------|---------|------------------------------------------------------------------------|
+| `index_name` | `str` | Name of the index to load. |
+| `index_key` | `bytes` | 32-byte encryption key; must match the key used during [`create_index()`](./create-index). |
+| `max_cache_size` | `int` | _(Optional)_ Maximum size of local cache to keep for encrypted index (megabytes). Defaults to `0`. |
+| `logger` | [`Logger`](./logger) | _(Optional)_ Logger instance for capturing operation logs. Defaults to `None`. |
+
+### Returns
+
+`EncryptedIndex`: An instance of the loaded encrypted index.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the index name does not exist.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the index could not be loaded or decrypted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+
+index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+
+client = cyborgdb.Client(
+    api_key=api_key,
+    index_location=index_location,
+    config_location=config_location
+)
+
+index_name = "my_index"
+index_key = my_index_key  # Use the same 32-byte encryption key used during index creation
+
+# Optional: Set up logging
+logger = cyborgdb.Logger.instance()
+logger.configure(level="debug", to_file=True, file_path="index_loading.log")
+
+# Load the existing index with logging enabled
+index = client.load_index(
+    index_name=index_name, 
+    index_key=index_key,
+    logger=logger
+)
+```

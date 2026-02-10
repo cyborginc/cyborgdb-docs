@@ -1,0 +1,128 @@
+---
+title: "Upsert"
+mode: "wide"
+---
+
+Adds new vectors to the index or updates existing ones. Vector data is encrypted end-to-end before being stored.
+
+```go
+func (e *EncryptedIndex) Upsert(ctx context.Context, items []VectorItem) error
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation/timeouts |
+| `items` | [`[]VectorItem`](#vectoritem) | Slice of vector items to add or update |
+
+#### VectorItem
+
+```go
+type VectorItem struct {
+    Id       string                 `json:"id"`                // Unique identifier
+    Vector   []float32              `json:"vector,omitempty"`  // Vector data
+    Contents NullableContents       `json:"contents,omitempty"` // Optional text content
+    Metadata map[string]interface{} `json:"metadata,omitempty"` // Optional metadata
+}
+```
+
+### Returns
+
+| Type | Description |
+|------|-------------|
+| `error` | Any error encountered during the upsert operation |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are internal server errors preventing the upsert.
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Throws detailed validation errors for invalid VectorItem objects.
+        - Throws if vector dimensions don't match the index configuration.
+        - Throws if required fields are missing from vector items.
+        - Throws if array lengths don't match in parallel array format.
+        - Throws if vector elements are not finite numbers.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/hex"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Load existing index
+    client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    key := []byte("example-index-key-1234567890") // Replace with your actual encryption key
+    index, _ := client.LoadIndex(context.Background(), "my-documents", key)
+    
+    // Create vector items
+    items := []cyborgdb.VectorItem{
+        {
+            Id:     "doc1",
+            Vector: []float32{0.1, 0.2, 0.3, 0.4, 0.5},
+        },
+        {
+            Id:     "doc2",
+            Vector: []float32{0.6, 0.7, 0.8, 0.9, 1.0},
+        },
+    }
+    
+    // Upsert vectors
+    ctx := context.Background()
+    err := index.Upsert(ctx, items)
+    if err != nil {
+        log.Fatal("Upsert failed:", err)
+    }
+    
+    log.Printf("Successfully upserted %d vectors", len(items))
+}
+```
+
+#### Upsert with Metadata
+
+```go
+func upsertDocuments(index *cyborgdb.EncryptedIndex) error {
+    items := []cyborgdb.VectorItem{
+        {
+            Id:     "article_123",
+            Vector: []float32{0.1, 0.2, 0.3, 0.4}, // Document embedding
+            Metadata: map[string]interface{}{
+                "title":     "Go Programming Guide",
+                "category":  "programming",
+                "author":    "John Doe",
+                "published": "2024-01-15",
+                "tags":      []string{"golang", "tutorial", "beginner"},
+            },
+        },
+        {
+            Id:     "article_124", 
+            Vector: []float32{0.5, 0.6, 0.7, 0.8},
+            Metadata: map[string]interface{}{
+                "title":     "Advanced Go Patterns",
+                "category":  "programming", 
+                "author":    "Jane Smith",
+                "published": "2024-01-20",
+                "tags":      []string{"golang", "advanced", "patterns"},
+            },
+        },
+    }
+    
+    ctx := context.Background()
+    return index.Upsert(ctx, items)
+}
+```

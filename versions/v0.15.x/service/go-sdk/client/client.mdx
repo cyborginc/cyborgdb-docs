@@ -1,0 +1,131 @@
+---
+title: "Client"
+mode: "wide"
+---
+
+`Client` is the main struct exposed by the CyborgDB Go SDK. It provides a high-level interface to interact with the CyborgDB vector database service, allowing you to create and manage encrypted indexes.
+
+## Constructor
+
+```go
+func NewClient(baseURL, apiKey string, verifySSL ...bool) (*Client, error)
+```
+
+Creates a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `baseURL` | `string` | Base URL of the CyborgDB microservice endpoint |
+| `apiKey` | `string` | API key for authentication with the microservice |
+| `verifySSL` | `...bool` | _(Optional)_ SSL verification setting. If omitted, auto-detects based on URL |
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client with API key
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Test the connection
+    ctx := context.Background()
+    health, err := client.GetHealth(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Service health: %+v\n", health)
+}
+```
+
+## Error Handling
+
+The `Client` struct includes comprehensive error handling that processes different types of API errors:
+
+- **HTTP Errors**: Status codes and response details are logged and converted to meaningful error messages
+- **Validation Errors**: Field validation failures are formatted with detailed information  
+- **Network Errors**: Connection and timeout issues are handled gracefully
+
+All methods return Go-idiomatic error values as the second return parameter for easy error checking and handling in your application.
+
+## Type Safety
+
+The Go SDK provides full type safety with strongly typed method parameters and return values, IDE support with autocomplete and documentation, and compile-time validation of API usage.
+
+## Error Variables
+
+The SDK exports specific error variables that you can check for particular error conditions:
+
+### Client Errors
+
+```go
+import "github.com/cyborginc/cyborgdb-go"
+
+// ErrInvalidKeyLength is returned when an index key is not exactly 32 bytes
+var ErrInvalidKeyLength = errors.New("index key must be exactly 32 bytes")
+
+// ErrKeyGeneration is returned when key generation fails
+var ErrKeyGeneration = errors.New("failed to generate key")
+
+// ErrInvalidURL is returned when the base URL is invalid
+var ErrInvalidURL = errors.New("invalid base URL")
+```
+
+### EncryptedIndex Errors
+
+```go
+// ErrQueryVectorsInvalidType is returned when query vectors have invalid types
+var ErrQueryVectorsInvalidType = errors.New("queryVectors must be []float32 for single vector queries or [][]float32 for batch queries")
+
+// ErrMissingQueryInput is returned when no query input is provided
+var ErrMissingQueryInput = errors.New("either queryVectors or queryContents must be provided")
+
+// ErrUnexpectedTrainingStatus is returned when training status response is unexpected
+var ErrUnexpectedTrainingStatus = errors.New("unexpected training status response format")
+```
+
+### Example Usage
+
+```go
+import (
+    "errors"
+    "fmt"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func createIndex(client *cyborgdb.Client, key []byte) error {
+    params := &cyborgdb.CreateIndexParams{
+        IndexName: "my-index",
+        IndexKey:  key,
+        IndexConfig: cyborgdb.IndexIVFFlat(768),
+    }
+
+    _, err := client.CreateIndex(context.Background(), params)
+    if err != nil {
+        // Check for specific error types
+        if errors.Is(err, cyborgdb.ErrInvalidKeyLength) {
+            return fmt.Errorf("provided key has wrong length: %w", err)
+        }
+        return fmt.Errorf("failed to create index: %w", err)
+    }
+
+    return nil
+}
+```

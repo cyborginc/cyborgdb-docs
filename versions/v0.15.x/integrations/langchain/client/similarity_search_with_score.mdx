@@ -1,0 +1,47 @@
+---
+title: "similarity_search_with_score"
+mode: "wide"
+---
+
+Returns documents most similar to the query along with relevance scores.
+
+```python
+similarity_search_with_score(
+    query: str,
+    k: int = 4,
+    filter: Optional[Dict[str, Any]] = None,
+    **kwargs
+) -> List[Tuple[Document, float]]
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query` | `str` | Query text to search for |
+| `k` | `int` | Number of documents to return (default: 4) |
+| `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
+| `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
+
+### Returns
+
+`List[Tuple[Document, float]]`: List of (Document, score) tuples where score is normalized [0, 1]
+
+### Example Usage
+
+```python
+# Search with scores
+results = store.similarity_search_with_score("neural networks", k=3)
+
+for doc, score in results:
+    print(f"Score: {score:.4f}")
+    print(f"Content: {doc.page_content[:100]}...")
+    print(f"Metadata: {doc.metadata}")
+    print("---")
+
+# Filter results by score threshold
+threshold = 0.7
+high_score_results = [
+    (doc, score) for doc, score in results if score >= threshold
+]
+```

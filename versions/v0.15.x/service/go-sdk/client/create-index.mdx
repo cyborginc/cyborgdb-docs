@@ -1,0 +1,123 @@
+---
+title: "Create Index"
+mode: "wide"
+---
+
+Creates a new encrypted vector index using comprehensive parameters. The new index is empty and ready for vector operations.
+
+```go
+func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*EncryptedIndex, error)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation/timeouts |
+| `params` | [`*CreateIndexParams`](#createindexparams) | Complete configuration for the new index |
+
+#### CreateIndexParams
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `IndexName` | `string` | Yes | Unique identifier for the index |
+| `IndexKey` | `[]byte` | Yes | 32-byte encryption key |
+| `IndexConfig` | `IndexModel` | No | Index configuration (IVF, IVFFlat, or IVFPQ) |
+| `Metric` | `*string` | No | Distance metric (e.g., "euclidean", "cosine") |
+| `EmbeddingModel` | `*string` | No | Associated embedding model name |
+
+### Returns
+
+| Type | Description |
+|------|-------------|
+| `*EncryptedIndex` | Handle for performing vector operations on the new index |
+| `error` | Any error encountered during index creation |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the index name already exists on the server.
+        - Throws if the index configuration is invalid or missing required parameters.
+        - Throws if the encryption key is not exactly 32 bytes.
+        - Throws if the embedding model is not supported by the server.
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Automatic Index Config
+
+```go
+package main
+
+import (
+    "context"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Generate encryption key
+    key, err := cyborgdb.GenerateKey()
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Create basic index
+    params := &cyborgdb.CreateIndexParams{
+        IndexName: "my-documents",
+        IndexKey:  key,  // Pass bytes directly
+    }
+    
+    ctx := context.Background()
+    index, err := client.CreateIndex(ctx, params)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    log.Printf("Created index: %s", index.GetIndexName())
+}
+```
+
+<Note>For more info on `generateKey`, refer to [Generate Key](./generate-key).</Note>
+
+#### IVFFlat Index with Embedding Model
+
+```go
+// Initialize client
+client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+key, _ := cyborgdb.GenerateKey()
+
+// Create an IVFFlat index with automatic embedding generation
+config := cyborgdb.IndexIVFFlat()
+
+embeddingModel := "text-embedding-3-large"
+
+params := &cyborgdb.CreateIndexParams{
+    IndexName:      "large-dataset",
+    IndexKey:       key,
+    IndexConfig:    config,
+    Metric:         &metric,
+    EmbeddingModel: &embeddingModel,
+}
+
+ctx := context.Background()
+index, err := client.CreateIndex(ctx, params)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>

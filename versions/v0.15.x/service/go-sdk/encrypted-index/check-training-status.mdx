@@ -1,0 +1,177 @@
+---
+title: "Check Training Status"
+mode: "wide"
+---
+
+Checks whether the index is currently being trained and updates the cached training status if training has completed.
+
+```go
+func (e *EncryptedIndex) CheckTrainingStatus(ctx context.Context) (bool, error)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation and timeouts |
+
+### Returns
+
+- `bool`: `true` if the index is currently being trained, `false` otherwise
+- `error`: Any error encountered during the status check
+
+### Behavior
+
+This method:
+1. Queries the server for the current training status across all indexes
+2. Checks if this specific index is in the list of indexes being trained
+3. If the index was previously untrained but is no longer in the training list, queries the index info to update the cached training status
+4. Returns whether the index is currently being trained
+
+The cached `IsTrained()` status is automatically updated if training has completed.
+
+### Error Handling
+
+<AccordionGroup>
+    <Accordion title="API Errors">
+        - Returns error if the API request fails due to network connectivity issues
+        - Returns error if authentication fails (invalid API key)
+        - Returns error if the server response format is unexpected
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Basic Training Status Check
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Load an index
+    indexKey, _ := cyborgdb.GenerateKey()
+    index, err := client.LoadIndex(context.Background(), "my-index", indexKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Check if training is in progress
+    isTraining, err := index.CheckTrainingStatus(context.Background())
+    if err != nil {
+        log.Fatalf("Failed to check training status: %v", err)
+    }
+
+    if isTraining {
+        fmt.Println("Index is currently being trained")
+    } else {
+        fmt.Println("Index is not being trained")
+        fmt.Printf("Index trained status: %t\n", index.IsTrained())
+    }
+}
+```
+
+#### Polling Until Training Completes
+
+```go
+// Wait for training to complete by polling status
+func waitForTrainingCompletion(index *cyborgdb.EncryptedIndex) error {
+    ctx := context.Background()
+    ticker := time.NewTicker(5 * time.Second)
+    defer ticker.Stop()
+
+    timeout := time.After(30 * time.Minute)
+
+    for {
+        select {
+        case <-timeout:
+            return fmt.Errorf("training did not complete within timeout")
+        case <-ticker.C:
+            isTraining, err := index.CheckTrainingStatus(ctx)
+            if err != nil {
+                return fmt.Errorf("failed to check training status: %w", err)
+            }
+
+            if !isTraining {
+                fmt.Println("Training completed!")
+                return nil
+            }
+
+            fmt.Println("Still training...")
+        }
+    }
+}
+
+// Usage
+err := waitForTrainingCompletion(index)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Index is now trained: %t\n", index.IsTrained())
+```
+
+#### Trigger Training and Monitor Progress
+
+```go
+// Trigger training and monitor until completion
+func trainAndWait(index *cyborgdb.EncryptedIndex) error {
+    ctx := context.Background()
+
+    // Start training
+    fmt.Println("Initiating training...")
+    err := index.Train(ctx, cyborgdb.TrainParams{})
+    if err != nil {
+        return fmt.Errorf("failed to start training: %w", err)
+    }
+
+    // Training is asynchronous, so we need to poll
+    fmt.Println("Training started, monitoring progress...")
+
+    for {
+        time.Sleep(5 * time.Second)
+
+        isTraining, err := index.CheckTrainingStatus(ctx)
+        if err != nil {
+            return fmt.Errorf("failed to check status: %w", err)
+        }
+
+        if !isTraining {
+            fmt.Println("Training completed successfully!")
+            break
+        }
+
+        fmt.Println("Training in progress...")
+    }
+
+    return nil
+}
+```
+
+### Use Cases
+
+- **Monitoring async training**: Check if training triggered by auto-training thresholds is complete
+- **Coordination**: Ensure training has finished before performing critical queries
+- **Progress tracking**: Poll status to display training progress in applications
+- **Error recovery**: Detect if training has stalled or completed unexpectedly
+
+<Note>
+The training status is global across all indexes. This method specifically checks if *this* index is in the training queue.
+</Note>
+
+<Tip>
+Use this method in combination with `IsTrained()` to determine if an index needs training or if training is already in progress.
+</Tip>

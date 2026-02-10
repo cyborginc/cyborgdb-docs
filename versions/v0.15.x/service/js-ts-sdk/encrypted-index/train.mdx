@@ -1,0 +1,136 @@
+---
+title: "Train"
+mode: "wide"
+---
+
+Trains the encrypted index to optimize it for efficient similarity search queries. Training is essential for IVF-based indexes to achieve optimal query performance and accuracy.
+
+<Tip>In CyborgDB Service, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added.</Tip>
+
+```typescript
+async train({
+    nLists?: number,         // optional, default: undefined (server auto-selects)
+    batchSize?: number,      // optional, default: undefined (server uses 2048)
+    maxIters?: number,       // optional, default: undefined (server uses 100)
+    tolerance?: number,      // optional, default: undefined (server uses 1e-6)
+    maxMemory?: number       // optional, default: undefined (no limit)
+}): Promise<TrainResponse>
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `nLists` | `number` | `undefined` (server default: auto) | _(Optional)_ Number of inverted lists to use for the index. When undefined, server auto-selects based on the dataset size |
+| `batchSize` | `number` | `undefined` (server default: 2048) | _(Optional)_ Size of each batch processed during training. Larger values may improve training quality but use more memory |
+| `maxIters` | `number` | `undefined` (server default: 100) | _(Optional)_ Maximum number of iterations for the training algorithm. More iterations may improve accuracy but take longer |
+| `tolerance` | `number` | `undefined` (server default: 1e-6) | _(Optional)_ Convergence tolerance for training. Smaller values result in more precise training but may take longer |
+| `maxMemory` | `number` | `undefined` | _(Optional)_ Maximum memory usage in MB during training. When undefined, no memory limit is enforced |
+
+<Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
+
+### Returns
+
+`Promise<TrainResponse>`: A Promise that resolves to a response object containing the operation status and training completion message. See the [TrainResponse type](../types#trainresponse) for more details.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if there are insufficient resources to complete training.
+    </Accordion>
+    <Accordion title="Training Errors">
+        - Throws if the index has no vectors to train on.
+        - Throws if the index configuration is incompatible with training.
+        - Throws if training parameters are out of valid ranges.
+        - Throws if training fails to converge within the specified parameters.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+import { Client, TrainResponse } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+// Load an existing index
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey });
+
+// Add vectors to the index first
+await index.upsert({
+    items: [
+        { id: 'doc1', vector: [0.1, 0.2, 0.3, 0.4], metadata: { title: 'Document 1' } },
+        { id: 'doc2', vector: [0.4, 0.5, 0.6, 0.7], metadata: { title: 'Document 2' } },
+        { id: 'doc3', vector: [0.7, 0.8, 0.9, 1.0], metadata: { title: 'Document 3' } }
+    ]
+});
+
+// Train the index with default parameters
+try {
+    console.log('Starting index training...');
+    const startTime = Date.now();
+
+    const result: TrainResponse = await index.train();
+
+    const duration = Date.now() - startTime;
+    console.log(`Training completed in ${duration}ms`);
+    console.log('Training result:', result);
+    console.log(`Status: ${result.status}, Message: ${result.message}`);
+    
+    // Verify training completed
+    const isTrained = await index.isTrained();
+    console.log('Index is now trained:', isTrained);
+    
+    // Index is now optimized for queries
+    const queryResults = await index.query({ queryVectors: [0.1, 0.2, 0.3, 0.4], topK: 5 });
+    console.log('Query after training:', queryResults);
+    
+} catch (error: any) {
+    console.error('Training failed:', error.message);
+}
+```
+
+#### Custom Training Parameters
+
+```typescript
+try {
+    console.log('Starting high-quality training...');
+
+    const result = await index.train({
+        batchSize: 4096,    // larger batches for better quality
+        maxIters: 200,      // more iterations for convergence
+        tolerance: 1e-8     // stricter convergence criteria
+    });
+
+    console.log('High-quality training completed:', result);
+    return result;
+    
+} catch (error: any) {
+    console.error('High-quality training failed:', error.message);
+    throw error;
+}
+```
+
+### Response Format
+
+The method returns a response object with the following structure:
+
+```typescript
+// Standard training completion response
+{
+    "status": "success",
+    "message": "Index 'my-vector-index' trained successfully"
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Operation status (typically "success") |
+| `message` | `string` | Descriptive message about the training completion |

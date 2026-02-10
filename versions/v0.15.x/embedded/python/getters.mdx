@@ -1,0 +1,224 @@
+---
+title: "Getter Functions"
+---
+
+## is_trained
+
+Returns `True` if the index has been trained, enabling efficient approximate nearest neighbor search. An untrained index will default to exhaustive search.
+
+```python
+def is_trained(self) -> bool
+```
+
+### Returns
+
+`bool`: `True` if the index has been trained; otherwise, `False`.
+
+### Example Usage
+
+```python
+# Check if index is trained
+if index.is_trained():
+    print("The index is ready for efficient querying.")
+else:
+    print("The index is not trained; consider calling train().")
+```
+
+---
+
+## index_name
+
+Retrieves the name of the current index.
+
+```python
+def index_name(self) -> str
+```
+
+### Returns
+
+`str`: Name of the currently loaded or created index.
+
+### Example Usage
+
+```python
+# Retrieve the index name
+print("Current index name:", index.index_name())
+```
+
+---
+
+## index_type
+
+Returns the type of the current index (e.g., `ivf`, `ivfpq`, `ivfflat`).
+
+```python
+def index_type(self) -> str
+```
+
+### Returns
+| Return Type | Description |
+|-------------|-------------------------------------|
+| `str` | Type of the current index. |
+
+### Example Usage
+
+```python
+# Retrieve the type of index
+print("Index type:", index.index_type())
+```
+
+---
+
+## index_config
+
+Retrieves the configuration details of the current index.
+
+```python
+def index_config(self) -> dict
+```
+
+### Returns
+
+`dict`: A dictionary containing the configuration of the index with the following keys:
+- `dimension`: The dimensionality of the vectors
+- `metric`: The distance metric used (e.g., 'euclidean', 'cosine')
+- `index_type`: The type of the index (e.g., 'ivf', 'ivfpq', 'ivfflat')
+- `n_lists`: The number of inverted lists in the index
+- `pq_dim`: The PQ dimension (if applicable)
+- `pq_bits`: The PQ bits (if applicable)
+
+### Example Usage
+
+```python
+# Retrieve index config
+config = index.index_config()
+print(f"Dimension: {config['dimension']}")
+print(f"Metric: {config['metric']}")
+print(f"Index type: {config['index_type']}")
+```
+
+---
+
+## n_lists
+
+Returns the number of inverted lists in the index. This property is set during training and initially defaults to 1.
+
+```python
+@property
+def n_lists(self) -> int
+```
+
+### Returns
+
+`int`: The number of inverted lists in the index.
+
+### Example Usage
+
+```python
+# Access the n_lists property
+num_lists = index.n_lists
+print(f"Index has {num_lists} inverted lists")
+```
+
+---
+
+## dimension
+
+Returns the dimensionality of the vectors in the index.
+
+```python
+@property
+def dimension(self) -> int
+```
+
+### Returns
+
+`int`: The dimensionality of the vectors.
+
+### Example Usage
+
+```python
+# Access the dimension property
+vector_dim = index.dimension
+print(f"Vector dimension: {vector_dim}")
+```
+
+---
+
+## metric
+
+Returns the distance metric used by the index.
+
+```python
+@property
+def metric(self) -> str
+```
+
+### Returns
+
+`str`: The distance metric used (e.g., `"euclidean"`, `"cosine"`, `"squared_euclidean"`).
+
+### Example Usage
+
+```python
+# Access the metric property
+dist_metric = index.metric
+print(f"Distance metric: {dist_metric}")
+```
+
+---
+
+## get_num_vectors
+
+Returns the number of vectors currently stored in the index.
+
+```python
+def get_num_vectors(self) -> int
+```
+
+### Returns
+
+`int`: The number of vectors in the index.
+
+### Example Usage
+
+```python
+# Get the number of vectors in the index
+num_vectors = index.get_num_vectors()
+print(f"The index contains {num_vectors} vectors.")
+```
+
+---
+
+## list_ids
+
+Lists all item IDs currently stored in the index.
+
+```python
+def list_ids(self) -> List[str]
+```
+
+### Returns
+
+`List[str]`: A list containing all item IDs in the index.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the index was not created or loaded yet.
+        - Throws if an error occurs during retrieval.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# List all IDs in the index
+all_ids = index.list_ids()
+print(f"Total items in index: {len(all_ids)}")
+
+# Print first 10 IDs
+for id in all_ids[:10]:
+    print(f"ID: {id}")
+```

@@ -1,0 +1,26 @@
+---
+title: "CyborgDB Integrations"
+sidebarTitle: "Integrations"
+mode: "wide"
+---
+
+CyborgDB seamlessly integrates with popular AI and machine learning frameworks, enabling you to leverage confidential vector search within your existing workflows. These integrations provide native support for CyborgDB's encrypted vector operations while maintaining compatibility with familiar APIs and patterns.
+
+## Available Integrations
+
+### 🦜🔗 LangChain
+The LangChain integration provides a `CyborgVectorStore` class that implements the standard VectorStore interface, enabling confidential vector search for RAG pipelines and LLM applications. This integration supports both `cyborgdb-core` and includes:
+
+- Full VectorStore API compatibility (add_texts, similarity_search, etc.)
+- Async operations support
+- Configurable distance metrics (cosine, euclidean, squared_euclidean)
+- Document ID tracking and management
+- Max marginal relevance search
+
+<Tip>See the [LangChain Integration Guide](./langchain/introduction) for detailed usage instructions.</Tip>
+
+## Getting Started
+
+Each integration includes detailed installation instructions and usage examples. Choose the integration that matches your current tech stack to get started with confidential vector search in minutes.
+
+For deployment-specific guidance, see our [Deployment Models Guide](../intro/deployment-models) to understand the differences between `cyborgdb` and `cyborgdb-core`.

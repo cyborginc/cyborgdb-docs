@@ -1,0 +1,66 @@
+---
+title: "Load Index"
+mode: "wide"
+---
+
+Loads and connects to an existing encrypted index using its name and encryption key.
+
+```typescript
+async loadIndex({
+    indexName: string,      // required
+    indexKey: Uint8Array    // required
+}): Promise<EncryptedIndex>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `indexName` | `string` | Name of the existing index to load |
+| `indexKey` | `Uint8Array` | The exact 32-byte encryption key used when creating the index |
+
+<Warning>
+The encryption key must exactly match the key used during index creation.
+</Warning>
+
+### Returns
+
+`Promise<EncryptedIndex>`: A Promise that resolves to an `EncryptedIndex` instance ready for vector operations (query, upsert, delete, etc.)
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the index doesn't exist on the server
+        - Throws if the encryption key is incorrect or invalid
+        - Throws if the server returns an HTTP error status.
+        - Throws if authentication fails (invalid API key).
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+
+// Use the same key that was used to create the index
+const indexKey = new Uint8Array(32); // Your stored 32-byte key
+// Or convert from hex: Buffer.from('your-hex-key', 'hex')
+
+try {
+    const index = await client.loadIndex({ indexName: 'my-existing-index', indexKey });
+    console.log('Index loaded successfully');
+    
+    // Now you can perform operations on the loaded index
+    const results = await index.query({ queryVectors: [0.1, 0.2, 0.3], topK: 5 });
+    console.log('Query results:', results);
+} catch (error) {
+    console.error('Failed to load index:', error.message);
+}
+```

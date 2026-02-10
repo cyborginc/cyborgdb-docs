@@ -1,0 +1,103 @@
+---
+title: "Train an Encrypted Index"
+sidebarTitle: "Train Index"
+mode: "wide"
+---
+
+CyborgDB uses `IVF*` index types, which leverage clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
+
+<Tip>In CyborgDB Service, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added.</Tip>
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Train the encrypted index
+index.train()
+
+# Or train with a specific number of clusters
+index.train(n_lists=128)
+```
+
+```javascript JavaScript SDK icon="js"
+// Train the encrypted index
+await index.train();
+
+// Or train with a specific number of clusters
+await index.train({ n_lists: 128 });
+```
+
+```typescript TypeScript SDK icon="code"
+// Train the encrypted index
+await index.train();
+
+// Or train with a specific number of clusters
+await index.train({ n_lists: 128 });
+```
+
+```go Go SDK icon="golang"
+// Train the encrypted index
+err := index.Train(context.Background())
+
+// Or train with a specific number of clusters
+nLists := int32(128)
+err = index.Train(context.Background(), cyborgdb.TrainParams{
+    NLists: &nLists,
+})
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/indexes/train" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+</CodeGroup>
+
+<Tip>You must have at least `2 * n_lists` number of vectors in the index (ingested via `upsert`) before you can call `train`.</Tip>
+
+## Training Parameters
+
+Parameters are available to customize the training process:
+
+| Parameter | Type | Default | Description |
+|---------------|--------|---------|-------------------------------------------------------|
+| `n_lists` | `int` | `None` (auto) | _(Optional)_ Number of inverted index lists to create in the index. When `None` or omitted, auto-determines based on the number of vectors in the index. |
+| `batch_size` | `int` | `None` | _(Optional)_ Number of vectors to process per training batch. When `None`, the server uses 2048. |
+| `max_iters` | `int` | `None` | _(Optional)_ Maximum number of training iterations. When `None`, the server uses 100. |
+| `tolerance` | `float`| `None` | _(Optional)_ Convergence tolerance for training completion. When `None`, the server uses 1e-6. |
+
+`n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
+
+- A base-2 number (e.g., `2,048`, `4,096`). Not a requirement, but yields performance optimizations.
+- Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
+
+If not specified, CyborgDB will auto-determine the best `n_lists` value based on the number of vectors in the index.
+
+## Warnings with Large Untrained Queries
+
+While training is technically optional (you can use CyborgDB without ever calling `train`), it is recommended that you do so once you have a large number of vectors in the index (e.g., `> 50,000`). If you don't, and you call `query`, you will see a warning in the console, stating:
+
+```
+Warning: querying untrained index with more than 50000 indexed vectors.
+```
+
+## API Reference
+
+For more information on training an encrypted index, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/train" icon="rectangle-terminal">
+        REST API reference for `/v1/indexes/train`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/train" icon="python">
+        API reference for `train()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/train" icon="js">
+        API reference for `train()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/encrypted-index/train" icon="golang">
+        API reference for `Train()` in Go
+    </Card>
+</CardGroup>

@@ -1,0 +1,39 @@
+---
+title: "delete"
+mode: "wide"
+---
+
+Deletes documents from the vector store or deletes the entire index.
+
+```python
+delete(
+    ids: Optional[List[str]] = None,
+    delete_index: bool = False
+) -> bool
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ids` | `Optional[List[str]]` | _(Optional)_ List of document IDs to delete |
+| `delete_index` | `bool` | If True, deletes the entire index regardless of `ids` (default: False) |
+
+### Returns
+
+`bool`: True if deletion was successful, False otherwise
+
+### Example Usage
+
+```python
+# Delete specific documents
+doc_ids = ["doc1", "doc2", "doc3"]
+success = store.delete(ids=doc_ids)
+if success:
+    print("Documents deleted successfully")
+
+# Delete the entire index
+success = store.delete(delete_index=True)
+if success:
+    print("Index deleted successfully")
+```
