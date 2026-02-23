@@ -82,8 +82,15 @@ These environment variables must be set for the service to run:
         | Variable | Description | Default | Example |
         |----------|-------------|---------|---------|
         | `CPU_THREADS` | Number of CPU threads to use | `0` (auto-detect) | `4` |
-        | `GPU_ACCELERATE` | Enable GPU acceleration if available | `false` | `true` |
+        | `GPU_OPERATIONS` | GPU acceleration for specific operations | `none` | `all` |
+        | `RETRAIN_THRESHOLD` | Multiplier for automatic retraining threshold | `10000` | `5000` |
         | `WORKERS` | Number of worker processes for handling requests | `0` (auto-calculate) | `8` |
+
+        <Note>
+        `GPU_OPERATIONS` valid values: `none`, `upsert`, `train`, `query`, `all`, or comma-separated (e.g., `upsert,train`).
+
+        `RETRAIN_THRESHOLD` controls when auto-training triggers: training is initiated when `num_vectors > n_lists * RETRAIN_THRESHOLD`.
+        </Note>
     </Accordion>
     <Accordion title="System Configuration">
         These variables control system-level settings:

@@ -84,11 +84,12 @@ The `CreateIndexRequest` interface defines the parameters for creating a new enc
 ### Example Usage
 
 ```typescript
-import { CreateIndexRequest, IndexIVF } from 'cyborgdb';
+import { CreateIndexRequest, IndexIVFSQ } from 'cyborgdb';
 
 const createRequest: CreateIndexRequest = {
     indexConfig: {
-        type: 'ivf',
+        type: 'ivfsq',
+        sqBits: 16,
         dimension: 768
     },
     indexKey: Client.generateKey(), // Uint8Array (32 bytes)
@@ -306,28 +307,30 @@ const vectorItem: VectorItem = {
 
 ## Index Configuration Types
 
-### IndexIVF
+### IndexIVFSQ
 
-Standard IVF (Inverted File) index configuration, ideal for balanced performance:
+IVFSQ (Scalar Quantization) index configuration, compresses each dimension independently for a balance of speed and index size:
 
 | Speed | Accuracy | Memory Usage |
 |-------|----------|--------------|
-| Fast  | Good     | Medium       |
+| Fast  | High     | Low          |
 
 #### Properties
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `type` | `'ivf'` | Yes | - | Index type identifier |
+| `type` | `'ivfsq'` | Yes | - | Index type identifier |
+| `sqBits` | `number` | No | `16` | Number of bits per dimension for scalar quantization |
 | `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
 
 #### Example Usage
 
 ```typescript
-import { IndexIVF } from 'cyborgdb';
+import { IndexIVFSQ } from 'cyborgdb';
 
-const indexConfig: IndexIVF = {
-    type: 'ivf',
+const indexConfig: IndexIVFSQ = {
+    type: 'ivfsq',
+    sqBits: 16,
     dimension: 768
 };
 ```

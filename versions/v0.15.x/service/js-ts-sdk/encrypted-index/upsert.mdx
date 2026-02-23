@@ -32,7 +32,9 @@ async upsert({
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `ids` | `string[]` | Array of ID strings for each vector |
-| `vectors` | `number[][]` | Array of vector embeddings corresponding to each ID |
+| `vectors` | `number[][]` \| `Float32Array` | Array of vector embeddings corresponding to each ID |
+
+<Tip>Passing a `Float32Array` automatically uses an optimized binary transfer format for better performance with large batches.</Tip>
 
 #### VectorItem Structure
 

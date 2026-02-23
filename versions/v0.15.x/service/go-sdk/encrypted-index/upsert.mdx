@@ -6,15 +6,30 @@ mode: "wide"
 Adds new vectors to the index or updates existing ones. Vector data is encrypted end-to-end before being stored.
 
 ```go
+// Item-based upsert
 func (e *EncryptedIndex) Upsert(ctx context.Context, items []VectorItem) error
+
+// Binary format upsert (convenience method)
+func (e *EncryptedIndex) UpsertVectors(ctx context.Context, ids []string, vectors [][]float32, metadata []map[string]interface{}) error
 ```
 
-### Parameters
+### Parameters (Upsert)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `ctx` | `context.Context` | Context for cancellation/timeouts |
 | `items` | [`[]VectorItem`](#vectoritem) | Slice of vector items to add or update |
+
+### Parameters (UpsertVectors)
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation/timeouts |
+| `ids` | `[]string` | Slice of unique identifiers, one per vector |
+| `vectors` | `[][]float32` | Slice of vector embeddings |
+| `metadata` | `[]map[string]interface{}` | Optional slice of metadata maps (can be nil) |
+
+<Tip>`UpsertVectors` automatically uses an optimized binary transfer format for better performance with large batches.</Tip>
 
 #### VectorItem
 
@@ -124,5 +139,22 @@ func upsertDocuments(index *cyborgdb.EncryptedIndex) error {
     
     ctx := context.Background()
     return index.Upsert(ctx, items)
+}
+```
+
+#### UpsertVectors (Binary Format)
+
+```go
+// Efficient bulk upsert using binary transfer
+ids := []string{"vec1", "vec2", "vec3"}
+vectors := [][]float32{
+    {0.1, 0.2, 0.3, 0.4},
+    {0.5, 0.6, 0.7, 0.8},
+    {0.9, 1.0, 1.1, 1.2},
+}
+
+err := index.UpsertVectors(context.Background(), ids, vectors, nil)
+if err != nil {
+    log.Fatal("UpsertVectors failed:", err)
 }
 ```

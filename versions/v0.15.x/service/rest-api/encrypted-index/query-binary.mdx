@@ -1,0 +1,121 @@
+---
+title: "Query Vectors (Binary)"
+mode: "wide"
+api: "POST /v1/vectors/query_binary"
+playground: "simple"
+---
+
+Search for nearest neighbors in the encrypted index using binary-encoded query vectors for more efficient transfer of large batch queries.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "batch": {
+    "vectors_b64": "BASE64_ENCODED_FLOAT32_ARRAY",
+    "dimension": 384
+  },
+  "top_k": 10,
+  "n_probes": 5,
+  "greedy": false,
+  "filters": {"category": "research"},
+  "include": ["distance", "metadata"]
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the target index
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="batch" type="object" required="true">
+    Batch of query vectors in binary format:
+
+    <Expandable title="batch parameters">
+      <ParamField body="vectors_b64" type="string" required="true">
+        Base64-encoded float32 array. The decoded bytes represent a flat array of `n_queries x dimension` little-endian float32 values
+      </ParamField>
+      <ParamField body="dimension" type="integer" required="true">
+        Dimensionality of each query vector
+      </ParamField>
+    </Expandable>
+  </ParamField>
+  <ParamField body="top_k" type="integer">
+    Number of nearest neighbors to return per query. Defaults to 100
+  </ParamField>
+  <ParamField body="n_probes" type="integer">
+    Number of clusters to probe during search. Auto-determined when not specified
+  </ParamField>
+  <ParamField body="greedy" type="boolean">
+    Whether to use greedy search algorithm. Defaults to false
+  </ParamField>
+  <ParamField body="filters" type="object">
+    Metadata filters to apply to the search
+  </ParamField>
+  <ParamField body="include" type="array[string]">
+    Fields to include in response: `"distance"`, `"metadata"`, `"vector"`, `"contents"`. Defaults to `["distance", "metadata"]`
+  </ParamField>
+</Expandable>
+
+## Response
+
+The response format is the same as the standard [query endpoint](./query):
+
+```json
+{
+  "results": [
+    [
+      {"id": "doc1", "distance": 0.125, "metadata": {"category": "research"}},
+      {"id": "doc2", "distance": 0.234, "metadata": {"category": "research"}}
+    ],
+    [
+      {"id": "doc3", "distance": 0.156, "metadata": {"category": "research"}},
+      {"id": "doc4", "distance": 0.278, "metadata": {"category": "research"}}
+    ]
+  ]
+}
+```
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters or vector dimensions
+- `500`: Internal server error
+
+## Example Usage
+
+```bash
+# Encode query vectors as base64 float32 array (example using Python)
+# query_vectors = np.array([[0.1, 0.2, 0.3, 0.4]], dtype=np.float32)
+# vectors_b64 = base64.b64encode(query_vectors.tobytes()).decode()
+
+curl -X POST "http://localhost:8000/v1/vectors/query_binary" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "batch": {
+         "vectors_b64": "zczMPc3MzD2amZk+mpkZPw==",
+         "dimension": 4
+       },
+       "top_k": 5
+     }'
+```
+
+<Tip>The binary format is more efficient than the standard JSON query for large batch queries, as it avoids the overhead of encoding each float as a JSON number. The SDK clients automatically use this format when query vectors are passed as typed arrays (e.g., `np.ndarray` in Python, `Float32Array` in JS/TS).</Tip>

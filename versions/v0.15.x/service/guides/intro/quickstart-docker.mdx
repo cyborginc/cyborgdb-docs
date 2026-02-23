@@ -15,6 +15,25 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
     <Step title="Get an API Key">
         To use CyborgDB, you need an API key. You can get one from the [CyborgDB Admin Dashboard](https://cyborgdb.co/).
 
+        For quick evaluation, you can generate a temporary demo key using any of the SDKs:
+
+        <CodeGroup>
+        ```python Python
+        import cyborgdb
+        print(cyborgdb.get_demo_api_key())
+        ```
+        ```javascript JavaScript
+        import { getDemoApiKey } from 'cyborgdb';
+        console.log(await getDemoApiKey());
+        ```
+        ```go Go
+        demoKey, _ := cyborgdb.GetDemoAPIKey("my demo app")
+        fmt.Println(demoKey)
+        ```
+        </CodeGroup>
+
+        Then use the printed key as your `CYBORGDB_API_KEY` when starting the service, and as the `api_key` when connecting with an SDK client.
+
         Make sure to keep your API key secure and do not share it publicly.
     </Step>
 

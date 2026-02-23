@@ -48,7 +48,7 @@ type CreateIndexParams struct {
 |-------|------|----------|-------------|
 | `IndexName` | `string` | Yes | Unique identifier for the index |
 | `IndexKey` | `[]byte` | Yes | 32-byte encryption key (use GenerateKey() to create) |
-| `IndexConfig` | `IndexModel` | No | Index configuration (IVF, IVFFlat, or IVFPQ) |
+| `IndexConfig` | `IndexModel` | No | Index configuration (IVFFlat, IVFPQ, or IVFSQ) |
 | `Metric` | `*string` | No | Distance metric ("euclidean", "cosine") |
 | `EmbeddingModel` | `*string` | No | Name of embedding model to associate |
 
@@ -66,16 +66,22 @@ type IndexModel interface {
 }
 ```
 
-### IVF Configuration
+### IVFSQ Configuration
 
-Create an IVF (Inverted File) index configuration.
+Create an IVFSQ (Scalar Quantization) index configuration that compresses each dimension independently.
 
 ```go
-func IndexIVF(dimension int32) *indexIVF
+func IndexIVFSQ(dimension int32, sqBits int32) *indexIVFSQ
 ```
 
+#### Parameters
 
-### IVFFlat Configuration  
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dimension` | `int32` | The dimensionality of vectors that will be stored |
+| `sqBits` | `int32` | Number of bits per dimension for scalar quantization (typically 16) |
+
+### IVFFlat Configuration
 
 Create an IVFFlat (Inverted File Flat) index configuration for higher accuracy.
 

@@ -43,6 +43,8 @@ Where each dictionary can contain:
 | `ids` | `List[str]` | - | List of unique vector identifiers |
 | `vectors` | `List[List[float]]` or `np.ndarray` | - | Vector data as 2D array |
 
+<Tip>When `np.ndarray` is passed as vectors, they are automatically sent in an optimized binary format for better performance with large batches.</Tip>
+
 ### Returns
 
 `None`

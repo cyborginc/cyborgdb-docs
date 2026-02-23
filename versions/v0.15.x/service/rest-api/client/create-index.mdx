@@ -34,10 +34,11 @@ Create a new encrypted index with the specified configuration.
   <ParamField body="index_config" type="object">
     Index configuration object. Optional when using `embedding_model` (defaults to IVFFlat).
     When provided, must contain:
-    - `type`: Index type (`ivfflat`, `ivf`, `ivfpq`)
+    - `type`: Index type (`ivfflat`, `ivfpq`, `ivfsq`)
     - `dimension`: Embedding dimension (optional)
     - `pq_dim`: Product quantization dimension (required for `ivfpq`)
     - `pq_bits`: Number of bits per sub-vector (required for `ivfpq`)
+    - `sq_bits`: Number of bits per dimension for scalar quantization (required for `ivfsq`, default: 16)
     See [Index Types](#index-types) for details.
   </ParamField>
   <ParamField body="metric" type="string">
@@ -65,18 +66,19 @@ Suitable for applications requiring high recall with moderate memory usage:
 
 **Speed:** Fast | **Recall:** Highest | **Index Size:** Biggest
 
-### IVF
+### IVFSQ
 
-Ideal for large-scale datasets where fast retrieval is prioritized:
+Scalar Quantization compresses each dimension independently, balancing speed and index size:
 
 ```json
 {
-  "type": "ivf",
-  "dimension": 384
+  "type": "ivfsq",
+  "dimension": 384,
+  "sq_bits": 16
 }
 ```
 
-**Speed:** Fastest | **Recall:** Lowest | **Index Size:** Smallest
+**Speed:** Fast | **Recall:** High | **Index Size:** Small
 
 ### IVFPQ
 

@@ -27,6 +27,8 @@ index.query(query_contents=text, top_k=10)
 | `include` | `List[str]` | `None` | _(Optional)_ Fields to include in results. `None` includes all available fields. Note: `id` and `distance` are always included regardless of this parameter |
 | `greedy` | `bool` | `None` | _(Optional)_ Use greedy search algorithm. When `None`, the server determines the default behavior |
 
+<Tip>When `np.ndarray` is passed as `query_vectors`, queries are automatically sent in an optimized binary format for better performance.</Tip>
+
 ### Returns
 
 For single queries: `List[Dict]` - A list of result dictionaries.

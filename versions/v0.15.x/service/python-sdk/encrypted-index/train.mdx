@@ -12,7 +12,8 @@ index.train(
     n_lists=None,
     batch_size=None,
     max_iters=None,
-    tolerance=None
+    tolerance=None,
+    max_memory=None
 )
 ```
 
@@ -23,6 +24,7 @@ index.train(
 | `batch_size` | `int` | `None` | _(Optional)_ Number of vectors to process per training batch. When `None`, the server uses 2048 |
 | `max_iters` | `int` | `None` | _(Optional)_ Maximum number of training iterations. When `None`, the server uses 100 |
 | `tolerance` | `float` | `None` | _(Optional)_ Convergence tolerance for training completion. When `None`, the server uses 1e-6 |
+| `max_memory` | `int` | `None` | _(Optional)_ Maximum memory usage in MB during training. When `None`, the server uses 0 (no limit) |
 
 <Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
 

@@ -28,7 +28,7 @@ Returns the algorithm type of the index.
 func (e *EncryptedIndex) GetIndexType() string
 ```
 
-**Returns**: `string` - Index type ("ivf", "ivfflat", or "ivfpq")
+**Returns**: `string` - Index type ("ivfflat", "ivfpq", or "ivfsq")
 
 **Example**:
 ```go
@@ -37,12 +37,12 @@ fmt.Printf("Index type: %s\n", indexType)
 
 // Use type for conditional logic
 switch indexType {
-case "ivf":
-    fmt.Println("Using IVF (Inverted File) index")
 case "ivfflat":
     fmt.Println("Using IVFFlat (IVF with flat search) index")
 case "ivfpq":
     fmt.Println("Using IVFPQ (IVF with Product Quantization) index")
+case "ivfsq":
+    fmt.Println("Using IVFSQ (IVF with Scalar Quantization) index")
 }
 ```
 
@@ -95,9 +95,9 @@ config := index.GetIndexConfig()
 
 // Access configuration based on index type
 switch index.GetIndexType() {
-case "ivf":
-    if config.IndexIVFModel != nil {
-        fmt.Printf("IVF Dimension: %d\n", config.IndexIVFModel.GetDimension())
+case "ivfsq":
+    if config.IndexIVFSQModel != nil {
+        fmt.Printf("IVFSQ Dimension: %d\n", config.IndexIVFSQModel.GetDimension())
     }
 case "ivfflat":
     if config.IndexIVFFlatModel != nil {
