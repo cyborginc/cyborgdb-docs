@@ -6,10 +6,9 @@ mode: "wide"
 Loads an existing encrypted index and returns an instance of `EncryptedIndex`.
 
 ```cpp
-std::unique_ptr<cyborg::EncryptedIndex> 
+std::unique_ptr<cyborg::EncryptedIndex>
     LoadIndex(const std::string index_name,
               const std::array<uint8_t, 32>& index_key,
-              const std::optional<size_t>& max_cache_size = 0,
               cyborg::Logger* logger = nullptr);
 ```
 
@@ -19,7 +18,6 @@ std::unique_ptr<cyborg::EncryptedIndex>
 |----------------|-------------------------------|-----------------------------------------------------|
 | `index_name` | `std::string` | Name of the index to load. |
 | `index_key` | `std::array<uint8_t, 32>` | 32-byte encryption key for the index, used to secure index data. |
-| `max_cache_size` | `std::optional<size_t>` | _(Optional)_ Maximum size for the local cache in megabytes (default is `0`). |
 | `logger` | [`cyborg::Logger*`](./logger) | _(Optional)_ Pointer to a logger instance for capturing operation logs (default is `nullptr`). |
 
 ### Returns
@@ -54,4 +52,4 @@ std::array<uint8_t, 32> index_key = {0};
 cyborg::Logger logger;
 logger.Configure(LogLevel::Debug, true, "index_loading.log");
 
-auto index = client.LoadIndex("my_index", index_key, 1000, &logger);
+auto index = client.LoadIndex("my_index", index_key, &logger);

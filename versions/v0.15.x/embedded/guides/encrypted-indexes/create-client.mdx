@@ -13,19 +13,19 @@ To create the client, you must define the [backing store locations](../../../int
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
 
-# Using `memory` storage for this example
-# `redis` and `postgres` are also supported
+# Using `rocksdb` for persistent local storage
+# `redis`, `postgres`, `memory`, and `threadsafememory` are also supported
 
-index_location = cyborgdb.DBConfig("memory")  # Where encrypted index is stored (for queries)
-config_location = cyborgdb.DBConfig("memory") # Where encrypted index config is stored (for config/loading)
+index_location = cyborgdb.DBConfig("rocksdb")  # Where encrypted index is stored (for queries)
+config_location = cyborgdb.DBConfig("rocksdb") # Where encrypted index config is stored (for config/loading)
 
 # Get your API key
 api_key = "your_api_key_here"  # Replace with your actual API key
 
 # Create a client
 client = cyborgdb.Client(
-    api_key=api_key, 
-    index_location=index_location, 
+    api_key=api_key,
+    index_location=index_location,
     config_location=config_location
 )
 ```
@@ -36,11 +36,11 @@ client = cyborgdb.Client(
 #include <array>
 #include <random>
 
-// Using `memory` storage for this example
-// `redis` and `postgres` are also supported
+// Using `rocksdb` for persistent local storage
+// `redis`, `postgres`, `memory`, and `threadsafememory` are also supported
 
-cyborg::DBConfig index_location(cyborg::Location::kMemory);  // Where encrypted index is stored (for queries)
-cyborg::DBConfig config_location(cyborg::Location::kMemory); // Where encrypted index config is stored (for config/loading)
+cyborg::DBConfig index_location(cyborg::Location::kRocksDB);  // Where encrypted index is stored (for queries)
+cyborg::DBConfig config_location(cyborg::Location::kRocksDB); // Where encrypted index config is stored (for config/loading)
 
 // Get your API key
 std::string api_key = "your_api_key_here";  // Replace with your actual API key

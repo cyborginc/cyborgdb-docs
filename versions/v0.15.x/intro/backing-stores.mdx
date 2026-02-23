@@ -48,6 +48,27 @@ Choose between speed and durability with flexible persistence and replication op
 
 ---
 
+## RocksDB
+
+**Persistent local storage for embedded deployments**
+
+RocksDB provides persistent key-value storage directly on local disk, with no network dependency. This makes it the recommended backing store for embedded/local CyborgDB deployments where simplicity and reliability are priorities.
+
+### Key Benefits
+
+**No Network Dependency**
+All data is stored locally on disk — no external database servers to configure or manage.
+
+**Persistent Storage**
+Data survives process restarts with automatic durability via write-ahead logging.
+
+**Optimized for Embedded Use**
+Low memory footprint with configurable caching, compaction, and compression settings.
+
+**Best For:** Embedded/local deployments, single-machine applications, edge devices, and scenarios where you want persistent storage without external infrastructure.
+
+---
+
 ## Memory
 
 **Local in-process storage for development and testing**
@@ -66,6 +87,27 @@ No external dependencies or configuration required - instant setup for prototypi
 Predictable access patterns with complete control over memory usage.
 
 **Best For:** Development and testing environments, single-process applications, proof-of-concept scenarios, and ephemeral data requirements.
+
+---
+
+## ThreadSafeMemory
+
+**Thread-safe in-memory storage for concurrent workloads**
+
+ThreadSafeMemory extends the in-memory backing store with thread-safe access, allowing concurrent reads and writes from multiple threads without external synchronization.
+
+### Key Benefits
+
+**Thread-Safe Access**
+Built-in locking ensures safe concurrent access from multiple threads.
+
+**Zero Network Latency**
+Same performance characteristics as Memory storage with added thread safety.
+
+**Multi-threaded Benchmarking**
+Ideal for evaluating CyborgDB performance under concurrent workloads.
+
+**Best For:** Multi-threaded benchmarking, concurrent testing environments, and applications that need ephemeral thread-safe storage.
 
 ---
 
@@ -134,6 +176,14 @@ CyborgDB works seamlessly with managed database services, reducing operational o
 ## Choosing the Right Backing Store
 
 <Tabs>
+  <Tab title="Use RocksDB">
+    - **Embedded Deployment** - You want persistent local storage with no external dependencies
+    - **Edge Devices** - Running on hardware without network access to databases
+    - **Simplicity** - You want a single-binary deployment with built-in storage
+    - **Local Development** - Persistent storage that survives restarts without infrastructure
+    - **Single Machine** - Your application runs on a single machine
+  </Tab>
+
   <Tab title="Use PostgreSQL">
     - **Data Durability** - You need guaranteed data persistence and consistency
     - **Complex Queries** - Your application requires SQL queries beyond vector search
@@ -141,7 +191,7 @@ CyborgDB works seamlessly with managed database services, reducing operational o
     - **Compliance** - You need audit trails and transaction logging
     - **Production Workloads** - Mission-critical applications requiring ACID guarantees
   </Tab>
-  
+
   <Tab title="Use Redis">
     - **Performance** - Sub-millisecond latency is critical to your application
     - **Scale** - You need to handle high concurrent query loads
@@ -149,7 +199,7 @@ CyborgDB works seamlessly with managed database services, reducing operational o
     - **Caching** - You're implementing a high-performance caching layer
     - **Session Storage** - Temporary data with fast access requirements
   </Tab>
-  
+
   <Tab title="Use Memory">
     - **Development** - You're building and testing your application
     - **Single Process** - Your application runs in a single process or container
@@ -157,19 +207,18 @@ CyborgDB works seamlessly with managed database services, reducing operational o
     - **Simplicity** - You want to minimize external dependencies
     - **Maximum Performance** - Need absolute fastest access with zero network overhead
   </Tab>
-
-  <Tab title="Use Standalone">
-    - **Evaluation** - You're evaluating CyborgDB features and capabilities
-    - **Quick Start** - You want to start immediately without setting up databases
-    - **Testing** - You need a disposable database for integration testing
-    - **Learning** - You're learning CyborgDB without infrastructure complexity
-    - **Prototyping** - Building proof-of-concept with minimal setup overhead
-  </Tab>
 </Tabs>
 
 ## Configuration Examples
 
 <CodeGroup>
+```python RocksDB
+from cyborgdb_core import DBConfig
+
+# Local RocksDB (default path: ~/.cyborgdb/data)
+db_config = DBConfig("rocksdb")
+```
+
 ```python PostgreSQL
 from cyborgdb_core import DBConfig
 
@@ -200,15 +249,11 @@ from cyborgdb_core import DBConfig
 db_config = DBConfig("memory")
 ```
 
-```python Standalone
+```python ThreadSafeMemory
 from cyborgdb_core import DBConfig
 
-# Standalone is used automatically when no DB type is set
-# No configuration needed - starts automatically in the service
-# Data stored in ~/.cyborgdb/standalone.db
-
-# Note: Standalone is only available in CyborgDB Service,
-# not in the embedded library
+# Thread-safe in-memory storage
+db_config = DBConfig("threadsafememory")
 ```
 </CodeGroup>
 
@@ -217,7 +262,8 @@ from cyborgdb_core import DBConfig
 | Backing Store | Latency | Throughput | Durability | Consistency |
 |---------------|:---------:|:------------:|:------------:|:-------------:|
 | **Memory**    | ~1µs    | Very High  | None       | Single Process |
-| **Standalone** | ~100µs  | Medium     | Local Disk | Eventually Consistent |
+| **ThreadSafeMemory** | ~1µs | Very High | None | Thread-Safe |
+| **RocksDB**   | ~10µs   | High       | Local Disk | Single Process |
 | **Redis**     | ~100µs  | High       | Configurable | Eventually Consistent |
 | **PostgreSQL** | ~1ms   | Medium     | Full       | ACID |
 

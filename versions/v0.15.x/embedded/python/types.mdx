@@ -10,15 +10,17 @@ The `DBConfig` class specifies the storage location for the index, with options 
 
 | Parameter | Type | Default | Description |
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
-| `location` | `string` | - | DB location (`redis`, `postgres`, `memory`) |
+| `location` | `string` | - | DB location (`redis`, `postgres`, `memory`, `rocksdb`, `threadsafememory`) |
 | `table_name` | `string` | None | _(Optional)_ Table name (`postgres`-only) |
 | `connection_string` | `string` | None | _(Optional)_ Connection string to access DB. |
 
 The supported `location` options are:
 
+- `"rocksdb"`: Use for persistent local storage with no network dependency (recommended for embedded/local deployments).
 - `"redis"`: Use for high-speed, in-memory storage (recommended for `index_location`).
 - `"postgres"`: Use for reliable, SQL-based storage (recommended for `config_location`).
-- `"memory"` Use for temporary in-memory storage (for benchmarking and evaluation purposes).
+- `"memory"`: Use for temporary in-memory storage (for benchmarking and evaluation purposes).
+- `"threadsafememory"`: Use for thread-safe in-memory storage (for multi-threaded benchmarking and evaluation).
 
 ### Example Usage
 
@@ -51,8 +53,7 @@ The `GPUConfig` class configures which operations should use GPU acceleration. G
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
 | `upsert` | `bool` | `False` | _(Optional)_ Enable GPU for upsert operations |
 | `train` | `bool` | `False` | _(Optional)_ Enable GPU for training operations |
-
-<Warning>The `query` parameter is not available in the constructor. To enable GPU for query operations, you must enable both `upsert=True` and `train=True`, or use the bitflag operations directly in C++.</Warning>
+| `query` | `bool` | `False` | _(Optional)_ Enable GPU for query operations |
 
 ### Properties (Read-Only)
 
@@ -69,8 +70,8 @@ The `GPUConfig` class configures which operations should use GPU acceleration. G
 ```python
 import cyborgdb_core as cyborgdb
 
-# Enable GPU for upsert and training (query will also be enabled via properties)
-gpu_config1 = cyborgdb.GPUConfig(upsert=True, train=True)
+# Enable GPU for all operations
+gpu_config1 = cyborgdb.GPUConfig(upsert=True, train=True, query=True)
 
 # Enable GPU only for training
 gpu_config2 = cyborgdb.GPUConfig(train=True)
@@ -181,8 +182,6 @@ print(f"n_lists: {index_config.n_lists}")  # Will show 1 (default)
 print(f"dimension: {index_config.dimension}")  # Will show 128
 ```
 
-<Tip>`IndexIVFFlat` is the default index configuration and is suitable for most use cases.</Tip>
-
 ### IndexIVFPQ
 
 Product Quantization compresses embeddings, making it suitable for balancing memory use and recall:
@@ -195,9 +194,9 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 
 | Parameter | Type | Default | Description |
 |--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
-| `dimension` | `int` | `None` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if not provided. |
-| `pq_dim` | `int` | - | _(Required)_ Dimensionality of PQ codes after quantization. |
-| `pq_bits` | `int` | - | _(Required)_ Number of bits per quantizer (between 1 and 16). |
+| `dimension` | `int` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+| `pq_dim` | `int` | `0` | _(Optional)_ Dimensionality of PQ codes after quantization. Auto-detected if 0. |
+| `pq_bits` | `int` | `8` | _(Optional)_ Number of bits per quantizer (between 1 and 16). |
 
 #### Properties (Read-Only)
 
@@ -215,13 +214,13 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 ```python
 import cyborgdb_core as cyborgdb
 
-# Basic configuration (dimension auto-detected)
-index_config = cyborgdb.IndexIVFPQ(pq_dim=64, pq_bits=8)
+# Basic configuration (all parameters auto-detected)
+index_config = cyborgdb.IndexIVFPQ()
 
 # Explicit configuration
 index_config = cyborgdb.IndexIVFPQ(
     dimension=128,
-    pq_dim=64, 
+    pq_dim=64,
     pq_bits=8
 )
 
@@ -231,4 +230,51 @@ print(f"pq_dim: {index_config.pq_dim}")    # Will show 64
 print(f"pq_bits: {index_config.pq_bits}")  # Will show 8
 ```
 
-<Tip>If `dimension` is not provided, it will be auto-determined based on the first vector embedding added to the index.</Tip>
+<Tip>If `dimension` or `pq_dim` is not provided (or set to 0), it will be auto-determined based on the first vector embedding added to the index.</Tip>
+
+### IndexIVFSQ
+
+Scalar Quantization compresses embeddings, providing a good balance of speed, recall, and index size:
+
+| Speed | Recall | Index Size |
+| :---: | :----: | :--------: |
+| Fast  |  High  |   Small    |
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
+| `dimension` | `int` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+| `sq_bits` | `int` | `8` | _(Optional)_ Number of bits for scalar quantization (typically 4, 8, or 16). |
+
+#### Properties (Read-Only)
+
+| Property | Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `n_lists` | `int` | Number of inverted lists (coarse clusters). Set internally during training, initially 1. |
+| `dimension` | `int` | Dimensionality of vector embeddings. |
+| `metric` | `str` | Distance metric used. |
+| `index_type` | `str` | Returns "ivfsq". |
+| `sq_bits` | `int` | Number of bits for scalar quantization. |
+
+#### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+
+# Basic configuration with auto-detection (default 8-bit SQ)
+index_config = cyborgdb.IndexIVFSQ()
+
+# 16-bit scalar quantization (higher precision, larger index)
+index_config = cyborgdb.IndexIVFSQ(sq_bits=16)
+
+# Explicit dimension configuration
+index_config = cyborgdb.IndexIVFSQ(dimension=128, sq_bits=8)
+
+# Access read-only properties
+print(f"n_lists: {index_config.n_lists}")  # Will show 1 (default)
+print(f"dimension: {index_config.dimension}")  # Will show 128
+print(f"sq_bits: {index_config.sq_bits}")  # Will show 8
+```
+
+<Tip>`IndexIVFSQ` is the default index configuration (with `sq_bits=16`) and is suitable for most use cases. It provides a good balance of recall, speed, and index size.</Tip>

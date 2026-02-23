@@ -170,3 +170,65 @@ results = index.query(query_vectors=query_vectors)
 #     [{"id": "item_202", "distance": 0.2}, {"id": "item_303", "distance": 0.3}]
 # ]
 ```
+
+---
+
+## NumPy Query
+
+A high-performance query variant that returns only integer IDs as a NumPy array. This is optimized for performance-critical workloads where metadata and distances are not needed.
+
+```python
+def query_numpy(self,
+                query_vectors: np.ndarray,
+                top_k: int = 100,
+                n_probes: int = 0,
+                greedy: bool = False,
+                batch: bool = False) -> np.ndarray
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
+| `query_vectors` | `np.ndarray` | - | Query vectors as a NumPy array. For a single query, a 1D array; for batch queries, a 2D array. |
+| `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
+| `n_probes` | `int` | `0` (auto) | _(Optional)_ Number of lists probed during the query. When set to `0`, automatically determines the optimal value. |
+| `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
+| `batch` | `bool` | `False` | _(Optional)_ Whether to treat the input as a batch of query vectors. |
+
+### Returns
+
+`np.ndarray`: A NumPy array of integer IDs for the nearest neighbors. For a single query, returns a 1D array of shape `(top_k,)`. For batch queries, returns a 2D array of shape `(num_queries, top_k)`.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the query vectors have incompatible dimensions with the index.
+        - Throws if the index was not created or loaded yet.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the query could not be executed.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import numpy as np
+
+# Single query
+query_vector = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+ids = index.query_numpy(query_vectors=query_vector, top_k=10)
+# ids is a 1D np.ndarray of integer IDs, e.g. array([101, 102, 103, ...])
+
+# Batch query
+query_vectors = np.array([
+    [0.1, 0.2, 0.3],
+    [0.4, 0.5, 0.6]
+], dtype=np.float32)
+ids = index.query_numpy(query_vectors=query_vectors, top_k=5, batch=True)
+# ids is a 2D np.ndarray of shape (2, 5)
+```
+
+<Note>`query_numpy` is a high-performance variant that returns only integer IDs. Use the standard `query()` method if you need distances, metadata, or string IDs.</Note>
