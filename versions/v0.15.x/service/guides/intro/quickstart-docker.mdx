@@ -72,7 +72,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 # Minimal configuration - uses built-in standalone
                 sudo docker run -it --rm --network host \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
-                  -v cyborgdb-data:/home/cyborguser/.cyborgdb \
+                  -v cyborgdb_data:/app/cyborgdb_data \
                   cyborginc/cyborgdb-service:latest
                 ```
 
@@ -80,7 +80,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 # Minimal configuration - uses built-in standalone
                 sudo docker run -it -p 8000:8000 \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
-                  -v cyborgdb-data:/home/cyborguser/.cyborgdb \
+                  -v cyborgdb_data:/app/cyborgdb_data \
                   cyborginc/cyborgdb-service:latest
                 ```
                 </CodeGroup>
@@ -153,11 +153,11 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                     environment:
                       - CYBORGDB_API_KEY=${CYBORGDB_API_KEY}
                     volumes:
-                      - cyborgdb-data:/home/cyborguser/.cyborgdb
+                      - cyborgdb_data:/app/cyborgdb_data
                       - ./logs:/app/logs
 
                 volumes:
-                  cyborgdb-data:
+                  cyborgdb_data:
                 ```
 
                 Then run:
@@ -261,7 +261,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 | Variable | Description | Required | Example |
                 |----------|-------------|----------|---------|
                 | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
-                | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `postgres` or `redis` |
+                | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `standalone`, `postgres`, `redis`, or `memory` |
                 | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See connection formats |
                 | `PORT` | Service port | ❌ | `8000` |
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |

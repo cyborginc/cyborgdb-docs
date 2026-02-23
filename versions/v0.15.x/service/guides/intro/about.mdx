@@ -119,10 +119,12 @@ flowchart TB
   RESTAPI("REST API")
   RESTAPI --> CyborgDB("CyborgDB Service")
 
+  CyborgDB --> Standalone
   CyborgDB --> PostgreSQL
   CyborgDB --> Redis
   CyborgDB --> Memory
 
+  Standalone("Standalone / RocksDB")
   PostgreSQL("PostgreSQL")
   Redis("Redis")
   Memory("Memory")
