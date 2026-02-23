@@ -438,10 +438,10 @@
             "dropdowns": [
               {
                 "dropdown": "Integrations",
-                "icon": "book",
+                "icon": "puzzle-piece",
                 "groups": [
                   {
-                    "group": "Introduction",
+                    "group": "Overview",
                     "pages": [
                       "versions/v0.15.x/integrations/about"
                     ]
@@ -449,8 +449,8 @@
                 ]
               },
               {
-                "dropdown": "Langchain (Python)",
-                "icon": "python",
+                "dropdown": "LangChain",
+                "icon": "link",
                 "groups": [
                   {
                     "group": "Introduction",
@@ -459,22 +459,23 @@
                     ]
                   },
                   {
-                    "group": "Client",
+                    "group": "CyborgVectorStore",
                     "pages": [
                       "versions/v0.15.x/integrations/langchain/client/init",
-                      "versions/v0.15.x/integrations/langchain/client/get_embeddings",
                       "versions/v0.15.x/integrations/langchain/client/add_texts",
                       "versions/v0.15.x/integrations/langchain/client/add_documents",
+                      "versions/v0.15.x/integrations/langchain/client/get",
+                      "versions/v0.15.x/integrations/langchain/client/list_ids",
                       "versions/v0.15.x/integrations/langchain/client/delete",
                       "versions/v0.15.x/integrations/langchain/client/similarity_search",
-                      "versions/v0.15.x/integrations/langchain/client/similarity_search_by_vector",
                       "versions/v0.15.x/integrations/langchain/client/similarity_search_with_score",
-                      "versions/v0.15.x/integrations/langchain/client/_similarity_search_with_relevance_scores",
+                      "versions/v0.15.x/integrations/langchain/client/similarity_search_by_vector",
                       "versions/v0.15.x/integrations/langchain/client/max_marginal_relevance_search",
-                      "versions/v0.15.x/integrations/langchain/client/max_marginal_relevance_search_by_vector",
                       "versions/v0.15.x/integrations/langchain/client/from_texts",
                       "versions/v0.15.x/integrations/langchain/client/from_documents",
-                      "versions/v0.15.x/integrations/langchain/client/generate_key"
+                      "versions/v0.15.x/integrations/langchain/client/as_retriever",
+                      "versions/v0.15.x/integrations/langchain/client/generate_key",
+                      "versions/v0.15.x/integrations/langchain/client/get_embeddings"
                     ]
                   },
                   {

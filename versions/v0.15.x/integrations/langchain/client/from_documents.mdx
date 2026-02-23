@@ -5,57 +5,168 @@ mode: "wide"
 
 Creates a CyborgVectorStore instance from a list of LangChain Document objects.
 
-```python
-@classmethod
-from_documents(
-    documents: List[Document],
-    embedding: Union[str, Embeddings, SentenceTransformer],
-    **kwargs
-) -> CyborgVectorStore
-```
+<Tabs>
+    <Tab title="Embedded">
 
-### Parameters
+        ```python
+        @classmethod
+        from_documents(
+            documents: List[Document],
+            embedding: Union[str, Embeddings, SentenceTransformer],
+            **kwargs
+        ) -> CyborgVectorStore
+        ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `documents` | `List[Document]` | List of LangChain Document objects |
-| `embedding` | `Union[str, Embeddings, SentenceTransformer]` | Embedding model or model name |
-| `**kwargs` | `Any` | Additional arguments passed to from_texts |
+        ### Parameters
 
-### Returns
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `documents` | `List[Document]` | List of LangChain Document objects |
+        | `embedding` | `Union[str, Embeddings, SentenceTransformer]` | Embedding model or model name |
+        | `**kwargs` | `Any` | Additional arguments passed to from_texts |
 
-`CyborgVectorStore`: Initialized vector store with documents added
+        ### Returns
 
-### Example Usage
+        `CyborgVectorStore`: Initialized vector store with documents added
 
-```python
-from langchain_core.documents import Document
-from cyborgdb_core import DBConfig
+        ### Example Usage
 
-# Create documents
-documents = [
-    Document(
-        page_content="Introduction to natural language processing",
-        metadata={"source": "nlp_guide.pdf", "page": 1}
-    ),
-    Document(
-        page_content="Tokenization and text preprocessing",
-        metadata={"source": "nlp_guide.pdf", "page": 15}
-    ),
-    Document(
-        page_content="Word embeddings and semantic similarity",
-        metadata={"source": "nlp_guide.pdf", "page": 42}
-    )
-]
+        ```python
+        from langchain_core.documents import Document
+        from cyborgdb_core import DBConfig
 
-# Create store from documents
-store = CyborgVectorStore.from_documents(
-    documents=documents,
-    embedding="sentence-transformers/all-mpnet-base-v2",
-    index_name="nlp_documents",
-    index_key=CyborgVectorStore.generate_key(save=True),
-    api_key="your-api-key",
-    index_location=DBConfig("memory"),
-    config_location=DBConfig("memory")
-)
-```
+        # Create documents
+        documents = [
+            Document(
+                page_content="Introduction to natural language processing",
+                metadata={"source": "nlp_guide.pdf", "page": 1}
+            ),
+            Document(
+                page_content="Tokenization and text preprocessing",
+                metadata={"source": "nlp_guide.pdf", "page": 15}
+            ),
+            Document(
+                page_content="Word embeddings and semantic similarity",
+                metadata={"source": "nlp_guide.pdf", "page": 42}
+            )
+        ]
+
+        # Create store from documents
+        store = CyborgVectorStore.from_documents(
+            documents=documents,
+            embedding="sentence-transformers/all-mpnet-base-v2",
+            index_name="nlp_documents",
+            index_key=CyborgVectorStore.generate_key(save=True),
+            api_key="your-api-key",
+            index_location=DBConfig("memory"),
+            config_location=DBConfig("memory")
+        )
+        ```
+
+    </Tab>
+
+    <Tab title="Python SDK">
+
+        ```python
+        @classmethod
+        from_documents(
+            documents: List[Document],
+            embedding: Union[str, Embeddings, SentenceTransformer],
+            **kwargs
+        ) -> CyborgVectorStore
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `documents` | `List[Document]` | List of LangChain Document objects |
+        | `embedding` | `Union[str, Embeddings, SentenceTransformer]` | Embedding model or model name |
+        | `**kwargs` | `Any` | Additional arguments passed to from_texts (includes `base_url`, `api_key`, etc.) |
+
+        ### Returns
+
+        `CyborgVectorStore`: Initialized vector store with documents added
+
+        ### Example Usage
+
+        ```python
+        from langchain_core.documents import Document
+
+        documents = [
+            Document(
+                page_content="Introduction to natural language processing",
+                metadata={"source": "nlp_guide.pdf", "page": 1}
+            ),
+            Document(
+                page_content="Tokenization and text preprocessing",
+                metadata={"source": "nlp_guide.pdf", "page": 15}
+            )
+        ]
+
+        store = CyborgVectorStore.from_documents(
+            documents=documents,
+            embedding="sentence-transformers/all-mpnet-base-v2",
+            index_name="nlp_documents",
+            index_key=CyborgVectorStore.generate_key(save=True),
+            api_key="your-api-key",
+            base_url="http://localhost:8000"
+        )
+        ```
+
+    </Tab>
+
+    <Tab title="JS/TS">
+
+        ```typescript
+        static fromDocuments(
+            documents: Document[],
+            embeddings: EmbeddingsInterface,
+            config: CyborgVectorStoreConfig
+        ): Promise<CyborgVectorStore>
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `documents` | `Document[]` | Array of LangChain Document objects |
+        | `embeddings` | `EmbeddingsInterface` | LangChain embeddings instance |
+        | `config` | `CyborgVectorStoreConfig` | Configuration object with `baseUrl`, `apiKey`, `indexName`, `indexKey`, etc. |
+
+        ### Returns
+
+        `Promise<CyborgVectorStore>`: Initialized vector store with documents added
+
+        ### Example Usage
+
+        ```typescript
+        import { CyborgVectorStore } from 'cyborgdb';
+        import { OpenAIEmbeddings } from '@langchain/openai';
+        import { Document } from '@langchain/core/documents';
+
+        const documents = [
+            new Document({
+                pageContent: "Introduction to natural language processing",
+                metadata: { source: "nlp_guide.pdf", page: 1 }
+            }),
+            new Document({
+                pageContent: "Tokenization and text preprocessing",
+                metadata: { source: "nlp_guide.pdf", page: 15 }
+            })
+        ];
+
+        const store = await CyborgVectorStore.fromDocuments(
+            documents,
+            new OpenAIEmbeddings(),
+            {
+                baseUrl: "http://localhost:8000",
+                apiKey: "your-api-key",
+                indexName: "nlp_documents",
+                indexKey: CyborgVectorStore.generateKey()
+            }
+        );
+        ```
+
+    </Tab>
+</Tabs>
