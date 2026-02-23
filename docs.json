@@ -33,6 +33,10 @@
       "destination": "/versions/changelog"
     },
     {
+      "source": "/encryption",
+      "destination": "versions/v0.15.x/intro/encryption"
+    },
+    {
       "source": "/service",
       "destination": "/versions/v0.15.x/service/guides/intro/about"
     },
