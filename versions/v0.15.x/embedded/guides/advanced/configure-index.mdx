@@ -85,7 +85,7 @@ index = client.create_index(
 #include "cyborgdb_core/encrypted_index.hpp"
 
 // Create the IVF index config
-cyborg::IndexIVFFlat index_config();
+cyborg::IndexIVFFlat index_config;
 
 // Create the index
 std::string index_name = "test_index";
@@ -173,7 +173,7 @@ index = client.create_index(
 #include "cyborgdb_core/encrypted_index.hpp"
 
 // Create the IVF index config
-cyborg::IndexIVF index_config();
+cyborg::IndexIVF index_config;
 
 // Create the index
 std::string index_name = "test_index";
@@ -202,9 +202,9 @@ index = client.create_index(
 
 ```cpp C++ icon="brackets-curly"
 // Existing setup
-cyborg::IndexIVFFlat index_config();
+cyborg::IndexIVFFlat index_config;
 
-auto index = client.CreateIndex("index_name", index_key, index_config, cyborg::DistanceMetric::kEuclidean);
+auto index = client.CreateIndex("index_name", index_key, index_config, cyborg::DistanceMetric::Euclidean);
 ```
 </CodeGroup>
 

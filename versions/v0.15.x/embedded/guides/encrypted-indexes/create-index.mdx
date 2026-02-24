@@ -44,12 +44,13 @@ index = client.create_index(
 // Using `memory` storage for this example
 cyborg::DBConfig index_location(cyborg::Location::kMemory);
 cyborg::DBConfig config_location(cyborg::Location::kMemory);
+cyborg::DBConfig contents_location(cyborg::Location::kMemory);
 
 // Get your API key
 std::string api_key = "your_api_key_here";  // Replace with your actual API key
 
 // Create a client
-cyborg::Client client(api_key, index_location, config_location);
+cyborg::Client client(api_key, index_location, config_location, contents_location, 0, cyborg::kNone);
 
 // Generate a 32-byte secure encryption key using OpenSSL
 std::array<uint8_t, 32> index_key;

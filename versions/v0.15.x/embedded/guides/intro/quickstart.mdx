@@ -92,13 +92,13 @@ Get started with CyborgDB in minutes.
 
         cyborg::DBConfig index_location(cyborg::Location::kRocksDB);  // Where encrypted index is stored (for queries)
         cyborg::DBConfig config_location(cyborg::Location::kRocksDB); // Where encrypted index config is stored (for config/loading)
-        cyborg::DBConfig items_location(cyborg::Location::kRocksDB);  // Where item contents are stored (for upsert/get)
+        cyborg::DBConfig contents_location(cyborg::Location::kRocksDB);  // Where item contents are stored (for upsert/get)
 
         // Get your API key
         std::string api_key = "your_api_key_here";  // Replace with your actual API key
 
         // Create a client
-        cyborg::Client client(api_key, index_location, config_location, items_location, 0, false);
+        cyborg::Client client(api_key, index_location, config_location, contents_location, 0, cyborg::kNone);
         ```
         </CodeGroup>
 
@@ -190,14 +190,15 @@ Get started with CyborgDB in minutes.
 
         ```cpp C++ icon="brackets-curly"
         // ... Continuing from the previous step
-        std::vector<float> query_vector = {0.1, 0.2, 0.3, 0.4};
-        
+        cyborg::Array2D<float> query_vectors{{0.1, 0.2, 0.3, 0.4}};
+
         // Query using the standard params
-        std::vector<cyborg::QueryResult> results = index->Query(query_vector);
+        cyborg::QueryResults results = index->Query(query_vectors);
 
         // Print the results
-        for (const auto& result : results) {
-            std::cout << "ID: " << result.id << ", Distance: " << result.distance << std::endl;
+        auto view = results[0];
+        for (uint32_t i = 0; i < view.num_results; ++i) {
+            std::cout << "ID: " << view.ids[i] << ", Distance: " << view.distances[i] << std::endl;
         }
         ```
         </CodeGroup>

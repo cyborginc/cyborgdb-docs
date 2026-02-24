@@ -29,8 +29,9 @@ cyborg::QueryParams query_params(top_k);
 cyborg::QueryResults results = index->Query(query_vectors, query_params);
 
 // Print the results
-for (size_t i = 0; i < results.ids.size(); ++i) {
-    std::cout << "ID: " << results.ids[i] << ", Distance: " << results.distances[i] << std::endl;
+auto view = results[0];
+for (uint32_t i = 0; i < view.num_results; ++i) {
+    std::cout << "ID: " << view.ids[i] << ", Distance: " << view.distances[i] << std::endl;
 }
 ```
 </CodeGroup>
@@ -75,15 +76,16 @@ size_t top_k = 10;
 size_t n_probes = 5;
 bool greedy = false;
 std::string filters = R"({"age": {"$gt": 18}})";
-std::vector<std::string> include = {"distance", "metadata"};
+std::vector<cyborg::ResultFields> include = {cyborg::ResultFields::kDistance, cyborg::ResultFields::kMetadata};
 
 // Perform query
-cyborg::QueryParams query_params(top_k, n_probes, include, greedy, filters);
+cyborg::QueryParams query_params(top_k, n_probes, filters, include, greedy);
 cyborg::QueryResults results = index->Query(query_vectors, query_params);
 
 // Print the results
-for (size_t i = 0; i < results.ids.size(); ++i) {
-    std::cout << "ID: " << results.ids[i] << ", Distance: " << results.distances[i] << ", Metadata: " << results.metadata[i] << std::endl;
+auto view = results[0];
+for (uint32_t i = 0; i < view.num_results; ++i) {
+    std::cout << "ID: " << view.ids[i] << ", Distance: " << view.distances[i] << ", Metadata: " << view.metadata[i] << std::endl;
 }
 ```
 </CodeGroup>

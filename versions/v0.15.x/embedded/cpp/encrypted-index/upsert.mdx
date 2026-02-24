@@ -47,11 +47,11 @@ index->Upsert(ids, embeddings);
 
 // Upsert with associated items
 std::vector<std::vector<uint8_t>> items = {
-    {'a', 'b', 'c'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}
+    {'a', 'b', 'c'}, {'d', 'e', 'f'}
 };
 index->Upsert(ids, embeddings, items);
 
 // Upsert with metadata
-std::vector<std::string> metadata = {"{\"type\": \"image\"}", "{\"type\": \"text\"}"}
+std::vector<std::string> metadata = {"{\"type\": \"image\"}", "{\"type\": \"text\"}"};
 index->Upsert(ids, embeddings, items, metadata);
 ```
