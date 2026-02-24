@@ -11,9 +11,11 @@ Adds new vectors to the encrypted index or updates existing vectors if they have
 
 ```typescript
 async upsert({
-    items?: VectorItem[],    // Pattern 1: Provide items array
-    ids?: string[],         // Pattern 2: Provide ids and vectors together
-    vectors?: number[][]    // Pattern 2: Provide ids and vectors together
+    items?: VectorItem[],                       // Pattern 1: Provide items array
+    ids?: string[],                             // Pattern 2: Provide ids and vectors together
+    vectors?: number[][],                       // Pattern 2: Provide ids and vectors together
+    metadata?: (Record<string, unknown> | null)[], // Pattern 2: Optional metadata per vector
+    contents?: (string | null)[]                // Pattern 2: Optional contents per vector
 }): Promise<UpsertResponse>
 
 // Note: Must provide either 'items' OR both 'ids' and 'vectors'
@@ -33,6 +35,8 @@ async upsert({
 |-----------|------|-------------|
 | `ids` | `string[]` | Array of ID strings for each vector |
 | `vectors` | `number[][]` \| `Float32Array` | Array of vector embeddings corresponding to each ID |
+| `metadata` | `(Record<string, unknown> \| null)[]` | _(Optional)_ Array of metadata objects corresponding to each ID |
+| `contents` | `(string \| null)[]` | _(Optional)_ Array of content strings corresponding to each ID |
 
 <Tip>Passing a `Float32Array` automatically uses an optimized binary transfer format for better performance with large batches.</Tip>
 
@@ -43,11 +47,11 @@ Each `VectorItem` must contain an `id` and `vector`, with optional fields:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | Yes | Unique identifier for the vector item |
-| `vector` | `number[]` | Yes | The vector representation |
+| `vector` | `number[]` | Yes* | The vector representation. *Required unless `contents` is provided (for auto-embedding via embedding model) |
 | `contents` | `string` \| `Buffer` | Optional | Content associated with the vector (accepts both strings and bytes, encoded to bytes and encrypted before storage) |
 | `metadata` | `object` | Optional | Additional structured data associated with the vector |
 
-<Tip>The `contents` field accepts both strings and Buffers. All contents are encoded to bytes and encrypted before storage, and will be returned as Buffers when retrieved with `get()`.</Tip>
+<Tip>The `contents` field accepts both strings and Buffers. All contents are encoded to bytes and encrypted before storage, and will be returned as decoded UTF-8 strings when retrieved with `get()`.</Tip>
 
 ### Returns
 
@@ -130,7 +134,7 @@ try {
 #### Pattern 2: Parallel Arrays (For Bulk Operations)
 
 ```typescript
-// Efficient for bulk operations with just IDs and vectors
+// Efficient for bulk operations with parallel arrays
 const ids = ['vec1', 'vec2', 'vec3'];
 const vectors = [
     [0.1, 0.2, 0.3, 0.4],
@@ -141,9 +145,25 @@ const vectors = [
 try {
     const result = await index.upsert({ ids, vectors });
     console.log('Bulk upsert result:', result);
+} catch (error: any) {
+    console.error('Bulk upsert failed:', error.message);
+}
 
-    // This approach is more efficient for large datasets
-    // where you only need IDs and vectors (no metadata/contents)
+// With optional metadata and contents
+const metadata = [
+    { title: 'Document 1', category: 'research' },
+    { title: 'Document 2', category: 'tutorial' },
+    null  // no metadata for third vector
+];
+const contents = [
+    'First document content',
+    'Second document content',
+    null  // no content for third vector
+];
+
+try {
+    const result = await index.upsert({ ids, vectors, metadata, contents });
+    console.log('Bulk upsert with metadata:', result);
 } catch (error: any) {
     console.error('Bulk upsert failed:', error.message);
 }

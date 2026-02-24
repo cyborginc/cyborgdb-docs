@@ -76,8 +76,8 @@ The `CreateIndexRequest` interface defines the parameters for creating a new enc
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `indexConfig` | [`IndexConfig`](#indexconfig) | Yes | Configuration model specifying index type and parameters |
-| `indexKey` | `Uint8Array` | Yes | 32-byte encryption key |
+| `indexConfig` | [`IndexConfig`](#indexconfig) | No | Configuration model specifying index type and parameters. Defaults to `{ type: 'ivfflat' }` if not provided |
+| `indexKey` | `string` | Yes | Hex-encoded 32-byte encryption key |
 | `indexName` | `string` | Yes | Unique name/identifier for the index |
 | `embeddingModel` | `string \| null` | No | Optional embedding model name for automatic vector generation |
 
@@ -92,11 +92,13 @@ const createRequest: CreateIndexRequest = {
         sqBits: 16,
         dimension: 768
     },
-    indexKey: Client.generateKey(), // Uint8Array (32 bytes)
+    indexKey: 'a1b2c3...', // hex-encoded 32-byte key
     indexName: 'my-vector-index',
     embeddingModel: 'text-embedding-3-small'
 };
 ```
+
+<Note>The `createIndex()` method on the `Client` class accepts a `Uint8Array` for `indexKey` and automatically converts it to a hex-encoded string for the request. The `CreateIndexRequest` model itself uses the hex-encoded `string` type.</Note>
 
 ---
 

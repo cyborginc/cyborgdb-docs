@@ -10,10 +10,11 @@ async query({
     queryVectors?: number[] | number[][] | Float32Array,  // optional, required if `queryContents` not provided
     queryContents?: string,                 // optional, required if `queryVectors` not provided
     topK?: number,                          // optional, default: 100
-    nProbes?: number,                       // optional, default: 0
-    filters?: object,                       // optional, default: {}
+    nProbes?: number,                       // optional, default: undefined (auto)
+    filters?: FilterExpression,             // optional, default: {}
     include?: string[],                     // optional, default: ["distance", "metadata"]
-    greedy?: boolean                        // optional, default: false
+    greedy?: boolean,                       // optional, default: false
+    dimension?: number                      // optional, required when queryVectors is Float32Array
 }): Promise<QueryResponse>
 ```
 
@@ -25,9 +26,10 @@ async query({
 | `queryContents` | `string` | - | _(Optional)_ Text content to embed and search (alternative to queryVectors) |
 | `topK` | `number` | `undefined` (server default: 100) | _(Optional)_ Number of nearest neighbors to return per query |
 | `nProbes` | `number` | `undefined` (auto) | _(Optional)_ Number of cluster centers to search (higher = better recall). Auto-determined when undefined. |
-| `filters` | `object` | `undefined` | _(Optional)_ Metadata filters to apply to the search (no filtering when undefined) |
+| `filters` | [`FilterExpression`](../types#filterexpression) | `undefined` | _(Optional)_ Metadata filters to apply to the search (no filtering when undefined) |
 | `include` | `string[]` | `undefined` (server default: `["distance", "metadata"]`) | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
 | `greedy` | `boolean` | `false` | _(Optional)_ Use faster approximate search |
+| `dimension` | `number` | `-` | _(Optional)_ Required when `queryVectors` is a `Float32Array`. Specifies vector dimensionality so the SDK can reshape the flat typed array. |
 
 <Tip>Passing a `Float32Array` as `queryVectors` uses an optimized binary transfer format for better performance. When using `Float32Array`, the `dimension` parameter is required so the SDK can correctly reshape the flat array into individual query vectors.</Tip>
 

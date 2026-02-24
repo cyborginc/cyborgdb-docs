@@ -155,16 +155,17 @@ try {
     console.log('Index configuration:', config);
 
     // Access common properties
-    console.log('Index Type:', config.indexType);
+    console.log('Type:', config.type);
     console.log('Dimension:', config.dimension);
-    console.log('Metric:', config.metric);
-    console.log('Number of lists:', config.nLists);
 
     // Type-specific properties
-    if (config.type === 'ivfpq' || config.type === 'ivfpq') {
+    if (config.type === 'ivfpq') {
         const pqConfig = config as IndexIVFPQ;
         console.log('PQ dimension:', pqConfig.pqDim);
         console.log('PQ bits:', pqConfig.pqBits);
+    } else if (config.type === 'ivfsq') {
+        const sqConfig = config as IndexIVFSQ;
+        console.log('SQ bits:', sqConfig.sqBits);
     }
 } catch (error) {
     console.error('Failed to get index config:', error.message);
@@ -189,6 +190,8 @@ try {
 ---
 
 ## isTraining
+
+<Note>Unlike the other methods on this page, `isTraining()` is a **Client** method, not an **EncryptedIndex** method. Call it on the `client` instance, not on an index.</Note>
 
 ```typescript
 async isTraining(): Promise<{
