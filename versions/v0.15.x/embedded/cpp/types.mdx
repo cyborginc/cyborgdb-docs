@@ -26,9 +26,9 @@ enum class Location {
 ### Constructor
 
 ```cpp
-DBConfig(Location location,
-                const std::optional<std::string>& table_name,
-                const std::optional<std::string>& db_connection_string);
+explicit DBConfig(Location location,
+                const std::optional<std::string>& table_name = std::nullopt,
+                const std::optional<std::string>& db_connection_string = std::nullopt);
 ```
 
 ### Parameters
@@ -36,8 +36,8 @@ DBConfig(Location location,
 | Parameter | Type | Description |
 |------------------------|-------------------------|-------------------------|
 | `location` | [`Location`](#location) | Specifies the type of storage location. |
-| `table_name` | `std::string` | _(Optional)_ Name of the table in the database, if applicable. |
-| `db_connection_string` | `std::string` | _(Optional)_ Connection string for database access, if applicable. |
+| `table_name` | `std::string` | _(Optional)_ Name of the table in the database, if applicable. Defaults to `std::nullopt`. |
+| `db_connection_string` | `std::string` | _(Optional)_ Connection string for database access, if applicable. Defaults to `std::nullopt`. |
 
 
 ### Example Usage
@@ -152,14 +152,14 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 #### Constructor
 
 ```cpp
-IndexIVF(size_t dimension = 0, std::optional<std::string> embedding_model = std::nullopt);
+IndexIVF(size_t dimension = 0, std::string embedding_model = "");
 ```
 
 #### Parameters
 | Parameter | Type | Default | Description |
 |--------------|-------------------------|---------|---------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -181,14 +181,14 @@ Suitable for applications requiring high recall with less concern for memory usa
 #### Constructor
 
 ```cpp
-IndexIVFFlat(size_t dimension = 0, std::optional<std::string> embedding_model = std::nullopt);
+IndexIVFFlat(size_t dimension = 0, std::string embedding_model = "");
 ```
 
 #### Parameters
 | Parameter | Type | Default | Description |
 |--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -211,7 +211,7 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 
 ```cpp
 IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 0, size_t pq_bits = 8,
-           std::optional<std::string> embedding_model = std::nullopt);
+           std::string embedding_model = "");
 ```
 
 #### Parameters
@@ -221,7 +221,7 @@ IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 0, size_t pq_bits = 8,
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
 | `pq_dim` | `size_t` | `0` | _(Optional)_ Dimensionality of embeddings after quantization. Auto-detected if 0. |
 | `pq_bits` | `size_t` | `8` | _(Optional)_ Number of bits per dimension for PQ embeddings (between 1 and 16). |
-| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -246,7 +246,7 @@ Scalar Quantization compresses embeddings, providing a good balance of speed, re
 
 ```cpp
 IndexIVFSQ(size_t dimension = 0, size_t sq_bits = 8,
-           std::optional<std::string> embedding_model = std::nullopt);
+           std::string embedding_model = "");
 ```
 
 #### Parameters
@@ -254,7 +254,7 @@ IndexIVFSQ(size_t dimension = 0, size_t sq_bits = 8,
 |--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
 | `sq_bits` | `size_t` | `8` | _(Optional)_ Number of bits for scalar quantization (typically 4, 8, or 16). |
-| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -279,8 +279,6 @@ cyborg::IndexIVFSQ config2(0, 16);
 cyborg::IndexIVFSQ config3(128, 8);
 ```
 
-<Tip>`IndexIVFSQ` is the default index configuration (with `sq_bits=16`) and is suitable for most use cases. It provides a good balance of recall, speed, and index size.</Tip>
-
 ---
 
 ## Array2D
@@ -295,7 +293,6 @@ Array2D(std::vector<T>&& data, size_t cols);
 Array2D(const std::vector<T>& data, size_t cols);
 Array2D(std::initializer_list<std::initializer_list<T>> init_list);
 Array2D(Array2D&& other) noexcept;
-Array2D(const Array2D& other);
 Array2D();
 ```
 
@@ -304,8 +301,9 @@ Array2D();
 - **`Array2D(const std::vector<T>& data, size_t cols)`**: Initializes the 2D array from a 1D vector (copy).
 - **`Array2D(std::initializer_list<std::initializer_list<T>> init_list)`**: Initializes from a nested initializer list (e.g., `{{1, 2}, {3, 4}}`).
 - **`Array2D(Array2D&& other) noexcept`**: Move constructor - transfers ownership without copying.
-- **`Array2D(const Array2D& other)`**: Copy constructor - creates a deep copy.
 - **`Array2D()`**: Default constructor - creates an empty array (0 rows, 0 columns).
+
+<Note>The copy constructor is deleted. Use `Clone()` or move semantics to copy an `Array2D`.</Note>
 
 ### Access Methods
 
@@ -360,7 +358,7 @@ TrainingConfig(std::optional<size_t> n_lists = std::nullopt,
 | Parameter | Type | Description |
 |-------------------|----------|---------------------------------------------------------------------------------------------|
 | `n_lists` | `std::optional<size_t>` | _(Optional)_ Number of inverted lists to create. Defaults to `std::nullopt` (auto-determines, typically `0`). |
-| `batch_size` | `std::optional<size_t>` | _(Optional)_ Size of each batch for training. Defaults to `std::nullopt` (auto-determines, typically `2048`). |
+| `batch_size` | `std::optional<size_t>` | _(Optional)_ Size of each batch for training. Defaults to `std::nullopt` (auto-determined based on dataset size). |
 | `max_iters` | `std::optional<size_t>` | _(Optional)_ Maximum iterations for training. Defaults to `std::nullopt` (auto-determines, typically `100`). |
 | `tolerance` | `std::optional<double>` | _(Optional)_ Convergence tolerance for training. Defaults to `std::nullopt` (uses `1e-6`). |
 | `max_memory` | `std::optional<size_t>` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `std::nullopt` (no limit). |
@@ -415,13 +413,13 @@ For more info on metadata, see [Metadata Filtering](../guides/data-operations/me
 
 `QueryResults` class holds the results from a `Query` operation, including IDs, distances, and metadata for the nearest neighbors of each query. Results are vector-based and immutable after construction.
 
-### Data Members
+### Getter Methods
 
-| Member | Type | Description |
+| Method | Return Type | Description |
 |--------------------------|------------------------------|------------------------------------------------------|
-| `ids` | `std::vector<std::vector<std::string>>` | IDs of nearest neighbors for each query. |
-| `distances` | `std::vector<std::vector<float>>` | Distances of nearest neighbors for each query. |
-| `metadata` | `std::vector<std::vector<std::string>>` | Metadata for nearest neighbors for each query (JSON strings). |
+| `ids()` | `const std::vector<std::vector<std::string>>&` | IDs of nearest neighbors for each query. |
+| `distances()` | `const std::vector<std::vector<float>>&` | Distances of nearest neighbors for each query. |
+| `metadata()` | `const std::vector<std::vector<std::string>>&` | Metadata for nearest neighbors for each query (JSON strings). |
 
 ### Methods
 
@@ -442,7 +440,7 @@ struct ResultView {
     const std::vector<std::string>& ids;
     const std::vector<float>& distances;
     const std::vector<std::string>& metadata;
-    uint32_t num_results;
+    const uint32_t& num_results;
 };
 ```
 
@@ -459,8 +457,8 @@ for (size_t i = 0; i < results.num_queries(); ++i) {
 }
 
 // Access all IDs and distances directly
-const auto& all_ids = results.ids;
-const auto& all_distances = results.distances;
+const auto& all_ids = results.ids();
+const auto& all_distances = results.distances();
 
 // Get actual result counts per query
 auto counts = results.num_results();

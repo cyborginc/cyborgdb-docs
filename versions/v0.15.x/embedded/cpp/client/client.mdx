@@ -11,7 +11,7 @@ The `cyborg::Client` class manages storage configurations and acts as a factory 
 cyborg::Client(const std::string& api_key,
                const DBConfig& index_location,
                const DBConfig& config_location,
-               const DBConfig& items_location,
+               const DBConfig& contents_location,
                const int cpu_threads,
                const GPUConfig gpu_config);
 ```
@@ -24,7 +24,7 @@ Initializes a new instance of `Client`.
 | `api_key` | `std::string` | API key for your CyborgDB account. |
 | `index_location` | [`DBConfig`](../types#DBConfig) | Configuration for index storage location. |
 | `config_location` | [`DBConfig`](../types#DBConfig) | Configuration for index metadata storage. |
-| `items_location` | [`DBConfig`](../types#DBConfig) | Configuration intended to be used in a future release. Pass in a DBConfig with a Location of 'None'. |
+| `contents_location` | [`DBConfig`](../types#DBConfig) | Configuration intended to be used in a future release. Pass in a DBConfig with a Location of 'None'. |
 | `cpu_threads` | `int` | Number of CPU threads to use (e.g., `0` to use all available cores).|
 | `gpu_config` | [`GPUConfig`](../types#gpuconfig) | GPU operations configuration (requires CUDA). Use bitflags: `kNone` (no GPU), `kUpsert` (GPU for upsert), `kTrain` (GPU for training), `kQuery` (GPU for query), or `kAll` (GPU for all operations). Combine with `\|` operator.|
 
