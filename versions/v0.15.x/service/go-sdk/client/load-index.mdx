@@ -63,18 +63,23 @@ func main() {
         log.Fatal(err)
     }
     
-    // Replace with your actual encryption key
-    key := []byte("example-index-key-1234567890")
-    
+    // Replace with your actual encryption key (must be exactly 32 bytes)
+    key := []byte("example-index-key-12345678901234")
+
     // Load existing index
     ctx := context.Background()
     index, err := client.LoadIndex(ctx, "my-documents", key)
     if err != nil {
         log.Fatal("Failed to load index:", err)
     }
-    
+
     log.Printf("Loaded index: %s", index.GetIndexName())
     log.Printf("Index type: %s", index.GetIndexType())
-    log.Printf("Is trained: %t", index.IsTrained())
+
+    trained, err := index.IsTrained(ctx)
+    if err != nil {
+        log.Fatal("Failed to check training status:", err)
+    }
+    log.Printf("Is trained: %t", trained)
 }
 ```

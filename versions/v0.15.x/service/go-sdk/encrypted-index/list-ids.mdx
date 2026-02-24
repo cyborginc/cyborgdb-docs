@@ -19,6 +19,7 @@ func (e *EncryptedIndex) ListIDs(ctx context.Context) (*ListIDsResponse, error)
 
 - `*ListIDsResponse`: Contains all vector IDs:
     - `Ids`: Slice of all vector ID strings in the index
+    - `Count`: Total number of IDs in the index (`int32`)
 - `error`: Any error encountered during the operation
 
 ### Error Handling

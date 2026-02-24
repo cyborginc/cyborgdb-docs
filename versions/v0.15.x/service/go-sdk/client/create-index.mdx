@@ -22,7 +22,7 @@ func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*E
 |-------|------|----------|-------------|
 | `IndexName` | `string` | Yes | Unique identifier for the index |
 | `IndexKey` | `[]byte` | Yes | 32-byte encryption key |
-| `IndexConfig` | `IndexModel` | No | Index configuration (IVF, IVFFlat, or IVFPQ) |
+| `IndexConfig` | `IndexModel` | No | Index configuration (IVFFlat, IVFPQ, or IVFSQ) |
 | `Metric` | `*string` | No | Distance metric (e.g., "euclidean", "cosine") |
 | `EmbeddingModel` | `*string` | No | Associated embedding model name |
 
@@ -101,8 +101,9 @@ client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
 key, _ := cyborgdb.GenerateKey()
 
 // Create an IVFFlat index with automatic embedding generation
-config := cyborgdb.IndexIVFFlat()
+config := cyborgdb.IndexIVFFlat(3072)
 
+metric := "cosine"
 embeddingModel := "text-embedding-3-large"
 
 params := &cyborgdb.CreateIndexParams{

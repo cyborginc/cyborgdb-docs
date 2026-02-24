@@ -79,7 +79,11 @@ func main() {
         fmt.Println("Index is currently being trained")
     } else {
         fmt.Println("Index is not being trained")
-        fmt.Printf("Index trained status: %t\n", index.IsTrained())
+        trained, err := index.IsTrained(context.Background())
+        if err != nil {
+            log.Fatalf("Failed to check training status: %v", err)
+        }
+        fmt.Printf("Index trained status: %t\n", trained)
     }
 }
 ```
@@ -121,7 +125,11 @@ if err != nil {
     log.Fatal(err)
 }
 
-fmt.Printf("Index is now trained: %t\n", index.IsTrained())
+trained, err := index.IsTrained(context.Background())
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Index is now trained: %t\n", trained)
 ```
 
 #### Trigger Training and Monitor Progress

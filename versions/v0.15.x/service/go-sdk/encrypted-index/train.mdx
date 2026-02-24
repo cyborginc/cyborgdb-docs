@@ -93,7 +93,12 @@ func main() {
     }
 
     fmt.Println("Training completed successfully!")
-    fmt.Printf("Index is now trained: %t\n", index.IsTrained())
+
+    trained, err := index.IsTrained(context.Background())
+    if err != nil {
+        log.Fatalf("Failed to check training status: %v", err)
+    }
+    fmt.Printf("Index is now trained: %t\n", trained)
 }
 ```
 
