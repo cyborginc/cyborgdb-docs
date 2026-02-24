@@ -25,7 +25,7 @@ Initializes a new CyborgDB `Client` instance.
 | `api_key` | `str` | - | API key for your CyborgDB account. |
 | `index_location` | [`DBConfig`](../types#dbconfig) | - | Configuration for index storage location. Use a dictionary with keys `location`, `table_name`, and `connection_string`. |
 | `config_location` | [`DBConfig`](../types#dbconfig) | - | Configuration for index metadata storage. Uses the same dictionary structure as `index_location`. |
-| `items_location` | [`DBConfig`](../types#dbconfig) | `NONE` | _(Optional)_ Configuration for encrypted item storage. Uses the same dictionary structure as `index_location`. |
+| `items_location` | [`DBConfig`](../types#dbconfig) | - | Configuration for encrypted item storage. Uses the same dictionary structure as `index_location`. |
 | `cpu_threads` | `int` | `0` | _(Optional)_ Number of CPU threads to use for computations (defaults to `0` = all cores). |
 | `gpu_config` | [`GPUConfig`](../types#gpuconfig) \| `None` | `None` | _(Optional)_ GPU operations configuration. Specify which operations use GPU acceleration (defaults to `None`, no GPU). |
 
