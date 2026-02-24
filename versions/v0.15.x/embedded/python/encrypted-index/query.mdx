@@ -23,6 +23,7 @@ def query(self,
 | Parameter | Type | Default | Description |
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
 | `query_vectors` | `List[float]` | - | A single query vector as a list of floats (for single query). |
+| `query_contents` | `str` | `None` | _(Optional)_ Text content to auto-embed as query vector (requires `embedding_model` set during index creation). |
 | `top_k` | `int` | `None` | _(Optional)_ Number of nearest neighbors to return. When `None`, defaults to 100. |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When `None` or `0`, automatically determines the optimal value. |
 | `filters` | `Dict[str, Any]` | `{}` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |

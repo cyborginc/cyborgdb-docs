@@ -28,7 +28,7 @@ client = cyborgdb.Client(
 # Provide the index key used when creating the index
 index_key = secrets.token_bytes(32)
 
-# Create an encrypted index
+# Load an encrypted index
 index = client.load_index(
     index_name="my_index", 
     index_key=index_key
@@ -55,7 +55,7 @@ cyborg::Client client(api_key, index_location, config_location, contents_locatio
 // Example key (32 bytes)
 std::array<uint8_t, 32> index_key;
 
-// Create an encrypted index
+// Load an encrypted index
 auto index = client.LoadIndex("my_index", index_key);
 ```
 </CodeGroup>
