@@ -34,7 +34,7 @@ Create a new encrypted index with the specified configuration.
   <ParamField body="index_config" type="object">
     Index configuration object. Optional when using `embedding_model` (defaults to IVFFlat).
     When provided, must contain:
-    - `type`: Index type (`ivfflat`, `ivfpq`, `ivfsq`)
+    - `type`: Index type (`ivfflat`, `ivfpq`, `ivfsq`). `ivf` is also accepted but deprecated — use `ivfflat` instead.
     - `dimension`: Embedding dimension (optional)
     - `pq_dim`: Product quantization dimension (required for `ivfpq`)
     - `pq_bits`: Number of bits per sub-vector (required for `ivfpq`)
@@ -94,6 +94,10 @@ Product Quantization compresses embeddings, balancing memory use and recall:
 ```
 
 **Speed:** Fast | **Recall:** High | **Index Size:** Medium
+
+### IVF (Deprecated)
+
+<Warning>The `ivf` type is deprecated. Use `ivfflat` instead, which provides equivalent functionality.</Warning>
 
 ## Distance Metrics
 

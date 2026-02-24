@@ -65,16 +65,16 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 }
 ```
 
-**Training Already In Progress:**
+**Training Failed:**
 ```json
 {
-  "status": "in_progress",
-  "message": "Index 'my_index' is already being trained"
+  "status": "error",
+  "message": "Training failed for 'my_index': internal error during training"
 }
 ```
 
 <Note>
-If an index is already being trained (either manually or via automatic training trigger), the API will return an `in_progress` status instead of starting a new training session.
+This endpoint blocks until training completes. It will return `"success"` when training finishes normally, or `"error"` if training fails.
 </Note>
 
 ## Exceptions
