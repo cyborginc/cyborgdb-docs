@@ -6,7 +6,7 @@ mode: wide
 
 CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
 
-<Update label="v0.15.0" description="2026-02-20">
+<Update label="v0.15.0" description="2026-02-24">
 ## CyborgDB v0.15.0
 
 ### Deployment Model
@@ -16,6 +16,14 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 - Client SDK (Python, JavaScript, TypeScript & Go)
 
 ### New Features
+
+- Significant performance optimizations for all index types
+- Added new `IVFSQ` index type and replace `IVFFlat` as the default
+- Deprecated IVF index type
+- Added standalone support for on-device encrypted indexes without external database dependencies
+- Added support for binary upsert and query vectors for faster data transfer and reduced memory usage
+- New `/training-status` endpoint in REST API for monitoring index training progress and status
+- Improved error handling and logging across all components
 
 </Update>
 
