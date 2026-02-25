@@ -21,6 +21,8 @@ config = IndexIVFSQ(
 )
 ```
 
+<Note> The `sq_bits` parameter controls the precision of the scalar quantization. Higher values provide higher recall at the cost of larger index sizes. Accepted values are `8` and `16`, with `16` being the default.</Note>
+
 ### IndexIVFFlat
 
 IVFFlat index configuration, suitable for highest accuracy requirements:
