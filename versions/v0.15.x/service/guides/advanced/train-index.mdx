@@ -6,7 +6,9 @@ mode: "wide"
 
 CyborgDB uses `IVF*` index types, which leverage clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
 
-<Tip>In CyborgDB Service, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added.</Tip>
+In CyborgDB Service, training is handled automatically after 10,000 vectors have been upserted. However, you can explicitly trigger training once enough vectors have been added, if you wish to specify training parameters.
+
+<Tip>You can adjust the number of vectors that will trigger automatic training by setting the `RETRAIN_THRESHOLD` environment variable. See more in the [Environment Variables](/env-vars.mdx) guide.</Tip>
 
 <CodeGroup>
 ```python Python SDK icon="python"
@@ -55,7 +57,7 @@ curl -X POST "http://localhost:8000/v1/indexes/train" \
 ```
 </CodeGroup>
 
-<Tip>You must have at least `2 * n_lists` number of vectors in the index (ingested via `upsert`) before you can call `train`.</Tip>
+<Tip>You must have at least 10,000 or `2 * n_lists` number of vectors in the index (ingested via `upsert`) before you can call `train`.</Tip>
 
 ## Training Parameters
 
