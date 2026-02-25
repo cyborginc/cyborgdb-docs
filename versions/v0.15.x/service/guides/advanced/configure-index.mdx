@@ -7,11 +7,11 @@ sidebarTitle: "Configure Index"
 
 CyborgDB offers three index types, all of which offer varying characteristics:
 
-|  Index Type  |  Speed  | Recall | Index Size |
+|  Index Type  |  Speed  | Accuracy | Memory Usage |
 | :-----: | :-----: | :----: | :--------: |
-| [`IVFFlat`](#ivfflat-index-type) | Fast | Highest |  Biggest  |
-| [`IVFPQ`](#ivfpq-index-type) | Fast | High |  Medium  |
-| [`IVFSQ`](#ivfsq-index-type) | Fast | High |  Small  |
+| [`IVFFlat`](#ivfflat-index-type) | Medium | Highest |  High  |
+| [`IVFPQ`](#ivfpq-index-type) | Fast | Good |  Low  |
+| [`IVFSQ`](#ivfsq-index-type) | Fast | High |  Low  |
 
 Generally-speaking, we recommend that you start with `IVFFlat`, which provides the highest recall (accuracy) with high indexing and retrieval speeds. For most use-cases, this index type will scale well. If minimizing index size is important, `IVFPQ` takes `IVFFlat` and applies Product-Quantization (PQ, a form of lossy compression) to the vector embeddings which can greatly reduce index size. For an alternative that balances speed and index size, `IVFSQ` uses Scalar Quantization to compress each dimension independently.
 
