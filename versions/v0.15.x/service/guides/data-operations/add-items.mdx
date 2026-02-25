@@ -302,7 +302,7 @@ If you provided an `embedding_model` during index creation, you can automaticall
 <CodeGroup>
 ```python Python SDK icon="python"
 # ... index creation and embedding model setup
-embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+embedding_model = "all-MiniLM-L6-v2"
 index = client.create_index(
   index_name="my_index", 
   index_key=index_key, 
@@ -322,7 +322,7 @@ index.upsert(items)
 
 ```javascript JavaScript SDK icon="js"
 // ... index creation and embedding model setup
-const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
+const embeddingModel = "all-MiniLM-L6-v2";
 const index = await client.createIndex({ 
     indexName: "my_index", 
     indexKey, 
@@ -344,7 +344,7 @@ await index.upsert({ items });
 import { VectorItem, UpsertParams, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
 
 // ... index creation and embedding model setup
-const embeddingModel: string = "sentence-transformers/all-MiniLM-L6-v2";
+const embeddingModel: string = "all-MiniLM-L6-v2";
 const indexParams: CreateIndexParams = {
     indexName: "my_index", 
     indexKey, 

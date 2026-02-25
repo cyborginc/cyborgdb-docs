@@ -67,6 +67,7 @@ Parameters are available to customize the training process:
 | `batch_size` | `int` | `None` | _(Optional)_ Number of vectors to process per training batch. When `None`, the server uses 2048. |
 | `max_iters` | `int` | `None` | _(Optional)_ Maximum number of training iterations. When `None`, the server uses 100. |
 | `tolerance` | `float`| `None` | _(Optional)_ Convergence tolerance for training completion. When `None`, the server uses 1e-6. |
+| `max_memory` | `int` | `None` (0) | _(Optional)_ Maximum memory usage in MB. When `None` or 0, no memory limit is applied. |
 
 `n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
 

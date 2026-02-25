@@ -94,6 +94,8 @@ You can specify which fields to include in the response:
 
 If you don't specify `include`, the default is `["vector", "contents", "metadata"]`. Note: `id` is always included in results.
 
+<Note>For IVFPQ and IVFSQ index types, the `vector` field cannot be included in the response as these index types use compression techniques that don't preserve original vectors.</Note>
+
 ## API Reference
 
 For more information on getting items from an encrypted index, refer to the API reference:
