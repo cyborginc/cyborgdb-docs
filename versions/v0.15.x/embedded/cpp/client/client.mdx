@@ -48,7 +48,7 @@ Initializes a new instance of `Client`.
 #include "cyborgdb_core/client.hpp"
 
 std::string api_key = "your_api_key_here";
-cyborg::DBConfig index_location(Location::kMemory);
+cyborg::DBConfig index_location(Location::kThreadSafeMemory);
 cyborg::DBConfig config_location(Location::kRedis, "index_metadata", "redis://localhost");
 cyborg::DBConfig contents_location(Location::kRocksDB); // Where encrypted item contents are stored
 int cpu_threads = 4;

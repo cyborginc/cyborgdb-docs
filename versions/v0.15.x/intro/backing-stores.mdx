@@ -48,11 +48,13 @@ Choose between speed and durability with flexible persistence and replication op
 
 ---
 
-## RocksDB
+## Standalone
+
+<Note>For our embedded libraries, Standalone is referred to as "RocksDB"</Note>
 
 **Persistent local storage for embedded deployments**
 
-RocksDB provides persistent key-value storage directly on local disk, with no network dependency. This makes it the recommended backing store for embedded/local CyborgDB deployments where simplicity and reliability are priorities.
+Standalone provides persistent key-value storage directly on local disk, with no network dependency. This makes it the recommended backing store for embedded/local CyborgDB deployments where simplicity and reliability are priorities.
 
 ### Key Benefits
 
@@ -71,6 +73,8 @@ Low memory footprint with configurable caching, compaction, and compression sett
 
 ## Memory
 
+<Note>For our embedded libraries, Memory is referred to as "ThreadSafeMemory"</Note>
+
 **Local in-process storage for development and testing**
 
 Memory-based storage keeps all data in local process memory, providing the fastest possible access with zero network overhead. Perfect for development, testing, and single-process applications.
@@ -87,51 +91,6 @@ No external dependencies or configuration required - instant setup for prototypi
 Predictable access patterns with complete control over memory usage.
 
 **Best For:** Development and testing environments, single-process applications, proof-of-concept scenarios, and ephemeral data requirements.
-
----
-
-## ThreadSafeMemory
-
-**Thread-safe in-memory storage for concurrent workloads**
-
-ThreadSafeMemory extends the in-memory backing store with thread-safe access, allowing concurrent reads and writes from multiple threads without external synchronization.
-
-### Key Benefits
-
-**Thread-Safe Access**
-Built-in locking ensures safe concurrent access from multiple threads.
-
-**Zero Network Latency**
-Same performance characteristics as Memory storage with added thread safety.
-
-**Multi-threaded Benchmarking**
-Ideal for evaluating CyborgDB performance under concurrent workloads.
-
-**Best For:** Multi-threaded benchmarking, concurrent testing environments, and applications that need ephemeral thread-safe storage.
-
----
-
-## Standalone (for evaluation purposes only)
-
-**Built-in database for evaluation and testing**
-
-Standalone provides a self-contained database instance that starts automatically when no external database is configured. Perfect for quick evaluation, development, and testing without setting up external infrastructure.
-
-### Key Benefits
-
-**Zero Configuration**
-Starts automatically when CYBORGDB_DB_TYPE is not set - no external database setup required.
-
-**Instant Setup**
-Begin evaluating CyborgDB immediately without infrastructure provisioning or configuration.
-
-**Best For:** Evaluation and testing, rapid prototyping, development environments, and learning CyborgDB features without infrastructure overhead.
-
-### Important Limitations
-
-<Warning>
-**Standalone is for EVALUATION PURPOSES ONLY** - It should NOT be used in production environments. For production deployments, use external Redis or PostgreSQL instances with proper persistence, replication, and backup strategies.
-</Warning>
 
 ---
 

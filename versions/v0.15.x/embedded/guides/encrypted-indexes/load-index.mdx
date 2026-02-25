@@ -11,9 +11,9 @@ If you've previously created an encrypted index, you can connect to it to add, q
 import cyborgdb_core as cyborgdb
 import secrets
 
-# Using `memory` storage for this example
-index_location = cyborgdb.DBConfig("memory") 
-config_location = cyborgdb.DBConfig("memory")
+# Using `threadsafememory` storage for this example
+index_location = cyborgdb.DBConfig("threadsafememory") 
+config_location = cyborgdb.DBConfig("threadsafememory")
 
 # Get your API key
 api_key = "your_api_key_here"  # Replace with your actual API key
@@ -40,10 +40,10 @@ index = client.load_index(
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>
 
-// Using `memory` storage for this example
-cyborg::DBConfig index_location(cyborg::Location::kMemory);
-cyborg::DBConfig config_location(cyborg::Location::kMemory);
-cyborg::DBConfig contents_location(cyborg::Location::kMemory);
+// Using `threadsafememory` storage for this example
+cyborg::DBConfig index_location(cyborg::Location::kThreadSafeMemory);
+cyborg::DBConfig config_location(cyborg::Location::kThreadSafeMemory);
+cyborg::DBConfig contents_location(cyborg::Location::kThreadSafeMemory);
 
 // Get your API key
 std::string api_key = "your_api_key_here";  // Replace with your actual API key
