@@ -9,10 +9,10 @@ CyborgDB offers four index types, all of which offer varying characteristics:
 
 |  Index Type  |  Speed  | Recall | Index Size |
 | :-----: | :-----: | :----: | :--------: |
-| [`IVFSQ`](#ivfsq-index-type) | Fast | High |  Small  |
+| [`IVFSQ`](#ivfsq-index-type) | Fastest | High |  Small  |
 | [`IVFFlat`](#ivfflat-index-type) | Fast | Highest |  Biggest  |
 | [`IVFPQ`](#ivfpq-index-type) | Fast | High |  Medium  |
-| [`IVF`](#ivf-index-type) | Fastest | Lowest |  Smallest  |
+| [`IVF`](#ivf-index-type) | Fast | Lowest |  Smallest  |
 
 Generally-speaking, we recommend that you start with `IVFSQ`, which is the **default** index type. It provides high recall with a good balance of speed and index size. If you need the absolute highest recall, use `IVFFlat`. If minimizing index size is important, `IVFPQ` applies Product-Quantization (PQ, a form of lossy compression) to the vector embeddings which can greatly reduce index size.
 
@@ -146,6 +146,8 @@ auto index = client.CreateIndex(index_name, index_key, index_config);
 `pq_bits` is the number of bits that will be used to represent each dimension of the product-quantized vector embeddings. It must be between `1` and `16`, with lower values yielding smaller index sizes but lower recall.
 
 ## `IVF` Index Type
+
+<Warning>The `IVF` type is deprecated and will be removed in a future release.</Warning>
 
 The `IVF` index type (Inverted File Index) is the simplest offered by CyborgDB. We recommend `IVF` indexes for applications which require high-speed, low-latency search with low recall requirements (or where `top_k` is rather large, i.e. >500).
 
