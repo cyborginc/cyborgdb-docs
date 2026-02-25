@@ -151,24 +151,24 @@ const results = await index.query({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryParams, QueryResponse, MetadataFilters } from 'cyborgdb';
+import { QueryRequest, QueryResponse, FilterExpression } from 'cyborgdb';
 
 // Example query
 const queryVectors: number[] = [0.5, 0.9, 0.2, 0.7];
 const topK: number = 10;
 
 // Example filters
-const filters: MetadataFilters = {
+const filters: FilterExpression = {
     category: {$in: ["dog", "cat"]} // Will match either 'dog' or 'cat'
 };
 
-// Perform query  
-const params: QueryParams = {
+// Perform query
+const params: QueryRequest = {
     queryVectors,
     topK,
     filters
 };
-const results: QueryResponse = await index.query(params);
+const response: QueryResponse = await index.query(params);
 ```
 
 ```go Go SDK icon="golang"
@@ -217,6 +217,8 @@ CyborgDB supports a subset of [MongoDB's Query and Projection Operators](https:/
 | :---: | :---: | --- |
 | `$and` | `array` | Logical AND - matches vectors that satisfy all conditions in the array |
 | `$or` | `array` | Logical OR - matches vectors that satisfy at least one condition in the array |
+| `$not` | `object` | Logical NOT - matches vectors that do not satisfy the condition |
+| `$exists` | `boolean` | Matches vectors that have (or do not have) the specified field |
 | `$eq` | `Boolean`, `Number`, `String` | Matches vectors with the metadata that is equal to the filter value |
 | `$ne` | `Boolean`, `Number`, `String` | Matches vectors with the metadata that is not equal to the filter value |
 | `$in` | `Number`, `String` | Matches vectors with metadata that is in the filter array |

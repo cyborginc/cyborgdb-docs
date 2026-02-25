@@ -46,7 +46,7 @@ const index = await client.createIndex({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
+import { Client, EncryptedIndex, CreateIndexRequest } from 'cyborgdb';
 
 // Create a client
 const client = new Client({ 
@@ -58,7 +58,7 @@ const client = new Client({
 const indexKey: Uint8Array = client.generateKey();
 
 // Create an encrypted index
-const params: CreateIndexParams = {
+const params: CreateIndexRequest = {
     indexName: "my_index", 
     indexKey 
 };
@@ -186,7 +186,7 @@ const index = await client.createIndex({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
+import { Client, EncryptedIndex, CreateIndexRequest } from 'cyborgdb';
 
 // Create a client
 const client = new Client({ 
@@ -201,7 +201,7 @@ const indexKey: Uint8Array = client.generateKey();
 const embeddingModel: string = "all-MiniLM-L6-v2";
     
 // Create an encrypted index with managed embedding generation
-const params: CreateIndexParams = {
+const params: CreateIndexRequest = {
     indexName: "my_index", 
     indexKey, 
     embeddingModel 

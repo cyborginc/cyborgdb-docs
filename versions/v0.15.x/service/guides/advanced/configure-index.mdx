@@ -47,25 +47,25 @@ index = client.create_index(
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client, IndexIVFFlat } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
 // Create the IVFFlat index config
-const indexConfig = new IndexIVFFlat();
+const indexConfig = { type: 'ivfflat' };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
@@ -73,22 +73,22 @@ const index = await client.createIndex({
 import { Client, IndexIVFFlat } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
 // Create the IVFFlat index config
-const indexConfig: IndexIVFFlat = new IndexIVFFlat();
+const indexConfig: IndexIVFFlat = { type: 'ivfflat' };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
@@ -173,12 +173,12 @@ index = client.create_index(
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client, IndexIVFPQ } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
 // Set index parameters
@@ -186,16 +186,16 @@ const pqDim = 32; // Dimension must be divisible by pqDim
 const pqBits = 8; // Number of bits for each pq dimension
 
 // Create the IVFPQ index config
-const indexConfig = new IndexIVFPQ(pqDim, pqBits);
+const indexConfig = { type: 'ivfpq', pqDim, pqBits };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
@@ -203,9 +203,9 @@ const index = await client.createIndex({
 import { Client, IndexIVFPQ } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
 // Set index parameters
@@ -213,16 +213,16 @@ const pqDim = 32; // Dimension must be divisible by pqDim
 const pqBits = 8; // Number of bits for each pq dimension
 
 // Create the IVFPQ index config
-const indexConfig: IndexIVFPQ = new IndexIVFPQ(pqDim, pqBits);
+const indexConfig: IndexIVFPQ = { type: 'ivfpq', pqDim, pqBits };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
@@ -310,7 +310,7 @@ index = client.create_index(
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client, IndexIVFSQ } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 
 // Create a client
 const client = new Client({
@@ -319,7 +319,7 @@ const client = new Client({
 });
 
 // Create the IVFSQ index config
-const indexConfig = new IndexIVFSQ({ sqBits: 16 });
+const indexConfig = { type: 'ivfsq', sqBits: 16 };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
@@ -342,7 +342,7 @@ const client = new Client({
 });
 
 // Create the IVFSQ index config
-const indexConfig = new IndexIVFSQ({ sqBits: 16 });
+const indexConfig: IndexIVFSQ = { type: 'ivfsq', sqBits: 16 };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
@@ -418,29 +418,29 @@ index = client.create_index(
 
 ```javascript JavaScript SDK icon="js"
 // Example with cosine similarity
-const indexConfig = new IndexIVFFlat();
+const indexConfig = { type: 'ivfflat' };
 const indexName = "index_name";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig, 
-    metric: "cosine" 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig,
+    metric: "cosine"
 });
 ```
 
 ```typescript TypeScript SDK icon="code"
 // Example with cosine similarity
-const indexConfig: IndexIVFFlat = new IndexIVFFlat();
+const indexConfig: IndexIVFFlat = { type: 'ivfflat' };
 const indexName = "index_name";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig, 
-    metric: "cosine" 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig,
+    metric: "cosine"
 });
 ```
 

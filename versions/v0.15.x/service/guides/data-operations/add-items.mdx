@@ -32,7 +32,7 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem, UpsertParams } from 'cyborgdb';
+import { VectorItem, UpsertRequest } from 'cyborgdb';
 
 // Items to add to the encrypted index
 const items: VectorItem[] = [
@@ -42,7 +42,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-const params: UpsertParams = { items };
+const params: UpsertRequest = { items };
 await index.upsert(params);
 ```
 
@@ -99,7 +99,7 @@ curl -X POST "http://localhost:8000/v1/vectors/upsert" \
 
 It's also possible to store item contents alongside vectors. To do this, include `contents` in the `upsert()` call.
 
-The contents field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption, while strings are passed as-is. All contents are encrypted before storage using the index key. In Python, contents are returned in their original format (string or bytes) when retrieved with `get()`. In JavaScript/TypeScript, contents are returned as Buffer. In Go, contents are returned as []byte.
+The contents field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption, while strings are passed as-is. All contents are encrypted before storage using the index key. In Python, contents are returned in their original format (string or bytes) when retrieved with `get()`. In JavaScript/TypeScript, contents are returned as decoded UTF-8 strings. In Go, contents are returned as []byte.
 
 <CodeGroup>
 ```python Python SDK icon="python"
@@ -127,7 +127,7 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem, UpsertParams } from 'cyborgdb';
+import { VectorItem, UpsertRequest } from 'cyborgdb';
 
 // Items to add to the encrypted index
 const items: VectorItem[] = [
@@ -137,7 +137,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-const params: UpsertParams = { items };
+const params: UpsertRequest = { items };
 await index.upsert(params);
 ```
 
@@ -243,7 +243,7 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem, UpsertParams } from 'cyborgdb';
+import { VectorItem, UpsertRequest } from 'cyborgdb';
 
 // Define metadata type (optional)
 interface PersonMetadata {
@@ -259,7 +259,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-const params: UpsertParams = { items };
+const params: UpsertRequest = { items };
 await index.upsert(params);
 ```
 
@@ -341,11 +341,11 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem, UpsertParams, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
+import { VectorItem, UpsertRequest, EncryptedIndex, CreateIndexRequest } from 'cyborgdb';
 
 // ... index creation and embedding model setup
 const embeddingModel: string = "all-MiniLM-L6-v2";
-const indexParams: CreateIndexParams = {
+const indexParams: CreateIndexRequest = {
     indexName: "my_index", 
     indexKey, 
     indexConfig, 
@@ -360,7 +360,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-const params: UpsertParams = { items };
+const params: UpsertRequest = { items };
 await index.upsert(params);
 ```
 
