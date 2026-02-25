@@ -45,12 +45,16 @@ Returns the type of the index (for example, `'ivfflat'`, `'ivfpq'`, or `'ivfsq'`
 ```python
 index_type = index.index_type
 print(f'Index type: {index_type}')
-# Output: "ivfflat"
+# Output: "ivfflat", "ivfpq", or "ivfsq"
 
-if index_type == 'ivfpq':
+if index_type == 'ivfsq':
+    print('Using IVFSQ index for high accuracy and memory efficiency')
+elif index_type == 'ivfpq':
     print('Using IVFPQ index for memory efficiency')
 elif index_type == 'ivfflat':
     print('Using IVFFlat index for high accuracy')
+else:
+    print('Unknown index type')
 ```
 
 ---
