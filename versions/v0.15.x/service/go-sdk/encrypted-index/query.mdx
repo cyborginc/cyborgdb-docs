@@ -23,7 +23,7 @@ func (e *EncryptedIndex) Query(ctx context.Context, input QueryInput) (*QueryRes
 | `QueryVector` | `[]float32` | _(Optional)_ Single query vector for similarity search |
 | `BatchQueryVectors` | `[][]float32` | _(Optional)_ Multiple query vectors for batch search |
 | `QueryContents` | `*string` | _(Optional)_ Text content for semantic search |
-| `TopK` | `int32` | Number of nearest neighbors to return (required) |
+| `TopK` | `int32` | _(Optional)_ Number of nearest neighbors to return (default: 100) |
 | `NProbes` | `*int32` | _(Optional)_ Number of clusters to probe for search |
 | `Filters` | `map[string]interface{}` | _(Optional)_ Metadata filters to apply |
 | `Include` | `[]string` | **(Required)** Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"` |

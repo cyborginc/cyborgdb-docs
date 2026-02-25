@@ -35,7 +35,7 @@ await index.train({ nLists: 128 });
 
 ```go Go SDK icon="golang"
 // Train the encrypted index
-err := index.Train(context.Background())
+err := index.Train(context.Background(), cyborgdb.TrainParams{})
 
 // Or train with a specific number of clusters
 nLists := int32(128)
