@@ -48,8 +48,8 @@ type CreateIndexParams struct {
 |-------|------|----------|-------------|
 | `IndexName` | `string` | Yes | Unique identifier for the index |
 | `IndexKey` | `[]byte` | Yes | 32-byte encryption key (use GenerateKey() to create) |
-| `IndexConfig` | `IndexModel` | No | Index configuration (IVF, IVFFlat, or IVFPQ) |
-| `Metric` | `*string` | No | Distance metric ("euclidean", "cosine") |
+| `IndexConfig` | `IndexModel` | No | Index configuration (IVFFlat, IVFPQ, or IVFSQ) |
+| `Metric` | `*string` | No | Distance metric ("euclidean", "squared_euclidean", "cosine") |
 | `EmbeddingModel` | `*string` | No | Name of embedding model to associate |
 
 ---
@@ -66,16 +66,22 @@ type IndexModel interface {
 }
 ```
 
-### IVF Configuration
+### IVFSQ Configuration
 
-Create an IVF (Inverted File) index configuration.
+Create an IVFSQ (Scalar Quantization) index configuration that compresses each dimension independently.
 
 ```go
-func IndexIVF(dimension int32) *indexIVF
+func IndexIVFSQ(dimension int32, sqBits int32) *indexIVFSQ
 ```
 
+#### Parameters
 
-### IVFFlat Configuration  
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dimension` | `int32` | The dimensionality of vectors that will be stored |
+| `sqBits` | `int32` | Number of bits per dimension for scalar quantization (typically 16) |
+
+### IVFFlat Configuration
 
 Create an IVFFlat (Inverted File Flat) index configuration for higher accuracy.
 
@@ -83,6 +89,11 @@ Create an IVFFlat (Inverted File Flat) index configuration for higher accuracy.
 func IndexIVFFlat(dimension int32) *indexIVFFlat
 ```
 
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dimension` | `int32` | The dimensionality of vectors that will be stored |
 
 ### IVFPQ Configuration
 
@@ -137,10 +148,17 @@ type GetResponse = internal.GetResponseModel
 Response from ListIDs operations.
 
 ```go
-type ListIDsResponse = internal.ListIDsResponse  
+type ListIDsResponse = internal.ListIDsResponse
 ```
 
 Contains the list of vector IDs in the index.
+
+#### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `Ids` | `[]string` | List of all vector ID strings in the index |
+| `Count` | `int32` | Total number of IDs in the index |
 
 ---
 
@@ -168,3 +186,124 @@ type TrainParams struct {
 | `MaxMemory` | `*int32` | Maximum memory usage in MB, 0 = no limit (default: 0) |
 | `NLists` | `*int32` | Number of IVF clusters, 0 = auto-determine (default: 0) |
 
+---
+
+## UpsertInput Interface
+
+Sealed interface implemented by types that can be passed to `Upsert`.
+
+```go
+type UpsertInput interface {
+    isUpsertInput()
+}
+```
+
+Valid implementations: [`VectorItems`](#vectoritems), [`BinaryUpsertParams`](#binaryupsertparams)
+
+---
+
+## QueryInput Interface
+
+Sealed interface implemented by types that can be passed to `Query`.
+
+```go
+type QueryInput interface {
+    isQueryInput()
+}
+```
+
+Valid implementations: [`QueryParams`](#queryparams), [`BinaryQueryParams`](#binaryqueryparams)
+
+---
+
+## VectorItems
+
+A slice of `VectorItem` that implements `UpsertInput` for type-safe upsert operations.
+
+```go
+type VectorItems []VectorItem
+```
+
+---
+
+## BinaryUpsertParams
+
+Parameters for binary format vector upserts. More efficient than `VectorItems` for large batches.
+
+```go
+type BinaryUpsertParams struct {
+    IDs      []string
+    Vectors  [][]float32
+    Metadata []map[string]interface{}
+    Contents []string
+}
+```
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `IDs` | `[]string` | Yes | Unique identifiers for each vector |
+| `Vectors` | `[][]float32` | Yes | Vector data, shape [n_vectors][dimension] |
+| `Metadata` | `[]map[string]interface{}` | No | Optional metadata for each vector (length must match IDs if provided) |
+| `Contents` | `[]string` | No | Optional content strings for each vector (length must match IDs if provided) |
+
+---
+
+## BinaryQueryParams
+
+Parameters for binary format similarity search. More efficient than `QueryParams` for large batch queries.
+
+```go
+type BinaryQueryParams struct {
+    QueryVectors [][]float32
+    TopK         int32
+    NProbes      *int32
+    Greedy       *bool
+    Filters      map[string]interface{}
+    Include      []string
+}
+```
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `QueryVectors` | `[][]float32` | Yes | Query vectors, shape [n_queries][dimension] |
+| `TopK` | `int32` | No | Number of nearest neighbors to return (default: 100) |
+| `NProbes` | `*int32` | No | Number of IVF lists to probe |
+| `Greedy` | `*bool` | No | Enable greedy search mode |
+| `Filters` | `map[string]interface{}` | No | Metadata filters to apply |
+| `Include` | `[]string` | No | Fields to include in response |
+
+---
+
+## QueryParams
+
+Parameters for similarity search queries. Supports single vector, batch, and content-based queries.
+
+```go
+type QueryParams struct {
+    QueryVector       []float32              `json:"query_vector,omitempty"`
+    BatchQueryVectors [][]float32            `json:"query_vectors,omitempty"`
+    QueryContents     *string                `json:"query_contents,omitempty"`
+    TopK              int32                  `json:"top_k"`
+    NProbes           *int32                 `json:"n_probes,omitempty"`
+    Greedy            *bool                  `json:"greedy,omitempty"`
+    Filters           map[string]interface{} `json:"filters,omitempty"`
+    Include           []string               `json:"include"`
+}
+```
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `QueryVector` | `[]float32` | No | Single query vector for similarity search |
+| `BatchQueryVectors` | `[][]float32` | No | Multiple query vectors for batch search |
+| `QueryContents` | `*string` | No | Text content for semantic search |
+| `TopK` | `int32` | No | Number of nearest neighbors to return |
+| `NProbes` | `*int32` | No | Number of clusters to probe for search |
+| `Greedy` | `*bool` | No | Use greedy search algorithm |
+| `Filters` | `map[string]interface{}` | No | Metadata filters to apply |
+| `Include` | `[]string` | **Yes** | Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"` |

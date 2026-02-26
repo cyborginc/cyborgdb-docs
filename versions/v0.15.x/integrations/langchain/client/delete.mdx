@@ -5,35 +5,119 @@ mode: "wide"
 
 Deletes documents from the vector store or deletes the entire index.
 
+<Tabs>
+    <Tab title="Embedded">
+
+        ```python
+        delete(
+            ids: Optional[List[str]] = None,
+            delete_index: bool = False
+        ) -> bool
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `ids` | `Optional[List[str]]` | _(Optional)_ List of document IDs to delete |
+        | `delete_index` | `bool` | If True, deletes the entire index regardless of `ids` (default: False) |
+
+        ### Returns
+
+        `bool`: True if deletion was successful, False otherwise
+
+        ### Example Usage
+
+        ```python
+        # Delete specific documents
+        doc_ids = ["doc1", "doc2", "doc3"]
+        success = store.delete(ids=doc_ids)
+        if success:
+            print("Documents deleted successfully")
+
+        # Delete the entire index
+        success = store.delete(delete_index=True)
+        if success:
+            print("Index deleted successfully")
+        ```
+
+    </Tab>
+
+    <Tab title="Python SDK">
+
+        ```python
+        delete(
+            ids: Optional[List[str]] = None,
+            delete_index: bool = False
+        ) -> bool
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `ids` | `Optional[List[str]]` | _(Optional)_ List of document IDs to delete |
+        | `delete_index` | `bool` | If True, deletes the entire index regardless of `ids` (default: False) |
+
+        ### Returns
+
+        `bool`: True if deletion was successful, False otherwise
+
+        ### Example Usage
+
+        ```python
+        # Delete specific documents
+        success = store.delete(ids=["doc1", "doc2"])
+
+        # Delete the entire index
+        success = store.delete(delete_index=True)
+        ```
+
+    </Tab>
+
+    <Tab title="JS/TS">
+
+        ```typescript
+        delete(params: { ids?: string[] }): Promise<void>
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `params.ids` | `string[]` | _(Optional)_ Array of document IDs to delete |
+
+        ### Returns
+
+        `Promise<void>`: Resolves on success, throws on failure
+
+        <Warning>The JS/TS SDK does not support the `delete_index` parameter. To delete an entire index, use the CyborgDB service client directly.</Warning>
+
+        <Note>Unlike the Python SDKs which return `bool`, the JS/TS method returns `void` and throws an error on failure.</Note>
+
+        ### Example Usage
+
+        ```typescript
+        // Delete specific documents
+        await store.delete({ ids: ["doc1", "doc2", "doc3"] });
+        ```
+
+    </Tab>
+</Tabs>
+
+### Async
+
+<Accordion title="Python async variants">
+
+The Embedded and Python SDK provide async versions of this method prefixed with `a`:
+
 ```python
-delete(
-    ids: Optional[List[str]] = None,
-    delete_index: bool = False
-) -> bool
+# adelete — async variant
+success = await store.adelete(ids=["doc1", "doc2"])
 ```
 
-### Parameters
+</Accordion>
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ids` | `Optional[List[str]]` | _(Optional)_ List of document IDs to delete |
-| `delete_index` | `bool` | If True, deletes the entire index regardless of `ids` (default: False) |
-
-### Returns
-
-`bool`: True if deletion was successful, False otherwise
-
-### Example Usage
-
-```python
-# Delete specific documents
-doc_ids = ["doc1", "doc2", "doc3"]
-success = store.delete(ids=doc_ids)
-if success:
-    print("Documents deleted successfully")
-
-# Delete the entire index
-success = store.delete(delete_index=True)
-if success:
-    print("Index deleted successfully")
-```
+<Note>
+JS/TS methods are natively async — all signatures above already return `Promise<...>`. No separate async variant is needed.
+</Note>

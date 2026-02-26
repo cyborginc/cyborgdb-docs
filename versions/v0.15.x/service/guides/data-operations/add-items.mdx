@@ -32,7 +32,7 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem, UpsertParams } from 'cyborgdb';
+import { VectorItem, UpsertRequest } from 'cyborgdb';
 
 // Items to add to the encrypted index
 const items: VectorItem[] = [
@@ -42,7 +42,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-const params: UpsertParams = { items };
+const params: UpsertRequest = { items };
 await index.upsert(params);
 ```
 
@@ -57,7 +57,7 @@ import (
 )
 
 // Items to add to the encrypted index
-items := []cyborgdb.VectorItem{
+items := cyborgdb.VectorItems{
     {Id: "item_1", Vector: []float32{0.1, 0.2, 0.3, 0.4}},
     {Id: "item_2", Vector: []float32{0.5, 0.6, 0.7, 0.8}},
     {Id: "item_3", Vector: []float32{0.9, 0.10, 0.11, 0.12}},
@@ -99,7 +99,7 @@ curl -X POST "http://localhost:8000/v1/vectors/upsert" \
 
 It's also possible to store item contents alongside vectors. To do this, include `contents` in the `upsert()` call.
 
-The contents field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption, while strings are passed as-is. All contents are encrypted before storage using the index key. In Python, contents are returned in their original format (string or bytes) when retrieved with `get()`. In JavaScript/TypeScript, contents are returned as Buffer. In Go, contents are returned as []byte.
+The contents field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption, while strings are passed as-is. All contents are encrypted before storage using the index key. In Python, contents are returned in their original format (string or bytes) when retrieved with `get()`. In JavaScript/TypeScript, contents are returned as decoded UTF-8 strings. In Go, contents are returned as string.
 
 <CodeGroup>
 ```python Python SDK icon="python"
@@ -127,7 +127,7 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem, UpsertParams } from 'cyborgdb';
+import { VectorItem, UpsertRequest } from 'cyborgdb';
 
 // Items to add to the encrypted index
 const items: VectorItem[] = [
@@ -137,13 +137,13 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-const params: UpsertParams = { items };
+const params: UpsertRequest = { items };
 await index.upsert(params);
 ```
 
 ```go Go SDK icon="golang"
 // Items to add to the encrypted index
-items := []cyborgdb.VectorItem{
+items := cyborgdb.VectorItems{
     {Id: "item_1", Vector: []float32{0.1, 0.2, 0.3, 0.4}, Contents: cyborgdb.NewNullableContents("Hello!")},
     {Id: "item_2", Vector: []float32{0.5, 0.6, 0.7, 0.8}, Contents: cyborgdb.NewNullableContents("World!")},
     {Id: "item_3", Vector: []float32{0.9, 0.10, 0.11, 0.12}, Contents: cyborgdb.NewNullableContents("Cyborg!")},
@@ -205,7 +205,7 @@ index.upsert(items)
 
 ```go Go SDK icon="golang"
 // Items to add to the encrypted index
-items := []cyborgdb.VectorItem{
+items := cyborgdb.VectorItems{
     {
         Id: "item_1", 
         Vector: []float32{0.1, 0.2, 0.3, 0.4}, 
@@ -243,7 +243,7 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem, UpsertParams } from 'cyborgdb';
+import { VectorItem, UpsertRequest } from 'cyborgdb';
 
 // Define metadata type (optional)
 interface PersonMetadata {
@@ -259,7 +259,7 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-const params: UpsertParams = { items };
+const params: UpsertRequest = { items };
 await index.upsert(params);
 ```
 
@@ -302,7 +302,7 @@ If you provided an `embedding_model` during index creation, you can automaticall
 <CodeGroup>
 ```python Python SDK icon="python"
 # ... index creation and embedding model setup
-embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+embedding_model = "all-MiniLM-L6-v2"
 index = client.create_index(
   index_name="my_index", 
   index_key=index_key, 
@@ -322,7 +322,7 @@ index.upsert(items)
 
 ```javascript JavaScript SDK icon="js"
 // ... index creation and embedding model setup
-const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
+const embeddingModel = "all-MiniLM-L6-v2";
 const index = await client.createIndex({ 
     indexName: "my_index", 
     indexKey, 
@@ -341,11 +341,11 @@ await index.upsert({ items });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { VectorItem, UpsertParams, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
+import { VectorItem, UpsertRequest, EncryptedIndex, CreateIndexRequest } from 'cyborgdb';
 
 // ... index creation and embedding model setup
-const embeddingModel: string = "sentence-transformers/all-MiniLM-L6-v2";
-const indexParams: CreateIndexParams = {
+const embeddingModel: string = "all-MiniLM-L6-v2";
+const indexParams: CreateIndexRequest = {
     indexName: "my_index", 
     indexKey, 
     indexConfig, 
@@ -360,13 +360,13 @@ const items: VectorItem[] = [
 ];
 
 // Add items to the encrypted index
-const params: UpsertParams = { items };
+const params: UpsertRequest = { items };
 await index.upsert(params);
 ```
 
 ```go Go SDK icon="golang"
 // Items to add to the encrypted index
-items := []cyborgdb.VectorItem{
+items := cyborgdb.VectorItems{
     {Id: "item_1", Contents: cyborgdb.NewNullableContents("Hello, World!")},
     {Id: "item_2", Contents: cyborgdb.NewNullableContents("Hello, Cyborg!")},
 }

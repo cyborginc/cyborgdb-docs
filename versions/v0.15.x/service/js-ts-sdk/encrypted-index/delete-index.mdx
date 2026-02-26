@@ -8,8 +8,17 @@ mode: "wide"
 Deletes the current index and all its associated data from the CyborgDB service.
 
 ```typescript
-async deleteIndex(): Promise<object>
+async deleteIndex(): Promise<{ status: string; message: string }>
 ```
+
+### Returns
+
+`Promise<{ status: string; message: string }>`: A Promise that resolves to a response object containing:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Operation status (e.g., `"success"`) |
+| `message` | `string` | Descriptive message about the deletion result |
 
 ### Exceptions
 

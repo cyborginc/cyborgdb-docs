@@ -6,7 +6,9 @@ mode: "wide"
 
 CyborgDB uses `IVF*` index types, which leverage clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
 
-<Tip>In CyborgDB Service, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added.</Tip>
+In CyborgDB Service, training is handled automatically after 10,000 vectors have been upserted. However, you can explicitly trigger training once enough vectors have been added, if you wish to specify training parameters.
+
+<Tip>You can adjust the number of vectors that will trigger automatic training by setting the `RETRAIN_THRESHOLD` environment variable. See more in the [Environment Variables](./env-vars) guide.</Tip>
 
 <CodeGroup>
 ```python Python SDK icon="python"
@@ -22,7 +24,7 @@ index.train(n_lists=128)
 await index.train();
 
 // Or train with a specific number of clusters
-await index.train({ n_lists: 128 });
+await index.train({ nLists: 128 });
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -30,12 +32,12 @@ await index.train({ n_lists: 128 });
 await index.train();
 
 // Or train with a specific number of clusters
-await index.train({ n_lists: 128 });
+await index.train({ nLists: 128 });
 ```
 
 ```go Go SDK icon="golang"
 // Train the encrypted index
-err := index.Train(context.Background())
+err := index.Train(context.Background(), cyborgdb.TrainParams{})
 
 // Or train with a specific number of clusters
 nLists := int32(128)
@@ -55,7 +57,7 @@ curl -X POST "http://localhost:8000/v1/indexes/train" \
 ```
 </CodeGroup>
 
-<Tip>You must have at least `2 * n_lists` number of vectors in the index (ingested via `upsert`) before you can call `train`.</Tip>
+<Tip>You must have at least 10,000 or `2 * n_lists` number of vectors in the index (ingested via `upsert`) before you can call `train`.</Tip>
 
 ## Training Parameters
 
@@ -67,6 +69,7 @@ Parameters are available to customize the training process:
 | `batch_size` | `int` | `None` | _(Optional)_ Number of vectors to process per training batch. When `None`, the server uses 2048. |
 | `max_iters` | `int` | `None` | _(Optional)_ Maximum number of training iterations. When `None`, the server uses 100. |
 | `tolerance` | `float`| `None` | _(Optional)_ Convergence tolerance for training completion. When `None`, the server uses 1e-6. |
+| `max_memory` | `int` | `None` (0) | _(Optional)_ Maximum memory usage in MB. When `None` or 0, no memory limit is applied. |
 
 `n_lists` is the number of clusters into which each vector in the index can be categorized. Typically, the higher the value, the higher the recall (but also the slower the indexing process). As a good rule of thumbs, `n_lists` should be:
 

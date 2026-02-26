@@ -25,25 +25,25 @@ const queryVectors = [0.5, 0.9, 0.2, 0.7];
 const topK = 10;
 
 // Perform query
-const results = await index.query({ queryVectors, topK });
+const response = await index.query({ queryVectors, topK });
 
-console.log(results);
+console.log(response.results);
 // Example results (flat list for single query)
 // [{id: "item_12", distance: 0.01}, {id: "item_7", distance: 0.04}, ...]
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryParams, QueryResponse } from 'cyborgdb';
+import { QueryRequest, QueryResponse } from 'cyborgdb';
 
 // Example query
 const queryVectors: number[] = [0.5, 0.9, 0.2, 0.7];
 const topK: number = 10;
 
 // Perform query
-const params: QueryParams = { queryVectors, topK };
-const results: QueryResponse = await index.query(params);
+const params: QueryRequest = { queryVectors, topK };
+const response: QueryResponse = await index.query(params);
 
-console.log(results);
+console.log(response.results);
 // Example results (flat list for single query)
 // [{id: "item_12", distance: 0.01}, {id: "item_7", distance: 0.04}, ...]
 ```
@@ -54,6 +54,7 @@ queryVector := []float32{0.5, 0.9, 0.2, 0.7}
 params := cyborgdb.QueryParams{
     QueryVector: queryVector,
     TopK:        int32(10),
+    Include:     []string{"distance"},
 }
 
 // Perform query
@@ -84,11 +85,11 @@ curl -X POST "http://localhost:8000/v1/vectors/query" \
 
 You can specify additional parameters for the query, such as:
 
-- `top_k`: the number of results to return. Default: `None` (server typically uses `100`).
+- `top_k`: the number of results to return. Default: `100`.
 - `n_probes`: the number of clusters to search for each query vector. Default: `None` (auto-determined by server).
 - `filters`: metadata filters to apply to the query (dictionary format). Default: `None`.
-- `include`: item fields to return (e.g., `["distance", "metadata", "contents", "vector"]`). Default: `None` (includes all available fields). Note: `id` and `distance` are always included.
-- `greedy`: whether to perform a greedy search (higher recall but slower). Default: `None` (server determines behavior).
+- `include`: item fields to return (e.g., `["distance", "metadata"]`). Default: `["distance", "metadata"]`. Note: `id` is always included.
+- `greedy`: whether to use faster approximate search. Default: `None` (server determines behavior).
 
 <CodeGroup>
 ```python Python SDK icon="python"
@@ -122,7 +123,7 @@ const filters = {age: {$gt: 18}};
 const include = ["distance", "metadata"];
 
 // Perform query
-const results = await index.query({
+const response = await index.query({
     queryVectors,
     topK,
     nProbes,
@@ -130,32 +131,32 @@ const results = await index.query({
     include
 });
 
-console.log(results);
+console.log(response.results);
 // Example results (flat list for single query)
 // [{id: "item_12", distance: 0.01, metadata: {age: 25}}, ...]
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryParams, QueryResponse, MetadataFilters } from 'cyborgdb';
+import { QueryRequest, QueryResponse, FilterExpression } from 'cyborgdb';
 
 // Example query with parameters
 const queryVectors: number[] = [0.5, 0.9, 0.2, 0.7];
 const topK: number = 10;
 const nProbes: number = 5;
-const filters: MetadataFilters = {age: {$gt: 18}};
+const filters: FilterExpression = {age: {$gt: 18}};
 const include: string[] = ["distance", "metadata"];
 
 // Perform query
-const params: QueryParams = {
+const params: QueryRequest = {
     queryVectors,
     topK,
     nProbes,
     filters,
     include
 };
-const results: QueryResponse = await index.query(params);
+const response: QueryResponse = await index.query(params);
 
-console.log(results);
+console.log(response.results);
 // Example results (flat list for single query)
 // [{id: "item_12", distance: 0.01, metadata: {age: 25}}, ...]
 ```
@@ -228,31 +229,31 @@ const queryVectors = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]];
 const topK = 10;
 
 // Perform batch query
-const results = await index.query({
+const response = await index.query({
     queryVectors,
     topK
 });
 
-console.log(results);
+console.log(response.results);
 // Returns nested results: one list per query vector
 // [[results_for_query_1], [results_for_query_2]]
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryParams, QueryResponse } from 'cyborgdb';
+import { QueryRequest, QueryResponse } from 'cyborgdb';
 
 // Example batch query
 const queryVectors: number[][] = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]];
 const topK: number = 10;
 
 // Perform batch query
-const params: QueryParams = {
+const params: QueryRequest = {
     queryVectors,
     topK
 };
-const results: QueryResponse = await index.query(params);
+const response: QueryResponse = await index.query(params);
 
-console.log(results);
+console.log(response.results);
 // Returns nested results: one list per query vector
 // [[results_for_query_1], [results_for_query_2]]
 ```
@@ -316,7 +317,7 @@ If you provided an `embedding_model` during index creation, you can automaticall
 <CodeGroup>
 ```python Python SDK icon="python"
 # ... index creation and embedding model setup
-embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+embedding_model = "all-MiniLM-L6-v2"
 index = client.create_index("my_index", index_key, index_config, embedding_model)
 
 # ... Add items to the encrypted index ...
@@ -331,7 +332,7 @@ results = index.query(query_contents=query_contents, top_k=top_k)
 
 ```javascript JavaScript SDK icon="js"
 // ... index creation and embedding model setup
-const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
+const embeddingModel = "all-MiniLM-L6-v2";
 const index = await client.createIndex({ indexName: "my_index", indexKey, indexConfig, embeddingModel });
 
 // ... Add items to the encrypted index ...
@@ -348,10 +349,10 @@ const results = await index.query({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryParams, QueryResponse, EncryptedIndex } from 'cyborgdb';
+import { QueryRequest, QueryResponse, EncryptedIndex } from 'cyborgdb';
 
 // ... index creation and embedding model setup
-const embeddingModel: string = "sentence-transformers/all-MiniLM-L6-v2";
+const embeddingModel: string = "all-MiniLM-L6-v2";
 const index: EncryptedIndex = await client.createIndex({ indexName: "my_index", indexKey, indexConfig, embeddingModel });
 
 // ... Add items to the encrypted index ...
@@ -361,11 +362,11 @@ const queryContents: string = "What is the capital of France?";
 const topK: number = 10;
 
 // Perform query
-const params: QueryParams = {
+const params: QueryRequest = {
     queryContents,
     topK
 };
-const results: QueryResponse = await index.query(params);
+const response: QueryResponse = await index.query(params);
 ```
 
 ```go Go SDK icon="golang"

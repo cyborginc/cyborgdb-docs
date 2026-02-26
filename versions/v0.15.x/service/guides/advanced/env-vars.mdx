@@ -20,18 +20,18 @@ These environment variables must be set for the service to run:
 ## Database Configuration
 
 <Note>
-**Default Behavior:** If you don't set `CYBORGDB_DB_TYPE` or `CYBORGDB_CONNECTION_STRING`, the service automatically uses a built-in **standalone** instance for evaluation and testing. Data is stored in `~/.cyborgdb/standalone.db`.
+**Default Behavior:** If you don't set `CYBORGDB_DB_TYPE` or `CYBORGDB_CONNECTION_STRING`, the service automatically uses a built-in **standalone** instance for evaluation and testing. Data is stored in a `~/.cyborgdb/data` directory (local) or `/app/cyborgdb_data` (Docker).
 
 **For production deployments**, you should configure an external Redis or PostgreSQL database:
 </Note>
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `postgres` or `redis` |
+| `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `standalone`, `postgres`, `redis`, or `memory` |
 | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See [Connection Formats](#connection-formats) |
 
 <Warning>
-**Important:** Both `CYBORGDB_DB_TYPE` and `CYBORGDB_CONNECTION_STRING` must be set together. If you set one, you must set the other. Setting only one will cause a validation error.
+**Important:** `CYBORGDB_CONNECTION_STRING` is required when `CYBORGDB_DB_TYPE` is set to `redis` or `postgres`. For `standalone`, the connection string is optional and can be used to override the default data directory path. For `memory`, no connection string is needed.
 
 **Standalone is for EVALUATION ONLY** - For production use, configure an external PostgreSQL or Redis database.
 </Warning>
@@ -60,9 +60,9 @@ These environment variables must be set for the service to run:
 
         | Variable | Description | Default | Example |
         |----------|-------------|---------|---------|
-        | `INDEX_LOCATION` | Database type for index storage | `CYBORGDB_DB_TYPE` | `postgres` |
-        | `CONFIG_LOCATION` | Database type for config storage | `CYBORGDB_DB_TYPE` | `redis` |
-        | `ITEMS_LOCATION` | Database type for items storage | `CYBORGDB_DB_TYPE` | `postgres` |
+        | `INDEX_LOCATION` | Database type for index storage | `CYBORGDB_DB_TYPE` | `standalone`, `postgres`, `redis`, or `memory` |
+        | `CONFIG_LOCATION` | Database type for config storage | `CYBORGDB_DB_TYPE` | `standalone`, `postgres`, `redis`, or `memory` |
+        | `ITEMS_LOCATION` | Database type for items storage | `CYBORGDB_DB_TYPE` | `standalone`, `postgres`, `redis`, or `memory` |
         | `INDEX_CONNECTION_STRING` | Connection string for index storage | `CYBORGDB_CONNECTION_STRING` | See connection formats |
         | `CONFIG_CONNECTION_STRING` | Connection string for config storage | `CYBORGDB_CONNECTION_STRING` | See connection formats |
         | `ITEMS_CONNECTION_STRING` | Connection string for items storage | `CYBORGDB_CONNECTION_STRING` | See connection formats |
@@ -82,8 +82,15 @@ These environment variables must be set for the service to run:
         | Variable | Description | Default | Example |
         |----------|-------------|---------|---------|
         | `CPU_THREADS` | Number of CPU threads to use | `0` (auto-detect) | `4` |
-        | `GPU_ACCELERATE` | Enable GPU acceleration if available | `false` | `true` |
+        | `GPU_OPERATIONS` | GPU acceleration for specific operations | `none` | `all` |
+        | `RETRAIN_THRESHOLD` | Multiplier for automatic retraining threshold | `10000` | `5000` |
         | `WORKERS` | Number of worker processes for handling requests | `0` (auto-calculate) | `8` |
+
+        <Note>
+        `GPU_OPERATIONS` valid values: `none`, `upsert`, `train`, `query`, `all`, or comma-separated (e.g., `upsert,train`).
+
+        `RETRAIN_THRESHOLD` controls when auto-training triggers: training is initiated when `num_vectors > n_lists * RETRAIN_THRESHOLD`.
+        </Note>
     </Accordion>
     <Accordion title="System Configuration">
         These variables control system-level settings:
@@ -120,7 +127,7 @@ These environment variables must be set for the service to run:
         Use a comma-separated format for Redis connections:
 
         ```bash
-        CYBORGDB_CONNECTION_STRING="host=localhost,port=6379,db=0"
+        CYBORGDB_CONNECTION_STRING="host:localhost,port:6379,db:0"
         ```
 
         **Parameters:**
@@ -130,6 +137,21 @@ These environment variables must be set for the service to run:
         - `password` - Redis password (optional)
 
         <Warning>Redis URI format (`redis://` or `rediss://`) is not supported. Use the comma-separated format shown above.</Warning>
+    </Accordion>
+
+    <Accordion title="Standalone Connection String (Optional)">
+
+        The standalone backend uses a local directory for data storage. A connection string is **not required** — if omitted, the default path is used.
+
+        - **Local default**: `~/.cyborgdb/data`
+        - **Docker default**: `/app/cyborgdb_data`
+
+        To override the data directory path, set the connection string to a custom path:
+
+        ```bash
+        CYBORGDB_CONNECTION_STRING="/custom/path/to/data"
+        ```
+
     </Accordion>
 </AccordionGroup>
 
@@ -210,7 +232,7 @@ These environment variables must be set for the service to run:
 
             # Use Redis for items (faster access)
             ITEMS_LOCATION="redis"
-            ITEMS_CONNECTION_STRING="host=redis.example.com,port=6379,db=0,password=redis_password"
+            ITEMS_CONNECTION_STRING="host:redis.example.com,port:6379,db:0,password:redis_password"
             ```
         </CodeGroup>
     </Accordion>
@@ -248,7 +270,7 @@ Environment variables are loaded in the following order (later sources override 
 The CyborgDB service performs automatic validation of environment variables on startup:
 
 - **Missing required variables** - Service will exit with error messages
-- **Invalid database types** - Only `postgres` and `redis` are supported
+- **Invalid database types** - Supported types are `standalone`, `postgres`, `redis`, and `memory`
 - **Connection testing** - Database connections are tested on startup
 - **SSL certificate validation** - Certificate files are checked for existence
 

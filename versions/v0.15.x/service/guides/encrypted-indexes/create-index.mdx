@@ -46,7 +46,7 @@ const index = await client.createIndex({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
+import { Client, EncryptedIndex, CreateIndexRequest } from 'cyborgdb';
 
 // Create a client
 const client = new Client({ 
@@ -58,7 +58,7 @@ const client = new Client({
 const indexKey: Uint8Array = client.generateKey();
 
 // Create an encrypted index
-const params: CreateIndexParams = {
+const params: CreateIndexRequest = {
     indexName: "my_index", 
     indexKey 
 };
@@ -140,7 +140,7 @@ All Client SDKs support automatic embedding generation. You can specify an embed
 
 <CodeGroup>
 ```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVF
+from cyborgdb import Client, IndexIVFFlat
 
 # Create a client
 client = Client(
@@ -152,7 +152,7 @@ client = Client(
 index_key = client.generate_key(save=True)
 
 # Set embedding model (from HuggingFace)
-embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+embedding_model = "all-MiniLM-L6-v2"
 
 # Create an encrypted index with managed embedding generation
 index = client.create_index(
@@ -175,7 +175,7 @@ const client = new Client({
 const indexKey = client.generateKey();
 
 // Set embedding model (from HuggingFace)
-const embeddingModel = "sentence-transformers/all-MiniLM-L6-v2";
+const embeddingModel = "all-MiniLM-L6-v2";
     
 // Create an encrypted index with managed embedding generation
 const index = await client.createIndex({ 
@@ -186,7 +186,7 @@ const index = await client.createIndex({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, EncryptedIndex, CreateIndexParams } from 'cyborgdb';
+import { Client, EncryptedIndex, CreateIndexRequest } from 'cyborgdb';
 
 // Create a client
 const client = new Client({ 
@@ -198,10 +198,10 @@ const client = new Client({
 const indexKey: Uint8Array = client.generateKey();
 
 // Set embedding model (from HuggingFace)
-const embeddingModel: string = "sentence-transformers/all-MiniLM-L6-v2";
+const embeddingModel: string = "all-MiniLM-L6-v2";
     
 // Create an encrypted index with managed embedding generation
-const params: CreateIndexParams = {
+const params: CreateIndexRequest = {
     indexName: "my_index", 
     indexKey, 
     embeddingModel 
@@ -233,7 +233,7 @@ func main() {
     }
     
     // Set embedding model
-    embeddingModel := "sentence-transformers/all-MiniLM-L6-v2"
+    embeddingModel := "all-MiniLM-L6-v2"
     
     // Create encrypted index with managed embedding generation
     params := &cyborgdb.CreateIndexParams{
@@ -259,7 +259,7 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
      -d '{
        "index_name": "my_index",
        "index_key": "your_64_character_hex_key_here",
-       "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+       "embedding_model": "all-MiniLM-L6-v2"
      }'
 ```
 </CodeGroup>

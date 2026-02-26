@@ -49,7 +49,7 @@ print("Current index name:", index.index_name())
 
 ## index_type
 
-Returns the type of the current index (e.g., `ivf`, `ivfpq`, `ivfflat`).
+Returns the type of the current index (e.g., `ivf`, `ivfpq`, `ivfflat`, `ivfsq`).
 
 ```python
 def index_type(self) -> str
@@ -82,10 +82,11 @@ def index_config(self) -> dict
 `dict`: A dictionary containing the configuration of the index with the following keys:
 - `dimension`: The dimensionality of the vectors
 - `metric`: The distance metric used (e.g., 'euclidean', 'cosine')
-- `index_type`: The type of the index (e.g., 'ivf', 'ivfpq', 'ivfflat')
+- `index_type`: The type of the index (e.g., 'ivf', 'ivfpq', 'ivfflat', 'ivfsq')
 - `n_lists`: The number of inverted lists in the index
 - `pq_dim`: The PQ dimension (if applicable)
 - `pq_bits`: The PQ bits (if applicable)
+- `sq_bits`: The SQ bits (if applicable)
 
 ### Example Usage
 

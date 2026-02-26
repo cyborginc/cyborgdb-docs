@@ -49,7 +49,7 @@ Retrieves the type of the index from the CyborgDB service.
 
 ### Returns
 
-`Promise<string | undefined>`: A Promise that resolves to the index type (`'ivf'`, `'ivf_flat'`, or `'ivf_pq'`), or `undefined` if not set.
+`Promise<string | undefined>`: A Promise that resolves to the index type (`'ivfflat'`, `'ivfpq'`, or `'ivfsq'`), or `undefined` if not set.
 
 ### Exceptions
 
@@ -63,17 +63,17 @@ Retrieves the type of the index from the CyborgDB service.
 try {
     const indexType = await index.getIndexType();
     console.log('Index type:', indexType);
-    // Output: "ivf_flat"
+    // Output: "ivfflat"
 
     switch (indexType) {
-        case 'ivf_pq':
+        case 'ivfpq':
             console.log('Using IVFPQ index for memory efficiency');
             break;
-        case 'ivf_flat':
+        case 'ivfflat':
             console.log('Using IVFFlat index for high accuracy');
             break;
-        case 'ivf':
-            console.log('Using standard IVF index');
+        case 'ivfsq':
+            console.log('Using IVFSQ index for balanced speed and size');
             break;
         default:
             console.log('Unknown or undefined index type');
@@ -130,7 +130,7 @@ try {
 ## getIndexConfig
 
 ```typescript
-async getIndexConfig(): Promise<IndexIVFFlat | IndexIVF | IndexIVFPQ>
+async getIndexConfig(): Promise<IndexIVFFlat | IndexIVFSQ | IndexIVFPQ>
 ```
 
 Retrieves the complete index configuration from the CyborgDB service and returns a copy to prevent external modification of the internal state. The return type depends on the index type.
@@ -138,7 +138,7 @@ Retrieves the complete index configuration from the CyborgDB service and returns
 ### Returns
 
 - `Promise<IndexIVFFlat>`: For IVF Flat indexes
-- `Promise<IndexIVF>`: For standard IVF indexes  
+- `Promise<IndexIVFSQ>`: For IVFSQ indexes
 - `Promise<IndexIVFPQ>`: For IVF PQ indexes
 
 ### Exceptions
@@ -155,16 +155,17 @@ try {
     console.log('Index configuration:', config);
 
     // Access common properties
-    console.log('Index Type:', config.indexType);
+    console.log('Type:', config.type);
     console.log('Dimension:', config.dimension);
-    console.log('Metric:', config.metric);
-    console.log('Number of lists:', config.nLists);
 
     // Type-specific properties
-    if (config.type === 'ivf_pq' || config.type === 'ivfpq') {
+    if (config.type === 'ivfpq') {
         const pqConfig = config as IndexIVFPQ;
         console.log('PQ dimension:', pqConfig.pqDim);
         console.log('PQ bits:', pqConfig.pqBits);
+    } else if (config.type === 'ivfsq') {
+        const sqConfig = config as IndexIVFSQ;
+        console.log('SQ bits:', sqConfig.sqBits);
     }
 } catch (error) {
     console.error('Failed to get index config:', error.message);
@@ -189,6 +190,8 @@ try {
 ---
 
 ## isTraining
+
+<Note>Unlike the other methods on this page, `isTraining()` is a **Client** method, not an **EncryptedIndex** method. Call it on the `client` instance, not on an index.</Note>
 
 ```typescript
 async isTraining(): Promise<{

@@ -5,43 +5,172 @@ mode: "wide"
 
 Returns documents most similar to the query along with relevance scores.
 
+<Tabs>
+    <Tab title="Embedded">
+
+        ```python
+        similarity_search_with_score(
+            query: str,
+            k: int = 4,
+            filter: Optional[Dict[str, Any]] = None,
+            **kwargs
+        ) -> List[Tuple[Document, float]]
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `query` | `str` | Query text to search for |
+        | `k` | `int` | Number of documents to return (default: 4) |
+        | `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
+        | `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
+
+        ### Returns
+
+        `List[Tuple[Document, float]]`: List of (Document, score) tuples where score is normalized [0, 1]
+
+        ### Example Usage
+
+        ```python
+        # Search with scores
+        results = store.similarity_search_with_score("neural networks", k=3)
+
+        for doc, score in results:
+            print(f"Score: {score:.4f}")
+            print(f"Content: {doc.page_content[:100]}...")
+            print(f"Metadata: {doc.metadata}")
+            print("---")
+
+        # Filter results by score threshold
+        threshold = 0.7
+        high_score_results = [
+            (doc, score) for doc, score in results if score >= threshold
+        ]
+        ```
+
+        <Accordion title="_similarity_search_with_relevance_scores (internal method)">
+
+        The Embedded library also exposes `_similarity_search_with_relevance_scores`, an internal method that supports a `score_threshold` keyword argument for server-side score filtering:
+
+        ```python
+        _similarity_search_with_relevance_scores(
+            query: str,
+            k: int,
+            **kwargs
+        ) -> List[Tuple[Document, float]]
+        ```
+
+        **Keyword Arguments:**
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `filter` | `Dict[str, Any]` | _(Optional)_ Metadata filters to apply |
+        | `score_threshold` | `float` | _(Optional)_ Minimum score threshold for results |
+
+        **Example:**
+
+        ```python
+        # Search with relevance scores and threshold
+        results = store._similarity_search_with_relevance_scores(
+            "machine learning",
+            k=10,
+            score_threshold=0.5
+        )
+
+        print(f"Found {len(results)} documents above threshold")
+        for doc, score in results:
+            print(f"Relevance: {score:.2%} - {doc.page_content[:50]}...")
+        ```
+
+        </Accordion>
+
+    </Tab>
+
+    <Tab title="Python SDK">
+
+        ```python
+        similarity_search_with_score(
+            query: str,
+            k: Optional[int] = None,
+            filter: Optional[Dict[str, Any]] = None,
+            **kwargs
+        ) -> List[Tuple[Document, float]]
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `query` | `str` | Query text to search for |
+        | `k` | `Optional[int]` | _(Optional)_ Number of documents to return (default: `None`, uses server default) |
+        | `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
+        | `**kwargs` | `Any` | Additional keyword arguments |
+
+        ### Returns
+
+        `List[Tuple[Document, float]]`: List of (Document, score) tuples where score is normalized [0, 1]
+
+        ### Example Usage
+
+        ```python
+        results = store.similarity_search_with_score("neural networks", k=3)
+
+        for doc, score in results:
+            print(f"Score: {score:.4f} - {doc.page_content[:100]}...")
+        ```
+
+    </Tab>
+
+    <Tab title="JS/TS">
+
+        ```typescript
+        similaritySearchWithScore(
+            query: string,
+            k?: number,
+            filter?: Record<string, any>
+        ): Promise<[Document, number][]>
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `query` | `string` | Query text to search for |
+        | `k` | `number` | _(Optional)_ Number of documents to return |
+        | `filter` | `Record<string, any>` | _(Optional)_ Metadata filters to apply |
+
+        ### Returns
+
+        `Promise<[Document, number][]>`: Array of [Document, score] tuples
+
+        ### Example Usage
+
+        ```typescript
+        const results = await store.similaritySearchWithScore("neural networks", 3);
+
+        for (const [doc, score] of results) {
+            console.log(`Score: ${score.toFixed(4)}`);
+            console.log(`Content: ${doc.pageContent.slice(0, 100)}...`);
+        }
+        ```
+
+    </Tab>
+</Tabs>
+
+### Async
+
+<Accordion title="Python async variants">
+
+The Embedded and Python SDK provide async versions of this method prefixed with `a`:
+
 ```python
-similarity_search_with_score(
-    query: str,
-    k: int = 4,
-    filter: Optional[Dict[str, Any]] = None,
-    **kwargs
-) -> List[Tuple[Document, float]]
+# asimilarity_search_with_score — async variant
+results = await store.asimilarity_search_with_score("query", k=3)
 ```
 
-### Parameters
+</Accordion>
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `query` | `str` | Query text to search for |
-| `k` | `int` | Number of documents to return (default: 4) |
-| `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
-| `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
-
-### Returns
-
-`List[Tuple[Document, float]]`: List of (Document, score) tuples where score is normalized [0, 1]
-
-### Example Usage
-
-```python
-# Search with scores
-results = store.similarity_search_with_score("neural networks", k=3)
-
-for doc, score in results:
-    print(f"Score: {score:.4f}")
-    print(f"Content: {doc.page_content[:100]}...")
-    print(f"Metadata: {doc.metadata}")
-    print("---")
-
-# Filter results by score threshold
-threshold = 0.7
-high_score_results = [
-    (doc, score) for doc, score in results if score >= threshold
-]
-```
+<Note>
+JS/TS methods are natively async — all signatures above already return `Promise<...>`. No separate async variant is needed.
+</Note>

@@ -10,7 +10,6 @@ def create_index(self,
                  index_name: str,
                  index_key: bytes,
                  index_config: IndexConfig = None,
-                 max_cache_size: int = 0,
                  embedding_model: str = None,
                  metric: str = None,
                  logger: Logger = None)
@@ -22,8 +21,7 @@ def create_index(self,
 |---------------|--------------------|----------------------------------------------------------------------------------------|
 | `index_name` | `str` | Name of the index to create. Must be unique. |
 | `index_key` | `bytes` | 32-byte encryption key for the index, used to secure the index data. |
-| `index_config` | [`IndexConfig`](../types#indexconfig) | _(Optional)_ Configuration specifying the index type and parameters. When not provided, uses `IndexIVFFlat()` defaults. |
-| `max_cache_size` | `int` | _(Optional)_ Maximum size of local cache to keep for encrypted index (megabytes). Defaults to `0`. |
+| `index_config` | [`IndexConfig`](../types#indexconfig) | _(Optional)_ Configuration specifying the index type and parameters. When not provided, uses `IndexIVFSQ(sq_bits=16)` defaults. |
 | `embedding_model` | `str` | _(Optional)_ Name of the SentenceTransformer model to use for automatic text embeddings. |
 | `metric` | `str` | _(Optional)_ Distance metric to use: "euclidean", "cosine", or "squared_euclidean". Overrides the metric in `index_config`. Defaults to "euclidean". |
 | `logger` | [`Logger`](./logger) | _(Optional)_ Logger instance for capturing operation logs. Defaults to `None`. |
@@ -40,8 +38,6 @@ def create_index(self,
     <Accordion title="ValueError">
         - Throws if the index name is not unique.
         - Throws if the index configuration is invalid.
-    </Accordion>
-    <Accordion title="RuntimeError">
         - Throws if the index could not be created.
     </Accordion>
 </AccordionGroup>
@@ -68,9 +64,9 @@ client = cyborgdb.Client(
 index_name = "my_index"
 index_key = secrets.token_bytes(32)  # Generate a secure 32-byte encryption key
 
-# Create with automatic IndexIVFFlat defaults (overload 2)
+# Create with automatic IndexIVFSQ defaults (16-bit scalar quantization)
 index = client.create_index(
-    index_name=index_name, 
+    index_name=index_name,
     index_key=index_key
 )
 ```
@@ -103,10 +99,9 @@ logger = cyborgdb.Logger.instance()
 logger.configure(level="info", to_file=True, file_path="index_creation.log")
 
 index = client.create_index(
-    index_name=index_name, 
-    index_key=index_key, 
+    index_name=index_name,
+    index_key=index_key,
     index_config=index_config,
-    max_cache_size=1024,
     metric="cosine",  # Override default metric
     logger=logger
 )

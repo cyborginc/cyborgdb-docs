@@ -26,19 +26,12 @@ This is a GET request with no request body. Authentication is required via the A
 ```json
 {
   "training_indexes": ["my_index", "semantic_index"],
-  "retrain_threshold": 10,
-  "worker_pid": 12345,
-  "global_training": {
-    "my_index": {
-      "status": "in_progress",
-      "started_at": "2024-01-15T10:30:00Z",
-      "progress": 0.75
-    },
-    "semantic_index": {
-      "status": "queued",
-      "queued_at": "2024-01-15T10:35:00Z"
-    }
-  }
+  "retrain_threshold": 10000,
+  "currently_training": "my_index",
+  "queued_indexes": ["semantic_index"],
+  "worker_running": true,
+  "worker_pid": 0,
+  "global_training": {}
 }
 ```
 
@@ -47,24 +40,32 @@ This is a GET request with no request body. Authentication is required via the A
     List of index names currently being trained or queued for training
   </ResponseField>
   <ResponseField name="retrain_threshold" type="integer">
-    The multiplier used for the retraining threshold. When the number of vectors exceeds (initial_vectors * retrain_threshold), automatic retraining is triggered
+    The multiplier for the retraining threshold. Auto-training triggers when `num_vectors > n_lists * retrain_threshold`
+  </ResponseField>
+  <ResponseField name="currently_training" type="string | null">
+    Name of the index currently being trained, or null if none
+  </ResponseField>
+  <ResponseField name="queued_indexes" type="array[string]">
+    List of indexes queued for training (waiting their turn)
+  </ResponseField>
+  <ResponseField name="worker_running" type="boolean">
+    Whether the training worker thread is active
   </ResponseField>
   <ResponseField name="worker_pid" type="integer">
-    Process ID of the training worker
+    _(Deprecated)_ Always 0. Kept for SDK backward compatibility
   </ResponseField>
   <ResponseField name="global_training" type="object">
-    Detailed training status for each index, containing status information and progress metrics
+    _(Deprecated)_ Always empty object. Kept for SDK backward compatibility
   </ResponseField>
 </Expandable>
 
 ## Training States
 
-The `global_training` object contains detailed status for each index:
+Training state is inferred from the `currently_training` and `queued_indexes` fields:
 
-- **`queued`**: Index is waiting in the training queue
-- **`in_progress`**: Index is currently being trained
-- **`completed`**: Training finished successfully
-- **`failed`**: Training encountered an error
+- If `currently_training` is non-null, that index is actively being trained
+- Indexes in `queued_indexes` are waiting their turn
+- An index not in either field has completed or has not been trained
 
 ## Exceptions
 
@@ -123,7 +124,7 @@ echo "Indexes will retrain when vector count exceeds ${threshold}x the initial t
 
 <Note>
 Training is automatically triggered when:
-1. An index reaches the configured vector threshold (initial_vectors * retrain_threshold)
+1. An index reaches the configured vector threshold (`num_vectors > n_lists * retrain_threshold`)
 2. Manual training is requested via the `/v1/indexes/train` endpoint
 3. The index has never been trained and reaches the minimum vector count
 </Note>

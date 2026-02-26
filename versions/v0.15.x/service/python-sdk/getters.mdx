@@ -32,7 +32,9 @@ print(f'Index name: {index_name}')
 index_type: str
 ```
 
-Returns the type of the index (for example, `'ivf'`, `'ivf_pq'`, or `'ivf_flat'`).
+Returns the type of the index (for example, `'ivfflat'`, `'ivfpq'`, or `'ivfsq'`).
+
+<Warning>`"ivf"` is a deprecated index type that may be returned by older indexes. New indexes should use `'ivfflat'`, `'ivfpq'`, or `'ivfsq'`.</Warning>
 
 ### Returns
 
@@ -43,12 +45,16 @@ Returns the type of the index (for example, `'ivf'`, `'ivf_pq'`, or `'ivf_flat'`
 ```python
 index_type = index.index_type
 print(f'Index type: {index_type}')
-# Output: "ivf"
+# Output: "ivfflat", "ivfpq", or "ivfsq"
 
-if index_type == 'ivf_pq':
+if index_type == 'ivfsq':
+    print('Using IVFSQ index for high accuracy and memory efficiency')
+elif index_type == 'ivfpq':
     print('Using IVFPQ index for memory efficiency')
-elif index_type == 'ivf_flat':
+elif index_type == 'ivfflat':
     print('Using IVFFlat index for high accuracy')
+else:
+    print('Unknown index type')
 ```
 
 ---
@@ -56,7 +62,7 @@ elif index_type == 'ivf_flat':
 ## is_trained
 
 ```python
-def is_trained() -> bool
+def is_trained(self) -> bool
 ```
 
 Returns whether the index has been trained. Training is required for optimal query performance on IVF-based indexes.
@@ -81,7 +87,7 @@ if not trained:
 ## is_training
 
 ```python
-def is_training() -> bool
+def is_training(self) -> bool
 ```
 
 Returns whether the index is currently in the process of training.
@@ -142,7 +148,7 @@ if config.get('type') == 'ivfpq':
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `type` | `str` | Index type (`'ivf'`, `'ivf_flat'`, or `'ivf_pq'`) |
+| `type` | `str` | Index type (`'ivfflat'`, `'ivfpq'`, or `'ivfsq'`) |
 | `dimension` | `int` | Vector dimensionality |
 | `metric` | `str` | Distance metric (`'cosine'`, `'euclidean'`, etc.) |
 | `n_lists` | `int` | Number of inverted lists for clustering |

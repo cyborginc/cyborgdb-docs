@@ -22,10 +22,10 @@ Where each `item` dictionary has the following fields:
 |-----------|-----------------------------------|-----------------------------------------------------------------------------------------------|
 | `id` | `str` | Unique string identifier for the item. |
 | `vector` | `List[float]` | Embedding vector as a list of floats (_optional_ if index is configured to compute embeddings). |
-| `contents` | `bytes`, `str` or `Image` | Item contents (_optional_). Accepts strings, bytes, or images; all are encoded to bytes and encrypted before storage. Must be a `str` or `Image` if index is configured to compute embeddings. |
+| `contents` | `bytes` or `str` | Item contents (_optional_). Accepts strings or bytes; all are encoded to bytes and encrypted before storage. Must be a `str` if index is configured to compute embeddings. |
 | `metadata` | `Dict[str, any]` | Dictionary of key-value metadata pairs associated with the vector (_optional_). |
 
-<Tip>The `contents` field accepts strings, bytes, or images. All contents are encoded to bytes and encrypted before storage, and will be returned as bytes when retrieved with `get()`.</Tip>
+<Tip>The `contents` field accepts strings or bytes. All contents are encoded to bytes and encrypted before storage, and will be returned as bytes when retrieved with `get()`.</Tip>
 
 <Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index)), then the `vector` parameter is optional.
 If `vector` provided, then it will be used (its dimensionality must match that of the `embedding_model`).
@@ -80,8 +80,6 @@ index.upsert([
 ])
 ```
 
-<Tip>You can pass the `id` and `vector` fields as tuples, if you wish to skip the dictionary. On big datasets, this can make a signficant difference in memory usage.</Tip>
-
 ---
 
 ## Upsert Secondary Overload: NumPy Array Format
@@ -90,12 +88,12 @@ index.upsert([
 It is primarily intended for benchmarking purposes (hence the use of `int` for IDs).</Tip>
 
 ```python
-def upsert(self, ids: np.ndarray, vectors: np.ndarray)
+def upsert(self, ids: Union[list[str], np.ndarray], vectors: np.ndarray)
 ```
 
-Accepts two NumPy arrays:
+Accepts a list of string IDs (or a NumPy array) and a NumPy array of vectors:
 
-- A 1D array of identifiers (strings or integers) for the unique IDs.
+- A list of strings or 1D array of identifiers for the unique IDs.
 - A 2D array of float32 values for the vector embeddings.
 
 This structure is suited for efficient handling of large batches, with type safety for IDs and embeddings.
@@ -104,7 +102,7 @@ This structure is suited for efficient handling of large batches, with type safe
 
 | Parameter | Type | Description |
 |------------|-----------------|--------------------------------------------------------------------------------------------------|
-| `ids` | `np.ndarray` | 1D NumPy array of shape `(num_items,)` containing unique identifiers for each vector. Can be string or integer dtype. Length must match `vectors`. |
+| `ids` | `list[str]` or `np.ndarray` | A list of strings or 1D NumPy array of shape `(num_items,)` containing unique identifiers for each vector. Can be string or integer dtype. Length must match `vectors`. |
 | `vectors` | `np.ndarray` | 2D NumPy array of shape `(num_items, vector_dim)` with `dtype=float32`, representing vector embeddings. |
 
 ### Exceptions

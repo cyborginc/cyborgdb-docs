@@ -16,7 +16,7 @@ def list_indexes(self)
 ### Exceptions
 
 <AccordionGroup>
-    <Accordion title="RuntimeError">
+    <Accordion title="ValueError">
         - Throws if the list of indexes could not be retrieved.
     </Accordion>
 </AccordionGroup>
@@ -29,10 +29,13 @@ import cyborgdb_core as cyborgdb
 index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
 config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
 
+items_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+
 client = cyborgdb.Client(
     api_key=api_key,
     index_location=index_location,
-    config_location=config_location
+    config_location=config_location,
+    items_location=items_location
 )
 
 print(client.list_indexes())

@@ -77,13 +77,13 @@ The SDK exports specific error variables that you can check for particular error
 import "github.com/cyborginc/cyborgdb-go"
 
 // ErrInvalidKeyLength is returned when an index key is not exactly 32 bytes
-var ErrInvalidKeyLength = errors.New("index key must be exactly 32 bytes")
+var ErrInvalidKeyLength = fmt.Errorf("index key must be exactly 32 bytes")
 
 // ErrKeyGeneration is returned when key generation fails
-var ErrKeyGeneration = errors.New("failed to generate key")
+var ErrKeyGeneration = fmt.Errorf("failed to generate key")
 
 // ErrInvalidURL is returned when the base URL is invalid
-var ErrInvalidURL = errors.New("invalid base URL")
+var ErrInvalidURL = fmt.Errorf("invalid base URL")
 ```
 
 ### EncryptedIndex Errors
@@ -97,6 +97,30 @@ var ErrMissingQueryInput = errors.New("either queryVectors or queryContents must
 
 // ErrUnexpectedTrainingStatus is returned when training status response is unexpected
 var ErrUnexpectedTrainingStatus = errors.New("unexpected training status response format")
+
+// ErrEmptyIDs is returned when IDs slice is empty
+var ErrEmptyIDs = errors.New("IDs cannot be empty")
+
+// ErrEmptyVectors is returned when vectors slice is empty
+var ErrEmptyVectors = errors.New("vectors cannot be empty")
+
+// ErrEmptyQueryVectors is returned when query vectors slice is empty
+var ErrEmptyQueryVectors = errors.New("queryVectors cannot be empty")
+
+// ErrIDsVectorsLengthMismatch is returned when IDs and vectors have different lengths
+var ErrIDsVectorsLengthMismatch = errors.New("IDs length must match vectors length")
+
+// ErrMetadataLengthMismatch is returned when metadata length doesn't match IDs length
+var ErrMetadataLengthMismatch = errors.New("metadata length must match IDs length")
+
+// ErrContentsLengthMismatch is returned when contents length doesn't match IDs length
+var ErrContentsLengthMismatch = errors.New("contents length must match IDs length")
+
+// ErrUnsupportedUpsertType is returned when Upsert receives an unsupported input type
+var ErrUnsupportedUpsertType = errors.New("unsupported upsert input type")
+
+// ErrUnsupportedQueryType is returned when Query receives an unsupported params type
+var ErrUnsupportedQueryType = errors.New("unsupported query input type")
 ```
 
 ### Example Usage

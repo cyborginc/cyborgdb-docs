@@ -7,19 +7,17 @@ Creates and returns a new encrypted index based on the provided configuration.
 
 ```cpp
 // Overload 1: With IndexConfig (explicit configuration)
-std::unique_ptr<cyborg::EncryptedIndex> 
+std::unique_ptr<cyborg::EncryptedIndex>
     CreateIndex(const std::string index_name,
                 const std::array<uint8_t, 32>& index_key,
                 const IndexConfig& index_config,
-                const std::optional<size_t>& max_cache_size = 0,
                 const std::optional<DistanceMetric>& metric = std::nullopt,
                 cyborg::Logger* logger = nullptr);
 
-// Overload 2: Without IndexConfig (uses IndexIVFFlat defaults)
-std::unique_ptr<cyborg::EncryptedIndex> 
+// Overload 2: Without IndexConfig (uses IndexIVFSQ 16-bit defaults)
+std::unique_ptr<cyborg::EncryptedIndex>
     CreateIndex(const std::string index_name,
                 const std::array<uint8_t, 32>& index_key,
-                const std::optional<size_t>& max_cache_size = 0,
                 const std::optional<DistanceMetric>& metric = std::nullopt,
                 cyborg::Logger* logger = nullptr);
 ```
@@ -30,8 +28,7 @@ std::unique_ptr<cyborg::EncryptedIndex>
 |----------------|-------------------------------|-----------------------------------------------------|
 | `index_name` | `std::string` | Name of the index to create (must be unique). |
 | `index_key` | `std::array<uint8_t, 32>` | 32-byte encryption key for the index, used to secure index data. |
-| `index_config` | [`IndexConfig`](../types#indexconfig) | _(Optional in overload 2)_ Configuration for the index type. When not provided, uses IndexIVFFlat defaults. |
-| `max_cache_size` | `std::optional<size_t>` | _(Optional)_ Maximum size for the local cache in megabytes (default is `0`). |
+| `index_config` | [`IndexConfig`](../types#indexconfig) | _(Optional in overload 2)_ Configuration for the index type. When not provided, uses IndexIVFSQ (16-bit) defaults. |
 | `metric` | `std::optional<DistanceMetric>` | _(Optional)_ Distance metric to override the one set in index_config (default is `std::nullopt`). |
 | `logger` | [`cyborg::Logger*`](./logger) | _(Optional)_ Pointer to a logger instance for capturing operation logs (default is `nullptr`). |
 
@@ -93,4 +90,4 @@ IndexIVFFlat index_config(vector_dim);
 cyborg::Logger logger;
 logger.Configure(LogLevel::Info, true, "index_creation.log");
 
-auto index = client.CreateIndex("my_index", index_key, index_config, 1000, DistanceMetric::Euclidean, &logger);
+auto index = client.CreateIndex("my_index", index_key, index_config, DistanceMetric::Euclidean, &logger);

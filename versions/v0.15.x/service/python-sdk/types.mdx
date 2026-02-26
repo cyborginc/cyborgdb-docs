@@ -4,21 +4,24 @@ title: "Types"
 
 ## Index Configuration Types
 
-### IndexIVF
+### IndexIVFSQ
 
-Standard IVF (Inverted File) index configuration, ideal for balanced performance:
+IVFSQ (Scalar Quantization) index configuration, compresses each dimension independently for a balance of speed and index size:
 
 | Speed | Accuracy | Memory Usage |
 |-------|----------|--------------|
-| Fast  | Good     | Medium       |
+| Fast  | High     | Low          |
 
 ```python
-from cyborgdb import IndexIVF
+from cyborgdb import IndexIVFSQ
 
-config = IndexIVF(
-    dimension=768 # optional, defaults to auto-detect
+config = IndexIVFSQ(
+    sq_bits=16,       # optional, default: 16
+    dimension=768     # optional, defaults to auto-detect
 )
 ```
+
+<Note> The `sq_bits` parameter controls the precision of the scalar quantization. Higher values provide higher recall at the cost of larger index sizes. Accepted values are `8` and `16`, with `16` being the default.</Note>
 
 ### IndexIVFFlat
 
@@ -54,7 +57,7 @@ config = IndexIVFPQ(
 )
 ```
 
-<Note>Both `pq_dim` and `pq_bits` are required parameters for IndexIVFPQ. Unlike IndexIVF and IndexIVFFlat, these parameters must be explicitly specified.</Note>
+<Note>Both `pq_dim` and `pq_bits` are required parameters for IndexIVFPQ. Unlike IndexIVFSQ and IndexIVFFlat, these parameters must be explicitly specified.</Note>
 
 ## Vector Item Format
 

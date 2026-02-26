@@ -8,12 +8,16 @@ The `Location` enum contains the supported index backing store locations for Cyb
 
 ```cpp
 enum class Location {
-    kRedis,      // In-memory storage via Redis
-    kMemory,     // Temporary in-memory storage
-    kPostgres,   // Relational database storage
-    kNone        // Undefined storage type
+    kRedis,             // In-memory storage via Redis
+    kMemory,            // Temporary in-memory storage
+    kPostgres,          // Relational database storage
+    kRocksDB,           // Local persistent storage via RocksDB
+    kThreadSafeMemory,  // Thread-safe in-memory storage
+    kNone               // Undefined storage type
 };
 ```
+
+<Warning>`kMemory` is deprecated and will be removed in a future release. Please use `kThreadSafeMemory` instead.</Warning>
 
 ---
 
@@ -24,9 +28,9 @@ enum class Location {
 ### Constructor
 
 ```cpp
-DBConfig(Location location,
-                const std::optional<std::string>& table_name,
-                const std::optional<std::string>& db_connection_string);
+explicit DBConfig(Location location,
+                const std::optional<std::string>& table_name = std::nullopt,
+                const std::optional<std::string>& db_connection_string = std::nullopt);
 ```
 
 ### Parameters
@@ -34,8 +38,8 @@ DBConfig(Location location,
 | Parameter | Type | Description |
 |------------------------|-------------------------|-------------------------|
 | `location` | [`Location`](#location) | Specifies the type of storage location. |
-| `table_name` | `std::string` | _(Optional)_ Name of the table in the database, if applicable. |
-| `db_connection_string` | `std::string` | _(Optional)_ Connection string for database access, if applicable. |
+| `table_name` | `std::string` | _(Optional)_ Name of the table in the database, if applicable. Defaults to `std::nullopt`. |
+| `db_connection_string` | `std::string` | _(Optional)_ Connection string for database access, if applicable. Defaults to `std::nullopt`. |
 
 
 ### Example Usage
@@ -44,6 +48,9 @@ DBConfig(Location location,
 cyborg::DBConfig index_loc(Location::kRedis, std::nullopt, "redis://localhost");
 cyborg::DBConfig config_loc(Location::kRedis, std::nullopt, "redis://localhost");
 cyborg::DBConfig items_loc(Location::kPostgres, "items", "host=localhost dbname=postgres");
+
+// RocksDB (recommended for embedded/local deployments)
+cyborg::DBConfig rocksdb_loc(Location::kRocksDB, std::nullopt, "~/.cyborgdb/data");
 ```
 
 For more info, you can read about supported backing stores [here](../../intro/backing-stores).
@@ -147,14 +154,14 @@ Ideal for large-scale datasets where fast retrieval is prioritized over high rec
 #### Constructor
 
 ```cpp
-IndexIVF(size_t dimension = 0, std::optional<std::string> embedding_model = std::nullopt);
+IndexIVF(size_t dimension = 0, std::string embedding_model = "");
 ```
 
 #### Parameters
 | Parameter | Type | Default | Description |
 |--------------|-------------------------|---------|---------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -176,14 +183,14 @@ Suitable for applications requiring high recall with less concern for memory usa
 #### Constructor
 
 ```cpp
-IndexIVFFlat(size_t dimension = 0, std::optional<std::string> embedding_model = std::nullopt);
+IndexIVFFlat(size_t dimension = 0, std::string embedding_model = "");
 ```
 
 #### Parameters
 | Parameter | Type | Default | Description |
 |--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
+| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -193,8 +200,6 @@ IndexIVFFlat(size_t dimension = 0, std::optional<std::string> embedding_model = 
 | `set_metric(DistanceMetric)` | `void` | Set distance metric. |
 | `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
 | `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
-
-<Tip>`IndexIVFFlat` is the default index configuration and is suitable for most use cases.</Tip>
 
 ### IndexIVFPQ
 
@@ -207,8 +212,8 @@ Product Quantization compresses embeddings, making it suitable for balancing mem
 #### Constructor
 
 ```cpp
-IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
-           std::optional<std::string> embedding_model = std::nullopt);
+IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 0, size_t pq_bits = 8,
+           std::string embedding_model = "");
 ```
 
 #### Parameters
@@ -216,9 +221,9 @@ IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
 | Parameter | Type | Default | Description |
 |--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `pq_dim` | `size_t` | `16` | Dimensionality of embeddings after quantization (less than or equal to `dimension`). |
-| `pq_bits` | `size_t` | `8` | Number of bits per dimension for PQ embeddings (between 1 and 16). |
-| `embedding_model` | `std::optional<std::string>` | `std::nullopt` | _(Optional)_ Embedding model name for auto-generation. |
+| `pq_dim` | `size_t` | `0` | _(Optional)_ Dimensionality of embeddings after quantization. Auto-detected if 0. |
+| `pq_bits` | `size_t` | `8` | _(Optional)_ Number of bits per dimension for PQ embeddings (between 1 and 16). |
+| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
 | Method | Return Type | Description |
@@ -230,6 +235,51 @@ IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 16, size_t pq_bits = 8,
 | `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
 | `pq_dim()` | `size_t` | Get PQ dimensionality. |
 | `pq_bits()` | `size_t` | Get PQ bits per quantizer. |
+
+### IndexIVFSQ
+
+Scalar Quantization compresses embeddings, providing a good balance of speed, recall, and index size:
+
+| Speed | Recall | Index Size |
+| :---: | :----: | :--------: |
+| Fast  |  High  |   Small    |
+
+#### Constructor
+
+```cpp
+IndexIVFSQ(size_t dimension = 0, size_t sq_bits = 8,
+           std::string embedding_model = "");
+```
+
+#### Parameters
+| Parameter | Type | Default | Description |
+|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
+| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
+| `sq_bits` | `size_t` | `8` | _(Optional)_ Number of bits for scalar quantization (typically 4, 8, or 16). |
+| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+
+#### Methods
+| Method | Return Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `dimension()` | `size_t` | Get vector dimensionality. |
+| `metric()` | `DistanceMetric` | Get distance metric. |
+| `set_metric(DistanceMetric)` | `void` | Set distance metric. |
+| `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
+| `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
+| `sq_bits()` | `size_t` | Get SQ bits per dimension. |
+
+#### Example Usage
+
+```cpp
+// Default configuration (8-bit scalar quantization)
+cyborg::IndexIVFSQ config1;
+
+// 16-bit scalar quantization (higher precision)
+cyborg::IndexIVFSQ config2(0, 16);
+
+// Explicit dimension and SQ bits
+cyborg::IndexIVFSQ config3(128, 8);
+```
 
 ---
 
@@ -245,7 +295,6 @@ Array2D(std::vector<T>&& data, size_t cols);
 Array2D(const std::vector<T>& data, size_t cols);
 Array2D(std::initializer_list<std::initializer_list<T>> init_list);
 Array2D(Array2D&& other) noexcept;
-Array2D(const Array2D& other);
 Array2D();
 ```
 
@@ -254,8 +303,9 @@ Array2D();
 - **`Array2D(const std::vector<T>& data, size_t cols)`**: Initializes the 2D array from a 1D vector (copy).
 - **`Array2D(std::initializer_list<std::initializer_list<T>> init_list)`**: Initializes from a nested initializer list (e.g., `{{1, 2}, {3, 4}}`).
 - **`Array2D(Array2D&& other) noexcept`**: Move constructor - transfers ownership without copying.
-- **`Array2D(const Array2D& other)`**: Copy constructor - creates a deep copy.
 - **`Array2D()`**: Default constructor - creates an empty array (0 rows, 0 columns).
+
+<Note>The copy constructor is deleted. Use `Clone()` or move semantics to copy an `Array2D`.</Note>
 
 ### Access Methods
 
@@ -310,7 +360,7 @@ TrainingConfig(std::optional<size_t> n_lists = std::nullopt,
 | Parameter | Type | Description |
 |-------------------|----------|---------------------------------------------------------------------------------------------|
 | `n_lists` | `std::optional<size_t>` | _(Optional)_ Number of inverted lists to create. Defaults to `std::nullopt` (auto-determines, typically `0`). |
-| `batch_size` | `std::optional<size_t>` | _(Optional)_ Size of each batch for training. Defaults to `std::nullopt` (auto-determines, typically `2048`). |
+| `batch_size` | `std::optional<size_t>` | _(Optional)_ Size of each batch for training. Defaults to `std::nullopt` (auto-determined based on dataset size). |
 | `max_iters` | `std::optional<size_t>` | _(Optional)_ Maximum iterations for training. Defaults to `std::nullopt` (auto-determines, typically `100`). |
 | `tolerance` | `std::optional<double>` | _(Optional)_ Convergence tolerance for training. Defaults to `std::nullopt` (uses `1e-6`). |
 | `max_memory` | `std::optional<size_t>` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `std::nullopt` (no limit). |
@@ -363,36 +413,60 @@ For more info on metadata, see [Metadata Filtering](../guides/data-operations/me
 
 ### QueryResults
 
-`QueryResults` class holds the results from a `Query` operation, including IDs and distances for the nearest neighbors of each query.
+`QueryResults` class holds the results from a `Query` operation, including IDs, distances, and metadata for the nearest neighbors of each query. Results are vector-based and immutable after construction.
 
-### Access Methods
+### Getter Methods
 
 | Method | Return Type | Description |
 |--------------------------|------------------------------|------------------------------------------------------|
-| `Result operator[](size_t query_idx)` | `Result` | Returns read-write access to IDs and distances for a specific query. |
-| `const Array2D<ItemID>& ids() const` | `const Array2D<ItemID>&` | Get read-only access to all IDs as a 2D array. |
-| `const Array2D<float>& distances() const` | `const Array2D<float>&` | Get read-only access to all distances as a 2D array. |
-| `std::vector<std::vector<std::string>>& metadata()` | `std::vector<std::vector<std::string>>&` | Get read-write access to all metadata. |
-| `size_t num_queries() const` | `size_t` | Returns the number of queries. |
-| `size_t top_k() const` | `size_t` | Returns the number of top-k items per query. |
+| `ids()` | `const std::vector<std::vector<std::string>>&` | IDs of nearest neighbors for each query. |
+| `distances()` | `const std::vector<std::vector<float>>&` | Distances of nearest neighbors for each query. |
+| `metadata()` | `const std::vector<std::vector<std::string>>&` | Metadata for nearest neighbors for each query (JSON strings). |
+
+### Methods
+
+| Method | Return Type | Description |
+|--------------------------|------------------------------|------------------------------------------------------|
+| `ResultView operator[](size_t query_idx) const` | `ResultView` | Returns a read-only view of IDs, distances, and metadata for a specific query. |
+| `num_results() const` | `std::vector<uint32_t>` | Returns the actual number of results per query (may be less than top_k). |
+| `num_queries() const` | `size_t` | Returns the number of queries. |
 | `bool empty() const` | `bool` | Checks if the results are empty. |
+| `static QueryResults Empty(size_t num_queries)` | `QueryResults` | Factory method to create empty results for a given number of queries. |
+
+### ResultView
+
+The `ResultView` struct provides read-only access to results for a single query:
+
+```cpp
+struct ResultView {
+    const std::vector<std::string>& ids;
+    const std::vector<float>& distances;
+    const std::vector<std::string>& metadata;
+    const uint32_t& num_results;
+};
+```
 
 ### Example Usage
 
 ```cpp
-QueryResults results(num_queries, top_k);
-
-// Access the top-k results for each query
-for (size_t i = 0; i < num_queries; ++i) {
-    auto result = results[i];
-    for (size_t j = 0; j < result.num_results; ++j) {
-        std::cout << "ID: " << result.ids[j] << ", Distance: " << result.distances[j] << std::endl;
+// Access results for each query
+for (size_t i = 0; i < results.num_queries(); ++i) {
+    auto view = results[i];
+    for (uint32_t j = 0; j < view.num_results; ++j) {
+        std::cout << "ID: " << view.ids[j]
+                  << ", Distance: " << view.distances[j] << std::endl;
     }
 }
 
-// Get the IDs and distances for all queries
-auto all_ids = results.ids();
-auto all_distances = results.distances();
+// Access all IDs and distances directly
+const auto& all_ids = results.ids();
+const auto& all_distances = results.distances();
+
+// Get actual result counts per query
+auto counts = results.num_results();
+
+// Create empty results
+auto empty = QueryResults::Empty(num_queries);
 ```
 
 ---
@@ -415,16 +489,20 @@ The `IndexType` enum defines the supported index types in CyborgDB:
 
 ```cpp
 enum IndexType {
-    IVF,     // Inverted File index
+    IVF,     // Inverted File index (deprecated)
     IVFPQ,   // Inverted File with Product Quantization
-    IVFFLAT  // Inverted File with flat (uncompressed) storage
+    IVFFLAT, // Inverted File with flat (uncompressed) storage
+    IVFSQ    // Inverted File with Scalar Quantization
 };
 ```
 
-All three index types are available:
+All four index types are available:
 - `IVF`: Fastest retrieval, lowest recall, smallest index size
 - `IVFPQ`: Balanced memory usage and recall with product quantization
 - `IVFFLAT`: Highest recall, largest index size, no compression
+- `IVFSQ`: Good balance of recall, speed, and index size with scalar quantization (default)
+
+<Warning>The `IVF` type is deprecated and will be removed in a future release.</Warning>
 
 ---
 

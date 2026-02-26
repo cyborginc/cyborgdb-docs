@@ -1,0 +1,116 @@
+---
+title: "Upsert Vectors (Binary)"
+mode: "wide"
+api: "POST /v1/vectors/upsert_binary"
+playground: "simple"
+---
+
+Add new vectors or update existing ones in the encrypted index using a binary-encoded format for more efficient transfer of large batches.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "batch": {
+    "ids": ["item_1", "item_2"],
+    "vectors_b64": "BASE64_ENCODED_FLOAT32_ARRAY",
+    "dimension": 384,
+    "metadata": [
+      {"category": "greeting", "language": "en"},
+      {"category": "greeting", "language": "fr"}
+    ],
+    "contents": ["Hello world!", "Bonjour monde!"]
+  }
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the target index
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+  <ParamField body="batch" type="object" required="true">
+    Batch of vectors in binary format:
+
+    <Expandable title="batch parameters">
+      <ParamField body="ids" type="array[string]" required="true">
+        List of unique identifiers, one per vector
+      </ParamField>
+      <ParamField body="vectors_b64" type="string" required="true">
+        Base64-encoded float32 array. The decoded bytes represent a flat array of `n_vectors x dimension` little-endian float32 values
+      </ParamField>
+      <ParamField body="dimension" type="integer" required="true">
+        Dimensionality of each vector
+      </ParamField>
+      <ParamField body="metadata" type="array[object]">
+        Optional list of metadata objects, one per vector
+      </ParamField>
+      <ParamField body="contents" type="array[string]">
+        Optional list of text content strings, one per vector
+      </ParamField>
+    </Expandable>
+  </ParamField>
+</Expandable>
+
+## Response
+
+```json
+{
+  "status": "success",
+  "message": "Upserted 2 vectors"
+}
+```
+
+**With Auto-Training Triggered:**
+```json
+{
+  "status": "success",
+  "message": "Upserted 2 vectors",
+  "training_triggered": true,
+  "training_message": "Index training has been triggered (vectors: 5000, threshold: 10000)"
+}
+```
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters or vector dimensions
+- `500`: Internal server error
+
+## Example Usage
+
+```bash
+# Encode vectors as base64 float32 array (example using Python)
+# vectors = np.array([[0.1, 0.2, 0.3, 0.4], [0.5, 0.6, 0.7, 0.8]], dtype=np.float32)
+# vectors_b64 = base64.b64encode(vectors.tobytes()).decode()
+
+curl -X POST "http://localhost:8000/v1/vectors/upsert_binary" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "batch": {
+         "ids": ["item_1", "item_2"],
+         "vectors_b64": "zczMPc3MzD2amZk+mpkZP83MTD/NzEw/zcyMPwAAgD8=",
+         "dimension": 4
+       }
+     }'
+```
+
+<Tip>The binary format is more efficient than the standard JSON upsert for large batches, as it avoids the overhead of encoding each float as a JSON number. The SDK clients automatically use this format when vectors are passed as typed arrays (e.g., `np.ndarray` in Python, `Float32Array` in JS/TS).</Tip>

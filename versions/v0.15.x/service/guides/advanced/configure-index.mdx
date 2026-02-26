@@ -7,13 +7,13 @@ sidebarTitle: "Configure Index"
 
 CyborgDB offers three index types, all of which offer varying characteristics:
 
-|  Index Type  |  Speed  | Recall | Index Size |
+|  Index Type  |  Speed  | Accuracy | Memory Usage |
 | :-----: | :-----: | :----: | :--------: |
-| [`IVFFlat`](#ivfflat-index-type) | Fast | Highest |  Biggest  |
-| [`IVFPQ`](#ivfpq-index-type) | Fast | High |  Medium  |
-| [`IVF`](#ivf-index-type) | Fastest | Lowest |  Smallest  |
+| [`IVFFlat`](#ivfflat-index-type) | Medium | Highest |  High  |
+| [`IVFPQ`](#ivfpq-index-type) | Fast | Good |  Low  |
+| [`IVFSQ`](#ivfsq-index-type) | Fast | High |  Low  |
 
-Generally-speaking, we recommend that you start with `IVFFlat`, which provides the highest recall (accuracy) with high indexing and retrieval speeds. For most use-cases, this index type will scale well. If minimizing index size is important, `IVFPQ` takes `IVFFlat` and applies Product-Quantization (PQ, a form of lossy compression) to the vector embeddings which can greatly reduce index size.
+Generally-speaking, we recommend that you start with `IVFFlat`, which provides the highest recall (accuracy) with high indexing and retrieval speeds. For most use-cases, this index type will scale well. If minimizing index size is important, `IVFPQ` takes `IVFFlat` and applies Product-Quantization (PQ, a form of lossy compression) to the vector embeddings which can greatly reduce index size. For an alternative that balances speed and index size, `IVFSQ` uses Scalar Quantization to compress each dimension independently.
 
 ## `IVFFlat` Index Type
 
@@ -47,25 +47,25 @@ index = client.create_index(
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client, IndexIVFFlat } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
 // Create the IVFFlat index config
-const indexConfig = new IndexIVFFlat();
+const indexConfig = { type: 'ivfflat' };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
@@ -73,22 +73,22 @@ const index = await client.createIndex({
 import { Client, IndexIVFFlat } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
 // Create the IVFFlat index config
-const indexConfig: IndexIVFFlat = new IndexIVFFlat();
+const indexConfig: IndexIVFFlat = { type: 'ivfflat' };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
@@ -136,8 +136,6 @@ func main() {
 
 ## `IVFPQ` Index Type
 
-<Note>The `IVFPQ` index type is only supported in paid plans.</Note>
-
 The `IVFPQ` index type builds upon `IVFFlat` by applying Product Quantization (PQ) - a form of lossy compression - to reduce the index size. When applied correctly, `IVFPQ` indexes can maintain high recall (>95%) while reducing index size significantly (2-4x).
 
 We recommend `IVFPQ` indexes for mature applications, where the dataset and query distributions are well-established. This is because `IVFPQ` requires the most tuning to yield an ideal balance between recall and index size. It is possible to go from `IVFFlat` to `IVFPQ` on the same index, but not vice-versa.
@@ -173,12 +171,12 @@ index = client.create_index(
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client, IndexIVFPQ } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
 // Set index parameters
@@ -186,16 +184,16 @@ const pqDim = 32; // Dimension must be divisible by pqDim
 const pqBits = 8; // Number of bits for each pq dimension
 
 // Create the IVFPQ index config
-const indexConfig = new IndexIVFPQ(pqDim, pqBits);
+const indexConfig = { type: 'ivfpq', pqDim, pqBits };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
@@ -203,9 +201,9 @@ const index = await client.createIndex({
 import { Client, IndexIVFPQ } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
 // Set index parameters
@@ -213,16 +211,16 @@ const pqDim = 32; // Dimension must be divisible by pqDim
 const pqBits = 8; // Number of bits for each pq dimension
 
 // Create the IVFPQ index config
-const indexConfig: IndexIVFPQ = new IndexIVFPQ(pqDim, pqBits);
+const indexConfig: IndexIVFPQ = { type: 'ivfpq', pqDim, pqBits };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
@@ -277,81 +275,79 @@ func main() {
 
 `pq_bits` is the number of bits that will be used to represent each dimension of the product-quantized vector embeddings. It must be between `1` and `16`, with lower values yielding smaller index sizes but lower recall.
 
-## `IVF` Index Type
+## `IVFSQ` Index Type
 
-<Note>The `IVF` index type is only supported in paid plans.</Note>
+The `IVFSQ` index type uses Scalar Quantization (SQ) to compress each vector dimension independently, balancing speed and index size. This makes it a good choice when you want fast search with a smaller index footprint while maintaining high recall.
 
-The `IVF` index type (Inverted File Index) is the simplest offered by CyborgDB. We recommend `IVF` indexes for applications which require high-speed, low-latency search with low recall requirements (or where `top_k` is rather large, i.e. >500).
-
-To create an `IVF` index, you can use its configuration constructor:
+To create an `IVFSQ` index, you can use its configuration constructor:
 
 <CodeGroup>
 ```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVF
+from cyborgdb import Client, IndexIVFSQ
 
 # Create a client
 client = Client(
-    base_url='http://localhost:8000', 
+    base_url='http://localhost:8000',
     api_key='your-api-key'
 )
 
-# Create the IVF index config
-index_config = IndexIVF()
+# Create the IVFSQ index config
+index_config = IndexIVFSQ(sq_bits=16)
 
 # Generate encryption key and create the index
 index_name = "test_index"
 index_key = client.generate_key(save=True)  # Generate secure 32-byte key
 
 index = client.create_index(
-    index_name=index_name, 
-    index_key=index_key, 
+    index_name=index_name,
+    index_key=index_key,
     index_config=index_config
 )
 ```
 
 ```javascript JavaScript SDK icon="js"
-import { Client, IndexIVF } from 'cyborgdb';
+import { Client } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
-// Create the IVF index config
-const indexConfig = new IndexIVF();
+// Create the IVFSQ index config
+const indexConfig = { type: 'ivfsq', sqBits: 16 };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client, IndexIVF } from 'cyborgdb';
+import { Client, IndexIVFSQ } from 'cyborgdb';
 
 // Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+const client = new Client({
+    baseUrl: 'http://localhost:8000',
+    apiKey: 'your-api-key'
 });
 
-// Create the IVF index config
-const indexConfig: IndexIVF = new IndexIVF();
+// Create the IVFSQ index config
+const indexConfig: IndexIVFSQ = { type: 'ivfsq', sqBits: 16 };
 
 // Generate encryption key and create the index
 const indexName = "test_index";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig
 });
 ```
 
@@ -372,8 +368,8 @@ func main() {
         log.Fatal(err)
     }
 
-    // Create the IVF index config (specify dimension, e.g., 768)
-    indexConfig := cyborgdb.IndexIVF(768)
+    // Create the IVFSQ index config (specify dimension and sq_bits)
+    indexConfig := cyborgdb.IndexIVFSQ(768, 16)
 
     // Generate encryption key and create the index
     indexName := "test_index"
@@ -397,6 +393,8 @@ func main() {
 
 </CodeGroup>
 
+`sq_bits` is the number of bits per dimension used for scalar quantization. Lower values yield smaller index sizes but may reduce recall. Accepted values are `8` and `16`, with `16` being the default.
+
 ## Customizing Distance Metrics
 
 By default, CyborgDB uses `euclidean` distance as its metric for all index types. You can override this default by providing a `metric` parameter to any of the index constructors. For example:
@@ -416,29 +414,29 @@ index = client.create_index(
 
 ```javascript JavaScript SDK icon="js"
 // Example with cosine similarity
-const indexConfig = new IndexIVFFlat();
+const indexConfig = { type: 'ivfflat' };
 const indexName = "index_name";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig, 
-    metric: "cosine" 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig,
+    metric: "cosine"
 });
 ```
 
 ```typescript TypeScript SDK icon="code"
 // Example with cosine similarity
-const indexConfig: IndexIVFFlat = new IndexIVFFlat();
+const indexConfig: IndexIVFFlat = { type: 'ivfflat' };
 const indexName = "index_name";
 const indexKey = client.generateKey(); // Generate secure 32-byte key
 
-const index = await client.createIndex({ 
-    indexName, 
-    indexKey, 
-    indexConfig, 
-    metric: "cosine" 
+const index = await client.createIndex({
+    indexName,
+    indexKey,
+    indexConfig,
+    metric: "cosine"
 });
 ```
 
