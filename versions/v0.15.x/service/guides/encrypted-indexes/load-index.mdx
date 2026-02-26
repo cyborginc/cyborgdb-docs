@@ -1,0 +1,144 @@
+---
+title: "Load an Existing Encrypted Index"
+sidebarTitle: "Load Existing Index"
+mode: "wide"
+---
+
+If you've previously created an encrypted index, you can connect to it to add, query or delete data from it. You will need to know the index's name as well as its key to do so:
+
+<Note>This is only applicable to the CyborgDB SDKs. The REST API is stateless, so you don't need to load indexes explicitly.</Note>
+
+<CodeGroup>
+```python Python SDK icon="python"
+from cyborgdb import Client
+
+# Create a client
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
+)
+
+# Provide the same index key used when creating the index
+index_key = your_existing_32_byte_key
+
+# Connect to existing index
+index = client.load_index(
+    index_name="my_index", 
+    index_key=index_key
+)
+```
+
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
+
+// Create a client
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
+
+const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
+
+// Connect to existing index
+const index = await client.loadIndex({ 
+    indexName: "my_index", 
+    indexKey 
+});
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client, EncryptedIndex, LoadIndexParams } from 'cyborgdb';
+
+// Create a client
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
+
+const indexKey: Uint8Array = yourExisting32ByteKey;  // Must be the same key used originally
+
+// Connect to existing index
+const params: LoadIndexParams = {
+    indexName: "my_index", 
+    indexKey 
+};
+const index: EncryptedIndex = await client.loadIndex(params);
+```
+
+```go Go SDK icon="golang"
+package main
+
+import (
+    "context"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Provide the same index key used when creating the index
+    indexKey := yourExisting32ByteKey // Must be the same key used originally
+    
+    // Connect to existing index
+    ctx := context.Background()
+    index, err := client.LoadIndex(ctx, "my_index", indexKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    log.Printf("Loaded index: %s", index.GetIndexName())
+}
+```
+
+```bash cURL icon="rectangle-terminal"
+# The REST API is stateless - no explicit "load" needed
+# Simply use the index_name and index_key in subsequent operations
+
+# Example: Query an existing index directly
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.1, 0.2, 0.3, 0.4],
+       "top_k": 5
+     }'
+```
+</CodeGroup>
+
+This connects to an existing encrypted index on the service. For more details on index types and configurations, see [Configure an Encrypted Index](../advanced/configure-index).
+
+<Warning>You must provide the exact same index key and configuration that was used when the index was originally created. 
+For production use, we recommend that you use an HSM or KMS solution for key management.
+For more details, see [Managing Encryption Keys](../advanced/managing-keys).</Warning>
+
+## Index Caching
+
+Index caching is handled automatically by the CyborgDB service. The service optimizes performance through:
+
+- **Automatic Caching**: Frequently accessed indexes are cached automatically
+- **Smart Eviction**: Least recently used indexes are evicted when memory is needed  
+- **Server-Side Optimization**: No client-side cache configuration required
+
+## API Reference
+
+For more information on loading an encrypted index, refer to the API reference:
+
+<CardGroup cols={3}>
+    <Card title="Python SDK Reference" href="../../python-sdk/client/load-index" icon="python">
+        API reference for `load_index()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/load-index" icon="js">
+        API reference for `loadIndex()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/client/load-index" icon="golang">
+        API reference for `LoadIndex()` in Go
+    </Card>
+</CardGroup>

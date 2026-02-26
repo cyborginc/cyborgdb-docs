@@ -1,0 +1,38 @@
+---
+title: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+Deletes the current index and all its associated data from the CyborgDB service.
+
+```python
+index.delete_index()
+```
+
+### Returns
+
+`None`
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if there are internal server errors preventing the deletion.
+    </Accordion>
+    <Accordion title="Index Errors">
+        - Returns success status if the index was already deleted or doesn't exist.
+        - Throws if the encryption key is invalid for the specified index.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# Delete the index
+index.delete_index()
+print("Index deleted successfully.")
+```

@@ -1,0 +1,156 @@
+---
+title: "CyborgDB - LangChain Integration"
+sidebarTitle: "LangChain Introduction"
+description: "`v0.15.x`"
+mode: "wide"
+---
+
+CyborgDB provides a seamless integration with [LangChain](https://www.langchain.com/), enabling developers to leverage encrypted vector search for large language models (LLMs) and RAG pipelines. This integration is implemented via the `CyborgVectorStore` class, which conforms to the `VectorStore` interface from `langchain-core`.
+
+## Installation
+
+<Tabs>
+    <Tab title="Embedded">
+        Install `cyborgdb-core` with the `langchain` extra:
+
+        ```bash
+        pip install cyborgdb-core[langchain]
+        ```
+    </Tab>
+
+    <Tab title="Python SDK">
+        Install the `cyborgdb` package with the `langchain` extra:
+
+        ```bash
+        pip install cyborgdb[langchain]
+        ```
+    </Tab>
+
+    <Tab title="JS/TS">
+        Install the `cyborgdb` npm package:
+
+        ```bash
+        npm install cyborgdb
+        ```
+    </Tab>
+</Tabs>
+
+<Tip>To learn more about the differences between `cyborgdb` and `cyborgdb-core`, refer to the [Deployment Models Guide](../../intro/deployment-models).</Tip>
+
+## Import
+
+<Tabs>
+    <Tab title="Embedded">
+        ```python
+        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+        ```
+    </Tab>
+
+    <Tab title="Python SDK">
+        ```python
+        from cyborgdb.integrations.langchain import CyborgVectorStore
+        ```
+    </Tab>
+
+    <Tab title="JS/TS">
+        ```typescript
+        import { CyborgVectorStore } from 'cyborgdb';
+        ```
+    </Tab>
+</Tabs>
+
+## Key Features
+
+- Full VectorStore API compatibility (`add_texts`, `similarity_search`, etc.)
+- Async operations support
+- Configurable distance metrics (`cosine`, `euclidean`, `squared_euclidean`)
+- Document ID tracking and management
+- Max marginal relevance search
+- Factory methods (`from_texts`, `from_documents`) for quick setup
+
+## Key Classes
+
+### `CyborgVectorStore`
+
+Implements the LangChain-compatible vector store interface. Supports:
+
+- `.add_texts()` / `.add_documents()`
+- `.similarity_search()` / `.similarity_search_with_score()`
+- `.max_marginal_relevance_search()`
+- `.get()` / `.list_ids()` / `.delete()`
+- `.as_retriever()` for use in LangChain chains
+- Async variants (`.aadd_texts()`, `.asimilarity_search()`, etc.)
+- Reversible document ID tracking
+- Configurable distance metric (`cosine`, `euclidean`, `squared_euclidean`)
+
+### `DBConfig` (Embedded only)
+
+Configuration object for defining the location of index data (`memory`, `redis`, `postgres`, `rocksdb`, `threadsafememory`). Used only with the Embedded library (`cyborgdb-core`).
+
+## Quick Start
+
+<Tabs>
+    <Tab title="Embedded">
+        ```python
+        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+        from cyborgdb_core import DBConfig
+        from langchain_openai import OpenAIEmbeddings
+
+        store = CyborgVectorStore.from_texts(
+            texts=["hello world", "goodbye world"],
+            embedding=OpenAIEmbeddings(),
+            index_key=CyborgVectorStore.generate_key(save=True),
+            api_key="your-api-key",
+            index_location=DBConfig("memory"),
+            config_location=DBConfig("memory"),
+            index_type="ivfsq",
+            metric="cosine"
+        )
+
+        docs = store.similarity_search("hello")
+        ```
+    </Tab>
+
+    <Tab title="Python SDK">
+        ```python
+        from cyborgdb.integrations.langchain import CyborgVectorStore
+
+        store = CyborgVectorStore.from_texts(
+            texts=["hello world", "goodbye world"],
+            embedding="all-MiniLM-L6-v2",
+            index_key=CyborgVectorStore.generate_key(save=True),
+            api_key="your-api-key",
+            base_url="http://localhost:8000",
+            index_type="ivfflat",
+            metric="cosine"
+        )
+
+        docs = store.similarity_search("hello")
+        ```
+    </Tab>
+
+    <Tab title="JS/TS">
+        ```typescript
+        import { CyborgVectorStore } from 'cyborgdb';
+        import { OpenAIEmbeddings } from '@langchain/openai';
+
+        const store = await CyborgVectorStore.fromTexts(
+            ["hello world", "goodbye world"],
+            [{ source: "greeting" }, { source: "farewell" }],
+            new OpenAIEmbeddings(),
+            {
+                baseUrl: "http://localhost:8000",
+                apiKey: "your-api-key",
+                indexName: "my_documents",
+                indexKey: CyborgVectorStore.generateKey(),
+                indexType: "ivfflat",
+                metric: "cosine"
+            }
+        );
+
+        const docs = await store.similaritySearch("hello");
+        ```
+
+        <Note>`fromExistingIndex()` is available as a JS/TS-only convenience factory method for connecting to an already-created index without re-adding documents.</Note>
+    </Tab>
+</Tabs>
