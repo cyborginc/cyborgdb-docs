@@ -247,7 +247,7 @@ Scalar Quantization compresses embeddings, providing a good balance of speed, re
 #### Constructor
 
 ```cpp
-IndexIVFSQ(size_t dimension = 0, size_t sq_bits = 8,
+IndexIVFSQ(size_t dimension = 0, size_t sq_bits = 16,
            std::string embedding_model = "");
 ```
 
@@ -255,7 +255,7 @@ IndexIVFSQ(size_t dimension = 0, size_t sq_bits = 8,
 | Parameter | Type | Default | Description |
 |--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
 | `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `sq_bits` | `size_t` | `8` | _(Optional)_ Number of bits for scalar quantization (typically 4, 8, or 16). |
+| `sq_bits` | `size_t` | `16` | _(Optional)_ Number of bits for scalar quantization (8 or 16). |
 | `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
 
 #### Methods
@@ -271,14 +271,14 @@ IndexIVFSQ(size_t dimension = 0, size_t sq_bits = 8,
 #### Example Usage
 
 ```cpp
-// Default configuration (8-bit scalar quantization)
+// Default configuration (16-bit scalar quantization)
 cyborg::IndexIVFSQ config1;
 
-// 16-bit scalar quantization (higher precision)
-cyborg::IndexIVFSQ config2(0, 16);
+// 8-bit scalar quantization (smaller index, lower precision)
+cyborg::IndexIVFSQ config2(0, 8);
 
 // Explicit dimension and SQ bits
-cyborg::IndexIVFSQ config3(128, 8);
+cyborg::IndexIVFSQ config3(128, 16);
 ```
 
 ---
