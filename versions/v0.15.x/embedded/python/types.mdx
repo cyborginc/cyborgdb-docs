@@ -275,7 +275,7 @@ Scalar Quantization compresses embeddings, providing a good balance of speed, re
 ```python
 import cyborgdb_core as cyborgdb
 
-# Basic configuration with auto-detection (default 8-bit SQ)
+# Basic configuration with auto-detection (default 16-bit SQ)
 index_config = cyborgdb.IndexIVFSQ()
 
 # 16-bit scalar quantization (higher precision, larger index)
