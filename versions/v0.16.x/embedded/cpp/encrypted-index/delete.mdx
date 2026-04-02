@@ -1,0 +1,32 @@
+---
+title: "Delete"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+Deletes the specified encrypted items stored in the index, including all its associated fields (`vector`, `contents`, `metadata`).
+
+```cpp
+void Delete(const std::vector<std::string>& ids);
+```
+
+**Parameters**:
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `ids` | `const std::vector<std::string>&` | IDs to delete. |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::runtime_error">
+        - Throws if the items could not be deleted.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+// Delete items with IDs "item_1" and "item_2"
+index->Delete({"item_1", "item_2"});
+```

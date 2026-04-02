@@ -1,0 +1,138 @@
+---
+title: "Delete an Encrypted Index"
+sidebarTitle: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+To delete an existing encrypted index, you can connect to it and then call the `delete_index()` method.
+
+<CodeGroup>
+```python Python SDK icon="python"
+from cyborgdb import Client
+
+# Create a client
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
+)
+
+# Provide the same index key and config used when creating the index
+index_key = your_existing_32_byte_key  # Must be the same key used originally
+
+# Connect to the existing index
+index = client.load_index(
+    index_name="my_index", 
+    index_key=index_key
+)
+
+# Delete the index
+index.delete_index()
+```
+
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
+
+// Create a client
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
+
+// Provide the same index key and config used when creating the index
+const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
+
+// Connect to the existing index
+const index = await client.loadIndex({ 
+    indexName: "my_index", 
+    indexKey
+});
+
+// Delete the index
+await index.deleteIndex();
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client } from 'cyborgdb';
+
+// Create a client
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
+
+// Provide the same index key and config used when creating the index
+const indexKey = yourExisting32ByteKey;  // Must be the same key used originally
+
+// Connect to the existing index
+const index = await client.loadIndex({ 
+    indexName: "my_index", 
+    indexKey
+});
+
+// Delete the index
+await index.deleteIndex();
+```
+
+```go Go SDK icon="golang"
+package main
+
+import (
+    "context"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Create client
+client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Provide the same index key used when creating the index
+indexKey := []byte("your-existing-32-byte-key") // Must be the same key used originally
+
+// Connect to the existing index
+index, err := client.LoadIndex(context.Background(), "my_index", indexKey)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Delete the index
+err = index.DeleteIndex(context.Background())
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/indexes/delete" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+</CodeGroup>
+
+## API Reference
+
+For more information on deleting an encrypted index, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="REST API Reference" href="../../rest-api/encrypted-index/delete-index" icon="rectangle-terminal">
+        REST API reference for `/v1/indexes/delete`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/delete-index" icon="python">
+        API reference for `delete_index()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/delete-index" icon="js">
+        API reference for `deleteIndex()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/encrypted-index/delete-index" icon="golang">
+        API reference for `DeleteIndex()` in Go
+    </Card>
+</CardGroup>

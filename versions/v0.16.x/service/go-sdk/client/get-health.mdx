@@ -1,0 +1,78 @@
+---
+title: "Get Health"
+mode: "wide"
+---
+
+Checks the health status of the CyborgDB service. Useful for readiness/liveness checks and connectivity diagnostics.
+
+```go
+func (c *Client) GetHealth(ctx context.Context) (map[string]string, error)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation/timeouts |
+
+### Returns
+
+| Type | Description |
+|------|-------------|
+| `map[string]string` | Health status information from the server |
+| `error` | Any error encountered during the health check |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the health check request fails due to network connectivity issues.
+        - Throws if the server is unreachable or times out.
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable or unreachable.
+        - Throws if there are internal server errors on the CyborgDB service.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    // Create client
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Check service health
+    ctx := context.Background()
+    health, err := client.GetHealth(ctx)
+    if err != nil {
+        log.Fatal("Health check failed:", err)
+    }
+    
+    fmt.Println("Service Health Status:")
+    for key, value := range health {
+        fmt.Printf("  %s: %s\n", key, value)
+    }
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | Current health status of the service (typically "healthy") |
+| `api_version` | `string` | Version of the API interface (e.g., "v1") |
+| `version` | `string` | Version of the CyborgDB application/service |
