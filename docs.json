@@ -71,7 +71,8 @@
                 "pages": [
                   "versions/v0.16.x/intro/quickstart",
                   "versions/v0.16.x/intro/get-api-key",
-                  "versions/v0.16.x/intro/using-docs"
+                  "versions/v0.16.x/intro/using-docs",
+                  "versions/v0.16.x/intro/migrate"
                 ]
               },
               {

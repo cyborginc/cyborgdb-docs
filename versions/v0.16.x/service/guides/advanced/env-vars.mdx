@@ -27,13 +27,13 @@ These environment variables must be set for the service to run:
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `standalone`, `postgres`, `redis`, or `memory` |
+| `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `standalone`, `postgres`, `redis`, `s3`, or `memory` |
 | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See [Connection Formats](#connection-formats) |
 
 <Warning>
-**Important:** `CYBORGDB_CONNECTION_STRING` is required when `CYBORGDB_DB_TYPE` is set to `redis` or `postgres`. For `standalone`, the connection string is optional and can be used to override the default data directory path. For `memory`, no connection string is needed.
+**Important:** `CYBORGDB_CONNECTION_STRING` is required when `CYBORGDB_DB_TYPE` is set to `redis`, `postgres`, or `s3`. For `standalone`, the connection string is optional and can be used to override the default data directory path. For `memory`, no connection string is needed.
 
-**Standalone is for EVALUATION ONLY** - For production use, configure an external PostgreSQL or Redis database.
+**Standalone is for EVALUATION ONLY** - For production use, configure an external PostgreSQL, Redis, or S3 database.
 </Warning>
 
 ## Optional Environment Variables
@@ -137,6 +137,31 @@ These environment variables must be set for the service to run:
         - `password` - Redis password (optional)
 
         <Warning>Redis URI format (`redis://` or `rediss://`) is not supported. Use the comma-separated format shown above.</Warning>
+    </Accordion>
+
+    <Accordion title="S3 Connection String">
+
+        Use an S3 URI for Amazon S3 or S3-compatible stores:
+
+        ```bash
+        # AWS S3 (uses IAM role or AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars)
+        CYBORGDB_CONNECTION_STRING="s3://my-bucket?region=us-east-1"
+
+        # AWS S3 with explicit credentials
+        CYBORGDB_CONNECTION_STRING="s3://my-bucket?region=us-east-1&access_key=AKID...&secret_key=..."
+
+        # MinIO or other S3-compatible store
+        CYBORGDB_CONNECTION_STRING="s3://my-bucket?region=us-east-1&endpoint=http://localhost:9000&access_key=minioadmin&secret_key=minioadmin"
+        ```
+
+        **Parameters:**
+        - `region` - AWS region (default: `us-east-1`)
+        - `prefix` - Key prefix for all stored objects (optional)
+        - `endpoint` - Custom endpoint URL for S3-compatible stores (optional)
+        - `access_key` - AWS access key ID (optional; falls back to `AWS_ACCESS_KEY_ID` env var or IAM role)
+        - `secret_key` - AWS secret access key (optional; falls back to `AWS_SECRET_ACCESS_KEY` env var or IAM role)
+
+        <Note>For production AWS deployments, prefer IAM roles or `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` environment variables over embedding credentials in the connection string.</Note>
     </Accordion>
 
     <Accordion title="Standalone Connection String (Optional)">
@@ -270,7 +295,7 @@ Environment variables are loaded in the following order (later sources override 
 The CyborgDB service performs automatic validation of environment variables on startup:
 
 - **Missing required variables** - Service will exit with error messages
-- **Invalid database types** - Supported types are `standalone`, `postgres`, `redis`, and `memory`
+- **Invalid database types** - Supported types are `standalone`, `postgres`, `redis`, `s3`, and `memory`
 - **Connection testing** - Database connections are tested on startup
 - **SSL certificate validation** - Certificate files are checked for existence
 

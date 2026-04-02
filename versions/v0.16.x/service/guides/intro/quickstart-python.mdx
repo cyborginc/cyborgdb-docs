@@ -49,7 +49,7 @@ The Python service is ideal for developers who prefer managing Python environmen
     <Step title="Choose Your Database Backend (Optional)">
         For **quick evaluation and testing**, you can skip database setup entirely - the service will automatically use a built-in **standalone** instance.
 
-        For **production deployments** or if you have existing database infrastructure, CyborgDB service supports two external database backends:
+        For **production deployments** or if you have existing database infrastructure, CyborgDB service supports external database backends:
 
         - **PostgreSQL**: Compatible with your existing PostgreSQL infrastructure
           - Managed services: AWS RDS, Azure Database for PostgreSQL, Google Cloud SQL, DigitalOcean Managed Databases
@@ -57,10 +57,12 @@ The Python service is ideal for developers who prefer managing Python environmen
         - **Redis**: Compatible with your existing Redis infrastructure
           - Managed services: AWS ElastiCache, Azure Cache for Redis, Google Cloud Memorystore, Redis Cloud
           - Self-hosted Redis instances
+        - **Amazon S3**: Cloud-native object storage for scalable, serverless deployments
+          - Compatible with AWS S3, MinIO, Cloudflare R2, and any S3-compatible store
 
         All backends provide identical CyborgDB functionality. For more info, refer to [this guide](../../../intro/backing-stores).
 
-        <Warning>**Standalone is for evaluation and testing only** - For production use, configure an external PostgreSQL or Redis database.</Warning>
+        <Warning>**Standalone is for evaluation and testing only** - For production use, configure an external PostgreSQL, Redis, or S3 backend.</Warning>
     </Step>
 
     <Step title="Install CyborgDB Service">
@@ -117,7 +119,7 @@ The Python service is ideal for developers who prefer managing Python environmen
                 ```
                 </CodeGroup>
 
-                <Warning>Standalone is for evaluation and testing only. For production, use PostgreSQL or Redis.</Warning>
+                <Warning>Standalone is for evaluation and testing only. For production, use PostgreSQL, Redis, or S3.</Warning>
             </Tab>
 
             <Tab title="PostgreSQL Backend">
@@ -152,6 +154,29 @@ The Python service is ideal for developers who prefer managing Python environmen
                 CYBORGDB_CONNECTION_STRING=host:localhost,port:6379,db:0
                 ```
                 </CodeGroup>
+            </Tab>
+
+            <Tab title="S3 Backend">
+                <CodeGroup>
+                ```bash Linux/macOS
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=s3
+                export CYBORGDB_CONNECTION_STRING="s3://my-bucket?region=us-east-1"
+                # Optional: set credentials if not using IAM roles
+                # export AWS_ACCESS_KEY_ID=AKID...
+                # export AWS_SECRET_ACCESS_KEY=...
+                ```
+
+                ```bash .env File
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=s3
+                CYBORGDB_CONNECTION_STRING=s3://my-bucket?region=us-east-1
+                # AWS_ACCESS_KEY_ID=AKID...
+                # AWS_SECRET_ACCESS_KEY=...
+                ```
+                </CodeGroup>
+
+                <Note>For MinIO or other S3-compatible stores, add `&endpoint=http://...&access_key=...&secret_key=...` to the connection string. See [Environment Variables](../advanced/env-vars#s3-connection-string) for full details.</Note>
             </Tab>
         </Tabs>
 
@@ -197,7 +222,7 @@ The Python service is ideal for developers who prefer managing Python environmen
                 | Variable | Description | Required | Example |
                 |----------|-------------|----------|---------|
                 | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
-                | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `standalone`, `postgres`, `redis`, or `memory` |
+                | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `standalone`, `postgres`, `redis`, `s3`, or `memory` |
                 | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See connection formats |
                 | `PORT` | Service port | ❌ | `8000` |
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |

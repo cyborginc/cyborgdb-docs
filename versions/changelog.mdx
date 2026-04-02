@@ -6,6 +6,36 @@ mode: wide
 
 CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
 
+<Update label="v0.16.0" description="2026-04-02">
+## CyborgDB v0.16.0
+
+### Deployment Model
+
+- Embedded Library (Python & C++)
+- REST API (Microservice via Python or Docker)
+- Client SDK (Python, JavaScript, TypeScript & Go)
+
+### New Features
+
+- CyborgDB now supports **Amazon S3** as a backing store for encrypted indexes
+  - Configure via `CYBORGDB_DB_TYPE=s3` with an S3 connection string
+  - Compatible with AWS S3, MinIO, and any S3-compatible object storage
+- **CyborgDB Migrate**: New tool for migrating vector embeddings from other databases into CyborgDB
+  - Supports Pinecone, Qdrant, Weaviate, ChromaDB, and Milvus as sources
+  - Interactive TUI wizard or headless TOML-based config for CI/CD pipelines
+  - Install via `pip install cyborgdb-migrate`
+- IVFSQ default scalar quantization bits increased from 8 to 16 for improved recall accuracy
+
+### Improvements & Bug Fixes
+
+- Stability improvements and bug fixes across all components
+- Ingest errors now properly propagate to callers instead of being silently swallowed
+- Improved serialization support for all backing store types
+- New API contract test suite for guaranteed interface stability
+- Expanded E2E test coverage across all SDK languages and backing stores
+
+</Update>
+
 <Update label="v0.15.0" description="2026-02-24">
 ## CyborgDB v0.15.0
 

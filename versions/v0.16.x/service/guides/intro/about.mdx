@@ -122,11 +122,13 @@ flowchart TB
   CyborgDB --> Standalone
   CyborgDB --> PostgreSQL
   CyborgDB --> Redis
+  CyborgDB --> S3
   CyborgDB --> Memory
 
   Standalone("Standalone / RocksDB")
   PostgreSQL("PostgreSQL")
   Redis("Redis")
+  S3("Amazon S3 / MinIO")
   Memory("Memory")
 ```
 

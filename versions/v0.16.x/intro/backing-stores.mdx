@@ -6,6 +6,50 @@ CyborgDB transforms traditional databases into Confidential Vector Databases by 
 
 <img src="/images/cyborgdb-search-overview.png" alt="CyborgDB RAG Overview" />
 
+## Amazon S3
+
+**Scalable cloud object storage for distributed deployments**
+
+CyborgDB supports Amazon S3 (and S3-compatible stores such as MinIO) as a backing store, enabling fully cloud-native deployments without managing a traditional database server.
+
+### Key Benefits
+
+**Infinite Scalability**  
+Object storage scales seamlessly with your data — no capacity planning or provisioning required.
+
+**Managed Infrastructure**  
+No database servers to patch, tune, or back up. AWS handles availability and durability.
+
+**S3-Compatible**  
+Works with AWS S3, MinIO, Cloudflare R2, and any other S3-compatible object store.
+
+**Best For:** Cloud-native deployments, multi-region architectures, and workloads that already rely on object storage infrastructure.
+
+---
+
+## Standalone
+
+<Note>For our embedded libraries, Standalone is referred to as "RocksDB"</Note>
+
+**Persistent local storage for embedded deployments**
+
+Standalone provides persistent key-value storage directly on local disk, with no network dependency. This makes it the recommended backing store for embedded/local CyborgDB deployments where simplicity and reliability are priorities.
+
+### Key Benefits
+
+**No Network Dependency**
+All data is stored locally on disk — no external database servers to configure or manage.
+
+**Persistent Storage**
+Data survives process restarts with automatic durability via write-ahead logging.
+
+**Optimized for Embedded Use**
+Low memory footprint with configurable caching, compaction, and compression settings.
+
+**Best For:** Embedded/local deployments, single-machine applications, edge devices, and scenarios where you want persistent storage without external infrastructure.
+
+---
+
 ## PostgreSQL
 
 **Production-ready relational database with vector extensions**
@@ -48,29 +92,6 @@ Choose between speed and durability with flexible persistence and replication op
 
 ---
 
-## Standalone
-
-<Note>For our embedded libraries, Standalone is referred to as "RocksDB"</Note>
-
-**Persistent local storage for embedded deployments**
-
-Standalone provides persistent key-value storage directly on local disk, with no network dependency. This makes it the recommended backing store for embedded/local CyborgDB deployments where simplicity and reliability are priorities.
-
-### Key Benefits
-
-**No Network Dependency**
-All data is stored locally on disk — no external database servers to configure or manage.
-
-**Persistent Storage**
-Data survives process restarts with automatic durability via write-ahead logging.
-
-**Optimized for Embedded Use**
-Low memory footprint with configurable caching, compaction, and compression settings.
-
-**Best For:** Embedded/local deployments, single-machine applications, edge devices, and scenarios where you want persistent storage without external infrastructure.
-
----
-
 ## Memory
 
 <Note>For our embedded libraries, Memory is referred to as "ThreadSafeMemory"</Note>
@@ -94,18 +115,15 @@ Predictable access patterns with complete control over memory usage.
 
 ---
 
-## Future Backing Stores
-
-CyborgDB is designed to be extensible, allowing for future backing stores to be added as needed. Have one in mind? [Let us know!](https://www.cyborg.co/contact)
-
----
-
 ## Managed Services Support
 
 CyborgDB works seamlessly with managed database services, reducing operational overhead while maintaining security and performance.
 
 <CardGroup cols={3}>
   <Card title="AWS" icon="aws">
+    **Amazon S3**  
+    Scalable object storage with 11 nines of durability
+
     **Amazon RDS for PostgreSQL**  
     Fully managed PostgreSQL with automated backups and scaling
     
@@ -159,6 +177,14 @@ CyborgDB works seamlessly with managed database services, reducing operational o
     - **Session Storage** - Temporary data with fast access requirements
   </Tab>
 
+  <Tab title="Use S3">
+    - **Cloud-Native** - Your infrastructure already uses AWS or S3-compatible storage
+    - **Serverless** - You want durable storage without managing database servers
+    - **Multi-Region** - You need geo-distributed data with S3 replication
+    - **Cost** - Object storage is cheaper than provisioned database instances at scale
+    - **MinIO** - You want S3-compatible storage on-premise or in a private cloud
+  </Tab>
+
   <Tab title="Use Memory">
     - **Development** - You're building and testing your application
     - **Single Process** - Your application runs in a single process or container
@@ -201,6 +227,19 @@ db_config = DBConfig("redis://:password@redis-host:6379")
 db_config = DBConfig("redis://elasticache-endpoint.region.cache.amazonaws.com:6379")
 ```
 
+```python S3
+from cyborgdb_core import DBConfig
+
+# AWS S3
+db_config = DBConfig("s3://my-bucket?region=us-east-1")
+
+# AWS S3 with explicit credentials
+db_config = DBConfig("s3://my-bucket?region=us-east-1&access_key=AKID...&secret_key=...")
+
+# MinIO (S3-compatible)
+db_config = DBConfig("s3://my-bucket?region=us-east-1&endpoint=http://localhost:9000&access_key=minioadmin&secret_key=minioadmin")
+```
+
 ```python Memory
 from cyborgdb_core import DBConfig
 
@@ -224,6 +263,7 @@ db_config = DBConfig("threadsafememory")
 | **ThreadSafeMemory** | ~1µs | Very High | None | Thread-Safe |
 | **RocksDB**   | ~10µs   | High       | Local Disk | Single Process |
 | **Redis**     | ~100µs  | High       | Configurable | Eventually Consistent |
+| **S3**        | ~10ms   | Medium     | Full (11 nines) | Eventual |
 | **PostgreSQL** | ~1ms   | Medium     | Full       | ACID |
 
 Choose based on your application's specific requirements for speed, durability, and consistency.

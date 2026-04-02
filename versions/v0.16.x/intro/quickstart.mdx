@@ -34,6 +34,23 @@ CyborgDB offers two main deployment approaches - both **self-hosted** on your in
 
 ---
 
+## Migrating from Another Database
+
+Already have vectors in Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Use **CyborgDB Migrate** to bring them over:
+
+<Card title="CyborgDB Migrate" href="./migrate" icon="arrow-right-arrow-left">
+  *Migrate embeddings from other vector databases*
+
+  Interactive TUI wizard or headless TOML config. Supports Pinecone, Qdrant, Weaviate, ChromaDB, and Milvus.
+
+  ```bash
+  pip install "cyborgdb-migrate[pinecone]"
+  cyborgdb-migrate
+  ```
+</Card>
+
+---
+
 ## Framework Integrations
 
 Already using AI frameworks? Get started even faster with our native integrations:
@@ -118,7 +135,7 @@ Already using AI frameworks? Get started even faster with our native integration
   </Card>
   
   <Card title="Choose Your Database" href="./backing-stores" icon="database">
-    *PostgreSQL, Redis, or Memory*
+    *PostgreSQL, Redis, S3, or Memory*
     
     Understand database options and performance characteristics
   </Card>
