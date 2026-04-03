@@ -1,0 +1,53 @@
+---
+title: "List IDs"
+mode: "wide"
+---
+
+Lists all vector IDs currently stored in the encrypted index.
+
+```python
+index.list_ids()
+```
+
+### Returns
+
+`List[str]` - List of all vector IDs currently stored in the index
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if the API request fails due to network connectivity issues.
+        - Throws if authentication fails (invalid API key).
+        - Throws if the encryption key is invalid for the specified index.
+        - Throws if the index was not created or loaded yet.
+        - Throws if an error occurs during retrieval.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+# Get all IDs in the index
+all_ids = index.list_ids()
+print(f"Total items in index: {len(all_ids)}")
+
+# Print first 10 IDs
+for id in all_ids[:10]:
+    print(f"ID: {id}")
+
+# Check if a specific ID exists
+target_id = "document_123"
+if target_id in all_ids:
+    print(f"Document {target_id} exists in the index")
+else:
+    print(f"Document {target_id} not found")
+
+# Use for batch processing
+batch_size = 100
+for i in range(0, len(all_ids), batch_size):
+    batch_ids = all_ids[i:i+batch_size]
+    # Process batch of documents
+    items = index.get(batch_ids)
+    # ... process items ...
+```

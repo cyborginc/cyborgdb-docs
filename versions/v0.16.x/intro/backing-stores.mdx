@@ -1,0 +1,269 @@
+---
+title: "Backing Stores"
+---
+
+CyborgDB transforms traditional databases into Confidential Vector Databases by leveraging their storage capabilities while adding encrypted vector search functionality. Choose the backing store that best fits your existing infrastructure and operational requirements.
+
+<img src="/images/cyborgdb-search-overview.png" alt="CyborgDB RAG Overview" />
+
+## Amazon S3
+
+**Scalable cloud object storage for distributed deployments**
+
+CyborgDB supports Amazon S3 (and S3-compatible stores such as MinIO) as a backing store, enabling fully cloud-native deployments without managing a traditional database server.
+
+### Key Benefits
+
+**Infinite Scalability**  
+Object storage scales seamlessly with your data — no capacity planning or provisioning required.
+
+**Managed Infrastructure**  
+No database servers to patch, tune, or back up. AWS handles availability and durability.
+
+**S3-Compatible**  
+Works with AWS S3, MinIO, Cloudflare R2, and any other S3-compatible object store.
+
+**Best For:** Cloud-native deployments, multi-region architectures, and workloads that already rely on object storage infrastructure.
+
+---
+
+## Standalone
+
+<Note>For our embedded libraries, Standalone is referred to as "RocksDB"</Note>
+
+**Persistent local storage for embedded deployments**
+
+Standalone provides persistent key-value storage directly on local disk, with no network dependency. This makes it the recommended backing store for embedded/local CyborgDB deployments where simplicity and reliability are priorities.
+
+### Key Benefits
+
+**No Network Dependency**
+All data is stored locally on disk — no external database servers to configure or manage.
+
+**Persistent Storage**
+Data survives process restarts with automatic durability via write-ahead logging.
+
+**Optimized for Embedded Use**
+Low memory footprint with filesystem support.
+
+**Best For:** Embedded/local deployments, single-machine applications, edge devices, and scenarios where you want persistent storage without external infrastructure.
+
+---
+
+## PostgreSQL
+
+**Production-ready relational database with vector extensions**
+
+PostgreSQL provides robust data durability, ACID transactions, and excellent tooling ecosystem. CyborgDB leverages PostgreSQL's reliability while adding encrypted vector search capabilities on top.
+
+### Key Benefits
+
+**ACID Compliance**  
+Full transactional consistency for mission-critical applications with guaranteed data integrity.
+
+**Rich Ecosystem**  
+Extensive tooling, monitoring, and operational expertise available across the industry.
+
+**Enterprise Scalability**  
+Support for read replicas, connection pooling, horizontal scaling, and mature backup solutions.
+
+**Best For:** Production applications requiring data consistency, teams with existing PostgreSQL expertise, and environments requiring strict data durability guarantees.
+
+---
+
+## Redis
+
+**High-performance in-memory data store**
+
+Redis delivers ultra-low latency access patterns, making it ideal for real-time applications. CyborgDB uses Redis's memory-optimized storage for blazing-fast vector search operations.
+
+### Key Benefits
+
+**Ultra-Low Latency**  
+Sub-millisecond response times for vector queries with excellent concurrent access performance.
+
+**High Throughput**  
+Optimized for high-volume concurrent operations with flexible data structures beyond simple key-value storage.
+
+**Configurable Persistence**  
+Choose between speed and durability with flexible persistence and replication options.
+
+**Best For:** Real-time applications with strict latency requirements, high-throughput vector search workloads, and caching scenarios.
+
+---
+
+## Memory
+
+<Note>For our embedded libraries, Memory is referred to as "ThreadSafeMemory"</Note>
+
+**Local in-process storage for development and testing**
+
+Memory-based storage keeps all data in local process memory, providing the fastest possible access with zero network overhead. Perfect for development, testing, and single-process applications.
+
+### Key Benefits
+
+**Zero Network Latency**  
+Direct memory access without serialization overhead for maximum performance.
+
+**Development Simplicity**  
+No external dependencies or configuration required - instant setup for prototyping.
+
+**Deterministic Performance**  
+Predictable access patterns with complete control over memory usage.
+
+**Best For:** Development and testing environments, single-process applications, proof-of-concept scenarios, and ephemeral data requirements.
+
+---
+
+## Managed Services Support
+
+CyborgDB works seamlessly with managed database services, reducing operational overhead while maintaining security and performance.
+
+<CardGroup cols={3}>
+  <Card title="AWS" icon="aws">
+    **Amazon S3**  
+    Scalable object storage with 11 nines of durability
+
+    **Amazon RDS for PostgreSQL**  
+    Fully managed PostgreSQL with automated backups and scaling
+    
+    **Amazon ElastiCache for Redis**  
+    Managed Redis with cluster mode and automatic failover
+  </Card>
+  
+  <Card title="Azure" icon="microsoft">
+    **Azure Database for PostgreSQL**  
+    Managed PostgreSQL with built-in security and monitoring
+    
+    **Azure Cache for Redis**  
+    Enterprise-grade managed Redis with geo-replication
+  </Card>
+  
+  <Card title="Google Cloud" icon="google">
+    **Cloud SQL for PostgreSQL**  
+    Fully managed PostgreSQL with automatic maintenance
+    
+    **Memorystore for Redis**  
+    Secure and highly available managed Redis service
+  </Card>
+</CardGroup>
+
+---
+
+## Choosing the Right Backing Store
+
+<Tabs>
+  <Tab title="Use RocksDB">
+    - **Embedded Deployment** - You want persistent local storage with no external dependencies
+    - **Edge Devices** - Running on hardware without network access to databases
+    - **Simplicity** - You want a single-binary deployment with built-in storage
+    - **Local Development** - Persistent storage that survives restarts without infrastructure
+    - **Single Machine** - Your application runs on a single machine
+  </Tab>
+
+  <Tab title="Use PostgreSQL">
+    - **Data Durability** - You need guaranteed data persistence and consistency
+    - **Complex Queries** - Your application requires SQL queries beyond vector search
+    - **Team Expertise** - Your team has PostgreSQL operational knowledge
+    - **Compliance** - You need audit trails and transaction logging
+    - **Production Workloads** - Mission-critical applications requiring ACID guarantees
+  </Tab>
+
+  <Tab title="Use Redis">
+    - **Performance** - Sub-millisecond latency is critical to your application
+    - **Scale** - You need to handle high concurrent query loads
+    - **Real-time** - Your application provides real-time recommendations or search
+    - **Caching** - You're implementing a high-performance caching layer
+    - **Session Storage** - Temporary data with fast access requirements
+  </Tab>
+
+  <Tab title="Use S3">
+    - **Cloud-Native** - Your infrastructure already uses AWS or S3-compatible storage
+    - **Serverless** - You want durable storage without managing database servers
+    - **Multi-Region** - You need geo-distributed data with S3 replication
+    - **Cost** - Object storage is cheaper than provisioned database instances at scale
+    - **MinIO** - You want S3-compatible storage on-premise or in a private cloud
+  </Tab>
+
+  <Tab title="Use Memory">
+    - **Development** - You're building and testing your application
+    - **Single Process** - Your application runs in a single process or container
+    - **Temporary Data** - Your vectors are computed on-demand and don't need persistence
+    - **Simplicity** - You want to minimize external dependencies
+    - **Maximum Performance** - Need absolute fastest access with zero network overhead
+  </Tab>
+</Tabs>
+
+## Configuration Examples
+
+<CodeGroup>
+```python RocksDB
+from cyborgdb_core import DBConfig
+
+# Local RocksDB (default path: ~/.cyborgdb/data)
+db_config = DBConfig("rocksdb")
+```
+
+```python PostgreSQL
+from cyborgdb_core import DBConfig
+
+# Local PostgreSQL
+db_config = DBConfig("postgres://user:password@localhost:5432/cyborgdb")
+
+# Amazon RDS
+db_config = DBConfig("postgres://user:password@rds-endpoint.region.rds.amazonaws.com:5432/cyborgdb")
+```
+
+```python Redis
+from cyborgdb_core import DBConfig
+
+# Local Redis
+db_config = DBConfig("redis://localhost:6379")
+
+# Redis with authentication
+db_config = DBConfig("redis://:password@redis-host:6379")
+
+# AWS ElastiCache
+db_config = DBConfig("redis://elasticache-endpoint.region.cache.amazonaws.com:6379")
+```
+
+```python S3
+from cyborgdb_core import DBConfig
+
+# AWS S3
+db_config = DBConfig("s3://my-bucket?region=us-east-1")
+
+# AWS S3 with explicit credentials
+db_config = DBConfig("s3://my-bucket?region=us-east-1&access_key=AKID...&secret_key=...")
+
+# MinIO (S3-compatible)
+db_config = DBConfig("s3://my-bucket?region=us-east-1&endpoint=http://localhost:9000&access_key=minioadmin&secret_key=minioadmin")
+```
+
+```python Memory
+from cyborgdb_core import DBConfig
+
+# In-memory storage (no external dependencies)
+db_config = DBConfig("memory")
+```
+
+```python ThreadSafeMemory
+from cyborgdb_core import DBConfig
+
+# Thread-safe in-memory storage
+db_config = DBConfig("threadsafememory")
+```
+</CodeGroup>
+
+## Performance Characteristics
+
+| Backing Store | Latency | Throughput | Durability | Consistency |
+|---------------|:---------:|:------------:|:------------:|:-------------:|
+| **Memory**    | ~1µs    | Very High  | None       | Single Process |
+| **ThreadSafeMemory** | ~1µs | Very High | None | Thread-Safe |
+| **RocksDB**   | ~10µs   | High       | Local Disk | Single Process |
+| **Redis**     | ~100µs  | High       | Configurable | Eventually Consistent |
+| **S3**        | ~10ms   | Medium     | Full (11 nines) | Eventual |
+| **PostgreSQL** | ~1ms   | Medium     | Full       | ACID |
+
+Choose based on your application's specific requirements for speed, durability, and consistency.

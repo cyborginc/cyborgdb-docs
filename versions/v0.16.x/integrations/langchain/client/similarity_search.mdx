@@ -1,0 +1,146 @@
+---
+title: "similarity_search"
+mode: "wide"
+---
+
+Returns documents most similar to the query text.
+
+<Tabs>
+    <Tab title="Embedded">
+
+        ```python
+        similarity_search(
+            query: str,
+            k: int = 4,
+            filter: Optional[Dict[str, Any]] = None,
+            **kwargs
+        ) -> List[Document]
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `query` | `str` | Query text to search for |
+        | `k` | `int` | Number of documents to return (default: 4) |
+        | `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
+        | `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
+
+        ### Returns
+
+        `List[Document]`: List of most similar Document objects
+
+        ### Example Usage
+
+        ```python
+        # Basic similarity search
+        results = store.similarity_search("machine learning algorithms", k=5)
+        for doc in results:
+            print(f"Content: {doc.page_content[:100]}...")
+            print(f"Metadata: {doc.metadata}")
+
+        # Search with metadata filter
+        filter_dict = {"language": "python", "level": "beginner"}
+        results = store.similarity_search(
+            "python tutorial",
+            k=3,
+            filter=filter_dict
+        )
+        ```
+
+    </Tab>
+
+    <Tab title="Python SDK">
+
+        ```python
+        similarity_search(
+            query: str,
+            k: Optional[int] = None,
+            filter: Optional[Dict[str, Any]] = None,
+            **kwargs
+        ) -> List[Document]
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `query` | `str` | Query text to search for |
+        | `k` | `Optional[int]` | _(Optional)_ Number of documents to return (default: `None`, uses server default) |
+        | `filter` | `Optional[Dict[str, Any]]` | _(Optional)_ Metadata filters to apply |
+        | `**kwargs` | `Any` | Additional keyword arguments |
+
+        ### Returns
+
+        `List[Document]`: List of most similar Document objects
+
+        <Note>When `k` is `None`, the server default number of results is returned.</Note>
+
+        ### Example Usage
+
+        ```python
+        results = store.similarity_search("machine learning algorithms", k=5)
+        for doc in results:
+            print(f"Content: {doc.page_content[:100]}...")
+        ```
+
+    </Tab>
+
+    <Tab title="JS/TS">
+
+        ```typescript
+        similaritySearch(
+            query: string,
+            k?: number,
+            filter?: Record<string, any>
+        ): Promise<Document[]>
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `query` | `string` | Query text to search for |
+        | `k` | `number` | _(Optional)_ Number of documents to return |
+        | `filter` | `Record<string, any>` | _(Optional)_ Metadata filters to apply |
+
+        ### Returns
+
+        `Promise<Document[]>`: Array of most similar Document objects
+
+        ### Example Usage
+
+        ```typescript
+        const results = await store.similaritySearch("machine learning algorithms", 5);
+        for (const doc of results) {
+            console.log(`Content: ${doc.pageContent.slice(0, 100)}...`);
+            console.log(`Metadata:`, doc.metadata);
+        }
+
+        // Search with metadata filter
+        const filtered = await store.similaritySearch(
+            "python tutorial",
+            3,
+            { language: "python", level: "beginner" }
+        );
+        ```
+
+    </Tab>
+</Tabs>
+
+### Async
+
+<Accordion title="Python async variants">
+
+The Embedded and Python SDK provide async versions of this method prefixed with `a`:
+
+```python
+# asimilarity_search — async variant
+docs = await store.asimilarity_search("query", k=5)
+```
+
+</Accordion>
+
+<Note>
+JS/TS methods are natively async — all signatures above already return `Promise<...>`. No separate async variant is needed.
+</Note>

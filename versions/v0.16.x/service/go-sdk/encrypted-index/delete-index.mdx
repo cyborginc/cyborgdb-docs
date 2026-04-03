@@ -1,0 +1,77 @@
+---
+title: "Delete Index"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+Deletes the current index and all its associated data from the CyborgDB service.
+
+```go
+func (e *EncryptedIndex) DeleteIndex(ctx context.Context) error
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ctx` | `context.Context` | Context for cancellation and timeouts |
+
+### Error Handling
+
+<AccordionGroup>
+    <Accordion title="API Errors">
+        - Returns error if the API request fails due to network connectivity issues
+        - Returns error if authentication fails (invalid API key)
+        - Returns error if the encryption key is invalid for the specified index
+        - Returns error if there are internal server errors during deletion
+    </Accordion>
+    <Accordion title="Validation Errors">
+        - Returns error if the index does not exist
+        - May return error if the index is currently being accessed by other operations
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/hex"
+    "fmt"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Load the index to be deleted
+    indexKeyHex := "your-64-character-hex-key-here"
+    indexKey, err := hex.DecodeString(indexKeyHex)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    index, err := client.LoadIndex(context.Background(), "index-to-delete", indexKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Permanently delete the entire index
+    fmt.Printf("Deleting index: %s\n", index.GetIndexName())
+    err = index.DeleteIndex(context.Background())
+    if err != nil {
+        log.Fatalf("Failed to delete index: %v", err)
+    }
+
+    fmt.Println("Index deleted successfully!")
+    // The index handle is now invalid and should not be used
+}
+```
