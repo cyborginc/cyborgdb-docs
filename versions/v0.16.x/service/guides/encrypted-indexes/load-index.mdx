@@ -115,7 +115,7 @@ curl -X POST "http://localhost:8000/v1/vectors/query" \
 
 This connects to an existing encrypted index on the service. For more details on index types and configurations, see [Configure an Encrypted Index](../advanced/configure-index).
 
-<Warning>You must provide the exact same index key and configuration that was used when the index was originally created. 
+<Warning>You must provide the exact same index key that was used when the index was originally created. The index continues to use its original configuration; you do not provide that configuration again when loading it. 
 For production use, we recommend that you use an HSM or KMS solution for key management.
 For more details, see [Managing Encryption Keys](../advanced/managing-keys).</Warning>
 
