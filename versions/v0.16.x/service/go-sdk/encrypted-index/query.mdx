@@ -61,7 +61,7 @@ queryVector := []float32{0.1, 0.2, 0.3, 0.4}
 params := cyborgdb.QueryParams{
     QueryVector: queryVector,
     TopK:        5,
-    Include:     []string{"metadata"},
+    Include:     []string{"distance", "metadata"},
 }
 
 results, err := index.Query(context.Background(), params)

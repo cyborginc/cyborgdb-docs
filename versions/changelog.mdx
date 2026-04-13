@@ -6,6 +6,17 @@ mode: wide
 
 CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
 
+<Update label="v0.16.1" description="2026-04-13">
+## CyborgDB v0.16.1
+
+### Bug Fixes
+
+- Fixed an issue where `query()` always returned distances regardless of the `include` parameter
+  - Distances are now correctly treated as optional, matching the existing behavior of metadata
+  - Applies to all index types (IVFFlat, IVFPQ, IVFSQ) on both CPU and GPU paths
+
+</Update>
+
 <Update label="v0.16.0" description="2026-04-02">
 ## CyborgDB v0.16.0
 
