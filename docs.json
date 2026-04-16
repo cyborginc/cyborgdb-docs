@@ -80,6 +80,7 @@
                 "pages": [
                   "versions/v0.16.x/intro/security-overview",
                   "versions/v0.16.x/intro/threat-model",
+                  "versions/v0.16.x/intro/embedding-inversion",
                   "versions/v0.16.x/intro/encryption"
                 ]
               },
