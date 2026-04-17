@@ -152,7 +152,7 @@ CyborgDB eliminates the inversion attack surface by ensuring embeddings are **ne
 - **Encryption in use**: Embeddings remain encrypted during search and computation
 - **Per-record key isolation**: Each record uses a unique initialization vector, preventing cross-record correlation
 - **Customer key control**: Encryption keys are managed by the customer, not the database operator
-
+- **KMS integration**: Keys are protected via integration with AWS KMS, Azure Key Vault, and GCP KMS for hardware-backed security and audit logging
 Because the backing store only ever contains ciphertext, an attacker who gains full access to the database - whether through file system access, memory dumps, or compromised infrastructure - obtains only encrypted data that is computationally infeasible to invert.
 
 <Tip>
