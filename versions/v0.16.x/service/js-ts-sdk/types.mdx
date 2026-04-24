@@ -145,7 +145,7 @@ Interface for performing similarity search in the encrypted index.
 | `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during query. Auto-determined when undefined for optimal performance. |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
 | `filters` | `object \| null` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
-| `include` | `string[]` | No | `undefined` (server default: `["distance", "metadata"]`) | Fields to include in response. Note: `id` is always included. |
+| `include` | `string[]` | No | `undefined` (server default: `[]` — only `id` is returned) | Fields to include in response. Note: `id` is always included. |
 
 ### Example Usage
 
@@ -177,7 +177,7 @@ Interface for performing batch similarity searches with multiple vectors.
 | `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during each query. Auto-determined when undefined. |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
 | `filters` | `object` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
-| `include` | `string[]` | No | `undefined` (server default: `["distance", "metadata"]`) | Fields to include in response. Note: `id` is always included. |
+| `include` | `string[]` | No | `undefined` (server default: `[]` — only `id` is returned) | Fields to include in response. Note: `id` is always included. |
 
 ### Example Usage
 

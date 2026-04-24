@@ -24,7 +24,7 @@ index.query(query_contents=text, top_k=10)
 | `top_k` | `int` | `None` | _(Optional)_ Number of results to return per query. When `None`, the server determines the default (typically 100) |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of clusters to probe for search |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filters to apply |
-| `include` | `List[str]` | `None` | _(Optional)_ Fields to include in results. `None` uses the server default (`["distance", "metadata"]`). Note: `id` is always included |
+| `include` | `List[str]` | `None` | _(Optional)_ Fields to include in results. `None` uses the server default (`[]` — only `id` is returned). Note: `id` is always included |
 | `greedy` | `bool` | `None` | _(Optional)_ Use greedy search algorithm. When `None`, the server determines the default behavior |
 
 <Tip>When `np.ndarray` is passed as `query_vectors`, queries are automatically sent in an optimized binary format for better performance.</Tip>

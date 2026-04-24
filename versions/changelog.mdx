@@ -11,10 +11,11 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 
 ### Behavior Changes
 
-- Embedded Python `query()` now returns only `id` fields by default when `include` is not specified
+- `query()` now returns only `id` fields by default when `include` is not specified
   - Previously defaulted to `["distance", "metadata"]`; new default is `[]`
   - Pass `include=["distance", "metadata"]` explicitly to retain the prior behavior
-  - Applies to the embedded library only; the REST service retains its `["distance", "metadata"]` default
+  - Applies to both the embedded library and the REST service (`QueryRequest`, `BatchQueryRequest`, and `BinaryQueryRequest` all default `include` to `[]`)
+  - **Breaking change for REST API clients**: requests without an explicit `include` field will no longer receive `distance` or `metadata` in the response
 
 ### Bug Fixes
 

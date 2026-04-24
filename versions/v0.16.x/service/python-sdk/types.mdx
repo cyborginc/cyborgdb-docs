@@ -160,7 +160,7 @@ Many operations support field selection through the `include` parameter:
 - **`metadata`**: Structured metadata object
 - **`distance`**: Similarity distance (query operations only)
 
-<Note>The `id` field is always included in query results. Other fields such as `distance` and `metadata` are controlled by the `include` parameter (server default: `["distance", "metadata"]`).</Note>
+<Note>The `id` field is always included in query results. Other fields such as `distance` and `metadata` are controlled by the `include` parameter (server default: `[]` — only `id` is returned unless `include` specifies additional fields).</Note>
 
 ### Example Usage
 

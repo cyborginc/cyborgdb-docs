@@ -12,7 +12,7 @@ async query({
     topK?: number,                          // optional, default: 100
     nProbes?: number,                       // optional, default: undefined (auto)
     filters?: FilterExpression,             // optional, default: {}
-    include?: string[],                     // optional, default: ["distance", "metadata"]
+    include?: string[],                     // optional, default: [] (only `id` is returned)
     greedy?: boolean,                       // optional, default: false
     dimension?: number                      // optional, required when queryVectors is Float32Array
 }): Promise<QueryResponse>
@@ -27,7 +27,7 @@ async query({
 | `topK` | `number` | `undefined` (server default: 100) | _(Optional)_ Number of nearest neighbors to return per query |
 | `nProbes` | `number` | `undefined` (auto) | _(Optional)_ Number of cluster centers to search (higher = better recall). Auto-determined when undefined. |
 | `filters` | [`FilterExpression`](../types#filterexpression) | `undefined` | _(Optional)_ Metadata filters to apply to the search (no filtering when undefined) |
-| `include` | `string[]` | `undefined` (server default: `["distance", "metadata"]`) | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
+| `include` | `string[]` | `undefined` (server default: `[]` — only `id` is returned) | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
 | `greedy` | `boolean` | `false` | _(Optional)_ Use faster approximate search |
 | `dimension` | `number` | `-` | _(Optional)_ Required when `queryVectors` is a `Float32Array`. Specifies vector dimensionality so the SDK can reshape the flat typed array. |
 
