@@ -14,7 +14,7 @@ def query(self,
           top_k: int = None,
           n_probes: int = None,
           filters: Dict[str, Any] = {},
-          include: List[str] = ["distance", "metadata"],
+          include: List[str] = [],
           greedy: bool = False)
 ```
 
@@ -27,7 +27,7 @@ def query(self,
 | `top_k` | `int` | `None` | _(Optional)_ Number of nearest neighbors to return. When `None`, defaults to 100. |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When `None` or `0`, automatically determines the optimal value. |
 | `filters` | `Dict[str, Any]` | `{}` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. |
+| `include` | `List[str]` | `[]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 
 <Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index), then the `query_contents` parameter can be used instead of `query_vectors`.</Note>
@@ -38,7 +38,7 @@ For more info on metadata, see [Metadata Filtering](../../guides/data-operations
 
 ### Returns
 
-`List[Dict[str, Union[int, float, Dict[]]]]`: List of results for the query vector. Each result is a list of `top_k` dictionaries, each containing `id`, as well as `distance` and `metadata` based on `include`.
+`List[Dict[str, Union[int, float, Dict[]]]]`: List of results for the query vector. Each result is a list of `top_k` dictionaries, each containing `id` (always included), and optionally `distance` and `metadata` based on `include`. When `include` is empty (the default), only `id` is returned.
 
 ### Exceptions
 
@@ -115,7 +115,7 @@ def query(self,
           top_k: int = None,
           n_probes: int = None,
           filters: Dict[str, Any] = {},
-          include: List[str] = ["distance", "metadata"],
+          include: List[str] = [],
           greedy: bool = False)
 ```
 
@@ -127,7 +127,7 @@ def query(self,
 | `top_k` | `int` | `None` | _(Optional)_ Number of nearest neighbors to return. When `None`, defaults to 100. |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When `None` or `0`, automatically determines the optimal value. |
 | `filters` | `Dict[str, Any]` | `{}` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `List[str]` | `["distance", "metadata"]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. |
+| `include` | `List[str]` | `[]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 
 <Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
@@ -136,7 +136,7 @@ For more info on metadata, see [Metadata Filtering](../../guides/data-operations
 
 ### Returns
 
-`List[List[Dict[str, Union[int, float, Dict[]]]]]`: List of results for each query vector. Each result is a list of `top_k` dictionaries, each containing `id`, as well as `distance` and `metadata` based on `include`.
+`List[List[Dict[str, Union[int, float, Dict[]]]]]`: List of results for each query vector. Each result is a list of `top_k` dictionaries, each containing `id` (always included), and optionally `distance` and `metadata` based on `include`. When `include` is empty (the default), only `id` is returned.
 
 ### Exceptions
 
@@ -163,8 +163,8 @@ query_vectors = np.array([
     [0.4, 0.5, 0.6]
 ])
 
-# Query using default parameters and distances
-results = index.query(query_vectors=query_vectors)
+# Query with distances included
+results = index.query(query_vectors=query_vectors, include=["distance"])
 # Example output:
 # [
 #     [{"id": "item_101", "distance": 0.05}, {"id": "item_202", "distance": 0.1}],

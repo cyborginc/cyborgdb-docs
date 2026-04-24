@@ -9,6 +9,13 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 <Update label="v0.16.1" description="2026-04-13">
 ## CyborgDB v0.16.1
 
+### Behavior Changes
+
+- Embedded Python `query()` now returns only `id` fields by default when `include` is not specified
+  - Previously defaulted to `["distance", "metadata"]`; new default is `[]`
+  - Pass `include=["distance", "metadata"]` explicitly to retain the prior behavior
+  - Applies to the embedded library only; the REST service retains its `["distance", "metadata"]` default
+
 ### Bug Fixes
 
 - Fixed an issue where `query()` always returned distances regardless of the `include` parameter
