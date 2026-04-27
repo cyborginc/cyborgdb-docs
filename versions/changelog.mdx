@@ -6,6 +6,30 @@ mode: wide
 
 CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
 
+<Update label="v0.16.1" description="2026-04-13">
+## CyborgDB v0.16.1
+
+### Behavior Changes
+
+- `query()` now returns only `id` fields by default when `include` is not specified
+  - Previously defaulted to `["distance", "metadata"]`; new default is `[]`
+  - Pass `include=["distance", "metadata"]` explicitly to retain the prior behavior
+  - Applies to both the embedded library and the REST service (`QueryRequest`, `BatchQueryRequest`, and `BinaryQueryRequest` all default `include` to `[]`)
+  - **Breaking change for REST API clients**: requests without an explicit `include` field will no longer receive `distance` or `metadata` in the response
+
+### Bug Fixes
+
+- Fixed an S3 backing store bug to properly support S3 versioned objects
+- Fixed a distance computation bug affecting query result ordering
+- Fixed an arm64 Linux issue where `cyborgdb-core` could fail to load runtime dependencies
+- query() now returns vector IDs by default
+
+### Improvements
+
+- CUDA wheels now statically link CUDA runtime dependencies for improved portability
+
+</Update>
+
 <Update label="v0.16.0" description="2026-04-02">
 ## CyborgDB v0.16.0
 

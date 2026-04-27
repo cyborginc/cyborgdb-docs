@@ -85,7 +85,7 @@ Results returned from query operations:
 single_query_results = [
     {
         "id": "doc1",                    # string (always included)
-        "distance": 0.125,               # float (always included, lower = more similar)
+        "distance": 0.125,               # float (if included, lower = more similar)
         "metadata": {                    # Dict (if included in query)
             "category": "research"
         },
@@ -158,9 +158,9 @@ Many operations support field selection through the `include` parameter:
 - **`vector`**: The vector data itself
 - **`contents`**: Text or binary content associated with the vector
 - **`metadata`**: Structured metadata object
-- **`distance`**: Similarity distance (query operations only, always included automatically)
+- **`distance`**: Similarity distance (query operations only)
 
-<Note>The `id` and `distance` fields are always included in query results regardless of the `include` parameter.</Note>
+<Note>The `id` field is always included in query results. Other fields such as `distance` and `metadata` are controlled by the `include` parameter (server default: `[]` — only `id` is returned unless `include` specifies additional fields).</Note>
 
 ### Example Usage
 
