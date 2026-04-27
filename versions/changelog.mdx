@@ -21,9 +21,8 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 
 - Fixed an S3 backing store bug to properly support S3 versioned objects
 - Fixed a distance computation bug affecting query result ordering
-  - Distances are now correctly treated as optional, matching the existing behavior of metadata
-  - Applies to all index types (IVFFlat, IVFPQ, IVFSQ) on both CPU and GPU paths
 - Fixed an arm64 Linux issue where `cyborgdb-core` could fail to load runtime dependencies
+- query() now returns vector IDs by default
 
 ### Improvements
 
