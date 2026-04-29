@@ -74,9 +74,10 @@ const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey })
 const queryVector = [0.15, 0.25, 0.35, 0.45];
 
 try {
-    const results = await index.query({ 
-        queryVectors: queryVector, 
-        topK: 5 
+    const results = await index.query({
+        queryVectors: queryVector,
+        topK: 5,
+        include: ['distance', 'metadata']  // include defaults to [] (only `id`); request distance and metadata
     });
     
     // Single vector query returns flat array
@@ -101,7 +102,8 @@ try {
 try {
     const contentResults = await index.query({
         queryContents: "machine learning tutorial",  // content to embed and search
-        topK: 10                                     // return top 10 results
+        topK: 10,                                    // return top 10 results
+        include: ['distance', 'metadata']            // include defaults to [] (only `id`); request distance and metadata
     });
     
     console.log('Content-based search results:');
@@ -155,7 +157,11 @@ const queryVectors = [
 ];
 
 try {
-    const batchResults = await index.query({ queryVectors, topK: 3 });
+    const batchResults = await index.query({
+        queryVectors,
+        topK: 3,
+        include: ['distance']  // include defaults to [] (only `id`); request distance
+    });
 
     // Batch query returns nested arrays - one per input vector
     console.log(`Batch query completed for ${queryVectors.length} vectors:`);

@@ -94,7 +94,8 @@ For batch queries: `List[List[Dict]]` - A list of result lists, one for each que
 ```python
 # Basic similarity search
 query_vector = [0.1, 0.2, 0.3, 0.4]
-results = index.query(query_vectors=query_vector, top_k=5)
+# include defaults to [] (only `id`); pass include to request additional fields
+results = index.query(query_vectors=query_vector, top_k=5, include=["distance", "metadata"])
 
 # Access results (single query returns a flat list)
 for result in results:
@@ -113,7 +114,8 @@ query_vectors = [
     [0.9, 1.0, 1.1, 1.2]
 ]
 
-batch_results = index.query(query_vectors=query_vectors, top_k=3)
+# include defaults to [] (only `id`); pass include to request additional fields
+batch_results = index.query(query_vectors=query_vectors, top_k=3, include=["distance"])
 
 # Process each query's results
 for i, query_results in enumerate(batch_results):

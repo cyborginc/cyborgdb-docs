@@ -274,7 +274,7 @@ type BinaryQueryParams struct {
 | `NProbes` | `*int32` | No | Number of IVF lists to probe |
 | `Greedy` | `*bool` | No | Enable greedy search mode |
 | `Filters` | `map[string]interface{}` | No | Metadata filters to apply |
-| `Include` | `[]string` | No | Fields to include in response |
+| `Include` | `[]string` | No | Fields to include in response. Defaults to `[]` (only `id` is returned) |
 
 ---
 
@@ -306,4 +306,4 @@ type QueryParams struct {
 | `NProbes` | `*int32` | No | Number of clusters to probe for search |
 | `Greedy` | `*bool` | No | Use greedy search algorithm |
 | `Filters` | `map[string]interface{}` | No | Metadata filters to apply |
-| `Include` | `[]string` | **Yes** | Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"` |
+| `Include` | `[]string` | No | Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"`. Defaults to `[]` (only `id` is returned) |
