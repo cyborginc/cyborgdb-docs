@@ -25,6 +25,34 @@
       "destination": "versions/v0.16.x/intro/about"
     },
     {
+      "source": "/threat-model",
+      "destination": "/versions/v0.16.x/intro/threat-model"
+    },
+    {
+      "source": "/rest-api",
+      "destination": "/versions/v0.16.x/service/rest-api/introduction"
+    },
+    {
+      "source": "/python-embedded",
+      "destination": "/versions/v0.16.x/embedded/python/introduction"
+    },
+    {
+      "source": "/cpp-embedded",
+      "destination": "/versions/v0.16.x/embedded/cpp/introduction"
+    },
+    {
+      "source": "/python-sdk",
+      "destination": "/versions/v0.16.x/service/python-sdk/introduction"
+    },
+    {
+      "source": "/js-sdk",
+      "destination": "/versions/v0.16.x/service/js-ts-sdk/introduction"
+    },
+    {
+      "source": "/go-sdk",
+      "destination": "/versions/v0.16.x/service/go-sdk/introduction"
+    },
+    {
       "source": "/quickstart",
       "destination": "/versions/v0.16.x/intro/quickstart"
     },

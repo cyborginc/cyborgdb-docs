@@ -4,24 +4,28 @@ sidebarTitle: "Introduction"
 mode: "wide"
 ---
 
-<img
-  className="block dark:hidden"
-  src="/images/new-hero-light.png"
-  alt="Hero Light"
-/>
-<img
-  className="hidden dark:block"
-  src="/images/new-hero-dark.png"
-  alt="Hero Dark"
-/>
+<div style={{margin: "0 0 32px", padding: "48px 32px 44px", borderRadius: "16px", background: "#0b1a22", backgroundImage: "radial-gradient(ellipse 900px 400px at 50% 0%, rgba(16,163,174,0.28) 0%, transparent 70%)", textAlign: "center", border: "1px solid rgba(16,163,174,0.18)", overflow: "hidden"}}>
+  <img src="/images/cyborgdb-white.svg" alt="CyborgDB" style={{height: "28px", width: "auto", display: "block", margin: "0 auto 24px"}} />
+  <div style={{margin: "0 0 16px", fontSize: "clamp(26px, 5vw, 52px)", fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.05, color: "#f0f6f8"}}>The vector database<br />that never sees your data.</div>
+  <div style={{margin: "0 auto", maxWidth: "580px", fontSize: "16px", lineHeight: 1.6, color: "#8ba8b5"}}>Similarity search directly on encrypted embeddings — self-hosted in your VPC or on-prem, with no decryption, no TEE exit, and no plaintext in memory.</div>
+</div>
 
-**CyborgDB** is the first Encrypted Vector Database Proxy:
+**CyborgDB** is an encrypted vector database — similarity search directly on encrypted embeddings, with no decryption, no TEE exit, and no plaintext in memory. It runs as a proxy layer over Postgres or Redis, exposes a familiar API that slots into existing AI pipelines, and can be [GPU-accelerated with NVIDIA cuVS](https://developer.nvidia.com/blog/bringing-confidentiality-to-vector-search-with-cyborg-and-nvidia-cuvs/).
 
-- Introduces a novel architecture to keep confidential inference data secure through **zero-trust design**.
-- Keeps vector embeddings **end-to-end encrypted** throughout their lifecycle (including at search time).
-- Works with DBs such as **Postgres** and **Redis**, transforming traditional DBs into Confidential Vector DBs.
-- Exposes a familiar API, making it **easy to integrate** with existing AI workflows.
-- Provides **high-performance indexing and retrieval** which can be [GPU-accelerated with CUDA](https://developer.nvidia.com/blog/bringing-confidentiality-to-vector-search-with-cyborg-and-nvidia-cuvs/).
+<div style={{display: "grid", gridTemplateColumns: "repeat(3, 1fr)", margin: "24px 0 32px", borderRadius: "12px", border: "1px solid rgba(16,163,174,0.25)", overflow: "hidden"}}>
+  <div style={{padding: "20px 16px", textAlign: "center", borderRight: "1px solid rgba(16,163,174,0.25)"}}>
+    <div style={{fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "#10A3AE"}}>&lt;5ms</div>
+    <div style={{marginTop: "4px", fontSize: "12px", color: "#6b8a96"}}>p95 encrypted query latency</div>
+  </div>
+  <div style={{padding: "20px 16px", textAlign: "center", borderRight: "1px solid rgba(16,163,174,0.25)"}}>
+    <div style={{fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "#10A3AE"}}>100M+</div>
+    <div style={{marginTop: "4px", fontSize: "12px", color: "#6b8a96"}}>vectors per index</div>
+  </div>
+  <div style={{padding: "20px 16px", textAlign: "center"}}>
+    <div style={{fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "#10A3AE"}}>Zero</div>
+    <div style={{marginTop: "4px", fontSize: "12px", color: "#6b8a96"}}>data leaves your boundary</div>
+  </div>
+</div>
 
 ### Choose Your Path
 
