@@ -1,0 +1,166 @@
+---
+title: "Migrating from Another Vector Database"
+sidebarTitle: "Migration"
+mode: "wide"
+---
+
+**CyborgDB Migrate** is a tool for migrating vector embeddings and metadata from popular vector databases into CyborgDB. It handles the full migration lifecycle: connect to source, batch-extract vectors, upsert into an encrypted CyborgDB index, checkpoint progress, and verify results.
+
+<Note>CyborgDB Migrate requires a running CyborgDB Service instance. See the [Python Quickstart](../service/guides/intro/quickstart-python) or [Docker Quickstart](../service/guides/intro/quickstart-docker) to get one running first.</Note>
+
+## Supported Sources
+
+| Source | Install Extra |
+|--------|--------------|
+| **Pinecone** | `pip install "cyborgdb-migrate[pinecone]"` |
+| **Qdrant** | `pip install "cyborgdb-migrate[qdrant]"` |
+| **Weaviate** | `pip install "cyborgdb-migrate[weaviate]"` |
+| **ChromaDB** | `pip install "cyborgdb-migrate[chromadb]"` |
+| **Milvus** | `pip install "cyborgdb-migrate[milvus]"` |
+
+To install support for all sources at once:
+```bash
+pip install "cyborgdb-migrate[all]"
+```
+
+---
+
+## Two Modes of Operation
+
+<CardGroup cols={2}>
+  <Card title="Interactive TUI" icon="terminal">
+    *Step-by-step guided wizard*
+
+    Launch the interactive terminal UI — select your source, enter credentials, configure your destination, and watch the migration in real time.
+
+    ```bash
+    cyborgdb-migrate
+    ```
+  </Card>
+
+  <Card title="Headless CLI" icon="rectangle-terminal">
+    *Scriptable & CI/CD friendly*
+
+    Run non-interactively using a TOML config file. Supports resuming interrupted migrations.
+
+    ```bash
+    cyborgdb-migrate --config migration.toml
+    ```
+  </Card>
+</CardGroup>
+
+---
+
+## Quickstart: Interactive TUI
+
+<Steps>
+  <Step title="Install cyborgdb-migrate">
+    Install the package with the extra for your source database:
+
+    ```bash
+    pip install "cyborgdb-migrate[pinecone]"   # or qdrant, weaviate, chromadb, milvus, all
+    ```
+  </Step>
+
+  <Step title="Launch the wizard">
+    ```bash
+    cyborgdb-migrate
+    ```
+
+    The TUI will walk you through:
+    1. Selecting your source database type
+    2. Entering source credentials
+    3. Configuring your CyborgDB destination (host, API key, index name)
+    4. Live progress display with per-batch stats
+
+    When complete, a spot-check verification is automatically run to confirm data integrity.
+  </Step>
+</Steps>
+
+---
+
+## Quickstart: Headless CLI
+
+<Steps>
+  <Step title="Install cyborgdb-migrate">
+    ```bash
+    pip install "cyborgdb-migrate[pinecone]"   # or your source
+    ```
+  </Step>
+
+  <Step title="Create a config file">
+    Create a `migration.toml` file. Environment variable interpolation (`${VAR}`) is supported:
+
+    ```toml
+    [source]
+    type = "pinecone"                        # pinecone | qdrant | weaviate | chromadb | milvus
+    api_key = "${PINECONE_API_KEY}"
+    index = "my-source-index"
+    # namespace = "..."                      # optional: Pinecone namespaces or Milvus partitions
+
+    [destination]
+    host = "http://localhost:8000"           # your CyborgDB Service URL
+    api_key = "${CYBORGDB_API_KEY}"
+    index_name = "my-cyborgdb-index"
+    create_index = true                      # set false to migrate into an existing index
+    index_type = "ivfsq"                     # ivfsq (default) | ivfpq
+
+    [options]
+    batch_size = 200                         # vectors per batch (default: 100)
+    checkpoint_every = 10                    # save checkpoint every N batches
+    spot_check_per_batch = 4                 # vectors sampled per batch for verification
+    ```
+
+    See [example-config.toml](https://github.com/cyborginc/cyborgdb-migrate/blob/main/example-config.toml) for all available options.
+  </Step>
+
+  <Step title="Run the migration">
+    ```bash
+    cyborgdb-migrate --config migration.toml
+    ```
+
+    If the migration is interrupted, resume from where it left off:
+
+    ```bash
+    cyborgdb-migrate --config migration.toml --resume
+    ```
+  </Step>
+</Steps>
+
+---
+
+## CLI Reference
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--config FILE` | — | TOML config file; activates non-interactive mode |
+| `--resume` | false | Resume from a saved checkpoint (requires `--config`) |
+| `--batch-size INT` | 100 | Vectors per batch |
+| `--log-file FILE` | `./cyborgdb-migrate.log` | Log file path |
+| `--quiet` | false | Minimal output |
+| `--version` | — | Print version and exit |
+
+---
+
+## How It Works
+
+- **Double-buffered pipeline**: one thread extracts the next batch while the previous batch's upsert is in flight, maximising throughput.
+- **Checkpointing**: progress is saved to disk every N batches so interrupted migrations can be resumed with `--resume`.
+- **Retry with backoff**: upserts retry with exponential backoff (1s → 2s → 4s) before failing a batch.
+- **Spot-check verification**: after migration, a random sample of vectors is fetched back from CyborgDB and compared to the source (within `atol=1e-6`) to confirm data integrity. Exit code `2` indicates migration completed but spot-check failed.
+
+---
+
+## Source-Specific Notes
+
+<AccordionGroup>
+  <Accordion title="Pinecone">
+    Set `namespace` in `[source]` to migrate a specific Pinecone namespace. Omit to migrate the default namespace.
+  </Accordion>
+  <Accordion title="Milvus">
+    Set `namespace` in `[source]` to migrate a specific partition.
+  </Accordion>
+  <Accordion title="Weaviate">
+    Ensure your Weaviate instance has the `text2vec` module disabled or that raw vectors are accessible, as cyborgdb-migrate reads pre-computed vectors directly.
+  </Accordion>
+</AccordionGroup>

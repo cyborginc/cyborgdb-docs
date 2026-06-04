@@ -1,0 +1,126 @@
+---
+title: "List IDs"
+mode: "wide"
+api: "POST /v1/vectors/list_ids"
+playground: "simple"
+---
+
+List all item IDs currently stored in the encrypted index.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes"
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to list IDs from
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+</Expandable>
+
+## Response
+
+```json
+{
+  "ids": [
+    "item_1",
+    "item_2",
+    "item_3",
+    "item_4",
+    "item_5"
+  ],
+  "count": 5
+}
+```
+
+<Expandable title="response fields">
+  <ResponseField name="ids" type="array[string]">
+    List of all item IDs in the index
+  </ResponseField>
+  <ResponseField name="count" type="integer">
+    Total number of IDs in the index
+  </ResponseField>
+</Expandable>
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters
+- `500`: Internal server error
+
+## Example Usage
+
+**Basic List IDs:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/list_ids" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+
+**With jq processing:**
+```bash
+# Get total count
+count=$(curl -s -X POST "http://localhost:8000/v1/vectors/list_ids" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }' | jq '.count')
+
+echo "Index contains $count items"
+
+# List all IDs
+curl -s -X POST "http://localhost:8000/v1/vectors/list_ids" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }' | jq -r '.ids[]'
+```
+
+**Check if specific ID exists:**
+```bash
+# Check if item exists
+id_to_check="item_123"
+exists=$(curl -s -X POST "http://localhost:8000/v1/vectors/list_ids" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }' | jq --arg id "$id_to_check" '.ids | contains([$id])')
+
+if [ "$exists" = "true" ]; then
+    echo "Item $id_to_check exists in the index"
+else
+    echo "Item $id_to_check not found"
+fi
+```
+
+<Note>This endpoint is useful for auditing index contents, verifying data integrity, and implementing custom batch processing workflows.</Note>
+
+<Tip>For large indexes with many items, consider implementing pagination on the client side by processing the returned IDs in batches.</Tip>

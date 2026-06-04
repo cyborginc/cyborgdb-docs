@@ -1,0 +1,128 @@
+---
+title: "as_retriever"
+mode: "wide"
+---
+
+Returns a LangChain `VectorStoreRetriever` for use in chains and agents.
+
+<Tabs>
+    <Tab title="Embedded">
+
+        ```python
+        as_retriever(**kwargs) -> VectorStoreRetriever
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `**kwargs` | `Any` | Arguments passed to `VectorStoreRetriever` (e.g., `search_type`, `search_kwargs`) |
+
+        ### Returns
+
+        `VectorStoreRetriever`: A retriever backed by this vector store
+
+        ### Example Usage
+
+        ```python
+        from langchain.chains import RetrievalQA
+        from langchain_openai import ChatOpenAI
+
+        # Create a retriever from the vector store
+        retriever = store.as_retriever(
+            search_type="similarity",
+            search_kwargs={"k": 5}
+        )
+
+        # Use in a RetrievalQA chain
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=ChatOpenAI(),
+            retriever=retriever
+        )
+
+        answer = qa_chain.invoke("What is machine learning?")
+
+        # MMR retriever for diverse results
+        mmr_retriever = store.as_retriever(
+            search_type="mmr",
+            search_kwargs={"k": 5, "fetch_k": 20, "lambda_mult": 0.5}
+        )
+        ```
+
+    </Tab>
+
+    <Tab title="Python SDK">
+
+        ```python
+        as_retriever(**kwargs) -> VectorStoreRetriever
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `**kwargs` | `Any` | Arguments passed to `VectorStoreRetriever` (e.g., `search_type`, `search_kwargs`) |
+
+        ### Returns
+
+        `VectorStoreRetriever`: A retriever backed by this vector store
+
+        ### Example Usage
+
+        ```python
+        from langchain.chains import RetrievalQA
+        from langchain_openai import ChatOpenAI
+
+        retriever = store.as_retriever(
+            search_type="similarity",
+            search_kwargs={"k": 5}
+        )
+
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=ChatOpenAI(),
+            retriever=retriever
+        )
+
+        answer = qa_chain.invoke("What is machine learning?")
+        ```
+
+    </Tab>
+
+    <Tab title="JS/TS">
+
+        ```typescript
+        asRetriever(options?: VectorStoreRetrieverInput): VectorStoreRetriever
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `options` | `VectorStoreRetrieverInput` | _(Optional)_ Retriever configuration options (e.g., `k`, `searchType`, `filter`) |
+
+        ### Returns
+
+        `VectorStoreRetriever`: A retriever backed by this vector store
+
+        <Note>The JS/TS `asRetriever()` is inherited from the LangChain base `VectorStore` class. There is no CyborgDB-specific override — it uses the standard LangChain retriever behavior.</Note>
+
+        ### Example Usage
+
+        ```typescript
+        import { ChatOpenAI } from '@langchain/openai';
+        import { RetrievalQAChain } from 'langchain/chains';
+
+        const retriever = store.asRetriever({ k: 5 });
+
+        const chain = RetrievalQAChain.fromLLM(
+            new ChatOpenAI(),
+            retriever
+        );
+
+        const result = await chain.invoke({
+            query: "What is machine learning?"
+        });
+        ```
+
+    </Tab>
+</Tabs>

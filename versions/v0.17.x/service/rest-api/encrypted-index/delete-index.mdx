@@ -1,0 +1,104 @@
+---
+title: "Delete Index"
+mode: "wide"
+api: "POST /v1/indexes/delete"
+playground: "simple"
+---
+
+<Warning>This action is irreversible. All items, vectors and metadata will be permanently lost.</Warning>
+
+Permanently delete an index and all its data.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes"
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to delete
+  </ParamField>
+  <ParamField body="index_key" type="string" required="true">
+    32-byte encryption key as hex string
+  </ParamField>
+</Expandable>
+
+## Response
+
+```json
+{
+  "status": "success",
+  "message": "Index 'my_index' deleted successfully"
+}
+```
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `404`: Index not found
+- `422`: Invalid request parameters
+- `500`: Internal server error
+
+## Example Usage
+
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/delete" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+
+## Confirmation Example
+
+```bash
+# First, list indexes to confirm the target index exists
+curl -X GET "http://localhost:8000/v1/indexes/list" \
+     -H "X-API-Key: cyborg_your_api_key_here"
+
+# Then delete the specific index
+curl -X POST "http://localhost:8000/v1/indexes/delete" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "old_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+
+# Verify deletion by listing indexes again
+curl -X GET "http://localhost:8000/v1/indexes/list" \
+     -H "X-API-Key: cyborg_your_api_key_here"
+```
+
+## Data Removal
+
+When an index is deleted, the following data is permanently removed:
+
+- **Index structure**: All index files and metadata
+- **Vector embeddings**: All stored vector data
+- **Item contents**: All associated content data
+- **Metadata**: All key-value metadata pairs
+- **Training data**: Any cached training information
+
+## Use Cases
+
+- **Cleanup**: Remove outdated or test indexes
+- **Resource management**: Free up storage and memory
+- **Development lifecycle**: Clean up development environments
+- **Data governance**: Remove indexes containing deprecated data
