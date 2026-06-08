@@ -15,10 +15,12 @@ func (c *Client) LoadIndex(ctx context.Context, indexName string, indexKey []byt
 |-----------|------|-------------|
 | `ctx` | `context.Context` | Context for cancellation/timeouts |
 | `indexName` | `string` | Name of the existing index to load |
-| `indexKey` | `[]byte` | 32-byte encryption key used during index creation |
+| `indexKey` | `[]byte` | _(Optional)_ 32-byte encryption key used during index creation. Required for indexes created with the SDK-supplied KEK path (`provider: none`); pass `nil` or a zero-length slice for KMS-backed indexes. |
+
+<Note>In v0.17 `indexKey` is optional. KMS-backed indexes (created with `KmsName`) omit it — the server resolves the DEK via the persisted `KMSBlob`. SDK-supplied indexes must re-supply the same 32-byte key here.</Note>
 
 <Warning>
-The encryption key must exactly match the key used during index creation.
+For SDK-supplied indexes, the encryption key must exactly match the key used during index creation. KMS-backed indexes are tied to their `KmsName` slot in the service YAML — load fails if that slot is missing or unreachable.
 </Warning>
 
 ### Returns
@@ -66,7 +68,7 @@ func main() {
     // Replace with your actual encryption key (must be exactly 32 bytes)
     key := []byte("example-index-key-12345678901234")
 
-    // Load existing index
+    // Load existing SDK-supplied index
     ctx := context.Background()
     index, err := client.LoadIndex(ctx, "my-documents", key)
     if err != nil {
@@ -74,12 +76,21 @@ func main() {
     }
 
     log.Printf("Loaded index: %s", index.GetIndexName())
-    log.Printf("Index type: %s", index.GetIndexType())
+
+    dim, _ := index.GetDimension(ctx)
+    log.Printf("Dimension: %d", dim)
 
     trained, err := index.IsTrained(ctx)
     if err != nil {
         log.Fatal("Failed to check training status:", err)
     }
     log.Printf("Is trained: %t", trained)
+
+    // Load a KMS-backed index — no key required
+    kmsIndex, err := client.LoadIndex(ctx, "kms-documents", nil)
+    if err != nil {
+        log.Fatal("Failed to load KMS index:", err)
+    }
+    _ = kmsIndex
 }
 ```

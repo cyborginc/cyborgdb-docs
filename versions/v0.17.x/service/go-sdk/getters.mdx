@@ -2,6 +2,8 @@
 title: "Getters"
 ---
 
+<Note>v0.17 removed the `GetIndexType` and `GetIndexConfig` methods — there is now a single DiskIVF index type. The Go SDK's public surface on `*EncryptedIndex` is `GetIndexName`, `IsTrained`, and `CheckTrainingStatus`. To inspect dimension, metric, or `n_lists`, call the REST `/v1/indexes/describe` endpoint directly via the internal client.</Note>
+
 ## GetIndexName
 
 Returns the unique name of the index.
@@ -16,34 +18,6 @@ func (e *EncryptedIndex) GetIndexName() string
 ```go
 indexName := index.GetIndexName()
 fmt.Printf("Working with index: %s\n", indexName)
-```
-
----
-
-## GetIndexType
-
-Returns the algorithm type of the index.
-
-```go
-func (e *EncryptedIndex) GetIndexType() string
-```
-
-**Returns**: `string` - Index type ("ivfflat", "ivfpq", or "ivfsq")
-
-**Example**:
-```go
-indexType := index.GetIndexType()
-fmt.Printf("Index type: %s\n", indexType)
-
-// Use type for conditional logic
-switch indexType {
-case "ivfflat":
-    fmt.Println("Using IVFFlat (IVF with flat search) index")
-case "ivfpq":
-    fmt.Println("Using IVFPQ (IVF with Product Quantization) index")
-case "ivfsq":
-    fmt.Println("Using IVFSQ (IVF with Scalar Quantization) index")
-}
 ```
 
 ---
@@ -81,43 +55,6 @@ if trained {
     err := index.Train(ctx, params)
     if err != nil {
         log.Printf("Training failed: %v", err)
-    }
-}
-```
-
----
-
-## GetIndexConfig
-
-Returns the detailed configuration of the index.
-
-```go
-func (e *EncryptedIndex) GetIndexConfig() internal.IndexConfig
-```
-
-**Returns**: `internal.IndexConfig` - The index configuration, or empty if not available
-
-**Note**: For indexes loaded via `LoadIndex()`, the configuration may be incomplete.
-
-**Example**:
-```go
-config := index.GetIndexConfig()
-
-// Access configuration based on index type
-switch index.GetIndexType() {
-case "ivfsq":
-    if config.IndexIVFSQModel != nil {
-        fmt.Printf("IVFSQ Dimension: %d\n", config.IndexIVFSQModel.GetDimension())
-    }
-case "ivfflat":
-    if config.IndexIVFFlatModel != nil {
-        fmt.Printf("IVFFlat Dimension: %d\n", config.IndexIVFFlatModel.GetDimension())
-    }
-case "ivfpq":
-    if config.IndexIVFPQModel != nil {
-        fmt.Printf("IVFPQ Dimension: %d\n", config.IndexIVFPQModel.GetDimension())
-        fmt.Printf("PQ Dimension: %d\n", config.IndexIVFPQModel.GetPqDim())
-        fmt.Printf("PQ Bits: %d\n", config.IndexIVFPQModel.GetPqBits())
     }
 }
 ```

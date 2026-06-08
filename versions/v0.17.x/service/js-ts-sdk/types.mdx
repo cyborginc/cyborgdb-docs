@@ -76,27 +76,37 @@ The `CreateIndexRequest` interface defines the parameters for creating a new enc
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `indexConfig` | [`IndexConfig`](#indexconfig) | No | Configuration model specifying index type and parameters. Defaults to `{ type: 'ivfflat' }` if not provided |
-| `indexKey` | `string` | Yes | Hex-encoded 32-byte encryption key |
 | `indexName` | `string` | Yes | Unique name/identifier for the index |
+| `indexKey` | `string \| null` | Conditional | Hex-encoded 32-byte encryption key. Required when `kmsName` is omitted; mutually exclusive with `kmsName` against a real-KMS slot. |
+| `kmsName` | `string \| null` | Conditional | Name of a `kms.registry` entry in the service YAML. Required when `indexKey` is omitted. |
+| `dimension` | `number \| null` | No | Vector dimensionality (auto-detected from the first upsert if omitted) |
+| `metric` | `string \| null` | No | Distance metric (`'euclidean'`, `'squared_euclidean'`, or `'cosine'`). If omitted, the server's default is used. |
 | `embeddingModel` | `string \| null` | No | Optional embedding model name for automatic vector generation |
+| `storagePrecision` | `'float32' \| 'float16' \| null` | No | On-disk rerank-vector dtype. Defaults to `'float32'`. |
 
 ### Example Usage
 
 ```typescript
-import { CreateIndexRequest, IndexIVFSQ } from 'cyborgdb';
+import { CreateIndexRequest } from 'cyborgdb';
 
 const createRequest: CreateIndexRequest = {
-    indexConfig: {
-        type: 'ivfsq',
-        sqBits: 16,
-        dimension: 768
-    },
-    indexKey: 'a1b2c3...', // hex-encoded 32-byte key
     indexName: 'my-vector-index',
-    embeddingModel: 'text-embedding-3-small'
+    indexKey: 'a1b2c3...', // hex-encoded 32-byte key
+    dimension: 768,
+    metric: 'cosine',
+    embeddingModel: 'text-embedding-3-small',
+    storagePrecision: 'float32',
+};
+
+// KMS-backed alternative:
+const kmsRequest: CreateIndexRequest = {
+    indexName: 'kms-index',
+    kmsName: 'prod-aws',
+    dimension: 768,
 };
 ```
+
+<Note>v0.17 removed the polymorphic `indexConfig` and the associated `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` model types — there is now a single DiskIVF index type. Configuration parameters are flat fields on `CreateIndexRequest`.</Note>
 
 <Note>The `createIndex()` method on the `Client` class accepts a `Uint8Array` for `indexKey` and automatically converts it to a hex-encoded string for the request. The `CreateIndexRequest` model itself uses the hex-encoded `string` type.</Note>
 
@@ -307,91 +317,25 @@ const vectorItem: VectorItem = {
 
 ---
 
-## Index Configuration Types
+## Index Configuration
 
-### IndexIVFSQ
+<Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` interfaces have been removed — there is no `IndexConfig` discriminated-union type any more. Configuration is expressed as flat fields on `CreateIndexRequest` / `Client.createIndex()`.</Note>
 
-IVFSQ (Scalar Quantization) index configuration, compresses each dimension independently for a balance of speed and index size:
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dimension` | `number` | auto-detect | Vector dimensionality. Inferred from the first upsert or from `embeddingModel` when omitted. |
+| `metric` | `string` | server default (`'euclidean'`) | `'euclidean'`, `'squared_euclidean'`, or `'cosine'`. |
+| `embeddingModel` | `string` | — | Optional sentence-transformers model name for automatic embedding generation. |
+| `storagePrecision` | `'float32' \| 'float16'` | `'float32'` | On-disk rerank-vector dtype. |
 
-| Speed | Accuracy | Memory Usage |
-|-------|----------|--------------|
-| Fast  | High     | Low          |
+### Key Management
 
-#### Properties
+| Parameter | Type | Notes |
+|-----------|------|-------|
+| `indexKey` | `Uint8Array` (SDK) / `string` hex (request) | 32-byte encryption key. SDK-supplied KEK path. Required on every subsequent call for that index. |
+| `kmsName` | `string` | Name of a `kms.registry` entry in the service YAML. The server generates and wraps the DEK on creation; subsequent calls omit `indexKey`. |
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `type` | `'ivfsq'` | Yes | - | Index type identifier |
-| `sqBits` | `number` | No | `16` | Number of bits per dimension for scalar quantization |
-| `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
-
-#### Example Usage
-
-```typescript
-import { IndexIVFSQ } from 'cyborgdb';
-
-const indexConfig: IndexIVFSQ = {
-    type: 'ivfsq',
-    sqBits: 16,
-    dimension: 768
-};
-```
-
-### IndexIVFFlat
-
-IVFFlat index configuration, suitable for highest accuracy requirements:
-
-| Speed | Accuracy | Memory Usage |
-|-------|----------|--------------|
-| Medium| Highest  | High         |
-
-#### Properties
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `type` | `'ivfflat'` | Yes | - | Index type identifier |
-| `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
-
-#### Example Usage
-
-```typescript
-import { IndexIVFFlat } from 'cyborgdb';
-
-const indexConfig: IndexIVFFlat = {
-    type: 'ivfflat',
-    dimension: 1536
-};
-```
-
-### IndexIVFPQ
-
-IVFPQ (Product Quantization) index configuration, optimized for memory efficiency:
-
-| Speed | Accuracy | Memory Usage |
-|-------|----------|--------------|
-| Fast  | Good     | Low          |
-
-#### Properties
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `type` | `'ivfpq'` | Yes | - | Index type identifier |
-| `pqDim` | `number` | Yes | - | Dimensionality after quantization |
-| `pqBits` | `number` | Yes | - | Number of bits per quantizer (1-16) |
-| `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
-
-#### Example Usage
-
-```typescript
-import { IndexIVFPQ } from 'cyborgdb';
-
-const indexConfig: IndexIVFPQ = {
-    type: 'ivfpq',
-    pqDim: 64,
-    pqBits: 8,
-    dimension: 768
-};
-```
+At least one of `indexKey` / `kmsName` must be supplied. Supplying both against a real-KMS slot is rejected by the server.
 
 ---
 

@@ -7,8 +7,8 @@ Loads and connects to an existing encrypted index using its name and encryption 
 
 ```typescript
 async loadIndex({
-    indexName: string,      // required
-    indexKey: Uint8Array    // required
+    indexName: string,       // required
+    indexKey?: Uint8Array    // optional (see notes)
 }): Promise<EncryptedIndex>
 ```
 
@@ -17,10 +17,12 @@ async loadIndex({
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `indexName` | `string` | Name of the existing index to load |
-| `indexKey` | `Uint8Array` | The exact 32-byte encryption key used when creating the index |
+| `indexKey` | `Uint8Array` | _(Optional)_ The exact 32-byte encryption key used when creating the index. Required for indexes created with the SDK-supplied KEK path (`provider: none`); omit for KMS-backed indexes. |
+
+<Note>In v0.17 `indexKey` is optional. KMS-backed indexes (created with `kmsName`) omit it — the server resolves the DEK via the persisted `KMSBlob`. SDK-supplied indexes must re-supply the same 32-byte key here.</Note>
 
 <Warning>
-The encryption key must exactly match the key used during index creation.
+For SDK-supplied indexes, the encryption key must exactly match the key used during index creation. KMS-backed indexes are tied to their `kmsName` slot in the service YAML — load fails if that slot is missing or unreachable.
 </Warning>
 
 ### Returns
@@ -53,14 +55,18 @@ const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-
 const indexKey = new Uint8Array(32); // Your stored 32-byte key
 // Or convert from hex: Buffer.from('your-hex-key', 'hex')
 
+// SDK-supplied index (legacy path) — supply the key
 try {
     const index = await client.loadIndex({ indexName: 'my-existing-index', indexKey });
     console.log('Index loaded successfully');
-    
+
     // Now you can perform operations on the loaded index
     const results = await index.query({ queryVectors: [0.1, 0.2, 0.3], topK: 5 });
     console.log('Query results:', results);
 } catch (error) {
     console.error('Failed to load index:', error.message);
 }
+
+// KMS-backed index — no key required
+const kmsIndex = await client.loadIndex({ indexName: 'kms-index' });
 ```
