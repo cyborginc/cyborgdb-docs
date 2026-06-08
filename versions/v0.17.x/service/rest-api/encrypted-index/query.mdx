@@ -69,8 +69,8 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="index_name" type="string" required="true">
     Name of the target index
   </ParamField>
-  <ParamField body="index_key" type="string" required="true">
-    32-byte encryption key as hex string
+  <ParamField body="index_key" type="string">
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key via the stored KMSBlob).
   </ParamField>
   <ParamField body="query_vectors" type="array[number] | array[array[number]]">
     Query vector(s) for similarity search:
