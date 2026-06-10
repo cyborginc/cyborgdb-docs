@@ -146,10 +146,10 @@ These controls remain valuable - but as long as **the embeddings themselves are 
 
 ## 6. How CyborgDB Prevents Inversion
 
-CyborgDB eliminates the inversion attack surface by ensuring embeddings are **never stored or processed in plaintext**:
+CyborgDB eliminates the inversion attack surface by ensuring embeddings are **never stored in plaintext**. Only the final candidates are decrypted during queries:
 
 - **Encryption at rest**: All embeddings are encrypted with AES-256-GCM before being written to the backing store
-- **Encryption in use**: Embeddings remain encrypted during search and computation
+- **Encrypted index search**: Index traversal operates on ciphertext; only the final candidates are decrypted for reranking
 - **Per-record key isolation**: Each record uses a unique initialization vector, preventing cross-record correlation
 - **Customer key control**: Encryption keys are managed by the customer, not the database operator
 - **KMS integration**: Keys are protected via integration with AWS KMS, Azure Key Vault, and GCP KMS for hardware-backed security and audit logging

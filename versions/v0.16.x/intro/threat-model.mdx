@@ -69,7 +69,7 @@ This combination of centralized intelligence and plaintext storage transforms wh
 | **Log & telemetry access** | Misconfigured logging, compromised SIEM |
 | **Code execution on server** | Supply chain attack, RCE in application stack |
 
-The **Server-Side Adversary** case — full memory, disk, and runtime access — is the primary driver for CyborgDB's *in-use encryption* and *forward-secure index* design.
+The **Server-Side Adversary** case — full memory, disk, and runtime access — is the primary driver for CyborgDB's *encrypted index traversal* and *forward-secure index* design. Storage, backups, and network hold only ciphertext. Residual exposure: an adversary with live memory access during an active query could observe the decrypted final candidates and ephemeral keys.
 
 ## 4. Attack Demonstration
 
@@ -117,9 +117,9 @@ The table below maps specific adversary actions to CyborgDB controls:
 | Attack Vector | Mitigation | Residual Risk |
 |---------------|------------|---------------|
 | **Disk theft** | AES-256-GCM encryption at rest | Key theft from KMS would bypass |
-| **Memory scraping** | In-use encryption with ephemeral node keys | Queries in progress may suggest active clusters |
+| **Memory scraping** | Encrypted index traversal with ephemeral node keys | Only final candidates and ephemeral keys are exposed during active queries |
 | **Index structure analysis** | Forward privacy & per-insertion randomization | Search pattern leakage still possible within active session |
-| **Embedding inversion** | Encrypted embeddings never stored/processed in plaintext | Compromised client could still expose |
+| **Embedding inversion** | Encrypted embeddings at rest; only final candidates decrypted during queries | Compromised client could still expose |
 | **Network interception** | TLS + AEAD | Endpoint compromise would still allow decryption |
 | **Query correlation** | Forward-secure cryptographic counters | Statistical attacks on *large* query volumes |
 | **Cross-system linking** | Per-record key derivation with unique IVs | Metadata correlation if encryption keys compromised |
@@ -138,16 +138,16 @@ flowchart LR
     A -->|Analyze index| E[Pattern & correlation attacks]
     
     subgraph "CyborgDB Controls"
-        F[TLS + AEAD] --> B
+        F[TLS] --> B
         G[AES-256-GCM] --> C
-        H[In-use Encryption] --> D
+        H[Encrypted Index Traversal] --> D
         I[Forward Privacy] --> E
         J[Per-insertion Randomization] --> E
     end
     
     B --> K[Attack Blocked]
     C --> K
-    D --> K
+    D --> K2[Attack Surface Reduced]
     E --> K
 ```
 
