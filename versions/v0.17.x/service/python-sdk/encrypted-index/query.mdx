@@ -26,6 +26,7 @@ index.query(query_contents=text, top_k=10)
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filters to apply |
 | `include` | `List[str]` | `None` | _(Optional)_ Fields to include in results. `None` uses the server default (`[]` — only `id` is returned). Note: `id` is always included |
 | `greedy` | `bool` | `None` | _(Optional)_ Use greedy search algorithm. When `None`, the server determines the default behavior |
+| `rerank_mult` | `int` | `None` | _(Optional)_ Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `top_k * rerank_mult` candidates before the rerank pass narrows to `top_k`. Higher values trade query latency for recall. Server default is `10`. Ignored by indexes that do not rerank. |
 
 <Tip>When `np.ndarray` is passed as `query_vectors`, queries are automatically sent in an optimized binary format for better performance.</Tip>
 
@@ -146,10 +147,11 @@ Advanced filtering and options:
 results = index.query(
     query_vectors=[0.1] * 384,
     top_k=20,
-    n_probes=5,  # Search more clusters for better recall
+    n_probes=5,        # Search more clusters for better recall
+    rerank_mult=20,    # Stage 1 returns top_k * 20 candidates before rerank
     filters={'category': 'healthcare', 'priority': 'high'},
     include=['distance', 'metadata', 'contents'],  # Must include 'contents' to access it
-    greedy=True  # Use greedy search for potentially better results
+    greedy=True        # Use greedy search for potentially better results
 )
 
 for result in results:

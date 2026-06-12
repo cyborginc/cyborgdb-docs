@@ -119,15 +119,11 @@ flowchart TB
   RESTAPI("REST API")
   RESTAPI --> CyborgDB("CyborgDB Service")
 
-  CyborgDB --> Standalone
-  CyborgDB --> PostgreSQL
-  CyborgDB --> Redis
+  CyborgDB --> Disk
   CyborgDB --> S3
   CyborgDB --> Memory
 
-  Standalone("Standalone / RocksDB")
-  PostgreSQL("PostgreSQL")
-  Redis("Redis")
+  Disk("Disk (RocksDB)")
   S3("Amazon S3 / MinIO")
   Memory("Memory")
 ```
@@ -166,9 +162,9 @@ flowchart TB
 ## Production Considerations
 
 ### Scaling and Performance
-- **Horizontal Scaling**: Deploy multiple service instances behind a load balancer
-- **Connection Pooling**: Configure database connections for high concurrency
-- **Caching**: Use Redis backing store for low-latency workloads
+- **Horizontal Scaling**: Deploy multiple service instances behind a load balancer (use the `s3` backend so they share state)
+- **Caching**: Opt in to per-keystore RAM caches via `CACHE_POLICY_VECTORS`, `CACHE_POLICY_METADATA`, and `CACHE_POLICY_IDS` (see [Environment Variables](../advanced/env-vars))
+- **GPU Acceleration**: Set `GPU_OPERATIONS=upsert,train` (or `all`) on a CUDA host to offload index ops
 - **Monitoring**: Enable telemetry and monitoring for production visibility
 
 ### Security

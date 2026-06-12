@@ -3,323 +3,300 @@ title: "Environment Variables"
 mode: "wide"
 ---
 
-CyborgDB Service uses environment variables to configure various aspects of the service, such as database connections, API keys, SSL settings, and performance tuning. This allows for flexible configuration without hardcoding values in your codebase.
+CyborgDB Service is configured through environment variables (or an
+optional [YAML config file](#yaml-configuration-file)). Every value
+below is settable in both places; environment variables override the
+file on conflict.
 
-Below are the key environment variables you can set for the CyborgDB service:
+<Note>
+**v0.17 storage refactor.** The service now exposes a single, flat
+storage surface: `memory`, `disk` (embedded RocksDB), or `s3` (AWS S3
+or any S3-compatible store). The previous `standalone`, `postgres`,
+and `redis` backends — and the catch-all `CYBORGDB_CONNECTION_STRING`
+— are gone. If you are upgrading from v0.16: switch
+`standalone` → `disk` and replace `CYBORGDB_CONNECTION_STRING` with
+the new `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.
+</Note>
 
 ## Required Environment Variables
 
-These environment variables must be set for the service to run:
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `CYBORGDB_API_KEY` | Your CyborgDB API key. Also the value clients must send in the `X-API-Key` request header. | `cyborg_abc123...` |
 
-| Variable | Description | Required | Example |
-|----------|-------------|----------|---------|
-| `CYBORGDB_API_KEY` | Your CyborgDB API key for authentication | ✅ | `cyborg_abc123...` |
+<Warning>The service refuses to start without `CYBORGDB_API_KEY`. Storage configuration is optional — `disk` is used by default.</Warning>
 
-<Warning>The service requires CYBORGDB_API_KEY to start. Database configuration is optional - see below for details.</Warning>
+## Storage Backend
 
-## Database Configuration
+Pick one of `memory`, `disk`, or `s3`. If `CYBORGDB_DB_TYPE` is unset,
+the service defaults to `disk`.
 
-<Note>
-**Default Behavior:** If you don't set `CYBORGDB_DB_TYPE` or `CYBORGDB_CONNECTION_STRING`, the service automatically uses a built-in **standalone** instance for evaluation and testing. Data is stored in a `~/.cyborgdb/data` directory (local) or `/app/cyborgdb_data` (Docker).
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `CYBORGDB_DB_TYPE` | Storage backend: `memory`, `disk`, or `s3` | `disk` | `s3` |
 
-**For production deployments**, you should configure an external Redis or PostgreSQL database:
-</Note>
+### Disk (default)
 
-| Variable | Description | Required | Example |
-|----------|-------------|----------|---------|
-| `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `standalone`, `postgres`, `redis`, `s3`, or `memory` |
-| `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See [Connection Formats](#connection-formats) |
+Embedded RocksDB. Persistent local key-value storage with no external
+dependency.
 
-<Warning>
-**Important:** `CYBORGDB_CONNECTION_STRING` is required when `CYBORGDB_DB_TYPE` is set to `redis`, `postgres`, or `s3`. For `standalone`, the connection string is optional and can be used to override the default data directory path. For `memory`, no connection string is needed.
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `CYBORGDB_DISK_PATH` | Data directory for the RocksDB store | `~/.cyborgdb/data` (local) / `/app/cyborgdb_data` (Docker) |
 
-**Standalone is for EVALUATION ONLY** - For production use, configure an external PostgreSQL, Redis, or S3 database.
-</Warning>
+```bash
+export CYBORGDB_DB_TYPE=disk
+export CYBORGDB_DISK_PATH=/var/lib/cyborgdb   # optional
+```
+
+### Memory
+
+In-process storage. Nothing persists across restarts. Use only for
+tests and ephemeral indexes.
+
+```bash
+export CYBORGDB_DB_TYPE=memory
+```
+
+### S3
+
+AWS S3 or any S3-compatible store (MinIO, Cloudflare R2, …).
+
+| Variable | Description | Required for S3 |
+|----------|-------------|-----------------|
+| `CYBORGDB_S3_BUCKET` | Bucket name | ✅ |
+| `CYBORGDB_S3_REGION` | Bucket region | Optional (defaults to `us-east-1`) |
+| `CYBORGDB_S3_PREFIX` | Key prefix for stored objects | Optional |
+| `CYBORGDB_S3_ENDPOINT` | Custom endpoint URL (MinIO, R2, …) | Required for non-AWS endpoints |
+| `CYBORGDB_S3_ACCESS_KEY` | S3 access key ID | Required with `CYBORGDB_S3_ENDPOINT` |
+| `CYBORGDB_S3_SECRET_KEY` | S3 secret access key | Required with `CYBORGDB_S3_ENDPOINT` |
+| `CYBORGDB_S3_SESSION_TOKEN` | Optional temporary session token | Optional |
+
+#### S3 credential resolution
+
+The S3 client resolves credentials independently of any KMS client:
+
+- **On AWS (EC2 / ECS / EKS), real S3.** Leave all `CYBORGDB_S3_*`
+  credential variables unset. The AWS default credential provider
+  chain picks up the instance/task role.
+- **Off AWS, real S3.** Provide `AWS_ACCESS_KEY_ID` /
+  `AWS_SECRET_ACCESS_KEY` (or a mounted AWS profile). The default
+  chain picks them up.
+- **S3-compatible endpoint (MinIO, R2, …).** Set
+  `CYBORGDB_S3_ENDPOINT` **plus** explicit
+  `CYBORGDB_S3_ACCESS_KEY` / `CYBORGDB_S3_SECRET_KEY`. A custom
+  endpoint is not AWS — the AWS chain is never used against it, and
+  startup fails fast if the explicit keys are missing.
+
+The `CYBORGDB_S3_*` namespace is deliberately separate from `AWS_*`
+so storage credentials cannot collide with KMS credentials.
+
+```bash
+# AWS S3 with instance role
+export CYBORGDB_DB_TYPE=s3
+export CYBORGDB_S3_BUCKET=my-bucket
+export CYBORGDB_S3_REGION=us-east-1
+
+# MinIO
+export CYBORGDB_DB_TYPE=s3
+export CYBORGDB_S3_BUCKET=my-bucket
+export CYBORGDB_S3_ENDPOINT=https://minio.internal:9000
+export CYBORGDB_S3_ACCESS_KEY=minioadmin
+export CYBORGDB_S3_SECRET_KEY=minioadmin
+```
 
 ## Optional Environment Variables
 
 <AccordionGroup>
     <Accordion title="Service Configuration">
-        | Variable | Description | Default | Example |
-        |----------|-------------|---------|---------|
-        | `PORT` | Port number for the service | `8000` | `3000` |
-        | `APP_NAME` | Application name for logging | `CyborgDB Service` | `My CyborgDB Instance` |
-        | `CYBORGDB_SERVICE_LOG_LEVEL` | Logging level for the service | `info` | `debug` |
+        | Variable | Description | Default |
+        |----------|-------------|---------|
+        | `PORT` | HTTP port for the service | `8000` |
+        | `CYBORGDB_SERVICE_LOG_LEVEL` | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
+        | `REQUIRE_API_KEY` | Whether the `X-API-Key` header is required on requests | `true` |
     </Accordion>
-    <Accordion title="Security Configuration">
-        | Variable | Description | Default | Example |
-        |----------|-------------|---------|---------|
-        | `REQUIRE_API_KEY` | Whether to require API key authentication | `true` | `false` |
-        | `SSL_CERT_PATH` | Path to SSL certificate file for HTTPS | `None` | `/etc/ssl/certs/server.crt` |
-        | `SSL_KEY_PATH` | Path to SSL private key file for HTTPS | `None` | `/etc/ssl/private/server.key` |
-        
-        <Note>When both `SSL_CERT_PATH` and `SSL_KEY_PATH` are provided and the files exist, the service automatically enables HTTPS.</Note>
+    <Accordion title="TLS / HTTPS">
+        | Variable | Description | Default |
+        |----------|-------------|---------|
+        | `SSL_CERT_PATH` | Path to TLS certificate | unset (HTTP) |
+        | `SSL_KEY_PATH` | Path to TLS private key | unset (HTTP) |
+
+        <Note>HTTPS is enabled automatically when both `SSL_CERT_PATH` and `SSL_KEY_PATH` are set and both files exist. Otherwise the service starts on HTTP.</Note>
     </Accordion>
-    <Accordion title="Database Configuration (Advanced)">
-        These variables provide granular control over database connections. If not set, they fall back to the main database configuration:
+    <Accordion title="Per-keystore RAM cache">
+        Applied to every newly created index. `cyborgdb-core` caches
+        nothing by default; opt in here per keystore.
 
-        | Variable | Description | Default | Example |
-        |----------|-------------|---------|---------|
-        | `INDEX_LOCATION` | Database type for index storage | `CYBORGDB_DB_TYPE` | `standalone`, `postgres`, `redis`, or `memory` |
-        | `CONFIG_LOCATION` | Database type for config storage | `CYBORGDB_DB_TYPE` | `standalone`, `postgres`, `redis`, or `memory` |
-        | `ITEMS_LOCATION` | Database type for items storage | `CYBORGDB_DB_TYPE` | `standalone`, `postgres`, `redis`, or `memory` |
-        | `INDEX_CONNECTION_STRING` | Connection string for index storage | `CYBORGDB_CONNECTION_STRING` | See connection formats |
-        | `CONFIG_CONNECTION_STRING` | Connection string for config storage | `CYBORGDB_CONNECTION_STRING` | See connection formats |
-        | `ITEMS_CONNECTION_STRING` | Connection string for items storage | `CYBORGDB_CONNECTION_STRING` | See connection formats |
+        | Variable | Description | Default |
+        |----------|-------------|---------|
+        | `CACHE_POLICY_VECTORS` | Cache vector payloads in RAM | `false` |
+        | `CACHE_POLICY_METADATA` | Cache metadata in RAM | `false` |
+        | `CACHE_POLICY_IDS` | Cache item IDs in RAM | `false` |
     </Accordion>
-    <Accordion title="Database Table Names">
-        These variables allow you to customize the table/collection names used by the service:
+    <Accordion title="Performance">
+        | Variable | Description | Default |
+        |----------|-------------|---------|
+        | `CPU_THREADS` | Worker threads. `0` = auto-detect | `0` |
+        | `GPU_OPERATIONS` | GPU-accelerated ops: `none`, `upsert`, `train`, `all`, or comma-separated (e.g. `upsert,train`) | `none` |
+        | `RETRAIN_THRESHOLD` | Auto-retrain trigger — fires when `num_vectors > n_lists * RETRAIN_THRESHOLD` | `10000` |
 
-        | Variable | Description | Default | Example |
-        |----------|-------------|---------|---------|
-        | `INDEX_TABLE_NAME` | Table name for indexes | `index` | `cyborgdb_indexes` |
-        | `CONFIG_TABLE_NAME` | Table name for configurations | `config` | `cyborgdb_configs` |
-        | `ITEMS_TABLE_NAME` | Table name for items | `items` | `cyborgdb_items` |
+        <Note>GPU-accelerated query is not yet supported by `cyborgdb-core`. Passing `query` in `GPU_OPERATIONS` is silently ignored.</Note>
     </Accordion>
-    <Accordion title="Performance Tuning">
-        These variables allow you to optimize performance based on your hardware and workload:
+    <Accordion title="Per-index KMS">
+        Per-index KMS (BYOK) is configured exclusively via the YAML
+        file's `kms.registry` block — see the
+        [KMS / BYOK guide](./kms-byok). The only related environment
+        variable is the in-process KEK cache TTL:
 
-        | Variable | Description | Default | Example |
-        |----------|-------------|---------|---------|
-        | `CPU_THREADS` | Number of CPU threads to use | `0` (auto-detect) | `4` |
-        | `GPU_OPERATIONS` | GPU acceleration for specific operations | `none` | `all` |
-        | `RETRAIN_THRESHOLD` | Multiplier for automatic retraining threshold | `10000` | `5000` |
-        | `WORKERS` | Number of worker processes for handling requests | `0` (auto-calculate) | `8` |
-
-        <Note>
-        `GPU_OPERATIONS` valid values: `none`, `upsert`, `train`, `query`, `all`, or comma-separated (e.g., `upsert,train`).
-
-        `RETRAIN_THRESHOLD` controls when auto-training triggers: training is initiated when `num_vectors > n_lists * RETRAIN_THRESHOLD`.
-        </Note>
-    </Accordion>
-    <Accordion title="System Configuration">
-        These variables control system-level settings:
-
-        | Variable | Description | Default | Example |
-        |----------|-------------|---------|---------|
-        | `KMP_DUPLICATE_LIB_OK` | Allow duplicate OpenMP libraries | `TRUE` | `FALSE` |
-        | `PYTHONUNBUFFERED` | Disable Python output buffering | `1` | `0` |
+        | Variable | Description | Default |
+        |----------|-------------|---------|
+        | `INDEX_KEK_CACHE_TTL_SECONDS` | TTL for plaintext KEKs in the service-side cache. Shorter = faster KMS revocation propagation; longer = fewer KMS calls. | `60` |
     </Accordion>
 </AccordionGroup>
 
-## Connection Formats
+## YAML Configuration File
 
-<AccordionGroup>
-    <Accordion title="PostgreSQL Connection String">
-    
-    Use the standard PostgreSQL connection string format:
+Every setting above is also expressible in a YAML file. The file is
+resolved in this order (first hit wins):
 
-    ```bash
-    CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=cyborgdb user=cyborgdb password=your_password"
-    ```
+1. `CYBORGDB_CONFIG_FILE` environment variable
+2. `./cyborgdb.yaml`, `./cyborgdb.yml`, `/etc/cyborgdb/cyborgdb.yaml`
 
-    **Parameters:**
-    - `host` - Database server hostname
-    - `port` - Database server port (default: 5432)
-    - `dbname` - Database name
-    - `user` - Database username
-    - `password` - Database password
+A missing file is fine — the service falls back to env-only. An
+explicit `CYBORGDB_CONFIG_FILE` path that doesn't exist is a hard
+error.
 
-    </Accordion>
-    
-    <Accordion title="Redis Connection String">
+```yaml cyborgdb.yaml
+service:
+  port: 8000
+  require_api_key: true
+  cyborgdb_service_log_level: INFO
 
-        Use a comma-separated format for Redis connections:
+  # Storage backend: memory | disk | s3 (default: disk)
+  cyborgdb_db_type: disk
+  # cyborgdb_disk_path: /var/lib/cyborgdb
 
-        ```bash
-        CYBORGDB_CONNECTION_STRING="host:localhost,port:6379,db:0"
-        ```
+  # S3 settings (when cyborgdb_db_type: s3)
+  # cyborgdb_s3_bucket: my-bucket
+  # cyborgdb_s3_region: us-east-1
+  # cyborgdb_s3_endpoint: https://minio.internal:9000
+  # cyborgdb_s3_access_key: ${MINIO_ACCESS_KEY}
+  # cyborgdb_s3_secret_key: ${MINIO_SECRET_KEY}
 
-        **Parameters:**
-        - `host` - Redis server hostname
-        - `port` - Redis server port (default: 6379)
-        - `db` - Redis database number (default: 0)
-        - `password` - Redis password (optional)
+  cpu_threads: 0
+  index_kek_cache_ttl_seconds: 60
 
-        <Warning>Redis URI format (`redis://` or `rediss://`) is not supported. Use the comma-separated format shown above.</Warning>
-    </Accordion>
+kms:
+  registry:
+    # See the KMS / BYOK guide for the full schema.
+    # vendor-default:
+    #   provider: aws-kms
+    #   key_id:   alias/cyborgdb-default
+    #   region:   us-east-1
+```
 
-    <Accordion title="S3 Connection String">
+**Precedence:** init args > environment variables > `.env` > YAML
+file > file secrets.
 
-        Use an S3 URI for Amazon S3 or S3-compatible stores:
-
-        ```bash
-        # AWS S3 (uses IAM role or AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars)
-        CYBORGDB_CONNECTION_STRING="s3://my-bucket?region=us-east-1"
-
-        # AWS S3 with explicit credentials
-        CYBORGDB_CONNECTION_STRING="s3://my-bucket?region=us-east-1&access_key=AKID...&secret_key=..."
-
-        # MinIO or other S3-compatible store
-        CYBORGDB_CONNECTION_STRING="s3://my-bucket?region=us-east-1&endpoint=http://localhost:9000&access_key=minioadmin&secret_key=minioadmin"
-        ```
-
-        **Parameters:**
-        - `region` - AWS region (default: `us-east-1`)
-        - `prefix` - Key prefix for all stored objects (optional)
-        - `endpoint` - Custom endpoint URL for S3-compatible stores (optional)
-        - `access_key` - AWS access key ID (optional; falls back to `AWS_ACCESS_KEY_ID` env var or IAM role)
-        - `secret_key` - AWS secret access key (optional; falls back to `AWS_SECRET_ACCESS_KEY` env var or IAM role)
-
-        <Note>For production AWS deployments, prefer IAM roles or `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` environment variables over embedding credentials in the connection string.</Note>
-    </Accordion>
-
-    <Accordion title="Standalone Connection String (Optional)">
-
-        The standalone backend uses a local directory for data storage. A connection string is **not required** — if omitted, the default path is used.
-
-        - **Local default**: `~/.cyborgdb/data`
-        - **Docker default**: `/app/cyborgdb_data`
-
-        To override the data directory path, set the connection string to a custom path:
-
-        ```bash
-        CYBORGDB_CONNECTION_STRING="/custom/path/to/data"
-        ```
-
-    </Accordion>
-</AccordionGroup>
+**Env-var substitution.** Any string value in the YAML may reference
+an environment variable as `${VAR}` (required — startup fails if
+unset) or `${VAR:-default}` (uses `default` when unset). This lets
+you keep BYOK role ARNs / account IDs out of the checked-in file. A
+variable set to the empty string counts as **unset**.
 
 ## Configuration Examples
 
 <AccordionGroup>
-    <Accordion title="Evaluation/Testing Configuration (Standalone)">
-        <CodeGroup>
-        ```bash Environment Variables
-        # Minimal configuration - uses built-in standalone
+    <Accordion title="Quick start (disk, default)">
+        ```bash
         export CYBORGDB_API_KEY="cyborg_your_api_key_here"
-        # No database configuration needed - standalone starts automatically
+        cyborgdb-service
+        # Data goes to ~/.cyborgdb/data
         ```
-
-        ```bash .env File
-        # Minimal configuration - uses built-in standalone
-        CYBORGDB_API_KEY=cyborg_your_api_key_here
-        # No database configuration needed - standalone starts automatically
-        ```
-        </CodeGroup>
-
-        <Warning>
-        Standalone is for evaluation and testing only. For production, configure an external database.
-        </Warning>
     </Accordion>
-
-    <Accordion title="Development Configuration (External Database)">
-        <CodeGroup>
-        ```bash Environment Variables
+    <Accordion title="In-memory (tests only)">
+        ```bash
         export CYBORGDB_API_KEY="cyborg_your_api_key_here"
-        export CYBORGDB_DB_TYPE="postgres"
-        export CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=cyborgdb user=cyborgdb password=secure_password"
+        export CYBORGDB_DB_TYPE=memory
+        cyborgdb-service
         ```
-
-        ```bash .env File
-        CYBORGDB_API_KEY=cyborg_your_api_key_here
-        CYBORGDB_DB_TYPE=postgres
-        CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
-        ```
-        </CodeGroup>
     </Accordion>
-    <Accordion title="Production Configuration">
-        <CodeGroup>
-        ```bash Environment Variables
+    <Accordion title="S3 on AWS with instance role">
+        ```bash
         export CYBORGDB_API_KEY="cyborg_your_api_key_here"
-        export CYBORGDB_DB_TYPE="postgres"
-        export CYBORGDB_CONNECTION_STRING="host=db.example.com port=5432 dbname=cyborgdb user=cyborgdb password=secure_password"
-        export PORT="8443"
-        export SSL_CERT_PATH="/etc/ssl/certs/cyborgdb.crt"
-        export SSL_KEY_PATH="/etc/ssl/private/cyborgdb.key"
-        export WORKERS="16"
+        export CYBORGDB_DB_TYPE=s3
+        export CYBORGDB_S3_BUCKET=my-bucket
+        export CYBORGDB_S3_REGION=us-east-1
+        # No explicit credentials — instance role picked up automatically
+        cyborgdb-service
         ```
-
-        ```bash .env File
-        CYBORGDB_API_KEY=cyborg_your_api_key_here
-        CYBORGDB_DB_TYPE=postgres
-        CYBORGDB_CONNECTION_STRING=host=db.example.com port=5432 dbname=cyborgdb user=cyborgdb password=secure_password
-        PORT=8443
-        SSL_CERT_PATH=/etc/ssl/certs/cyborgdb.crt
-        SSL_KEY_PATH=/etc/ssl/private/cyborgdb.key
-        WORKERS=16
-        ```
-        </CodeGroup>
     </Accordion>
-    <Accordion title="Mixed Database Configuration">
-        <CodeGroup>
-            For advanced use cases where you want to use different databases for different components:
-
-            ```bash
-            # Main configuration
-            CYBORGDB_API_KEY="cyborg_your_api_key_here"
-
-            # Use PostgreSQL for indexes and configs
-            INDEX_LOCATION="postgres"
-            CONFIG_LOCATION="postgres"
-            INDEX_CONNECTION_STRING="host=postgres.example.com port=5432 dbname=cyborgdb user=cyborgdb password=password1"
-            CONFIG_CONNECTION_STRING="host=postgres.example.com port=5432 dbname=cyborgdb user=cyborgdb password=password1"
-
-            # Use Redis for items (faster access)
-            ITEMS_LOCATION="redis"
-            ITEMS_CONNECTION_STRING="host:redis.example.com,port:6379,db:0,password:redis_password"
-            ```
-        </CodeGroup>
+    <Accordion title="S3 on MinIO with explicit credentials">
+        ```bash
+        export CYBORGDB_API_KEY="cyborg_your_api_key_here"
+        export CYBORGDB_DB_TYPE=s3
+        export CYBORGDB_S3_BUCKET=my-bucket
+        export CYBORGDB_S3_ENDPOINT=https://minio.internal:9000
+        export CYBORGDB_S3_ACCESS_KEY=minioadmin
+        export CYBORGDB_S3_SECRET_KEY=minioadmin
+        cyborgdb-service
+        ```
+    </Accordion>
+    <Accordion title="Production with HTTPS">
+        ```bash
+        export CYBORGDB_API_KEY="cyborg_your_api_key_here"
+        export CYBORGDB_DB_TYPE=s3
+        export CYBORGDB_S3_BUCKET=cyborgdb-prod
+        export CYBORGDB_S3_REGION=us-east-1
+        export PORT=8443
+        export SSL_CERT_PATH=/etc/ssl/certs/cyborgdb.crt
+        export SSL_KEY_PATH=/etc/ssl/private/cyborgdb.key
+        cyborgdb-service
+        ```
     </Accordion>
 </AccordionGroup>
 
-### Docker Configuration
+### Docker
 
-When using Docker, you can pass environment variables using the `-e` flag:
+Pass any of the variables above to `docker run` with `-e`:
 
 ```bash
 docker run -p 8000:8000 \
   -e CYBORGDB_API_KEY="cyborg_your_api_key_here" \
-  -e CYBORGDB_DB_TYPE="postgres" \
-  -e CYBORGDB_CONNECTION_STRING="host=host.docker.internal port=5432 dbname=cyborgdb user=cyborgdb password=secure_password" \
+  -e CYBORGDB_DB_TYPE=s3 \
+  -e CYBORGDB_S3_BUCKET=my-bucket \
+  -e CYBORGDB_S3_REGION=us-east-1 \
   cyborginc/cyborgdb-service:latest
 ```
 
-Or use an environment file:
+Or use an `--env-file`:
 
 ```bash
 docker run -p 8000:8000 --env-file .env cyborginc/cyborgdb-service:latest
 ```
 
-## Environment Variable Priority
-
-Environment variables are loaded in the following order (later sources override earlier ones):
-
-1. **Default values** - Set in the application code
-2. **`.env` file** - Local environment file in the working directory
-3. **System environment variables** - Set via `export` or container environment
-4. **Command line arguments** - Passed directly to the application
-
-## Validation and Error Handling
-
-The CyborgDB service performs automatic validation of environment variables on startup:
-
-- **Missing required variables** - Service will exit with error messages
-- **Invalid database types** - Supported types are `standalone`, `postgres`, `redis`, `s3`, and `memory`
-- **Connection testing** - Database connections are tested on startup
-- **SSL certificate validation** - Certificate files are checked for existence
-
-If validation fails, the service will display helpful error messages with examples of correct configuration.
-
-
 ## Troubleshooting
 
 <AccordionGroup>
-    <Accordion title="Missing API Key">
-        - Ensure `CYBORGDB_API_KEY` is set
-        - Check for typos in the variable name
-        - Verify the API key format starts with `cyborg_`
+    <Accordion title="Missing API key">
+        Set `CYBORGDB_API_KEY`. Check for typos. Keys start with
+        `cyborg_`.
     </Accordion>
-    <Accordion title="Database Connection Issues">
-        - Verify database is running and accessible
-        - Check connection string format
-        - Test database connectivity manually
-        - Ensure firewall allows connections
+    <Accordion title="`Invalid CYBORGDB_DB_TYPE`">
+        v0.17 only accepts `memory`, `disk`, or `s3`. The legacy
+        `standalone`, `postgres`, and `redis` values are gone. If
+        you were on `standalone`, switch to `disk` and set
+        `CYBORGDB_DISK_PATH` if you used a custom directory.
     </Accordion>
-    <Accordion title="SSL Certificate Errors">
-        - Verify certificate files exist at specified paths
-        - Check file permissions (service must be able to read certificates)
-        - Ensure certificate and key files match
-        - Use absolute paths for certificate locations
+    <Accordion title="S3 startup fails with missing credentials">
+        With `CYBORGDB_S3_ENDPOINT` set, the AWS default credential
+        chain is bypassed entirely. Provide
+        `CYBORGDB_S3_ACCESS_KEY` and `CYBORGDB_S3_SECRET_KEY`
+        explicitly.
+    </Accordion>
+    <Accordion title="TLS not enabling">
+        Both `SSL_CERT_PATH` and `SSL_KEY_PATH` must be set **and
+        both files must exist on disk** before the service starts.
+        Missing either falls back to HTTP silently.
     </Accordion>
 </AccordionGroup>

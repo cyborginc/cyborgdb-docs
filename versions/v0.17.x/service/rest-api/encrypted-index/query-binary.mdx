@@ -30,6 +30,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   "top_k": 10,
   "n_probes": 5,
   "greedy": false,
+  "rerank_mult": 10,
   "filters": {"category": "research"},
   "include": ["distance", "metadata"]
 }
@@ -62,6 +63,9 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   </ParamField>
   <ParamField body="greedy" type="boolean">
     Whether to use greedy search algorithm. Defaults to false
+  </ParamField>
+  <ParamField body="rerank_mult" type="integer" default={10}>
+    Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `top_k * rerank_mult` candidates before the rerank pass narrows the result down to `top_k`. Higher values trade query latency for recall. Ignored by indexes that do not rerank.
   </ParamField>
   <ParamField body="filters" type="object">
     Metadata filters to apply to the search

@@ -6,7 +6,17 @@ CyborgDB transforms traditional databases into Confidential Vector Databases by 
 
 <img src="/images/cyborgdb-search-overview.png" alt="CyborgDB RAG Overview" />
 
+<Note>
+**Service vs. Embedded backends differ in v0.17.** CyborgDB Service
+(REST API) exposes a flat surface: `memory`, `disk` (RocksDB), or
+`s3`. The embedded libraries (Python / C++) additionally support
+PostgreSQL and Redis via `DBConfig(...)`. Each backend below notes
+which deployment model it applies to.
+</Note>
+
 ## Amazon S3
+
+*Available in: Service · Embedded*
 
 **Scalable cloud object storage for distributed deployments**
 
@@ -27,13 +37,15 @@ Works with AWS S3, MinIO, Cloudflare R2, and any other S3-compatible object stor
 
 ---
 
-## Standalone
+## Disk (RocksDB)
 
-<Note>For our embedded libraries, Standalone is referred to as "RocksDB"</Note>
+*Available in: Service · Embedded*
 
-**Persistent local storage for embedded deployments**
+<Note>The embedded libraries refer to this backend as "RocksDB". CyborgDB Service v0.17 selects it via `CYBORGDB_DB_TYPE=disk` (and it is the default).</Note>
 
-Standalone provides persistent key-value storage directly on local disk, with no network dependency. This makes it the recommended backing store for embedded/local CyborgDB deployments where simplicity and reliability are priorities.
+**Persistent local storage for single-node deployments**
+
+The disk backend provides persistent key-value storage directly on local disk via embedded RocksDB, with no network dependency. This makes it the recommended backing store for single-node CyborgDB deployments where simplicity and reliability are priorities.
 
 ### Key Benefits
 
@@ -51,6 +63,8 @@ Low memory footprint with filesystem support.
 ---
 
 ## PostgreSQL
+
+*Available in: Embedded only* — not supported by CyborgDB Service v0.17.
 
 **Production-ready relational database with vector extensions**
 
@@ -73,6 +87,8 @@ Support for read replicas, connection pooling, horizontal scaling, and mature ba
 
 ## Redis
 
+*Available in: Embedded only* — not supported by CyborgDB Service v0.17.
+
 **High-performance in-memory data store**
 
 Redis delivers ultra-low latency access patterns, making it ideal for real-time applications. CyborgDB uses Redis's memory-optimized storage for blazing-fast vector search operations.
@@ -94,7 +110,9 @@ Choose between speed and durability with flexible persistence and replication op
 
 ## Memory
 
-<Note>For our embedded libraries, Memory is referred to as "ThreadSafeMemory"</Note>
+*Available in: Service · Embedded*
+
+<Note>The embedded libraries refer to this backend as "ThreadSafeMemory". CyborgDB Service v0.17 selects it via `CYBORGDB_DB_TYPE=memory`.</Note>
 
 **Local in-process storage for development and testing**
 
@@ -153,28 +171,32 @@ CyborgDB works seamlessly with managed database services, reducing operational o
 ## Choosing the Right Backing Store
 
 <Tabs>
-  <Tab title="Use RocksDB">
-    - **Embedded Deployment** - You want persistent local storage with no external dependencies
-    - **Edge Devices** - Running on hardware without network access to databases
+  <Tab title="Use Disk / RocksDB">
+    - **Single-node deployment** - You want persistent local storage with no external dependencies
+    - **Edge devices** - Running on hardware without network access to databases
     - **Simplicity** - You want a single-binary deployment with built-in storage
-    - **Local Development** - Persistent storage that survives restarts without infrastructure
-    - **Single Machine** - Your application runs on a single machine
+    - **Local development** - Persistent storage that survives restarts without infrastructure
+    - **Default choice** - It's the v0.17 service default and works out of the box
   </Tab>
 
-  <Tab title="Use PostgreSQL">
+  <Tab title="Use PostgreSQL (embedded)">
     - **Data Durability** - You need guaranteed data persistence and consistency
     - **Complex Queries** - Your application requires SQL queries beyond vector search
     - **Team Expertise** - Your team has PostgreSQL operational knowledge
     - **Compliance** - You need audit trails and transaction logging
     - **Production Workloads** - Mission-critical applications requiring ACID guarantees
+
+    *Note: Embedded-only in v0.17. For Service deployments, use `s3` instead.*
   </Tab>
 
-  <Tab title="Use Redis">
+  <Tab title="Use Redis (embedded)">
     - **Performance** - Sub-millisecond latency is critical to your application
     - **Scale** - You need to handle high concurrent query loads
     - **Real-time** - Your application provides real-time recommendations or search
     - **Caching** - You're implementing a high-performance caching layer
     - **Session Storage** - Temporary data with fast access requirements
+
+    *Note: Embedded-only in v0.17. For Service deployments, use `s3` instead.*
   </Tab>
 
   <Tab title="Use S3">

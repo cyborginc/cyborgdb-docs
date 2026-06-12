@@ -161,6 +161,7 @@
                     "group": "Advanced",
                     "pages": [
                       "versions/v0.17.x/service/guides/advanced/managing-keys",
+                      "versions/v0.17.x/service/guides/advanced/kms-byok",
                       "versions/v0.17.x/service/guides/advanced/env-vars",
                       "versions/v0.17.x/service/guides/advanced/configure-index",
                       "versions/v0.17.x/service/guides/advanced/train-index",
