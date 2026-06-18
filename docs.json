@@ -45,11 +45,23 @@
       "destination": "/versions/v0.16.x/service/python-sdk/introduction"
     },
     {
+      "source": "/py",
+      "destination": "/versions/v0.16.x/service/python-sdk/introduction"
+    },
+    {
       "source": "/js-sdk",
       "destination": "/versions/v0.16.x/service/js-ts-sdk/introduction"
     },
     {
+      "source": "/js",
+      "destination": "/versions/v0.16.x/service/js-ts-sdk/introduction"
+    },
+    {
       "source": "/go-sdk",
+      "destination": "/versions/v0.16.x/service/go-sdk/introduction"
+    },
+    {
+      "source": "/go",
       "destination": "/versions/v0.16.x/service/go-sdk/introduction"
     },
     {
