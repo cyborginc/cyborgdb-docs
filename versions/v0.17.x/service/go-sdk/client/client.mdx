@@ -135,10 +135,11 @@ import (
 )
 
 func createIndex(client *cyborgdb.Client, key []byte) error {
+    dimension := int32(768)
     params := &cyborgdb.CreateIndexParams{
         IndexName: "my-index",
         IndexKey:  key,
-        IndexConfig: cyborgdb.IndexIVFFlat(768),
+        Dimension: &dimension,
     }
 
     _, err := client.CreateIndex(context.Background(), params)

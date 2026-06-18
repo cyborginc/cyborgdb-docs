@@ -318,7 +318,7 @@ If you provided an `embedding_model` during index creation, you can automaticall
 ```python Python SDK icon="python"
 # ... index creation and embedding model setup
 embedding_model = "all-MiniLM-L6-v2"
-index = client.create_index("my_index", index_key, index_config, embedding_model)
+index = client.create_index("my_index", index_key=index_key, embedding_model=embedding_model)
 
 # ... Add items to the encrypted index ...
 
@@ -333,7 +333,7 @@ results = index.query(query_contents=query_contents, top_k=top_k)
 ```javascript JavaScript SDK icon="js"
 // ... index creation and embedding model setup
 const embeddingModel = "all-MiniLM-L6-v2";
-const index = await client.createIndex({ indexName: "my_index", indexKey, indexConfig, embeddingModel });
+const index = await client.createIndex({ indexName: "my_index", indexKey, embeddingModel });
 
 // ... Add items to the encrypted index ...
 
@@ -353,7 +353,7 @@ import { QueryRequest, QueryResponse, EncryptedIndex } from 'cyborgdb';
 
 // ... index creation and embedding model setup
 const embeddingModel: string = "all-MiniLM-L6-v2";
-const index: EncryptedIndex = await client.createIndex({ indexName: "my_index", indexKey, indexConfig, embeddingModel });
+const index: EncryptedIndex = await client.createIndex({ indexName: "my_index", indexKey, embeddingModel });
 
 // ... Add items to the encrypted index ...
 

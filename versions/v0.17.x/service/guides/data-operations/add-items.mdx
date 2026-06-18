@@ -304,9 +304,8 @@ If you provided an `embedding_model` during index creation, you can automaticall
 # ... index creation and embedding model setup
 embedding_model = "all-MiniLM-L6-v2"
 index = client.create_index(
-  index_name="my_index", 
-  index_key=index_key, 
-  index_config=index_config, 
+  index_name="my_index",
+  index_key=index_key,
   embedding_model=embedding_model
 )
 
@@ -323,11 +322,10 @@ index.upsert(items)
 ```javascript JavaScript SDK icon="js"
 // ... index creation and embedding model setup
 const embeddingModel = "all-MiniLM-L6-v2";
-const index = await client.createIndex({ 
-    indexName: "my_index", 
-    indexKey, 
-    indexConfig, 
-    embeddingModel 
+const index = await client.createIndex({
+    indexName: "my_index",
+    indexKey,
+    embeddingModel
 });
 
 // Items to add to the encrypted index
@@ -346,10 +344,9 @@ import { VectorItem, UpsertRequest, EncryptedIndex, CreateIndexRequest } from 'c
 // ... index creation and embedding model setup
 const embeddingModel: string = "all-MiniLM-L6-v2";
 const indexParams: CreateIndexRequest = {
-    indexName: "my_index", 
-    indexKey, 
-    indexConfig, 
-    embeddingModel 
+    indexName: "my_index",
+    indexKey,
+    embeddingModel
 };
 const index: EncryptedIndex = await client.createIndex(indexParams);
 
