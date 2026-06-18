@@ -28,6 +28,7 @@ func (e *EncryptedIndex) Query(ctx context.Context, input QueryInput) (*QueryRes
 | `Filters` | `map[string]interface{}` | _(Optional)_ Metadata filters to apply |
 | `Include` | `[]string` | _(Optional)_ Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"`. Defaults to `[]` (only `id` is returned) |
 | `Greedy` | `*bool` | _(Optional)_ Use greedy search algorithm |
+| `RerankMult` | `*int32` | _(Optional)_ Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `TopK * RerankMult` candidates before reranking narrows to `TopK`. Server default: `10`. Ignored by indexes that do not rerank. |
 
 ### Returns
 

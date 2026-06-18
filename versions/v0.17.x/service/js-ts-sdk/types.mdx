@@ -154,6 +154,7 @@ Interface for performing similarity search in the encrypted index.
 | `topK` | `number` | No | `undefined` (server default: 100) | Number of nearest neighbors to return |
 | `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during query. Auto-determined when undefined for optimal performance. |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
+| `rerankMult` | `number` | No | `undefined` (server default: 10) | Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `topK * rerankMult` candidates before reranking narrows to `topK`. Ignored by indexes that do not rerank. |
 | `filters` | `object \| null` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
 | `include` | `string[]` | No | `undefined` (server default: `[]` — only `id` is returned) | Fields to include in response. Note: `id` is always included. |
 
@@ -167,6 +168,7 @@ const queryRequest: QueryRequest = {
     topK: 10,
     nProbes: 5,
     greedy: false,
+    rerankMult: 20,
     filters: { category: 'research' },
     include: ['distance', 'metadata', 'vector']
 };
@@ -186,6 +188,7 @@ Interface for performing batch similarity searches with multiple vectors.
 | `topK` | `number` | No | `undefined` (server default: 100) | Number of nearest neighbors to return per query |
 | `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during each query. Auto-determined when undefined. |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
+| `rerankMult` | `number` | No | `undefined` (server default: 10) | Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `topK * rerankMult` candidates before reranking narrows to `topK`. Ignored by indexes that do not rerank. |
 | `filters` | `object` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
 | `include` | `string[]` | No | `undefined` (server default: `[]` — only `id` is returned) | Fields to include in response. Note: `id` is always included. |
 
@@ -221,6 +224,7 @@ Interface for training an index to optimize query performance.
 | `batchSize` | `number` | No | Size of each batch for training |
 | `maxIters` | `number` | No | Maximum iterations for training |
 | `tolerance` | `number` | No | Convergence tolerance for training |
+| `maxMemory` | `number` | No | Maximum memory usage in MB during training. `0` = no limit. |
 
 ### Example Usage
 

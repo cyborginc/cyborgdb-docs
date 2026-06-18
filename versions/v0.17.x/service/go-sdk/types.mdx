@@ -237,6 +237,7 @@ type QueryParams struct {
     TopK              int32                  `json:"top_k"`
     NProbes           *int32                 `json:"n_probes,omitempty"`
     Greedy            *bool                  `json:"greedy,omitempty"`
+    RerankMult        *int32                 `json:"rerank_mult,omitempty"`
     Filters           map[string]interface{} `json:"filters,omitempty"`
     Include           []string               `json:"include"`
 }
@@ -252,5 +253,6 @@ type QueryParams struct {
 | `TopK` | `int32` | No | Number of nearest neighbors to return |
 | `NProbes` | `*int32` | No | Number of clusters to probe for search |
 | `Greedy` | `*bool` | No | Use greedy search algorithm |
+| `RerankMult` | `*int32` | No | Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `TopK * RerankMult` candidates before reranking. Server default: `10`. Ignored by indexes that do not rerank. |
 | `Filters` | `map[string]interface{}` | No | Metadata filters to apply |
 | `Include` | `[]string` | No | Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"`. Defaults to `[]` (only `id` is returned) |
