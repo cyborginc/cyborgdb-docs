@@ -162,6 +162,7 @@
                     "pages": [
                       "versions/v0.17.x/service/guides/advanced/managing-keys",
                       "versions/v0.17.x/service/guides/advanced/kms-byok",
+                      "versions/v0.17.x/service/guides/advanced/multi-tenancy",
                       "versions/v0.17.x/service/guides/advanced/env-vars",
                       "versions/v0.17.x/service/guides/advanced/configure-index",
                       "versions/v0.17.x/service/guides/advanced/train-index",
@@ -209,6 +210,14 @@
                       "versions/v0.17.x/service/rest-api/getters/describe-index",
                       "versions/v0.17.x/service/rest-api/getters/get-vector-count"
                     ]
+                  },
+                  {
+                    "group": "Users (RBAC)",
+                    "pages": [
+                      "versions/v0.17.x/service/rest-api/users/create-user",
+                      "versions/v0.17.x/service/rest-api/users/list-users",
+                      "versions/v0.17.x/service/rest-api/users/delete-user"
+                    ]
                   }
                 ]
               },
@@ -242,7 +251,8 @@
                       "versions/v0.17.x/service/python-sdk/encrypted-index/get",
                       "versions/v0.17.x/service/python-sdk/encrypted-index/list-ids",
                       "versions/v0.17.x/service/python-sdk/encrypted-index/delete",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/delete-index"
+                      "versions/v0.17.x/service/python-sdk/encrypted-index/delete-index",
+                      "versions/v0.17.x/service/python-sdk/encrypted-index/users"
                     ]
                   },
                   {
@@ -284,7 +294,8 @@
                       "versions/v0.17.x/service/js-ts-sdk/encrypted-index/get",
                       "versions/v0.17.x/service/js-ts-sdk/encrypted-index/list-ids",
                       "versions/v0.17.x/service/js-ts-sdk/encrypted-index/delete",
-                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/delete-index"
+                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/delete-index",
+                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/users"
                     ]
                   },
                   {
@@ -327,7 +338,8 @@
                       "versions/v0.17.x/service/go-sdk/encrypted-index/list-ids",
                       "versions/v0.17.x/service/go-sdk/encrypted-index/delete",
                       "versions/v0.17.x/service/go-sdk/encrypted-index/delete-index",
-                      "versions/v0.17.x/service/go-sdk/encrypted-index/check-training-status"
+                      "versions/v0.17.x/service/go-sdk/encrypted-index/check-training-status",
+                      "versions/v0.17.x/service/go-sdk/encrypted-index/users"
                     ]
                   },
                   {

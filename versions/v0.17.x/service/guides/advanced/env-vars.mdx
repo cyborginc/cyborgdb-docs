@@ -26,6 +26,17 @@ the new `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.
 
 <Warning>The service refuses to start without `CYBORGDB_API_KEY`. Storage configuration is optional — `disk` is used by default.</Warning>
 
+## RBAC / Multi-Tenancy
+
+CyborgDB Service can run in single-key mode (default) or with role-based access control enabled. RBAC is opt-in: setting `CYBORGDB_ROOT_API_KEY` switches the service into RBAC mode, after which the legacy single key is no longer accepted on index routes — only the root key or a minted per-user `cdbk_…` key.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `CYBORGDB_ROOT_API_KEY` | When set, enables RBAC. The holder of this key has full admin access and can mint per-user API keys via `POST /v1/indexes/{index_name}/users`. Per-user keys are scoped to one index with `read` / `write` permissions enforced cryptographically. | unset (RBAC off) |
+| `INDEX_KEK_CACHE_TTL_SECONDS` | TTL for plaintext index KEKs in the service-side cache. Shorter = faster KMS revocation propagation; longer = fewer KMS calls. | `60` |
+
+See the [Multi-Tenancy guide](./multi-tenancy) for the full operator playbook (key kinds, provisioning users, KMS-backed constraint, revocation).
+
 ## Storage Backend
 
 Pick one of `memory`, `disk`, or `s3`. If `CYBORGDB_DB_TYPE` is unset,
@@ -145,12 +156,8 @@ export CYBORGDB_S3_SECRET_KEY=minioadmin
     <Accordion title="Per-index KMS">
         Per-index KMS (BYOK) is configured exclusively via the YAML
         file's `kms.registry` block — see the
-        [KMS / BYOK guide](./kms-byok). The only related environment
-        variable is the in-process KEK cache TTL:
-
-        | Variable | Description | Default |
-        |----------|-------------|---------|
-        | `INDEX_KEK_CACHE_TTL_SECONDS` | TTL for plaintext KEKs in the service-side cache. Shorter = faster KMS revocation propagation; longer = fewer KMS calls. | `60` |
+        [KMS / BYOK guide](./kms-byok). The related environment
+        variable is documented above under **RBAC / Multi-Tenancy** (`INDEX_KEK_CACHE_TTL_SECONDS`).
     </Accordion>
 </AccordionGroup>
 
@@ -171,6 +178,9 @@ service:
   port: 8000
   require_api_key: true
   cyborgdb_service_log_level: INFO
+
+  # Optional: enable RBAC by setting a root API key. See ./multi-tenancy.
+  # cyborgdb_root_api_key: ${CYBORGDB_ROOT_API_KEY}
 
   # Storage backend: memory | disk | s3 (default: disk)
   cyborgdb_db_type: disk

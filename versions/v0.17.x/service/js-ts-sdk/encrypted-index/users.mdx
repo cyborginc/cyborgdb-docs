@@ -1,0 +1,105 @@
+---
+title: "User Management (RBAC)"
+sidebarTitle: "User Management"
+mode: "wide"
+---
+
+When the service runs with `CYBORGDB_ROOT_API_KEY` set, the JS/TS SDK exposes per-index user provisioning on `EncryptedIndex`. These calls require the client to be using the root API key.
+
+<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator-side playbook (modes, key kinds, KMS-backed constraint).</Note>
+
+## createUser
+
+Mint a per-user API key scoped to this index.
+
+```typescript
+async createUser({
+    permissions: string[]
+}): Promise<{ userId: string; apiKey: string }>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `permissions` | `string[]` | Non-empty subset of `["read", "write"]`. Enforced cryptographically by the service. |
+
+### Returns
+
+`Promise<{ userId, apiKey }>`:
+
+| Field | Type | Description |
+|---|---|---|
+| `userId` | `string` | Hex-encoded identifier for the new user. |
+| `apiKey` | `string` | The user's API key (`cdbk_…`). **Returned exactly once and never stored** — capture it now. |
+
+<Warning>The `apiKey` is shown only in this response and is never persisted by the service. Hand it to the user securely. If lost, revoke and re-mint.</Warning>
+
+### Example
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const admin = new Client({ baseUrl: 'http://localhost:8000', apiKey: ROOT_KEY });
+const index = await admin.loadIndex({ indexName: 'documents' });  // KMS-backed: no indexKey
+
+const { userId, apiKey } = await index.createUser({ permissions: ['read', 'write'] });
+// capture apiKey once — never recoverable
+```
+
+### Errors
+
+- Throws if `permissions` is empty/invalid, the client is not using the root key, or RBAC is not enabled.
+
+---
+
+## listUsers
+
+List the users provisioned for this index.
+
+```typescript
+async listUsers(): Promise<{ userId: string; permissions: string[] }[]>
+```
+
+### Returns
+
+Array of `{ userId, permissions }`. Permissions are derived from which wrapped DEKs exist for the user.
+
+### Example
+
+```typescript
+const users = await index.listUsers();
+for (const u of users) {
+    console.log(u.userId, u.permissions);
+}
+```
+
+### Errors
+
+- Throws if the client is not using the root key, or RBAC is not enabled.
+
+---
+
+## deleteUser
+
+Revoke a user. Erases their wrapped DEK(s) for this index — even a captured `cdbk_…` token becomes useless on the next request. No propagation lag.
+
+```typescript
+async deleteUser({ userId }: { userId: string }): Promise<void>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `userId` | `string` | Hex `userId` from `createUser` (or `listUsers`). |
+
+### Example
+
+```typescript
+await index.deleteUser({ userId: 'a1b2c3d4e5f6' });
+```
+
+### Errors
+
+- Throws if `userId` is invalid, the client is not using the root key, or RBAC is not enabled.

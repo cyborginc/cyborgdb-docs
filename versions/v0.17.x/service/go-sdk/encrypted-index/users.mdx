@@ -1,0 +1,110 @@
+---
+title: "User Management (RBAC)"
+sidebarTitle: "User Management"
+mode: "wide"
+---
+
+When the service runs with `CYBORGDB_ROOT_API_KEY` set, the Go SDK exposes per-index user provisioning on `*EncryptedIndex`. These calls require the client to be using the root API key.
+
+<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator-side playbook (modes, key kinds, KMS-backed constraint).</Note>
+
+## CreateUser
+
+Mint a per-user API key scoped to this index.
+
+```go
+func (e *EncryptedIndex) CreateUser(ctx context.Context, permissions []string) (*CreatedUser, error)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `ctx` | `context.Context` | Context for cancellation and timeouts. |
+| `permissions` | `[]string` | Non-empty subset of `{"read", "write"}`. Enforced cryptographically by the service. |
+
+### Returns
+
+| Type | Description |
+|---|---|
+| `*CreatedUser` | `{ UserID string; APIKey string }`. The `APIKey` (`cdbk_…`) is returned **exactly once** and is never stored. |
+| `error` | Any error encountered. |
+
+<Warning>The `APIKey` is shown only in this response and is never persisted by the service. Hand it to the user securely. If lost, revoke and re-mint.</Warning>
+
+### Example
+
+```go
+admin, _ := cyborgdb.NewClient("http://localhost:8000", rootKey)
+index, _ := admin.LoadIndex(context.Background(), "documents", nil)
+
+user, err := index.CreateUser(context.Background(), []string{"read", "write"})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(user.UserID, user.APIKey)  // capture once
+```
+
+### Errors
+
+- Returns error if `permissions` is empty/invalid, the client is not using the root key, or RBAC is not enabled.
+
+---
+
+## ListUsers
+
+List the users provisioned for this index.
+
+```go
+func (e *EncryptedIndex) ListUsers(ctx context.Context) ([]UserInfo, error)
+```
+
+### Returns
+
+`[]UserInfo` — each contains `UserID` (hex) and `Permissions` (subset of `{"read", "write"}`).
+
+### Example
+
+```go
+users, err := index.ListUsers(context.Background())
+if err != nil {
+    log.Fatal(err)
+}
+for _, u := range users {
+    fmt.Println(u.UserID, u.Permissions)
+}
+```
+
+### Errors
+
+- Returns error if the client is not using the root key, or RBAC is not enabled.
+
+---
+
+## DeleteUser
+
+Revoke a user. Erases their wrapped DEK(s) for this index — even a captured `cdbk_…` token becomes useless on the next request. No propagation lag.
+
+```go
+func (e *EncryptedIndex) DeleteUser(ctx context.Context, userID string) error
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `ctx` | `context.Context` | Context for cancellation and timeouts. |
+| `userID` | `string` | Hex `UserID` from `CreateUser` (or `ListUsers`). |
+
+### Example
+
+```go
+err := index.DeleteUser(context.Background(), "a1b2c3d4e5f6")
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+### Errors
+
+- Returns error if `userID` is invalid, the client is not using the root key, or RBAC is not enabled.

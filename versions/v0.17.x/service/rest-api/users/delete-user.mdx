@@ -1,0 +1,59 @@
+---
+title: "Delete User"
+mode: "wide"
+api: "DELETE /v1/indexes/{index_name}/users/{user_id}"
+playground: "simple"
+---
+
+Revoke a user. Erases their wrapped DEK(s) for this index — even a captured `cdbk_…` token becomes useless on the next request. Cryptographic revocation, no propagation lag.
+
+<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the full operator playbook.</Note>
+
+## Authentication
+
+Required — root API key in the `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_root_api_key_here
+```
+
+## Path Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `index_name` | `string` | Name of the index the user is scoped to. |
+| `user_id` | `string` | Hex-encoded `user_id` returned by `POST /v1/indexes/{index_name}/users` (also surfaced by `GET …/users`). |
+
+## Headers
+
+| Header | Type | Description |
+|---|---|---|
+| `X-Index-Key` | `string` | _(Optional)_ 32-byte index KEK as a hex string. Required for SDK-supplied indexes (`provider: none`). Omit for KMS-backed indexes — the service resolves the KEK via the stored `KMSBlob`. |
+
+## Response
+
+`204 No Content` on success — body is empty.
+
+## Exceptions
+
+- `400`: `user_id` is not valid hex.
+- `401`: Authentication failed (invalid root API key).
+- `403`: RBAC is not enabled, or the caller is not using the root key.
+- `404`: Index or user not found.
+- `500`: Internal server error.
+
+## Example Usage
+
+```bash
+curl -X DELETE "http://localhost:8000/v1/indexes/documents/users/a1b2c3d4e5f6" \
+     -H "X-API-Key: cyborg_your_root_api_key_here"
+```
+
+**Verify revocation:**
+```bash
+# Any subsequent request using the revoked cdbk_... key will fail with 401
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: cdbk_revoked_key" \
+     -H "Content-Type: application/json" \
+     -d '{ "index_name": "documents", "query_vectors": [0.1, 0.2, 0.3] }'
+```
