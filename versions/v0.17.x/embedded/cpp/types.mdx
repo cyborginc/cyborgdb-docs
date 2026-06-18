@@ -8,10 +8,9 @@ The `Location` enum contains the supported index backing store locations for Cyb
 
 ```cpp
 enum class Location {
-    kRedis,             // In-memory storage via Redis
-    kMemory,            // Temporary in-memory storage
-    kPostgres,          // Relational database storage
     kRocksDB,           // Local persistent storage via RocksDB
+    kS3,                // AWS S3 or any S3-compatible object store
+    kMemory,            // Temporary in-memory storage
     kThreadSafeMemory,  // Thread-safe in-memory storage
     kNone               // Undefined storage type
 };
@@ -38,19 +37,21 @@ explicit DBConfig(Location location,
 | Parameter | Type | Description |
 |------------------------|-------------------------|-------------------------|
 | `location` | [`Location`](#location) | Specifies the type of storage location. |
-| `table_name` | `std::string` | _(Optional)_ Name of the table in the database, if applicable. Defaults to `std::nullopt`. |
-| `db_connection_string` | `std::string` | _(Optional)_ Connection string for database access, if applicable. Defaults to `std::nullopt`. |
+| `table_name` | `std::string` | _(Optional)_ Reserved; no current `Location` uses it in v0.17. Defaults to `std::nullopt`. |
+| `db_connection_string` | `std::string` | _(Optional)_ Connection string or path for the chosen location (e.g. RocksDB data directory, S3 URI). Defaults to `std::nullopt`. |
 
 
 ### Example Usage
 
 ```cpp
-cyborg::DBConfig index_loc(Location::kRedis, std::nullopt, "redis://localhost");
-cyborg::DBConfig config_loc(Location::kRedis, std::nullopt, "redis://localhost");
-cyborg::DBConfig items_loc(Location::kPostgres, "items", "host=localhost dbname=postgres");
-
 // RocksDB (recommended for embedded/local deployments)
 cyborg::DBConfig rocksdb_loc(Location::kRocksDB, std::nullopt, "~/.cyborgdb/data");
+
+// S3 (cloud-native)
+cyborg::DBConfig s3_loc(Location::kS3, std::nullopt, "s3://my-bucket?region=us-east-1");
+
+// In-memory (testing only)
+cyborg::DBConfig mem_loc(Location::kThreadSafeMemory);
 ```
 
 For more info, you can read about supported backing stores [here](../../intro/backing-stores).

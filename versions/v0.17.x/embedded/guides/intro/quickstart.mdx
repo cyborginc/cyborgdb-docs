@@ -61,8 +61,8 @@ Get started with CyborgDB in minutes.
         import cyborgdb_core as cyborgdb
         import secrets
 
-        # Using `rocksdb` for simple persistent local storage
-        # `redis`, `postgres`, `memory`, and `threadsafememory` are also supported
+        # Using `rocksdb` for simple persistent local storage.
+        # `s3`, `memory`, and `threadsafememory` are also supported.
 
         index_location = cyborgdb.DBConfig("rocksdb")  # Where encrypted index is stored (for queries)
         config_location = cyborgdb.DBConfig("rocksdb") # Where encrypted index config is stored (for config/loading)
@@ -87,8 +87,8 @@ Get started with CyborgDB in minutes.
         #include <string>
         #include <openssl/rand.h>
 
-        // Using `rocksdb` for simple persistent local storage
-        // `redis`, `postgres`, `memory`, and `threadsafememory` are also supported
+        // Using `rocksdb` for simple persistent local storage.
+        // `kS3`, `kMemory`, and `kThreadSafeMemory` are also supported.
 
         cyborg::DBConfig index_location(cyborg::Location::kRocksDB);  // Where encrypted index is stored (for queries)
         cyborg::DBConfig config_location(cyborg::Location::kRocksDB); // Where encrypted index config is stored (for config/loading)

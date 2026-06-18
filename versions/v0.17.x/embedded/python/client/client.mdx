@@ -49,9 +49,9 @@ Initializes a new CyborgDB `Client` instance.
 import cyborgdb_core as cyborgdb
 
 api_key = "your_api_key_here"
-index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-items_location = cyborgdb.DBConfig(location='postgres', table_name="items", connection_string="host=localhost dbname=postgres")
+index_location = cyborgdb.DBConfig(location='rocksdb')
+config_location = cyborgdb.DBConfig(location='rocksdb')
+items_location = cyborgdb.DBConfig(location='rocksdb')
 
 # Example 1: Enable GPU for specific operations (upsert and train)
 gpu_config = cyborgdb.GPUConfig(upsert=True, train=True)

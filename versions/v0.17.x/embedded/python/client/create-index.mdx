@@ -50,9 +50,9 @@ def create_index(self,
 import cyborgdb_core as cyborgdb
 import secrets
 
-index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-items_location = cyborgdb.DBConfig(location='postgres', table_name="items", connection_string="host=localhost dbname=postgres")
+index_location = cyborgdb.DBConfig(location='rocksdb')
+config_location = cyborgdb.DBConfig(location='rocksdb')
+items_location = cyborgdb.DBConfig(location='rocksdb')
 
 client = cyborgdb.Client(
     api_key=api_key,
@@ -77,9 +77,9 @@ index = client.create_index(
 import cyborgdb_core as cyborgdb
 import secrets
 
-index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-items_location = cyborgdb.DBConfig(location='postgres', table_name="items", connection_string="host=localhost dbname=postgres")
+index_location = cyborgdb.DBConfig(location='rocksdb')
+config_location = cyborgdb.DBConfig(location='rocksdb')
+items_location = cyborgdb.DBConfig(location='rocksdb')
 
 client = cyborgdb.Client(
     api_key=api_key, 
