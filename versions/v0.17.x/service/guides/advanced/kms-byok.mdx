@@ -15,6 +15,55 @@ This page is service-only. The embedded libraries' KMS story is
 covered separately under [Managing Encryption Keys](./managing-keys).
 </Note>
 
+<Warning>
+**When KMS-backed, omit `index_key` everywhere.** Migrating an index from the SDK-supplied path to KMS-backed means **removing `index_key` from every call** — `create_index`, `load_index`, `upsert`, `query`, `get`, `delete`, `delete_index`. The service resolves the KEK server-side from the stored `KMSBlob`; supplying `index_key` against a real KMS slot is rejected with HTTP 400. If your code still passes a key, the rejection is loud — but worth a single search-and-clean pass before you ramp.
+</Warning>
+
+## AWS access — what the service expects
+
+The service uses the **standard AWS credential provider chain** to reach `aws-kms` and `aws` (Secrets Manager) slots. The exact resolution depends on where you run it:
+
+| Environment | What you set | What the service uses |
+|---|---|---|
+| EC2 / ECS / EKS (same account) | Nothing — attach an IAM role to the instance/task with the required KMS or Secrets Manager permissions | Instance/task role via IMDS |
+| EC2 / ECS / EKS (cross-account, BYOK) | `role_arn` + `external_id` on the registry slot | Instance/task role → `sts:AssumeRole` into the customer role |
+| Off-AWS / local | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` (and optionally `AWS_SESSION_TOKEN`) env vars, or `AWS_PROFILE` pointing at `~/.aws/credentials` | Default chain picks them up |
+| Off-AWS, BYOK | Local credentials *plus* `role_arn` + `external_id` on the slot | Local creds → `sts:AssumeRole` |
+
+<Note>The `CYBORGDB_S3_*` storage credentials are deliberately **separate** from `AWS_*` KMS credentials. KMS uses the AWS default chain (or AssumeRole); S3 storage with a custom endpoint uses its own explicit keys. This means your storage backend (MinIO, R2, etc.) and your KMS (AWS) cannot accidentally end up sharing credentials.</Note>
+
+### Required IAM permissions (per provider)
+
+**`provider: aws-kms`** — on the wrap key:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["kms:Encrypt", "kms:Decrypt"],
+    "Resource": "<KMS_KEY_ARN>"
+  }]
+}
+```
+
+For same-account setups, these permissions can live on the KMS key's **key policy** (preferred) or on the runtime principal's IAM policy.
+
+**`provider: aws`** (Secrets Manager) — on the secret:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "secretsmanager:GetSecretValue",
+    "Resource": "<FULL_SECRET_ARN>-*"
+  }]
+}
+```
+
+The trailing `-*` is required (Secrets Manager appends 6 random characters to every secret ARN).
+
 ## Model
 
 CyborgDB Service uses a two-key hierarchy per index:

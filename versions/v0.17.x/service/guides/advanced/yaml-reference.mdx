@@ -1,0 +1,195 @@
+---
+title: "YAML Configuration Reference"
+sidebarTitle: "YAML Reference"
+mode: "wide"
+---
+
+CyborgDB Service can be configured entirely via environment variables, entirely via a YAML file, or any mix of the two. This page is the canonical, exhaustive YAML reference — every key the service understands, what it does, and what its default is.
+
+For prose explanations and end-to-end walkthroughs, see:
+
+- [Environment Variables](./env-vars) — the env-var equivalents of every key here.
+- [Per-Index KMS & BYOK](./kms-byok) — the `kms.registry` block, in depth.
+- [Multi-Tenancy & RBAC](./multi-tenancy) — the `cyborgdb_root_api_key` key and its operator implications.
+
+## Resolution and precedence
+
+The service resolves a YAML file in this order (first hit wins):
+
+1. The `CYBORGDB_CONFIG_FILE` environment variable. Missing path = hard error.
+2. `./cyborgdb.yaml`
+3. `./cyborgdb.yml`
+4. `/etc/cyborgdb/cyborgdb.yaml`
+
+A missing file is fine — the service falls back to env-only.
+
+Settings precedence, highest to lowest:
+
+1. Init args (programmatic embedding)
+2. Environment variables
+3. `.env` file
+4. YAML file
+5. File secrets
+
+## Env-var substitution
+
+Any string value in the YAML may reference an environment variable:
+
+- `${VAR}` — required. Startup fails if `VAR` is unset.
+- `${VAR:-default}` — uses `default` when `VAR` is unset.
+
+A variable set to the **empty string counts as unset**. Use this pattern to keep BYOK role ARNs, account IDs, and credentials out of the checked-in YAML.
+
+## Full schema
+
+```yaml cyborgdb.yaml
+service:
+  # ---- Server ----
+  port: 8000                                       # int. Default: 8000.
+  require_api_key: true                            # bool. Default: true.
+  cyborgdb_service_log_level: INFO                 # DEBUG | INFO | WARNING | ERROR. Default: INFO.
+
+  # ---- TLS / HTTPS (optional; both required, both must exist on disk) ----
+  ssl_cert_path: /etc/cyborgdb/tls/cert.pem        # string. Default: unset (HTTP).
+  ssl_key_path:  /etc/cyborgdb/tls/key.pem         # string. Default: unset (HTTP).
+
+  # ---- Authentication ----
+  cyborgdb_api_key: ${CYBORGDB_API_KEY}            # string. REQUIRED. The X-API-Key clients send.
+  cyborgdb_root_api_key: ${CYBORGDB_ROOT_API_KEY}  # string. Optional. When set, enables RBAC.
+                                                   # See ./multi-tenancy.
+
+  # ---- Storage backend ----
+  cyborgdb_db_type: disk                           # memory | disk | s3. Default: disk.
+  cyborgdb_disk_path: /var/lib/cyborgdb            # string. disk only. Default: ~/.cyborgdb/data
+                                                   # (or /app/cyborgdb_data in Docker).
+
+  # S3 settings (used only when cyborgdb_db_type: s3)
+  cyborgdb_s3_bucket: my-bucket                    # string. REQUIRED for s3.
+  cyborgdb_s3_region: us-east-1                    # string. Optional. Default: us-east-1.
+  cyborgdb_s3_prefix: cyborgdb/                    # string. Optional. Default: unset.
+  cyborgdb_s3_endpoint: https://minio.internal:9000 # string. Optional. Required for non-AWS endpoints.
+  cyborgdb_s3_access_key: ${MINIO_ACCESS_KEY}      # string. Required with cyborgdb_s3_endpoint.
+  cyborgdb_s3_secret_key: ${MINIO_SECRET_KEY}      # string. Required with cyborgdb_s3_endpoint.
+  cyborgdb_s3_session_token: ${MINIO_SESSION_TOKEN} # string. Optional.
+
+  # ---- Per-keystore RAM cache (applied to every newly created index) ----
+  cache_policy_vectors:  false                     # bool. Default: false.
+  cache_policy_metadata: false                     # bool. Default: false.
+  cache_policy_ids:      false                     # bool. Default: false.
+
+  # ---- Performance ----
+  cpu_threads: 0                                   # int. 0 = auto-detect. Default: 0.
+  gpu_operations: none                             # none | upsert | train | all | comma-list.
+                                                   # Default: none. (Query GPU not yet supported.)
+  retrain_threshold: 10000                         # int. Auto-retrain trigger:
+                                                   # fires when num_vectors > n_lists * this.
+
+  # ---- KMS cache ----
+  index_kek_cache_ttl_seconds: 60                  # int. Default: 60. TTL for plaintext index KEKs
+                                                   # in the service-side cache. Shorter = faster
+                                                   # KMS revocation propagation; longer = fewer
+                                                   # KMS calls.
+
+# ---- Per-index KMS registry (optional; required only if any index uses kms_name) ----
+kms:
+  registry:
+    # Each child is a named slot referenced by create_index(kms_name=...).
+    <slot-name>:
+      provider: aws-kms                            # aws-kms | aws. REQUIRED per slot.
+                                                   #   aws-kms — AWS KMS (HSM-managed KEK).
+                                                   #   aws     — AWS Secrets Manager (KEK in
+                                                   #             Secrets Manager; local AES-GCM).
+      key_id:   alias/cyborgdb-default             # string. REQUIRED. KMS key id/ARN or
+                                                   # Secrets Manager name/ARN, depending on provider.
+      region:   us-east-1                          # string. REQUIRED.
+
+      # BYOK (cross-account access): optional triple.
+      role_arn:    ${ACME_BYOK_ROLE_ARN}           # string. Optional. Service calls sts:AssumeRole.
+      external_id: ${ACME_BYOK_EXTERNAL_ID}        # string. Required if role_arn set.
+      role_session_name: cyborgdb-acme             # string. Optional. Appears in customer's CloudTrail.
+```
+
+## Storage backend cheat sheet
+
+| Backend | Persistence | Required keys (beyond `cyborgdb_db_type`) | Credential source |
+|---|---|---|---|
+| `memory` | In-process only | — | n/a |
+| `disk` (default) | Embedded RocksDB on local disk | `cyborgdb_disk_path` (optional) | n/a |
+| `s3` (AWS, instance role) | AWS S3 | `cyborgdb_s3_bucket` | AWS default credential provider chain (instance/task role, env, profile) |
+| `s3` (AWS, explicit keys) | AWS S3 | `cyborgdb_s3_bucket` + `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` env vars | AWS default chain |
+| `s3` (S3-compatible: MinIO, R2, …) | MinIO/R2 etc. | `cyborgdb_s3_bucket`, `cyborgdb_s3_endpoint`, `cyborgdb_s3_access_key`, `cyborgdb_s3_secret_key` | Explicit `CYBORGDB_S3_*` only — AWS chain bypassed |
+
+<Note>The `CYBORGDB_S3_*` namespace is deliberately separate from `AWS_*` so storage and KMS credentials cannot collide. KMS (under `kms.registry`) uses the standard AWS credential chain or `sts:AssumeRole`; S3 storage uses its own explicit keys (or the chain if no explicit keys are set).</Note>
+
+## KMS provider matrix
+
+| Provider | Where the wrap key lives | KEK flow | When to choose |
+|---|---|---|---|
+| `aws-kms` | AWS KMS (HSM-managed) | Service generates KEK → `kms.Encrypt`. On load, `kms.Decrypt`. | HSM isolation; cleanest revocation semantics. |
+| `aws` | AWS Secrets Manager | Service generates KEK → AES-GCM-wraps under the Secrets Manager value. On load, fetches the secret and unwraps locally. | Cross-account BYOK where customers prefer Secrets Manager. |
+
+Both providers accept `role_arn` + `external_id` for cross-account (BYOK) access — the service calls `sts:AssumeRole` before reaching the key on every wrap or unwrap.
+
+## Minimal viable configs
+
+**Dev — disk, single key:**
+
+```yaml
+service:
+  cyborgdb_api_key: ${CYBORGDB_API_KEY}
+```
+
+**Production — S3 on AWS with instance role, TLS, RBAC:**
+
+```yaml
+service:
+  port: 8443
+  cyborgdb_api_key:      ${CYBORGDB_API_KEY}
+  cyborgdb_root_api_key: ${CYBORGDB_ROOT_API_KEY}
+  ssl_cert_path: /etc/ssl/certs/cyborgdb.crt
+  ssl_key_path:  /etc/ssl/private/cyborgdb.key
+  cyborgdb_db_type:   s3
+  cyborgdb_s3_bucket: cyborgdb-prod
+  cyborgdb_s3_region: us-east-1
+```
+
+**Production — MinIO + per-tenant BYOK:**
+
+```yaml
+service:
+  cyborgdb_api_key:      ${CYBORGDB_API_KEY}
+  cyborgdb_root_api_key: ${CYBORGDB_ROOT_API_KEY}
+  cyborgdb_db_type:      s3
+  cyborgdb_s3_bucket:    cyborgdb
+  cyborgdb_s3_endpoint:  https://minio.internal:9000
+  cyborgdb_s3_access_key: ${MINIO_ACCESS_KEY}
+  cyborgdb_s3_secret_key: ${MINIO_SECRET_KEY}
+  index_kek_cache_ttl_seconds: 30
+
+kms:
+  registry:
+    vendor-default:
+      provider: aws-kms
+      key_id:   alias/cyborgdb-default
+      region:   us-east-1
+    customer-acme:
+      provider:    aws
+      key_id:      customers/acme/wrap-key
+      region:      us-west-2
+      role_arn:    ${ACME_BYOK_ROLE_ARN}
+      external_id: ${ACME_BYOK_EXTERNAL_ID}
+```
+
+## Validation behavior
+
+- Invalid `cyborgdb_db_type` (anything not in `memory | disk | s3`) — startup fails fast with a clear error.
+- `CYBORGDB_CONFIG_FILE` set to a missing path — hard error.
+- `${VAR}` referencing an unset env var — hard error at parse time.
+- KMS slot with missing `provider`/`key_id`/`region` — load-time error when the first index references the slot.
+- `cyborgdb_s3_endpoint` set without explicit `cyborgdb_s3_access_key` + `cyborgdb_s3_secret_key` — startup fails (the AWS chain is bypassed for custom endpoints).
+
+## See also
+
+- [Environment Variables](./env-vars) — every key here has an env-var equivalent.
+- [Per-Index KMS & BYOK](./kms-byok) — operator + customer setup, rotation, troubleshooting.
+- [Multi-Tenancy & RBAC](./multi-tenancy) — the `cyborgdb_root_api_key` operator playbook.
