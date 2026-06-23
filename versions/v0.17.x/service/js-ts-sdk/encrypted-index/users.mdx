@@ -47,6 +47,15 @@ const { userId, apiKey } = await index.createUser({ permissions: ['read', 'write
 // capture apiKey once — never recoverable
 ```
 
+<Note>
+**KMS-backed vs SDK-supplied indexes.** `createUser` needs to unwrap the index's root DEK so it can re-wrap it under a fresh user key.
+
+- **KMS-backed** (`kmsName` set): the service unwraps the DEK server-side; the client just calls `createUser` on the loaded index — no `indexKey` is sent or required.
+- **SDK-supplied** (`indexKey` set at `loadIndex`): the SDK transparently forwards the index key to the server so it can perform the unwrap. The root client must have loaded the index with the correct `indexKey`, otherwise the call fails.
+
+The same asymmetry applies to `listUsers` and `deleteUser`.
+</Note>
+
 ### Errors
 
 - Throws if `permissions` is empty/invalid, the client is not using the root key, or RBAC is not enabled.

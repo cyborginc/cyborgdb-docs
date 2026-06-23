@@ -83,6 +83,10 @@ service:
                                                    # Default: none. (Query GPU not yet supported.)
   retrain_threshold: 10000                         # int. Auto-retrain trigger:
                                                    # fires when num_vectors > n_lists * this.
+  auto_train_disabled: false                       # bool. Default: false. Set to true to fully
+                                                   # disable post-upsert auto-training (explicit
+                                                   # train() / POST /v1/indexes/train still work).
+                                                   # Also implied when retrain_threshold < 0.
 
   # ---- KMS cache ----
   index_kek_cache_ttl_seconds: 60                  # int. Default: 60. TTL for plaintext index KEKs

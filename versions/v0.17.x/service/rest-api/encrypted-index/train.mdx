@@ -79,7 +79,7 @@ This endpoint blocks until training completes. It will return `"success"` when t
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key)
+- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
 - `422`: Invalid request parameters or insufficient vectors
 - `500`: Internal server error

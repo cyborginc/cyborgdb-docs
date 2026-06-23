@@ -35,12 +35,14 @@ func (e *EncryptedIndex) UpsertVectors(ctx context.Context, ids []string, vector
 
 ```go
 type VectorItem struct {
-    Id       string                 `json:"id"`                // Unique identifier
-    Vector   []float32              `json:"vector,omitempty"`  // Vector data
-    Contents NullableContents       `json:"contents,omitempty"` // Optional text content
+    Id       string                 `json:"id"`                 // Unique identifier
+    Vector   []float32              `json:"vector,omitempty"`   // Vector data
+    Contents internal.NullableContents `json:"contents,omitempty"` // Optional payload (see types reference)
     Metadata map[string]interface{} `json:"metadata,omitempty"` // Optional metadata
 }
 ```
+
+<Note>`Contents` is a generated nullable wrapper and is not directly constructible from the public package. See the [Types reference](../types#vectoritem) for the helper-based setter pattern; most Go code leaves it zero-valued.</Note>
 
 ### Returns
 

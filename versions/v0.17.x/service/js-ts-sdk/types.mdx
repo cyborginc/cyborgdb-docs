@@ -440,25 +440,17 @@ const health: HealthResponse = await client.getHealth();
 console.log(`Service status: ${health.status}`);
 ```
 
-### TrainingStatus
+### Training status
 
-Response interface for training status queries.
-
-#### Properties
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `training_indexes` | `string[]` | Array of index names currently being trained |
-| `retrain_threshold` | `number` | The multiplier used for the retraining threshold |
-
-#### Example Usage
+There is no public `TrainingStatus` type in v0.17. Use `index.isTraining()` on an `EncryptedIndex` instance — it returns a `Promise<boolean>` indicating whether _this_ index is currently being trained (or queued for training) on the server.
 
 ```typescript
-import { TrainingStatus } from 'cyborgdb';
-
-const status: TrainingStatus = await client.isTraining();
-console.log(`Training indexes: ${status.training_indexes.join(', ')}`);
+if (await index.isTraining()) {
+    console.log('Training in progress for this index');
+}
 ```
+
+Internally, this calls the global `/v1/indexes/training-status` endpoint and tests whether the index name is in the returned `trainingIndexes` list. The full server-side response shape (`trainingIndexes`, `retrainThreshold`, `currentlyTraining`, `queuedIndexes`, `workerRunning`) is the OpenAPI-generated `IndexTrainingStatusResponseModel` and is not part of the SDK's public surface.
 
 ### GetResponseModel
 

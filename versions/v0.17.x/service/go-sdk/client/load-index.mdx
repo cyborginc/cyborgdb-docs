@@ -77,7 +77,7 @@ func main() {
 
     log.Printf("Loaded index: %s", index.GetIndexName())
 
-    dim, _ := index.GetDimension(ctx)
+    dim, _ := index.Dimension(ctx)
     log.Printf("Dimension: %d", dim)
 
     trained, err := index.IsTrained(ctx)

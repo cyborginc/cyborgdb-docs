@@ -104,7 +104,7 @@ In rare cases where the training check encounters an error but the upsert operat
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key)
+- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
 - `422`: Invalid request parameters or vector dimensions
 - `500`: Internal server error

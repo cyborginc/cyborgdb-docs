@@ -9,9 +9,9 @@ Represents a single vector with its associated data.
 
 ```go
 type VectorItem struct {
-    Id       string                 `json:"id"`                // Unique identifier
-    Vector   []float32              `json:"vector,omitempty"`  // Vector data
-    Contents NullableContents       `json:"contents,omitempty"` // Optional text content  
+    Id       string                 `json:"id"`                 // Unique identifier
+    Vector   []float32              `json:"vector,omitempty"`   // Vector data
+    Contents internal.NullableContents `json:"contents,omitempty"` // Optional payload (see note)
     Metadata map[string]interface{} `json:"metadata,omitempty"` // Optional metadata
 }
 ```
@@ -22,8 +22,12 @@ type VectorItem struct {
 |-------|------|-------------|
 | `Id` | `string` | Unique identifier for the vector (required) |
 | `Vector` | `[]float32` | The vector data as float32 slice |
-| `Contents` | `NullableContents` | Optional text content associated with the vector |
+| `Contents` | `internal.NullableContents` | Optional payload (string or bytes). See note below. |
 | `Metadata` | `map[string]interface{}` | Optional key-value pairs for filtering and retrieval |
+
+<Note>
+`Contents` is a generated nullable wrapper from the internal OpenAPI models — the type is not re-exported on the public package, so most Go code leaves the field zero-valued and relies on JSON round-tripping. If you need to set it from Go, use the generated helpers on the underlying `internal.VectorItem`: `item.SetContents(internal.Contents{String: &s})` or `item.SetContents(internal.Contents{Bytes: &b})`. Contents read back from `Get` / `Query` responses are accessible via the same nullable accessors.
+</Note>
 
 
 ---

@@ -18,13 +18,23 @@ and `redis` backends — and the catch-all `CYBORGDB_CONNECTION_STRING`
 the new `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.
 </Note>
 
-## Required Environment Variables
+## API Key and Tiers
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `CYBORGDB_API_KEY` | Your CyborgDB API key. Also the value clients must send in the `X-API-Key` request header. | `cyborg_abc123...` |
+| `CYBORGDB_API_KEY` | _(Optional)_ Your CyborgDB license key. Doubles as the value clients must send in the `X-API-Key` request header when `REQUIRE_API_KEY=true`. If unset, the service runs in **free tier** mode (per-index cap of 1,000,000 items). Set a paid key for unlimited usage. | `cyborg_abc123...` |
 
-<Warning>The service refuses to start without `CYBORGDB_API_KEY`. Storage configuration is optional — `disk` is used by default.</Warning>
+<Note>
+**Free tier vs paid.** `CYBORGDB_API_KEY` is the single switch between the two:
+
+- **Unset** → free tier. cyborgdb-core enforces a 1M-item-per-index cap. The startup banner prints `CYBORGDB_API_KEY not set — running in free tier`. For evaluation only.
+- **Set to a paid key** (from the [CyborgDB dashboard](https://cyborgdb.co/)) → unlimited items, full feature set.
+- **Set to a demo key** (from `cyborgdb.get_demo_api_key()` / `getDemoApiKey()` / `cyborgdb.GetDemoAPIKey(...)`) → also free tier, time-limited. Useful for getting a real-looking key into `X-API-Key` without dashboard signup.
+
+In every case, the same value is what clients pass in the `X-API-Key` header (assuming `REQUIRE_API_KEY=true`, the default).
+</Note>
+
+<Warning>Storage configuration is optional — `disk` is used by default.</Warning>
 
 ## RBAC / Multi-Tenancy
 
@@ -125,6 +135,8 @@ export CYBORGDB_S3_SECRET_KEY=minioadmin
         | `PORT` | HTTP port for the service | `8000` |
         | `CYBORGDB_SERVICE_LOG_LEVEL` | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
         | `REQUIRE_API_KEY` | Whether the `X-API-Key` header is required on requests | `true` |
+
+        <Warning>When `REQUIRE_API_KEY=true` (the default), clients must send a bearer credential in `X-API-Key`. That credential is `CYBORGDB_API_KEY` (legacy single-key auth, also the license key — see above) or `CYBORGDB_SERVICE_ROOT_KEY` (RBAC / multi-tenant). If neither is set, every request is rejected with 401 and the service emits a startup warning. To run unauthenticated, set `REQUIRE_API_KEY=false` explicitly — note this is independent of the free-tier / paid-tier distinction, which is gated only by `CYBORGDB_API_KEY`'s value.</Warning>
     </Accordion>
     <Accordion title="TLS / HTTPS">
         | Variable | Description | Default |
@@ -150,6 +162,7 @@ export CYBORGDB_S3_SECRET_KEY=minioadmin
         | `CPU_THREADS` | Worker threads. `0` = auto-detect | `0` |
         | `GPU_OPERATIONS` | GPU-accelerated ops: `none`, `upsert`, `train`, `all`, or comma-separated (e.g. `upsert,train`) | `none` |
         | `RETRAIN_THRESHOLD` | Auto-retrain trigger — fires when `num_vectors > n_lists * RETRAIN_THRESHOLD` | `10000` |
+        | `AUTO_TRAIN_DISABLED` | Fully disable post-upsert auto-training. Explicit `train()` / `POST /v1/indexes/train` still work. Useful for benchmarking a fixed index state or controlling training timing yourself. Also implied when `RETRAIN_THRESHOLD < 0`. | `false` |
 
         <Note>GPU-accelerated query is not yet supported by `cyborgdb-core`. Passing `query` in `GPU_OPERATIONS` is silently ignored.</Note>
     </Accordion>

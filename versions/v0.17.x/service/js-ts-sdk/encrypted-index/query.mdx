@@ -31,7 +31,7 @@ async query({
 | `include` | `string[]` | `undefined` (server default: `[]` — only `id` is returned) | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
 | `greedy` | `boolean` | `false` | _(Optional)_ Use faster approximate search |
 | `rerankMult` | `number` | `undefined` (server default: 10) | _(Optional)_ Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `topK * rerankMult` candidates before the rerank pass narrows the result to `topK`. Higher values trade query latency for recall. Ignored by indexes that do not rerank. |
-| `dimension` | `number` | `-` | _(Optional)_ Required when `queryVectors` is a `Float32Array`. Specifies vector dimensionality so the SDK can reshape the flat typed array. |
+| `dimension` | `number` | `-` | **Required when `queryVectors` is a `Float32Array`** — the SDK uses it to reshape the flat typed array into individual query vectors. Optional (and ignored) for `number[]` / `number[][]` inputs. |
 
 <Tip>Passing a `Float32Array` as `queryVectors` uses an optimized binary transfer format for better performance. When using `Float32Array`, the `dimension` parameter is required so the SDK can correctly reshape the flat array into individual query vectors.</Tip>
 

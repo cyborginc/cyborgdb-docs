@@ -126,3 +126,5 @@ for i, result := range results.Results {
 ```
 
 <Tip>`BinaryQueryParams` is available as an alternative to `QueryParams` that uses binary transfer for large batch queries. This can significantly improve performance when querying with many vectors at once.</Tip>
+
+<Note>`BinaryQueryParams` does **not** accept `RerankMult` — it is supported only on `QueryParams`. Use `QueryParams` if you need to tune the stage-1 candidate multiplier on a reranking index.</Note>
