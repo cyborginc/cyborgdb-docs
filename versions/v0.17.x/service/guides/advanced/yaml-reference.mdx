@@ -10,7 +10,7 @@ For prose explanations and end-to-end walkthroughs, see:
 
 - [Environment Variables](./env-vars) — the env-var equivalents of every key here.
 - [Per-Index KMS & BYOK](./kms-byok) — the `kms.registry` block, in depth.
-- [Multi-Tenancy & RBAC](./multi-tenancy) — the `cyborgdb_root_api_key` key and its operator implications.
+- [Multi-Tenancy & RBAC](./multi-tenancy) — the `cyborgdb_service_root_key` key and its operator implications.
 
 ## Resolution and precedence
 
@@ -55,7 +55,7 @@ service:
 
   # ---- Authentication ----
   cyborgdb_api_key: ${CYBORGDB_API_KEY}            # string. REQUIRED. The X-API-Key clients send.
-  cyborgdb_root_api_key: ${CYBORGDB_ROOT_API_KEY}  # string. Optional. When set, enables RBAC.
+  cyborgdb_service_root_key: ${CYBORGDB_SERVICE_ROOT_KEY}  # string. Optional. When set, enables RBAC.
                                                    # See ./multi-tenancy.
 
   # ---- Storage backend ----
@@ -149,7 +149,7 @@ service:
 service:
   port: 8443
   cyborgdb_api_key:      ${CYBORGDB_API_KEY}
-  cyborgdb_root_api_key: ${CYBORGDB_ROOT_API_KEY}
+  cyborgdb_service_root_key: ${CYBORGDB_SERVICE_ROOT_KEY}
   ssl_cert_path: /etc/ssl/certs/cyborgdb.crt
   ssl_key_path:  /etc/ssl/private/cyborgdb.key
   cyborgdb_db_type:   s3
@@ -162,7 +162,7 @@ service:
 ```yaml
 service:
   cyborgdb_api_key:      ${CYBORGDB_API_KEY}
-  cyborgdb_root_api_key: ${CYBORGDB_ROOT_API_KEY}
+  cyborgdb_service_root_key: ${CYBORGDB_SERVICE_ROOT_KEY}
   cyborgdb_db_type:      s3
   cyborgdb_s3_bucket:    cyborgdb
   cyborgdb_s3_endpoint:  https://minio.internal:9000
@@ -196,4 +196,4 @@ kms:
 
 - [Environment Variables](./env-vars) — every key here has an env-var equivalent.
 - [Per-Index KMS & BYOK](./kms-byok) — operator + customer setup, rotation, troubleshooting.
-- [Multi-Tenancy & RBAC](./multi-tenancy) — the `cyborgdb_root_api_key` operator playbook.
+- [Multi-Tenancy & RBAC](./multi-tenancy) — the `cyborgdb_service_root_key` operator playbook.

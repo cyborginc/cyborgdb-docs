@@ -5,7 +5,7 @@ api: "POST /v1/indexes/{index_name}/users"
 playground: "simple"
 ---
 
-Mint a per-user API key scoped to a single index. Requires RBAC enabled on the service (`CYBORGDB_ROOT_API_KEY` set) and the request must be authenticated with the root key.
+Mint a per-user API key scoped to a single index. Requires RBAC enabled on the service (`CYBORGDB_SERVICE_ROOT_KEY` set) and the request must be authenticated with the root key.
 
 <Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the full operator playbook.</Note>
 
@@ -71,7 +71,7 @@ The returned `api_key` is shown only in this response and is never persisted by 
 
 - `400`: `permissions` is missing, empty, or contains values outside `{"read", "write"}`.
 - `401`: Authentication failed (invalid root API key).
-- `403`: RBAC is not enabled (`CYBORGDB_ROOT_API_KEY` unset), or the caller is not using the root key.
+- `403`: RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), or the caller is not using the root key.
 - `404`: Index not found.
 - `500`: Internal server error.
 

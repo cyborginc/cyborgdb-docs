@@ -247,7 +247,9 @@
                     "group": "Encrypted Index",
                     "pages": [
                       "versions/v0.17.x/service/python-sdk/encrypted-index/upsert",
+                      "versions/v0.17.x/service/python-sdk/encrypted-index/upsert-binary",
                       "versions/v0.17.x/service/python-sdk/encrypted-index/query",
+                      "versions/v0.17.x/service/python-sdk/encrypted-index/query-binary",
                       "versions/v0.17.x/service/python-sdk/encrypted-index/train",
                       "versions/v0.17.x/service/python-sdk/encrypted-index/get",
                       "versions/v0.17.x/service/python-sdk/encrypted-index/list-ids",

@@ -12,14 +12,14 @@ This page is the operator playbook: how to enable RBAC, mint and revoke users, a
 
 | Mode | Enabled by | Who can call what |
 |---|---|---|
-| **Single-key (default)** | `CYBORGDB_ROOT_API_KEY` unset | One `CYBORGDB_API_KEY` has full access to everything. No user routes available. |
-| **RBAC** | `CYBORGDB_ROOT_API_KEY` set | The root key has admin (mint/list/revoke users, create/train/delete indexes). Per-user `cdbk_…` keys are scoped to one index with `read` / `write` permissions. The legacy `CYBORGDB_API_KEY` is no longer accepted on index routes. |
+| **Single-key (default)** | `CYBORGDB_SERVICE_ROOT_KEY` unset | One `CYBORGDB_API_KEY` has full access to everything. No user routes available. |
+| **RBAC** | `CYBORGDB_SERVICE_ROOT_KEY` set | The root key has admin (mint/list/revoke users, create/train/delete indexes). Per-user `cdbk_…` keys are scoped to one index with `read` / `write` permissions. The legacy `CYBORGDB_API_KEY` is no longer accepted on index routes. |
 
 You enable RBAC by setting **both** keys at startup:
 
 ```bash
 export CYBORGDB_API_KEY=cyborg_your_legacy_key      # still required (license)
-export CYBORGDB_ROOT_API_KEY=cyborg_your_root_key   # opt-in: enables RBAC
+export CYBORGDB_SERVICE_ROOT_KEY=cyborg_your_root_key   # opt-in: enables RBAC
 cyborgdb-service
 ```
 
@@ -28,7 +28,7 @@ Or via YAML:
 ```yaml cyborgdb.yaml
 service:
   cyborgdb_api_key: ${CYBORGDB_API_KEY}
-  cyborgdb_root_api_key: ${CYBORGDB_ROOT_API_KEY}
+  cyborgdb_service_root_key: ${CYBORGDB_SERVICE_ROOT_KEY}
 ```
 
 <Warning>Pick **fresh, distinct** values for the two keys. The root key has admin privileges; treat it like a master credential. Rotate it independently of `CYBORGDB_API_KEY`.</Warning>
@@ -39,11 +39,11 @@ When RBAC is on, the service classifies every `X-API-Key` request header into on
 
 | Kind | Header value | What it can do |
 |---|---|---|
-| `root` | `CYBORGDB_ROOT_API_KEY` | Full admin: create/train/delete indexes; mint/list/revoke users; all data operations. |
+| `root` | `CYBORGDB_SERVICE_ROOT_KEY` | Full admin: create/train/delete indexes; mint/list/revoke users; all data operations. |
 | `user` | A `cdbk_…` token minted via `POST /v1/indexes/{name}/users` | Data operations on **one** index, gated by the `read` / `write` permission set requested at mint time. Cannot create/delete indexes or manage users. |
 | `legacy` | `CYBORGDB_API_KEY` | **Rejected on index routes** when RBAC is on. Health endpoint still works. |
 
-If `CYBORGDB_ROOT_API_KEY` is unset, the legacy single key keeps its full-access behavior — RBAC is strictly opt-in.
+If `CYBORGDB_SERVICE_ROOT_KEY` is unset, the legacy single key keeps its full-access behavior — RBAC is strictly opt-in.
 
 ## Provisioning users
 
@@ -52,7 +52,7 @@ A user is **scoped to exactly one index**, with a non-empty subset of `{"read", 
 <CodeGroup>
 ```bash cURL icon="rectangle-terminal"
 curl -X POST "http://localhost:8000/v1/indexes/documents/users" \
-     -H "X-API-Key: $CYBORGDB_ROOT_API_KEY" \
+     -H "X-API-Key: $CYBORGDB_SERVICE_ROOT_KEY" \
      -H "Content-Type: application/json" \
      -d '{
        "permissions": ["read", "write"]
@@ -109,11 +109,11 @@ index.query(query_vectors=[0.1]*384, top_k=5)
 ```bash cURL icon="rectangle-terminal"
 # List
 curl -X GET "http://localhost:8000/v1/indexes/documents/users" \
-     -H "X-API-Key: $CYBORGDB_ROOT_API_KEY"
+     -H "X-API-Key: $CYBORGDB_SERVICE_ROOT_KEY"
 
 # Revoke
 curl -X DELETE "http://localhost:8000/v1/indexes/documents/users/ab12…" \
-     -H "X-API-Key: $CYBORGDB_ROOT_API_KEY"
+     -H "X-API-Key: $CYBORGDB_SERVICE_ROOT_KEY"
 ```
 
 ```python Python SDK icon="python"
@@ -167,7 +167,7 @@ A typical operator workflow for onboarding a new tenant:
     <Step title="Create the tenant's index (root)">
         ```bash
         curl -X POST "http://localhost:8000/v1/indexes/create" \
-             -H "X-API-Key: $CYBORGDB_ROOT_API_KEY" \
+             -H "X-API-Key: $CYBORGDB_SERVICE_ROOT_KEY" \
              -H "Content-Type: application/json" \
              -d '{
                "index_name": "acme-documents",
@@ -180,7 +180,7 @@ A typical operator workflow for onboarding a new tenant:
     <Step title="Mint a user key for the tenant (root)">
         ```bash
         curl -X POST "http://localhost:8000/v1/indexes/acme-documents/users" \
-             -H "X-API-Key: $CYBORGDB_ROOT_API_KEY" \
+             -H "X-API-Key: $CYBORGDB_SERVICE_ROOT_KEY" \
              -H "Content-Type: application/json" \
              -d '{ "permissions": ["read", "write"] }'
         ```
@@ -192,7 +192,7 @@ A typical operator workflow for onboarding a new tenant:
     <Step title="Revoke when access ends">
         ```bash
         curl -X DELETE "http://localhost:8000/v1/indexes/acme-documents/users/<user_id>" \
-             -H "X-API-Key: $CYBORGDB_ROOT_API_KEY"
+             -H "X-API-Key: $CYBORGDB_SERVICE_ROOT_KEY"
         ```
         Revocation is immediate — the tenant's next request fails with 401.
     </Step>
@@ -208,5 +208,5 @@ A typical operator workflow for onboarding a new tenant:
 ## See also
 
 - [Per-Index KMS & BYOK](./kms-byok) — required for per-user keys.
-- [Environment Variables](./env-vars) — `CYBORGDB_ROOT_API_KEY`, `INDEX_KEK_CACHE_TTL_SECONDS`.
+- [Environment Variables](./env-vars) — `CYBORGDB_SERVICE_ROOT_KEY`, `INDEX_KEK_CACHE_TTL_SECONDS`.
 - REST API: [Create User](../../rest-api/users/create-user), [List Users](../../rest-api/users/list-users), [Delete User](../../rest-api/users/delete-user).

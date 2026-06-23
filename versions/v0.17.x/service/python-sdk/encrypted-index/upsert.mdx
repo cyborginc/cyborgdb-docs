@@ -3,49 +3,50 @@ title: "Upsert"
 mode: "wide"
 ---
 
-Adds new vectors to the index or updates existing ones. Supports both dictionary format and separate arrays for IDs and vectors.
+Adds new vectors to the index or updates existing ones. The Python SDK exposes a single positional API with two calling shapes:
 
 ```python
-# Option 1: Dictionary format
+# Shape 1: list of item dicts
 index.upsert(items)
 
-# Option 2: Separate arrays  
+# Shape 2: parallel arrays — IDs + numpy array of vectors
 index.upsert(ids, vectors)
 ```
 
+<Tip>For batches large enough that JSON encoding becomes a bottleneck, call <a href="./upsert-binary">`upsert_binary`</a> directly — it sends vectors as base64-encoded binary and also accepts parallel `metadata` / `contents` lists. Shape 2 above is a thin wrapper that already forwards to `upsert_binary` under the hood, but only with `ids` + `vectors` (no metadata/contents).</Tip>
+
 ### Parameters
 
-#### Option 1: Dictionary Format
+#### Shape 1: List of item dicts
+
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `items` | `List[Dict]` | - | List of dictionaries containing vector data |
+| `items` | `List[Dict]` | - | List of dictionaries, one per vector. |
 
 Where each dictionary can contain:
 
 ```python
 [
   {
-    "id": str, # Unique identifier for the vector
-    "vector": List[float], # The vector data
-    "contents": str | bytes, # Optional content (accepts both strings and bytes). Bytes are base64-encoded, strings are passed directly. All contents are encrypted before storage.
-    "metadata": Dict # Optional key-value pairs for filtering and retrieval
+    "id": str,                # Unique identifier for the vector (required)
+    "vector": List[float],    # Vector data. Optional if the index has an embedding model and `contents` is provided.
+    "contents": str | bytes,  # Optional content. Bytes are base64-encoded, strings are passed through. All contents are encrypted before storage.
+    "metadata": Dict          # Optional key-value pairs for filtering and retrieval
   },
   ...
 ]
 ```
 
-<Tip>The `contents` field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption, while strings are passed as-is. Contents are returned in their original format (string or bytes) when retrieved with `get()`.</Tip>
+<Tip>The `contents` field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption; strings are passed as-is. Contents are returned in their original format (string or bytes) when retrieved with `get()`.</Tip>
 
-#### Option 2: Separate Arrays
+#### Shape 2: Parallel arrays
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `ids` | `List[str]` | - | List of unique vector identifiers |
-| `vectors` | `List[List[float]]` or `np.ndarray` | - | Vector data as 2D array |
-| `metadata` | `List[Dict]` | `None` | _(Optional)_ List of metadata dictionaries, one per vector |
-| `contents` | `List[str \| bytes]` | `None` | _(Optional)_ List of content values, one per vector. Bytes are base64-encoded, strings are passed directly. All contents are encrypted before storage |
+| `ids` | `List[str]` | - | List of unique vector identifiers. |
+| `vectors` | `np.ndarray` (shape `(n, dim)`, dtype `float32`) | - | Vector data as a 2D numpy array. |
 
-<Tip>When `np.ndarray` is passed as vectors, they are automatically sent in an optimized binary format for better performance with large batches.</Tip>
+<Warning>The two-arg form of `upsert()` does **not** accept `metadata` or `contents` keyword arguments. To attach metadata or contents alongside parallel arrays, call <a href="./upsert-binary">`upsert_binary(ids, vectors, metadata=..., contents=...)`</a> directly.</Warning>
 
 ### Returns
 
@@ -53,32 +54,43 @@ Where each dictionary can contain:
 
 ### Example Usage
 
-#### Dictionary Format
+#### Dictionary format
 
 ```python
-# Basic vector upsert
 items = [
-    {
-        'id': 'doc1',
-        'vector': [0.1, 0.2, 0.3, 0.4]
-    },
-    {
-        'id': 'doc2', 
-        'vector': [0.5, 0.6, 0.7, 0.8]
-    }
+    {"id": "doc1", "vector": [0.1, 0.2, 0.3, 0.4]},
+    {"id": "doc2", "vector": [0.5, 0.6, 0.7, 0.8], "metadata": {"category": "news"}},
 ]
 
 index.upsert(items)
 ```
 
-#### Separate Arrays
+#### Parallel arrays (binary fast path)
 
 ```python
 import numpy as np
 
-# Using separate arrays
-ids = ['vec1', 'vec2', 'vec3']
+ids = ["vec1", "vec2", "vec3"]
 vectors = np.random.rand(3, 128).astype(np.float32)
 
 index.upsert(ids, vectors)
+```
+
+#### Parallel arrays with metadata / contents
+
+When you need metadata or contents alongside parallel arrays, call `upsert_binary` directly:
+
+```python
+import numpy as np
+
+ids = ["vec1", "vec2", "vec3"]
+vectors = np.random.rand(3, 128).astype(np.float32)
+metadata = [
+    {"category": "news"},
+    {"category": "research"},
+    None,
+]
+contents = ["First doc body", "Second doc body", None]
+
+index.upsert_binary(ids, vectors, metadata=metadata, contents=contents)
 ```

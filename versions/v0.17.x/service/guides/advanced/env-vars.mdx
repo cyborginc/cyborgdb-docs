@@ -38,11 +38,11 @@ In every case, the same value is what clients pass in the `X-API-Key` header (as
 
 ## RBAC / Multi-Tenancy
 
-CyborgDB Service can run in single-key mode (default) or with role-based access control enabled. RBAC is opt-in: setting `CYBORGDB_ROOT_API_KEY` switches the service into RBAC mode, after which the legacy single key is no longer accepted on index routes — only the root key or a minted per-user `cdbk_…` key.
+CyborgDB Service can run in single-key mode (default) or with role-based access control enabled. RBAC is opt-in: setting `CYBORGDB_SERVICE_ROOT_KEY` switches the service into RBAC mode, after which the legacy single key is no longer accepted on index routes — only the root key or a minted per-user `cdbk_…` key.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `CYBORGDB_ROOT_API_KEY` | When set, enables RBAC. The holder of this key has full admin access and can mint per-user API keys via `POST /v1/indexes/{index_name}/users`. Per-user keys are scoped to one index with `read` / `write` permissions enforced cryptographically. | unset (RBAC off) |
+| `CYBORGDB_SERVICE_ROOT_KEY` | When set, enables RBAC. The holder of this key has full admin access and can mint per-user API keys via `POST /v1/indexes/{index_name}/users`. Per-user keys are scoped to one index with `read` / `write` permissions enforced cryptographically. | unset (RBAC off) |
 | `INDEX_KEK_CACHE_TTL_SECONDS` | TTL for plaintext index KEKs in the service-side cache. Shorter = faster KMS revocation propagation; longer = fewer KMS calls. | `60` |
 
 See the [Multi-Tenancy guide](./multi-tenancy) for the full operator playbook (key kinds, provisioning users, KMS-backed constraint, revocation).
@@ -193,7 +193,7 @@ service:
   cyborgdb_service_log_level: INFO
 
   # Optional: enable RBAC by setting a root API key. See ./multi-tenancy.
-  # cyborgdb_root_api_key: ${CYBORGDB_ROOT_API_KEY}
+  # cyborgdb_service_root_key: ${CYBORGDB_SERVICE_ROOT_KEY}
 
   # Storage backend: memory | disk | s3 (default: disk)
   cyborgdb_db_type: disk

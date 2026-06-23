@@ -259,4 +259,28 @@ type QueryParams struct {
 | `Greedy` | `*bool` | No | Use greedy search algorithm |
 | `RerankMult` | `*int32` | No | Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `TopK * RerankMult` candidates before reranking. Server default: `10`. Ignored by indexes that do not rerank. |
 | `Filters` | `map[string]interface{}` | No | Metadata filters to apply |
-| `Include` | `[]string` | No | Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"`. Defaults to `[]` (only `id` is returned) |
+| `Include` | `[]string` | No | Fields to include in results: `"metadata"`, `"distance"`, `"vector"`. Defaults to `[]` (only `id` is returned). `QueryResultItem` has no `Contents` field — fetch contents via `Get` if needed. |
+
+
+---
+
+## Constants
+
+```go
+const KeySize = 32
+```
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `KeySize` | `32` | Required length, in bytes, of an SDK-supplied index encryption key (AES-256). `Client.GenerateKey()` returns a slice of this length; `LoadIndex` / `CreateIndex` reject any `IndexKey` whose length is not `KeySize`. |
+
+## Error Variables
+
+The package exports sentinel errors that callers can match against with `errors.Is`:
+
+| Variable | Returned when |
+|----------|---------------|
+| `ErrInvalidKeyLength` | An `IndexKey` is supplied with a length other than `KeySize` bytes. |
+| `ErrKeyGeneration` | `GenerateKey` fails to read from the OS CSPRNG. |
+| `ErrInvalidURL` | `NewClient` is called with a malformed base URL. |
+| `ErrMissingKeyOrKMS` | `CreateIndex` is called with neither `IndexKey` nor `KmsName` set. |
