@@ -1,0 +1,145 @@
+---
+title: "Access Control (RBAC)"
+sidebarTitle: "Access Control"
+mode: "wide"
+---
+
+CyborgDB supports per-user access control (RBAC) on an encrypted index. Instead of sharing the single root index key with every caller, the holder of the **root** index KEK can mint per-user keys that grant scoped `read` and/or `write` access. Each user then loads the index with their own per-user key and is restricted to the permissions they were granted.
+
+<Note>**Key model.** Each index is encrypted under a 32-byte Key-Encryption-Key (KEK) — the `index_key`. The root KEK holder mints per-user wrapped keys; **the set of wraps that exist *is* the permission set** — there is no separate permission flag. A read-only user simply has no write wrap. Managing users (create / delete / list) is always gated on the root KEK.</Note>
+
+---
+
+## Minting User Keys
+
+The root holder calls `create_user_keys` (Python) / `CreateUserKeys` (C++), supplying the new user's 16-byte identifier, their 32-byte per-user KEK, the permissions to grant, and the **root** index KEK as the admin gate.
+
+<CodeGroup>
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+import secrets
+
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+
+# Root index KEK — the admin gate for user management
+index_key = secrets.token_bytes(32)
+index = client.create_index("shared_index", index_key)
+
+# Mint a read-only user and a read/write user
+reader_id = secrets.token_bytes(16)
+reader_kek = secrets.token_bytes(32)
+index.create_user_keys(reader_id, reader_kek, permissions=["read"], index_key=index_key)
+
+writer_id = secrets.token_bytes(16)
+writer_kek = secrets.token_bytes(32)
+index.create_user_keys(writer_id, writer_kek, permissions=["read", "write"], index_key=index_key)
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
+#include <array>
+#include <openssl/rand.h>
+
+std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
+
+cyborg::Client client(api_key, cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+
+// Root index KEK — the admin gate for user management
+std::array<uint8_t, 32> index_key;
+RAND_bytes(index_key.data(), index_key.size());
+auto index = client.CreateIndex("shared_index", index_key);
+
+// Mint a read-only user
+std::array<uint8_t, 16> reader_id;  RAND_bytes(reader_id.data(), reader_id.size());
+std::array<uint8_t, 32> reader_kek; RAND_bytes(reader_kek.data(), reader_kek.size());
+index->CreateUserKeys(reader_id, index_key, reader_kek,
+                      /*grant_read=*/true, /*grant_write=*/false);
+
+// Mint a read/write user
+std::array<uint8_t, 16> writer_id;  RAND_bytes(writer_id.data(), writer_id.size());
+std::array<uint8_t, 32> writer_kek; RAND_bytes(writer_kek.data(), writer_kek.size());
+index->CreateUserKeys(writer_id, index_key, writer_kek,
+                      /*grant_read=*/true, /*grant_write=*/true);
+```
+</CodeGroup>
+
+You must securely deliver each user's `user_id` and `user_kek` to that user out-of-band — together they are that user's credentials for the index.
+
+---
+
+## Loading the Index as a User
+
+A user loads the index with their own KEK as the `index_key` and passes their `user_id`. From then on, every operation is gated to the permissions they hold — a read-only user's `upsert`/`delete` will be rejected.
+
+<CodeGroup>
+```python Python icon="python"
+# The read-only user loads the index with their own key
+user_index = client.load_index("shared_index", reader_kek, user_id=reader_id)
+
+# Reads are allowed
+results = user_index.query(query_vectors=[0.1, 0.2, 0.3, 0.4], top_k=5)
+
+# Writes are rejected for a read-only user
+# user_index.upsert([...])  # raises — no write wrap
+```
+
+```cpp C++ icon="brackets-curly"
+// The read-only user loads the index with their own key + user_id
+auto user_index = client.LoadIndex("shared_index", reader_kek, nullptr, reader_id);
+
+// Per-op, build a KeyContext from the user's KEK + user_id
+cyborg::KeyContext user_ctx{reader_kek, reader_id};
+
+cyborg::Array2D<float> q{{0.1f, 0.2f, 0.3f, 0.4f}};
+cyborg::QueryResults results = user_index->Query(q, cyborg::QueryParams{5}, user_ctx);
+
+// Writes are rejected for a read-only user (no write wrap)
+```
+</CodeGroup>
+
+<Note>In Python, you can also override the key per operation with `index_key=` and `user_id=` keyword arguments — required in stateless/service deployments that reload the index per request. In C++, every key-bearing method takes a trailing `KeyContext`; construct it as `cyborg::KeyContext{user_kek, user_id}` for an RBAC user, or pass a bare KEK for the root holder.</Note>
+
+---
+
+## Listing and Revoking Users
+
+User management is always gated on the **root** KEK. `list_user_keys` returns each user's id and whether they have read/write; `delete_user_keys` revokes a user (idempotent).
+
+<CodeGroup>
+```python Python icon="python"
+# List all users (root-gated)
+for u in index.list_user_keys(index_key=index_key):
+    print(u["user_id"], u["has_read"], u["has_write"])
+
+# Revoke a user (idempotent, root-gated)
+index.delete_user_keys(reader_id, index_key=index_key)
+```
+
+```cpp C++ icon="brackets-curly"
+// List all users (root-gated)
+for (const auto& u : index->ListUserKeys(index_key)) {
+    std::cout << "read=" << u.has_read << " write=" << u.has_write << "\n";
+}
+
+// Revoke a user (idempotent, root-gated)
+index->DeleteUserKeys(reader_id, index_key);
+```
+</CodeGroup>
+
+---
+
+## API Reference
+
+For full signatures and exceptions, refer to the API Reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../python/encrypted-index/manage-users" icon="python">
+        API reference for `create_user_keys` / `list_user_keys` / `delete_user_keys` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../cpp/encrypted-index/manage-users" icon="brackets-curly">
+        API reference for `CreateUserKeys` / `ListUserKeys` / `DeleteUserKeys` in C++
+    </Card>
+</CardGroup>

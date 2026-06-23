@@ -5,22 +5,33 @@ mode: "wide"
 
 <Warning>This action is irreversible. Proceed with caution.</Warning>
 
-Deletes the current index and all its associated data.  
+Deletes the current index and all its associated data.
 
 ```cpp
-void DeleteIndex();
+void DeleteIndex(const KeyContext& key);
 ```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `key` | [`KeyContext`](../types#keycontext) | Key context for the operation. Must be the **root** 32-byte index KEK. A bare 32-byte index key implicitly converts to a `KeyContext`. |
+
+<Warning>`DeleteIndex` requires the root index KEK. A per-user `KeyContext` (one built with a `user_kek` and `user_id`) is rejected — RBAC users cannot delete the index.</Warning>
 
 ### Exceptions
 
 <AccordionGroup>
     <Accordion title="std::runtime_error">
         - Throws if the index could not be deleted.
+        - Throws if a per-user key context is supplied instead of the root KEK.
     </Accordion>
 </AccordionGroup>
 
 ### Example Usage
 
 ```cpp
-index->DeleteIndex();
+index->DeleteIndex(index_key);
 ```
+
+<Tip>`index_key` is the 32-byte `std::array<uint8_t, 32>` root index KEK and converts implicitly to a `KeyContext`.</Tip>

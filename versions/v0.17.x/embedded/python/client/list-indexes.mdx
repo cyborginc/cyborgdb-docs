@@ -3,15 +3,15 @@ title: "List Indexes"
 mode: "wide"
 ---
 
-Returns a list of all encrypted index names accessible via the client at the set [`DBConfig`](../types#dbconfig).
+Returns a list of all encrypted index names accessible via the client's [`StorageConfig`](../types#storageconfig).
 
 ```python
-def list_indexes(self)
+def list_indexes(self) -> list[str]
 ```
 
 ### Returns
 
-`List[str]`: A list of index names.
+`list[str]`: A list of index names.
 
 ### Exceptions
 
@@ -26,17 +26,9 @@ def list_indexes(self)
 ```python
 import cyborgdb_core as cyborgdb
 
-index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
 
-items_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-
-client = cyborgdb.Client(
-    api_key=api_key,
-    index_location=index_location,
-    config_location=config_location,
-    items_location=items_location
-)
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 print(client.list_indexes())
 # Example output:

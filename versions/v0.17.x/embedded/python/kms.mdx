@@ -1,0 +1,160 @@
+---
+title: "KMS Key Management"
+mode: "wide"
+---
+
+CyborgDB can persist a per-index **KMS envelope** — a small record describing how an index's KEK is wrapped by an external Key Management Service. These module-level functions read and write that envelope; the envelope itself is represented by the [`KMSBlob`](./types#kmsblob) type and stored as a FlatBuffer next to the index keystore.
+
+<Note>KMS is an **advanced / optional** feature primarily for the service layer. Embedded SDK users who supply their own KEK can ignore it entirely, or use `provider="none"` (the SDK supplies the plaintext KEK per request and nothing key-derived is stored).</Note>
+
+<Note>**Envelope model.** Each index is encrypted under a 32-byte KEK. The KMS envelope records how that KEK is wrapped by an external KMS so a service layer can unwrap it at request time. Supported providers:
+
+- `"aws"` — the KEK is wrapped with AES-GCM under a value stored in AWS Secrets Manager.
+- `"aws-kms"` — the KEK is wrapped via `kms.Encrypt` using an AWS KMS key.
+- `"none"` — no external wrapping; the caller supplies the plaintext KEK per request and nothing is stored.
+</Note>
+
+All functions take a `config_location` ([`StorageConfig`](./types#storageconfig)) identifying where the index keystore lives, plus the index name.
+
+---
+
+## create_index_kms
+
+Creates a KMS envelope for an index. **Strict insert** — fails if an envelope already exists for `index_name`.
+
+```python
+def create_index_kms(config_location: StorageConfig,
+                     index_name: str,
+                     blob: KMSBlob)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `config_location` | [`StorageConfig`](./types#storageconfig) | Backing store where the index keystore lives. |
+| `index_name` | `str` | Name of the index the envelope belongs to. |
+| `blob` | [`KMSBlob`](./types#kmsblob) | The KMS envelope to store. |
+
+### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+
+config = cyborgdb.StorageConfig.disk("/tmp/cyborgdb")
+
+blob = cyborgdb.KMSBlob(
+    kms_name="prod-kms",
+    provider="aws-kms",
+    key_id="arn:aws:kms:us-east-1:123456789012:key/abcd-...",
+    region="us-east-1",
+    wrapped_kek=b"...",  # KEK wrapped by the external KMS
+    version=1,
+)
+
+cyborgdb.create_index_kms(config, "my_index", blob)
+```
+
+---
+
+## push_index_kms
+
+Stores a KMS envelope for an index. **Idempotent upsert** — creates the envelope if missing, otherwise overwrites it.
+
+```python
+def push_index_kms(config_location: StorageConfig,
+                   index_name: str,
+                   blob: KMSBlob)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `config_location` | [`StorageConfig`](./types#storageconfig) | Backing store where the index keystore lives. |
+| `index_name` | `str` | Name of the index the envelope belongs to. |
+| `blob` | [`KMSBlob`](./types#kmsblob) | The KMS envelope to store (replaces any existing one). |
+
+### Example Usage
+
+```python
+# Rotate the wrapped KEK without caring whether an envelope already exists
+blob.wrapped_kek = b"...new wrapped kek..."
+blob.version = 2
+cyborgdb.push_index_kms(config, "my_index", blob)
+```
+
+---
+
+## get_index_kms
+
+Retrieves the KMS envelope for an index.
+
+```python
+def get_index_kms(config_location: StorageConfig,
+                 index_name: str) -> KMSBlob
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `config_location` | [`StorageConfig`](./types#storageconfig) | Backing store where the index keystore lives. |
+| `index_name` | `str` | Name of the index the envelope belongs to. |
+
+### Returns
+
+[`KMSBlob`](./types#kmsblob): The stored KMS envelope for the index.
+
+### Example Usage
+
+```python
+blob = cyborgdb.get_index_kms(config, "my_index")
+print(blob.provider, blob.key_id, blob.version)
+```
+
+---
+
+## delete_index_kms
+
+Deletes the KMS envelope for an index. **Idempotent** — deleting a non-existent envelope is a no-op.
+
+```python
+def delete_index_kms(config_location: StorageConfig,
+                    index_name: str)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `config_location` | [`StorageConfig`](./types#storageconfig) | Backing store where the index keystore lives. |
+| `index_name` | `str` | Name of the index the envelope belongs to. |
+
+### Example Usage
+
+```python
+cyborgdb.delete_index_kms(config, "my_index")
+```
+
+---
+
+## CUDA availability helpers
+
+Two module-level helpers report on CUDA/GPU support in the current build and environment:
+
+```python
+def cuda_available() -> bool   # True if a usable CUDA device is present at runtime
+def cuda_built() -> bool       # True if this build of cyborgdb_core was compiled with CUDA support
+```
+
+### Example Usage
+
+```python
+import cyborgdb_core as cyborgdb
+
+if cyborgdb.cuda_built() and cyborgdb.cuda_available():
+    print("GPU acceleration is available.")
+```
+
+<Note>**Removed in v0.17.** `set_working_dir()` has been removed. Configure storage locations through [`StorageConfig`](./types#storageconfig) (`memory` / `disk` / `s3`) on the [`Client`](./client/client) instead.</Note>

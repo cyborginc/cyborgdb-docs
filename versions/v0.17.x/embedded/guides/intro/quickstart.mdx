@@ -8,16 +8,13 @@ Get started with CyborgDB in minutes.
 
 <Steps>
     <Step title="Get an API Key">
-        To use CyborgDB, you need an API key. The quickest way to get started is with a demo key:
+        To use CyborgDB, you need an API key:
 
         ```python
-        import cyborgdb_core as cyborgdb
-
-        # Get a demo API key for evaluation
-        api_key = cyborgdb.get_demo_api_key()
+        api_key = "your_api_key_here"  # Replace with your CyborgDB API key
         ```
 
-        For production use, get a full API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+        Get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
 
         Make sure to keep your API key secure and do not share it publicly.
     </Step>
@@ -61,23 +58,12 @@ Get started with CyborgDB in minutes.
         import cyborgdb_core as cyborgdb
         import secrets
 
-        # Using `rocksdb` for simple persistent local storage
-        # `redis`, `postgres`, `memory`, and `threadsafememory` are also supported
+        # Get your API key
+        api_key = "your_api_key_here"  # Replace with your CyborgDB API key
 
-        index_location = cyborgdb.DBConfig("rocksdb")  # Where encrypted index is stored (for queries)
-        config_location = cyborgdb.DBConfig("rocksdb") # Where encrypted index config is stored (for config/loading)
-        items_location = cyborgdb.DBConfig("rocksdb")  # Where item contents are stored (for upsert/get)
-
-        # Get your API key (use get_demo_api_key() for evaluation, or your own key)
-        api_key = cyborgdb.get_demo_api_key()
-
-        # Create a client
-        client = cyborgdb.Client(
-            api_key=api_key,
-            index_location=index_location,
-            config_location=config_location,
-            items_location=items_location
-        )
+        # Backing store: disk (local, RocksDB-backed) for simple persistent storage.
+        # Use .memory() for ephemeral storage or .s3("bucket") for cloud persistence.
+        client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
         ```
 
         ```cpp C++ icon="brackets-curly"
@@ -87,18 +73,12 @@ Get started with CyborgDB in minutes.
         #include <string>
         #include <openssl/rand.h>
 
-        // Using `rocksdb` for simple persistent local storage
-        // `redis`, `postgres`, `memory`, and `threadsafememory` are also supported
-
-        cyborg::DBConfig index_location(cyborg::Location::kRocksDB);  // Where encrypted index is stored (for queries)
-        cyborg::DBConfig config_location(cyborg::Location::kRocksDB); // Where encrypted index config is stored (for config/loading)
-        cyborg::DBConfig contents_location(cyborg::Location::kRocksDB);  // Where item contents are stored (for upsert/get)
-
         // Get your API key
-        std::string api_key = "your_api_key_here";  // Replace with your actual API key
+        std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
 
-        // Create a client
-        cyborg::Client client(api_key, index_location, config_location, contents_location, 0, cyborg::kNone);
+        // Backing store: disk (local, RocksDB-backed) for simple persistent storage.
+        // Use StorageConfig::Memory() for ephemeral storage or ::S3("bucket") for cloud persistence.
+        cyborg::Client client(api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
         ```
         </CodeGroup>
 
@@ -166,7 +146,7 @@ Get started with CyborgDB in minutes.
             std::vector<uint8_t>{'H', 'o', 'l', 'a', '!'}
         };
 
-        index->Upsert(ids, vectors, contents);
+        index->Upsert(ids, vectors, contents, /*metadata=*/{}, index_key);
         ```
         </CodeGroup>
 
@@ -181,7 +161,7 @@ Get started with CyborgDB in minutes.
 
         # Query the encrypted index
         query_vectors = [0.1, 0.2, 0.3, 0.4]
-        results = index.query(query_vectors=query_vectors)
+        results = index.query(query_vectors=query_vectors, include=["distance"])
 
         # Print the results
         for result in results:
@@ -193,7 +173,7 @@ Get started with CyborgDB in minutes.
         cyborg::Array2D<float> query_vectors{{0.1, 0.2, 0.3, 0.4}};
 
         // Query using the standard params
-        cyborg::QueryResults results = index->Query(query_vectors);
+        cyborg::QueryResults results = index->Query(query_vectors, cyborg::QueryParams{}, index_key);
 
         // Print the results
         auto view = results[0];
@@ -227,7 +207,7 @@ Get started with CyborgDB in minutes.
         // Retrieve items from the encrypted index
         std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
         std::vector<cyborg::ItemFields> include = {cyborg::ItemFields::kContents};
-        std::vector<cyborg::Item> items = index->Get(ids, include);
+        std::vector<cyborg::Item> items = index->Get(ids, include, index_key);
 
         // Print the items
         for (const auto& item : items) {

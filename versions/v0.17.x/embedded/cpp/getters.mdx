@@ -8,7 +8,31 @@ title: "Getter Functions"
 bool is_trained() const;
 ```
 
-Returns whether the index has been trained.
+Returns whether the index has been trained. Returns `true` only when the training state is
+`Trained`. While a (re)train rebuild is in progress this returns `false`, and queries
+transparently fall back to the untrained (exhaustive) search path. See
+[`is_training`](#is_training) and [`training_state`](#training_state).
+
+---
+
+## is_training
+
+```cpp
+bool is_training() const;
+```
+
+Returns `true` while a (re)train rebuild is in progress, otherwise `false`.
+
+---
+
+## training_state
+
+```cpp
+TrainingState training_state() const;
+```
+
+Returns the current training state as a [`TrainingState`](./types#trainingstate) enum:
+`Untrained`, `Training`, or `Trained`.
 
 ---
 
@@ -28,27 +52,34 @@ Returns the name of the index.
 IndexType index_type() const;
 ```
 
-Returns the type of the index (for example, `IVF`, `IVFPQ`, `IVFFLAT`, or `IVFSQ`).
+Returns the type of the index as an [`IndexType`](./types#indextype) enum. The only value is
+`DISK_IVF`.
 
 ---
 
 ## index_config
 
 ```cpp
-IndexConfig* index_config() const;
+IndexDiskIVF* index_config() const;
 ```
 
-Returns a pointer to the index configuration.
+Returns a pointer to the index configuration ([`IndexDiskIVF`](./types#indexdiskivf)).
 
 ---
 
 ## ListIDs
 
 ```cpp
-std::vector<std::string> ListIDs();
+std::vector<std::string> ListIDs(const KeyContext& key);
 ```
 
 Returns a vector containing all item IDs currently stored in the index.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `key` | [`KeyContext`](./types#keycontext) | Key context for the operation. A bare 32-byte index key (the `index_key`) implicitly converts to a `KeyContext`. |
 
 ### Exceptions
 
@@ -59,10 +90,16 @@ Returns a vector containing all item IDs currently stored in the index.
 ## NumVectors
 
 ```cpp
-size_t NumVectors();
+size_t NumVectors(const KeyContext& key);
 ```
 
 Returns the total number of vectors currently stored in the encrypted index.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `key` | [`KeyContext`](./types#keycontext) | Key context for the operation. A bare 32-byte index key (the `index_key`) implicitly converts to a `KeyContext`. |
 
 ### Returns
 
@@ -81,7 +118,7 @@ Returns the total number of vectors currently stored in the encrypted index.
 
 ```cpp
 // Get the number of vectors in the index
-size_t vector_count = index->NumVectors();
+size_t vector_count = index->NumVectors(index_key);
 std::cout << "Index contains " << vector_count << " vectors" << std::endl;
 
 // Use count for validation or progress reporting
@@ -89,3 +126,5 @@ if (vector_count == 0) {
     std::cout << "Index is empty, consider adding vectors" << std::endl;
 }
 ```
+
+<Tip>`index_key` is the 32-byte `std::array<uint8_t, 32>` index KEK and converts implicitly to a `KeyContext`.</Tip>

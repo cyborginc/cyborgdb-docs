@@ -380,6 +380,8 @@
                     "group": "Advanced",
                     "pages": [
                       "versions/v0.17.x/embedded/guides/advanced/managing-keys",
+                      "versions/v0.17.x/embedded/guides/advanced/access-control",
+                      "versions/v0.17.x/embedded/guides/advanced/kms",
                       "versions/v0.17.x/embedded/guides/advanced/configure-index",
                       "versions/v0.17.x/embedded/guides/advanced/usage-telemetry"
                     ]
@@ -414,14 +416,16 @@
                       "versions/v0.17.x/embedded/python/encrypted-index/train",
                       "versions/v0.17.x/embedded/python/encrypted-index/get",
                       "versions/v0.17.x/embedded/python/encrypted-index/delete",
-                      "versions/v0.17.x/embedded/python/encrypted-index/delete-index"
+                      "versions/v0.17.x/embedded/python/encrypted-index/delete-index",
+                      "versions/v0.17.x/embedded/python/encrypted-index/manage-users"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
                       "versions/v0.17.x/embedded/python/getters",
-                      "versions/v0.17.x/embedded/python/types"
+                      "versions/v0.17.x/embedded/python/types",
+                      "versions/v0.17.x/embedded/python/kms"
                     ]
                   }
                 ]
@@ -454,14 +458,16 @@
                       "versions/v0.17.x/embedded/cpp/encrypted-index/train",
                       "versions/v0.17.x/embedded/cpp/encrypted-index/get",
                       "versions/v0.17.x/embedded/cpp/encrypted-index/delete",
-                      "versions/v0.17.x/embedded/cpp/encrypted-index/delete-index"
+                      "versions/v0.17.x/embedded/cpp/encrypted-index/delete-index",
+                      "versions/v0.17.x/embedded/cpp/encrypted-index/manage-users"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
                       "versions/v0.17.x/embedded/cpp/getters",
-                      "versions/v0.17.x/embedded/cpp/types"
+                      "versions/v0.17.x/embedded/cpp/types",
+                      "versions/v0.17.x/embedded/cpp/kms"
                     ]
                   }
                 ]

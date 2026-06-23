@@ -9,7 +9,8 @@ Loads an existing encrypted index and returns an instance of `EncryptedIndex`.
 std::unique_ptr<cyborg::EncryptedIndex>
     LoadIndex(const std::string index_name,
               const std::array<uint8_t, 32>& index_key,
-              cyborg::Logger* logger = nullptr);
+              cyborg::Logger* logger = nullptr,
+              std::optional<std::array<uint8_t, 16>> user_id = std::nullopt);
 ```
 
 ### Parameters
@@ -17,8 +18,9 @@ std::unique_ptr<cyborg::EncryptedIndex>
 | Parameter | Type | Description |
 |----------------|-------------------------------|-----------------------------------------------------|
 | `index_name` | `std::string` | Name of the index to load. |
-| `index_key` | `std::array<uint8_t, 32>` | 32-byte encryption key for the index, used to secure index data. |
+| `index_key` | `std::array<uint8_t, 32>` | 32-byte encryption key (KEK) for the index. For a root load this is the root index KEK; for an RBAC user-scoped load (see `user_id`) this is that user's KEK. |
 | `logger` | [`cyborg::Logger*`](./logger) | _(Optional)_ Pointer to a logger instance for capturing operation logs (default is `nullptr`). |
+| `user_id` | `std::optional<std::array<uint8_t, 16>>` | _(Optional)_ 16-byte RBAC user identifier. When provided, the index is loaded user-scoped: `index_key` is treated as that user's KEK and per-operation permissions are enforced. Defaults to `std::nullopt` (root load). |
 
 ### Returns
 

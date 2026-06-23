@@ -24,12 +24,14 @@ index.upsert(items)
 std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
 cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
 
-// Add items to the encrypted index
-index->Upsert(ids, vectors);
+// Add items to the encrypted index (index_key implicitly builds the KeyContext)
+index->Upsert(ids, vectors, /*contents=*/{}, /*metadata=*/{}, index_key);
 ```
 </CodeGroup>
 
 For more info on `Array2D` in C++, see the [API Reference](../../cpp/types#array2d).
+
+<Note>In Python, the common path reuses the key supplied at `create_index`/`load_index`, so `upsert()` takes no key. In C++ every key-bearing method takes a trailing `KeyContext`, which constructs implicitly from a bare 32-byte KEK — so `index->Upsert(..., index_key)` is the common path. You can also pass `index_key=` (and `user_id=` for an RBAC user) per operation to override the key, which is required in stateless/service deployments that reload the index per request.</Note>
 
 ## Adding Items with Contents
 
@@ -61,7 +63,7 @@ std::vector<std::vector<uint8_t>> contents = {
 };
 
 // Add items to the encrypted index
-index->Upsert(ids, vectors, contents);
+index->Upsert(ids, vectors, contents, /*metadata=*/{}, index_key);
 ```
 </CodeGroup>
 
@@ -95,7 +97,7 @@ std::vector<std::string> metadata = {
 };
 
 // Add items to the encrypted index
-index->Upsert(ids, vectors, {}, metadata);
+index->Upsert(ids, vectors, /*contents=*/{}, metadata, index_key);
 ```
 </CodeGroup>
 
@@ -111,9 +113,8 @@ If you provided an `embedding_model` during index creation, you can automaticall
 # ... index creation and embedding model setup
 embedding_model = "all-MiniLM-L6-v2"
 index = client.create_index(
-    index_name="my_index", 
-    index_key=index_key, 
-    index_config=index_config, 
+    index_name="my_index",
+    index_key=index_key,
     embedding_model=embedding_model
 )
 

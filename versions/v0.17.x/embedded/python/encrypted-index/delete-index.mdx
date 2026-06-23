@@ -8,10 +8,22 @@ mode: "wide"
 Deletes the current index and all its associated data.  
 
 ```python
-def delete_index(self)
+def delete_index(self,
+                 *,
+                 index_key: bytes = None,
+                 user_id: bytes = None)
 ```
 
 Deletes the current index and its associated data. This action is irreversible, so proceed with caution.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `index_key` | `bytes` | _(Optional, keyword-only)_ Override the per-operation index key. See [Per-operation key override](#per-operation-key-override). Must be the **root** index KEK. |
+| `user_id` | `bytes` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. |
+
+<Warning>Deleting an index is an admin operation gated on the **root** index KEK. It rejects [RBAC user](./manage-users) contexts — a per-user key cannot delete the index.</Warning>
 
 ### Exceptions
 
@@ -32,4 +44,12 @@ index = client.load_index(
 
 # Delete the index
 index.delete_index()
+```
+
+### Per-operation key override
+
+The call above reuses the key supplied at [`create_index()`](../client/create-index) / [`load_index()`](../client/load-index). You may instead pass `index_key=` (the root index KEK) to override the per-operation key, which is required in stateless/service deployments that reload the index per request:
+
+```python
+index.delete_index(index_key=index_key)
 ```

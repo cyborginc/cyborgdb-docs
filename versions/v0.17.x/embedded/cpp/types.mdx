@@ -2,58 +2,106 @@
 title: "Types"
 ---
 
-## Location
+## StorageConfig
 
-The `Location` enum contains the supported index backing store locations for CyborgDB. These are:
+`StorageConfig` defines the backing store for an index and all of its per-index keystores. It is immutable and has no public default constructor — instances are created via the static factory methods below. A single `StorageConfig` is shared across the client and all indexes it manages.
 
-```cpp
-enum class Location {
-    kRedis,             // In-memory storage via Redis
-    kMemory,            // Temporary in-memory storage
-    kPostgres,          // Relational database storage
-    kRocksDB,           // Local persistent storage via RocksDB
-    kThreadSafeMemory,  // Thread-safe in-memory storage
-    kNone               // Undefined storage type
-};
-```
+CyborgDB supports three backing stores: in-memory (ephemeral), local disk (RocksDB-backed), and S3 (or any S3-compatible store such as MinIO).
 
-<Warning>`kMemory` is deprecated and will be removed in a future release. Please use `kThreadSafeMemory` instead.</Warning>
-
----
-
-## DBConfig
-
-`DBConfig` defines the storage location for various index components.
-
-### Constructor
+### Static Factories
 
 ```cpp
-explicit DBConfig(Location location,
-                const std::optional<std::string>& table_name = std::nullopt,
-                const std::optional<std::string>& db_connection_string = std::nullopt);
+static StorageConfig Memory();
+static StorageConfig Disk(std::optional<std::filesystem::path> path,
+                          CachePolicy cache_policy = {});
+static StorageConfig S3(std::string bucket, S3Options opts = {});
 ```
 
-### Parameters
-
-| Parameter | Type | Description |
-|------------------------|-------------------------|-------------------------|
-| `location` | [`Location`](#location) | Specifies the type of storage location. |
-| `table_name` | `std::string` | _(Optional)_ Name of the table in the database, if applicable. Defaults to `std::nullopt`. |
-| `db_connection_string` | `std::string` | _(Optional)_ Connection string for database access, if applicable. Defaults to `std::nullopt`. |
-
+| Factory | Description |
+|---------|-------------|
+| `Memory()` | Ephemeral in-memory storage with no persistence. Useful for tests and short-lived workloads. |
+| `Disk(path, cache_policy)` | Local persistent storage backed by RocksDB at `path`. Pass a [`CachePolicy`](#cachepolicy) to keep hot data in memory. |
+| `S3(bucket, opts)` | AWS S3 or any S3-compatible object store. Configure region, endpoint, prefix, and credentials via [`S3Options`](#s3options). |
 
 ### Example Usage
 
 ```cpp
-cyborg::DBConfig index_loc(Location::kRedis, std::nullopt, "redis://localhost");
-cyborg::DBConfig config_loc(Location::kRedis, std::nullopt, "redis://localhost");
-cyborg::DBConfig items_loc(Location::kPostgres, "items", "host=localhost dbname=postgres");
+#include "cyborgdb_core/client.hpp"
 
-// RocksDB (recommended for embedded/local deployments)
-cyborg::DBConfig rocksdb_loc(Location::kRocksDB, std::nullopt, "~/.cyborgdb/data");
+// Ephemeral in-memory store
+cyborg::StorageConfig mem = cyborg::StorageConfig::Memory();
+
+// Local disk store with vector caching
+cyborg::CachePolicy cache;
+cache.vectors = true;
+cyborg::StorageConfig disk = cyborg::StorageConfig::Disk("/tmp/cyborgdb", cache);
+
+// S3 store with explicit credentials
+cyborg::S3Options opts;
+opts.region = "us-east-1";
+opts.credentials = cyborg::S3Credentials{"ACCESS_KEY", "SECRET_KEY"};
+cyborg::StorageConfig s3 = cyborg::StorageConfig::S3("my-bucket", opts);
 ```
 
 For more info, you can read about supported backing stores [here](../../intro/backing-stores).
+
+---
+
+## CachePolicy
+
+`CachePolicy` controls which categories of data a disk-backed store keeps cached in memory for faster access.
+
+```cpp
+struct CachePolicy {
+    bool vectors = false;   // Cache vector data in memory
+    bool metadata = false;  // Cache metadata in memory
+    bool ids = false;       // Cache item IDs in memory
+};
+```
+
+---
+
+## S3Options
+
+`S3Options` configures an S3 backing store created via [`StorageConfig::S3`](#storageconfig).
+
+```cpp
+struct S3Options {
+    std::string prefix = "";                       // Key prefix within the bucket
+    std::optional<std::string> region;             // AWS region
+    std::optional<std::string> endpoint;           // Custom endpoint (MinIO/Ceph/R2)
+    std::optional<S3Credentials> credentials;      // Explicit credentials
+};
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `prefix` | `std::string` | _(Optional)_ Key prefix applied to all objects within the bucket. Defaults to `""`. |
+| `region` | `std::optional<std::string>` | _(Optional)_ AWS region. |
+| `endpoint` | `std::optional<std::string>` | _(Optional)_ Custom S3 endpoint for S3-compatible stores (MinIO, Ceph, Cloudflare R2). |
+| `credentials` | `std::optional<S3Credentials>` | _(Optional)_ Explicit S3 credentials. Omit to use the AWS default credential provider chain (environment variables, `~/.aws/credentials`, EC2 instance profile, EKS IRSA). |
+
+<Note>Path-style addressing is selected automatically when `endpoint` is set (MinIO/Ceph/R2); otherwise virtual-hosted addressing is used.</Note>
+
+---
+
+## S3Credentials
+
+`S3Credentials` holds explicit credentials for an S3 backing store.
+
+```cpp
+struct S3Credentials {
+    std::string access_key;
+    std::string secret_key;
+    std::optional<std::string> session_token;
+};
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `access_key` | `std::string` | AWS access key ID. |
+| `secret_key` | `std::string` | AWS secret access key. |
+| `session_token` | `std::optional<std::string>` | _(Optional)_ Session token for temporary credentials. |
 
 ---
 
@@ -139,146 +187,93 @@ enum class DistanceMetric {
 
 ---
 
-## IndexConfig
+## IndexDiskIVF
 
-`IndexConfig` is an abstract base class for configuring index types. The three derived classes can be used to configure indexes:
+`IndexDiskIVF` configures a DiskIVF index — the single index type supported in CyborgDB. It replaces the older `IndexConfig` family. Pass an instance to [`CreateIndex`](./client/create-index) when you want explicit control over dimensionality or storage precision; otherwise the default-config overload of `CreateIndex` constructs one for you.
 
-### IndexIVF
-
-Ideal for large-scale datasets where fast retrieval is prioritized over high recall:
-
-|  Speed  | Recall | Index Size |
-| :-----: | :----: | :--------: |
-| Fastest | Lowest |  Smallest  |
-
-#### Constructor
+### Constructor
 
 ```cpp
-IndexIVF(size_t dimension = 0, std::string embedding_model = "");
+IndexDiskIVF(size_t dimension = 0,
+             std::optional<std::string> embedding_model = "",
+             StoragePrecision storage_precision = StoragePrecision::Float32);
 ```
 
-#### Parameters
+### Parameters
+
 | Parameter | Type | Default | Description |
 |--------------|-------------------------|---------|---------------------------------------|
-| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected from the first upsert if `0`. |
+| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation; dimension can be derived from it. |
+| `storage_precision` | [`StoragePrecision`](#storageprecision) | `Float32` | _(Optional)_ On-disk dtype of rerank vectors. `Float16` halves the disk footprint with a slight precision loss. |
 
-#### Methods
+### Methods
+
 | Method | Return Type | Description |
 |--------------|-------------------------|---------------------------------------|
 | `dimension()` | `size_t` | Get vector dimensionality. |
-| `metric()` | `DistanceMetric` | Get distance metric. |
+| `set_dimension(size_t)` | `void` | Set vector dimensionality. |
+| `metric()` | [`DistanceMetric`](#distancemetric) | Get distance metric. |
 | `set_metric(DistanceMetric)` | `void` | Set distance metric. |
+| `index_type()` | [`IndexType`](#indextype) | Returns `DISK_IVF`. |
+| `embedding_model()` | `std::optional<std::string>` | Get the embedding model name. |
+| `storage_precision()` | [`StoragePrecision`](#storageprecision) | Get the on-disk storage precision. |
+| `set_storage_precision(StoragePrecision)` | `void` | Set the on-disk storage precision. |
 | `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
 | `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
 
-### IndexIVFFlat
-
-Suitable for applications requiring high recall with less concern for memory usage:
-
-| Speed | Recall  | Index Size |
-| :---: | :-----: | :--------: |
-| Fast  | Highest |  Biggest   |
-
-#### Constructor
+### Example Usage
 
 ```cpp
-IndexIVFFlat(size_t dimension = 0, std::string embedding_model = "");
+// Default configuration (dimension auto-detected, float32 rerank vectors)
+cyborg::IndexDiskIVF config1;
+
+// Explicit dimension
+cyborg::IndexDiskIVF config2(1024);
+
+// Explicit dimension with float16 storage precision (smaller on-disk footprint)
+cyborg::IndexDiskIVF config3(1024, "", cyborg::StoragePrecision::Float16);
 ```
 
-#### Parameters
-| Parameter | Type | Default | Description |
-|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
-| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+---
 
-#### Methods
-| Method | Return Type | Description |
-|--------------|-------------------------|---------------------------------------|
-| `dimension()` | `size_t` | Get vector dimensionality. |
-| `metric()` | `DistanceMetric` | Get distance metric. |
-| `set_metric(DistanceMetric)` | `void` | Set distance metric. |
-| `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
-| `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
+## StoragePrecision
 
-### IndexIVFPQ
-
-Product Quantization compresses embeddings, making it suitable for balancing memory use and recall:
-
-| Speed | Recall | Index Size |
-| :---: | :----: | :--------: |
-| Fast  |  High  |   Medium   |
-
-#### Constructor
+`StoragePrecision` controls the on-disk dtype of rerank vectors for a DiskIVF index.
 
 ```cpp
-IndexIVFPQ(size_t dimension = 0, size_t pq_dim = 0, size_t pq_bits = 8,
-           std::string embedding_model = "");
+enum class StoragePrecision {
+    Float32,   // Full precision (default)
+    Float16    // Half precision — halves disk footprint, slight precision loss
+};
 ```
 
-#### Parameters
+---
 
-| Parameter | Type | Default | Description |
-|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
-| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `pq_dim` | `size_t` | `0` | _(Optional)_ Dimensionality of embeddings after quantization. Auto-detected if 0. |
-| `pq_bits` | `size_t` | `8` | _(Optional)_ Number of bits per dimension for PQ embeddings (between 1 and 16). |
-| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+## TrainingState
 
-#### Methods
-| Method | Return Type | Description |
-|--------------|-------------------------|---------------------------------------|
-| `dimension()` | `size_t` | Get vector dimensionality. |
-| `metric()` | `DistanceMetric` | Get distance metric. |
-| `set_metric(DistanceMetric)` | `void` | Set distance metric. |
-| `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
-| `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
-| `pq_dim()` | `size_t` | Get PQ dimensionality. |
-| `pq_bits()` | `size_t` | Get PQ bits per quantizer. |
-
-### IndexIVFSQ
-
-Scalar Quantization compresses embeddings, providing a good balance of speed, recall, and index size:
-
-| Speed | Recall | Index Size |
-| :---: | :----: | :--------: |
-| Fast  |  High  |   Small    |
-
-#### Constructor
+`TrainingState` reports the lifecycle state of an index's training.
 
 ```cpp
-IndexIVFSQ(size_t dimension = 0, size_t sq_bits = 16,
-           std::string embedding_model = "");
+enum class TrainingState : uint8_t {
+    Untrained = 0,  // Index has not been trained
+    Training  = 1,  // A (re)train rebuild is in progress
+    Trained   = 2   // Training is complete
+};
 ```
 
-#### Parameters
-| Parameter | Type | Default | Description |
-|--------------|-------------------------------|---------|-------------------------------------------------------------------------------|
-| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected if 0. |
-| `sq_bits` | `size_t` | `16` | _(Optional)_ Number of bits for scalar quantization (8 or 16). |
-| `embedding_model` | `std::string` | `""` | _(Optional)_ Embedding model name for auto-generation. |
+While an index is in the `Training` state, queries transparently fall back to the untrained (exhaustive) path.
 
-#### Methods
-| Method | Return Type | Description |
-|--------------|-------------------------|---------------------------------------|
-| `dimension()` | `size_t` | Get vector dimensionality. |
-| `metric()` | `DistanceMetric` | Get distance metric. |
-| `set_metric(DistanceMetric)` | `void` | Set distance metric. |
-| `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
-| `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
-| `sq_bits()` | `size_t` | Get SQ bits per dimension. |
+---
 
-#### Example Usage
+## IndexType
+
+The `IndexType` enum defines the supported index types in CyborgDB. CyborgDB now supports a single index type, DiskIVF:
 
 ```cpp
-// Default configuration (16-bit scalar quantization)
-cyborg::IndexIVFSQ config1;
-
-// 8-bit scalar quantization (smaller index, lower precision)
-cyborg::IndexIVFSQ config2(0, 8);
-
-// Explicit dimension and SQ bits
-cyborg::IndexIVFSQ config3(128, 16);
+enum IndexType {
+    DISK_IVF
+};
 ```
 
 ---
@@ -370,7 +365,7 @@ TrainingConfig(std::optional<size_t> n_lists = std::nullopt,
 Note: The struct members are stored in this order (different from constructor parameter order):
 
 ```cpp
-size_t batch_size;   // Batch size (default: 2048)
+size_t batch_size;   // Batch size (default: 0, auto)
 size_t max_iters;    // Maximum iterations (default: 100)
 double tolerance;    // Convergence tolerance (default: 1e-6)
 size_t max_memory;   // Maximum memory in MB (default: 0, no limit)
@@ -381,7 +376,7 @@ size_t n_lists;      // Number of inverted lists (default: 0, auto-determine)
 
 ## QueryParams
 
-The `QueryParams` struct defines parameters for querying the index, controlling the number of results and probing behavior.
+The `QueryParams` struct defines parameters for querying the index, controlling the number of results, probing behavior, and reranking.
 
 ### Constructor
 
@@ -390,7 +385,8 @@ explicit QueryParams(size_t top_k = 100,
                      size_t n_probes = 0,
                      std::string filters = "",
                      std::vector<ResultFields> include = {},
-                     bool greedy = false);
+                     bool greedy = false,
+                     size_t rerank_mult = 50);   // kDefaultRerankMult = 50
 ```
 
 ### Parameters
@@ -402,6 +398,7 @@ explicit QueryParams(size_t top_k = 100,
 | `filters` | `std::string` | _(Optional)_ A JSON string of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `include` | `std::vector<ResultFields>` | _(Optional)_ List of result fields to return. Can include `kDistance` and `kMetadata`. Defaults to empty. |
 | `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |
+| `rerank_mult` | `size_t` | _(Optional)_ Stage-1 retrieval multiplier used for reranking on DiskIVF indexes. Defaults to `50` (`kDefaultRerankMult`). |
 
 Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs.
 
@@ -483,29 +480,6 @@ using ItemID = std::string;
 
 ---
 
-## IndexType
-
-The `IndexType` enum defines the supported index types in CyborgDB:
-
-```cpp
-enum IndexType {
-    IVF,     // Inverted File index (deprecated)
-    IVFPQ,   // Inverted File with Product Quantization
-    IVFFLAT, // Inverted File with flat (uncompressed) storage
-    IVFSQ    // Inverted File with Scalar Quantization
-};
-```
-
-All four index types are available:
-- `IVF`: Fastest retrieval, lowest recall, smallest index size
-- `IVFPQ`: Balanced memory usage and recall with product quantization
-- `IVFFLAT`: Highest recall, largest index size, no compression
-- `IVFSQ`: Good balance of recall, speed, and index size with scalar quantization (default)
-
-<Warning>The `IVF` type is deprecated and will be removed in a future release.</Warning>
-
----
-
 ### `Item`
 
 `Item` struct holds the individual results from a `Get` operation, including the requested fields.
@@ -547,3 +521,21 @@ enum class ItemFields {
 ```
 
 By default, `ids` are always included in the returned items.
+
+---
+
+## KMSBlob
+
+`KMSBlob` describes how an index's Key-Encryption-Key (KEK) is wrapped by an external KMS. It is persisted per index via the module-level KMS functions (see the [KMS](./kms) reference). This is primarily for service-layer deployments; embedded SDK users supplying their own KEK can ignore it.
+
+```cpp
+struct KMSBlob {
+    std::string kms_name;             // Logical KMS name
+    std::string provider;             // "aws" | "aws-kms" | "none"
+    std::string key_id;               // KMS key identifier
+    std::string region;               // KMS region
+    std::vector<uint8_t> wrapped_kek; // Wrapped KEK bytes
+    uint32_t version = 0;             // Envelope version
+    int64_t created_at = 0;           // Unix epoch seconds
+};
+```

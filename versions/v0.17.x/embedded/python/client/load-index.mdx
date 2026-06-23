@@ -9,16 +9,21 @@ Loads an existing encrypted index and returns an instance of `EncryptedIndex`.
 def load_index(self,
                index_name: str,
                index_key: bytes,
-               logger: Logger = None)
+               logger: Logger | None = None,
+               *,
+               user_id: bytes | None = None) -> EncryptedIndex
 ```
 
 ### Parameters
 
-| Parameter | Type | Description |
-|--------------|---------|------------------------------------------------------------------------|
-| `index_name` | `str` | Name of the index to load. |
-| `index_key` | `bytes` | 32-byte encryption key; must match the key used during [`create_index()`](./create-index). |
-| `logger` | [`Logger`](./logger) | _(Optional)_ Logger instance for capturing operation logs. Defaults to `None`. |
+| Parameter | Type | Default | Description |
+|--------------|---------|---------|------------------------------------------------------------------------|
+| `index_name` | `str` | - | Name of the index to load. |
+| `index_key` | `bytes` | - | 32-byte encryption key. For a normal load this is the index KEK used during [`create_index()`](./create-index). For an RBAC user-scoped load (`user_id` set), this is that user's 32-byte KEK. |
+| `logger` | [`Logger`](./logger) | `None` | _(Optional)_ Logger instance for capturing operation logs. |
+| `user_id` | `bytes` \| `None` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. When set, the index is loaded scoped to that user and `index_key` is interpreted as the user's KEK; per-operation permissions are enforced. |
+
+<Note>RBAC user keys are minted by the root KEK holder via `create_user_keys`. A user then loads with `load_index(name, their_user_kek, user_id=their_id)`. See [access control](../../guides/advanced/access-control).</Note>
 
 ### Returns
 
@@ -40,29 +45,28 @@ def load_index(self,
 ```python
 import cyborgdb_core as cyborgdb
 
-index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
 
-items_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-
-client = cyborgdb.Client(
-    api_key=api_key,
-    index_location=index_location,
-    config_location=config_location,
-    items_location=items_location
-)
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 index_name = "my_index"
-index_key = my_index_key  # Use the same 32-byte encryption key used during index creation
+index_key = my_index_key  # Same 32-byte KEK used during index creation
 
 # Optional: Set up logging
 logger = cyborgdb.Logger.instance()
 logger.configure(level="debug", to_file=True, file_path="index_loading.log")
 
 # Load the existing index with logging enabled
+index = client.load_index(index_name, index_key, logger=logger)
+```
+
+#### RBAC user-scoped load
+
+```python
+# Load the index scoped to an RBAC user, passing that user's KEK as index_key
 index = client.load_index(
-    index_name=index_name, 
-    index_key=index_key,
-    logger=logger
+    index_name,
+    user_kek,            # the user's 32-byte KEK
+    user_id=user_id,     # the user's 16-byte identifier
 )
 ```

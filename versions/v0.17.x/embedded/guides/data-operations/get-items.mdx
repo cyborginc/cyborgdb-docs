@@ -28,8 +28,8 @@ print(items)
 std::vector<std::string> ids = {"item_20", "item_11"};
 std::vector<cyborg::ItemFields> include = {cyborg::ItemFields::kContents, cyborg::ItemFields::kMetadata};
 
-// Retrieve items from the encrypted index
-std::vector<cyborg::Item> items = index->Get(ids, include);
+// Retrieve items from the encrypted index (index_key implicitly builds the KeyContext)
+std::vector<cyborg::Item> items = index->Get(ids, include, index_key);
 
 // Print the item fields
 for (const auto& item : items) {

@@ -5,7 +5,7 @@ mode: "wide"
 ---
 
 
-CyborgDB uses `IVF*` index types, which leverage clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
+CyborgDB uses a DiskIVF index, which leverages clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
 
 In the embedded library version of CyborgDB, this training must be explicitly called once enough vectors have been added:
 
@@ -27,11 +27,11 @@ index.train(
 
 ```cpp C++ icon="brackets-curly"
 // Train the encrypted index with default configuration
-index->TrainIndex();
+index->TrainIndex(cyborg::TrainingConfig{}, index_key);
 
 // Train the index with specific configuration
-cyborg::TrainingConfig config(1024, 2048, 100, 1e-6, 0);
-index->TrainIndex(config);
+cyborg::TrainingConfig config(1024, 0, 100, 1e-6, 0);
+index->TrainIndex(config, index_key);
 ```
 </CodeGroup>
 
@@ -44,7 +44,7 @@ Parameters are available to customize the training process:
 | Parameter | Type | Default | Description |
 |---------------|--------|---------|-------------------------------------------------------|
 | `n_lists` | `int` | `None` | _(Optional)_ Number of inverted index lists to create in the index. When `None`, auto-determines based on the number of vectors in the index. |
-| `batch_size` | `int` | `None` | _(Optional)_ Size of each batch for training. When `None`, defaults to `2048`. |
+| `batch_size` | `int` | `None` | _(Optional)_ Size of each batch for training. When `None`, defaults to `0` (auto-selected). |
 | `max_iters` | `int` | `None` | _(Optional)_ Maximum number of iterations for training. When `None`, defaults to `100`. |
 | `tolerance` | `float`| `None` | _(Optional)_ Convergence tolerance for training. When `None`, defaults to `1e-6`. |
 | `max_memory` | `int`| `None` | _(Optional)_ Maximum memory to use for training. When `None`, defaults to `0` (no limit). |
