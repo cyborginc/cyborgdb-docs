@@ -47,12 +47,13 @@ Get started with CyborgDB in minutes.
         import cyborgdb_core as cyborgdb
         import secrets
 
-        # Using the default `rocksdb` store for simple persistent local storage
-        # `redis`, `postgres`, `memory`, and `threadsafememory` are also supported
+        # Persistent local storage (RocksDB on disk). For cloud / multi-replica
+        # deployments, swap `disk` for an `s3`-compatible object store (AWS S3,
+        # MinIO, Cloudflare R2, …).
 
-        index_location = cyborgdb.DBConfig("rocksdb")  # Where encrypted index is stored (for queries)
-        config_location = cyborgdb.DBConfig("rocksdb") # Where encrypted index config is stored (for config/loading)
-        items_location = cyborgdb.DBConfig("rocksdb")  # Where item contents are stored (for upsert/get)
+        index_location = cyborgdb.StorageConfig("disk")   # Where encrypted index is stored (for queries)
+        config_location = cyborgdb.StorageConfig("disk")  # Where encrypted index config is stored (for config/loading)
+        items_location = cyborgdb.StorageConfig("disk")   # Where item contents are stored (for upsert/get)
 
         # Create a client
         client = cyborgdb.Client(
@@ -69,12 +70,13 @@ Get started with CyborgDB in minutes.
         #include <string>
         #include <openssl/rand.h>
 
-        // Using the default `rocksdb` store for simple persistent local storage
-        // `redis`, `postgres`, `memory`, and `threadsafememory` are also supported
+        // Persistent local storage (RocksDB on disk). For cloud / multi-replica
+        // deployments, swap `kDisk` for `kS3` to target AWS S3 or any
+        // S3-compatible object store (MinIO, Cloudflare R2, …).
 
-        cyborg::DBConfig index_location(cyborg::Location::kRocksDB);  // Where encrypted index is stored (for queries)
-        cyborg::DBConfig config_location(cyborg::Location::kRocksDB); // Where encrypted index config is stored (for config/loading)
-        cyborg::DBConfig contents_location(cyborg::Location::kRocksDB);  // Where item contents are stored (for upsert/get)
+        cyborg::StorageConfig index_location(cyborg::Location::kDisk);    // Where encrypted index is stored (for queries)
+        cyborg::StorageConfig config_location(cyborg::Location::kDisk);   // Where encrypted index config is stored (for config/loading)
+        cyborg::StorageConfig contents_location(cyborg::Location::kDisk); // Where item contents are stored (for upsert/get)
 
         // Create a client
         cyborg::Client client(index_location, config_location, contents_location, 0, cyborg::kNone);
