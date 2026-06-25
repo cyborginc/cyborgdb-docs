@@ -524,6 +524,30 @@ By default, `ids` are always included in the returned items.
 
 ---
 
+## KeyContext
+
+`KeyContext` carries the key material for a data operation. It holds the 32-byte index KEK and, for RBAC deployments, a 16-byte user identifier. A bare 32-byte index key (the `index_key`) implicitly converts to a `KeyContext`, so most callers pass the key directly; RBAC users construct one explicitly with their own `user_kek` and `user_id`.
+
+```cpp
+// Root access: a bare 32-byte index KEK converts implicitly.
+std::array<uint8_t, 32> index_key = {/* ... */};
+index->Query(q, cyborg::QueryParams{}, index_key);
+
+// RBAC user access: pass the user's 32-byte KEK and 16-byte user ID.
+std::array<uint8_t, 32> user_kek = {/* ... */};
+std::array<uint8_t, 16> user_id  = {/* ... */};
+index->Query(q, cyborg::QueryParams{}, cyborg::KeyContext{user_kek, user_id});
+```
+
+| Field | Type | Description |
+|-----------|--------------------------|-----------------------|
+| `kek` | `std::array<uint8_t, 32>` | The 32-byte key for the operation — the root `index_key`, or an RBAC user's `user_kek`. |
+| `user_id` | `std::array<uint8_t, 16>` | 16-byte RBAC user identifier. Omit for root access. |
+
+<Note>Operations that require the root index KEK (such as `DeleteIndex` and user management) reject a per-user `KeyContext`. See [Managing Users](./encrypted-index/manage-users) for RBAC details.</Note>
+
+---
+
 ## KMSBlob
 
 `KMSBlob` describes how an index's Key-Encryption-Key (KEK) is wrapped by an external KMS. It is persisted per index via the module-level KMS functions (see the [KMS](./kms) reference). This is primarily for service-layer deployments; embedded SDK users supplying their own KEK can ignore it.

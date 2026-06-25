@@ -9,7 +9,6 @@ If you've previously created an encrypted index, you can connect to it to add, q
 <CodeGroup>
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
-import secrets
 
 # Get your API key
 api_key = "your_api_key_here"  # Replace with your CyborgDB API key
@@ -17,8 +16,9 @@ api_key = "your_api_key_here"  # Replace with your CyborgDB API key
 # Create a client (use the same backing store the index was created with)
 client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
-# Provide the index key used when creating the index
-index_key = secrets.token_bytes(32)
+# Provide the SAME 32-byte key used when the index was created.
+# Retrieve it from your KMS/secret store — a fresh random key here would fail the load.
+index_key = bytes.fromhex("...")  # the 64-char hex of your existing 32-byte index key
 
 # Load an encrypted index
 index = client.load_index("my_index", index_key)

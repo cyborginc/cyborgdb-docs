@@ -12,9 +12,9 @@ CyborgDB can persist a per-index **KMS envelope** — a small record describing 
 
 ## The KMS Envelope
 
-Each index is encrypted under a 32-byte KEK. The KMS envelope records *how* that KEK is wrapped so it can be unwrapped later. Supported providers:
+Each index is encrypted with AES-256-GCM under a 32-byte KEK. The KMS envelope records *how* that KEK is wrapped so it can be unwrapped later. Supported providers:
 
-- `"aws"` — the KEK is wrapped with AES-GCM under a value stored in AWS Secrets Manager.
+- `"aws"` — the KEK is wrapped with AES-256-GCM under a value stored in AWS Secrets Manager.
 - `"aws-kms"` — the KEK is wrapped via `kms.Encrypt` using an AWS KMS key.
 - `"none"` — no external wrapping; the caller supplies the plaintext KEK per request and nothing is stored.
 

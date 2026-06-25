@@ -21,7 +21,7 @@ optional.</Note>
   external KMS. Callers never store the plaintext KEK in the envelope; they store the wrapped form
   plus the metadata needed to unwrap it.
 - **Providers.**
-  - `"aws"` — the KEK is wrapped with AES-GCM under a value stored in AWS Secrets Manager.
+  - `"aws"` — the KEK is wrapped with AES-256-GCM under a value stored in AWS Secrets Manager.
   - `"aws-kms"` — the KEK is wrapped via `kms.Encrypt`.
   - `"none"` — nothing is stored; the SDK supplies the plaintext KEK per request.
 - **Strict insert vs. upsert.** `CreateIndexKMS` fails if an envelope already exists for the index;

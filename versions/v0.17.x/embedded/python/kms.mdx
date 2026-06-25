@@ -3,16 +3,20 @@ title: "KMS Key Management"
 mode: "wide"
 ---
 
-CyborgDB can persist a per-index **KMS envelope** — a small record describing how an index's KEK is wrapped by an external Key Management Service. These module-level functions read and write that envelope; the envelope itself is represented by the [`KMSBlob`](./types#kmsblob) type and stored as a FlatBuffer next to the index keystore.
+CyborgDB can persist a per-index **KMS envelope** — a small record describing how an index's KEK is wrapped by an external Key Management Service. AES-256-GCM wraps the 32-byte KEK. These module-level functions read and write that envelope; the envelope itself is represented by the [`KMSBlob`](./types#kmsblob) type and stored as a FlatBuffer next to the index keystore.
 
 <Note>KMS is an **advanced / optional** feature primarily for the service layer. Embedded SDK users who supply their own KEK can ignore it entirely, or use `provider="none"` (the SDK supplies the plaintext KEK per request and nothing key-derived is stored).</Note>
 
 <Note>
-**Envelope model.** Each index is encrypted under a 32-byte KEK. The KMS envelope records how that KEK is wrapped by an external KMS so a service layer can unwrap it at request time. Supported providers:
+**Envelope model.** Each index is encrypted with AES-256-GCM under a 32-byte KEK. The KMS envelope records how that KEK is wrapped by an external KMS so a service layer can unwrap it at request time. Supported providers:
 
-- `"aws"` — the KEK is wrapped with AES-GCM under a value stored in AWS Secrets Manager.
+- `"aws"` — the KEK is wrapped with AES-256-GCM under a value stored in AWS Secrets Manager.
 - `"aws-kms"` — the KEK is wrapped via `kms.Encrypt` using an AWS KMS key.
 - `"none"` — no external wrapping; the caller supplies the plaintext KEK per request and nothing is stored.
+
+Customer-managed keys (CMK) are supported via `"aws-kms"`, not yet for the other providers.
+
+By default the plaintext KEK lives in caller process memory; the wrapped KEK lives next to the index keystore ([`StorageConfig`](./types#storageconfig)).
 </Note>
 
 All functions take a `config_location` ([`StorageConfig`](./types#storageconfig)) identifying where the index keystore lives, plus the index name.
@@ -140,22 +144,15 @@ cyborgdb.delete_index_kms(config, "my_index")
 
 ---
 
-## CUDA availability helpers
+## Rotation
 
-Two module-level helpers report on CUDA/GPU support in the current build and environment:
-
-```python
-def cuda_available() -> bool   # True if a usable CUDA device is present at runtime
-def cuda_built() -> bool       # True if this build of cyborgdb_core was compiled with CUDA support
-```
-
-### Example Usage
+To rotate the wrapped KEK, re-wrap it with your external KMS and store the new envelope with [`push_index_kms`](#push_index_kms) (an idempotent upsert), bumping `version`:
 
 ```python
-import cyborgdb_core as cyborgdb
-
-if cyborgdb.cuda_built() and cyborgdb.cuda_available():
-    print("GPU acceleration is available.")
+blob = cyborgdb.get_index_kms(config, "my_index")
+blob.wrapped_kek = b"...newly wrapped kek..."
+blob.version += 1
+cyborgdb.push_index_kms(config, "my_index", blob)
 ```
 
-<Note>**Removed in v0.17.** `set_working_dir()` has been removed. Configure storage locations through [`StorageConfig`](./types#storageconfig) (`memory` / `disk` / `s3`) on the [`Client`](./client/client) instead.</Note>
+For end-to-end key-rotation guidance, see the [CyborgDB documentation](https://docs.cyborg.co).

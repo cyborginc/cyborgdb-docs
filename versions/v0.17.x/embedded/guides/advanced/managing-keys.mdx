@@ -10,7 +10,7 @@ Encryption keys are one of the most critical elements that enable the security g
 - Item content encryptions
 - Encrypted query tokens
 
-This main key, known in the code as the `index_key`, is a 256-bit (32-byte) symmetric Key-Encryption-Key (KEK)—the same you would find when using AES-256 encryption. CyborgDB wraps a per-index data key (DEK) under this KEK internally; callers only ever handle the KEK. CyborgDB's cryptography is based entirely on well-established cryptographic standards, including AES, HMAC, and SHA-3 (Keccak).
+This main key, known in the code as the `index_key`, is a 256-bit (32-byte) symmetric Key-Encryption-Key (KEK)—the same you would find when using AES-256 encryption. CyborgDB wraps a per-index data key (DEK) under this KEK internally and encrypts all index data with that DEK using **AES-256-GCM**; callers only ever handle the KEK. CyborgDB's cryptography is based entirely on well-established cryptographic standards, including AES-256-GCM, HMAC, and SHA-3 (Keccak).
 
 Without the correct `index_key`, it is impossible to use a CyborgDB Encrypted Index. You cannot upsert vectors, query the index, or even delete it. Hence, it is critical to manage these encryption keys safely.
 
