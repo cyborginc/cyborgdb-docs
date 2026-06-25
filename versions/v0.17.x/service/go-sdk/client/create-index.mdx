@@ -26,7 +26,7 @@ func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*E
 | `IndexKey` | `[]byte` | Conditional | 32-byte encryption key. Required when `KmsName` is nil; mutually exclusive with `KmsName` against a real-KMS slot. |
 | `KmsName` | `*string` | Conditional | Name of a `kms.registry` entry in the service YAML. Required when `IndexKey` is nil. |
 | `Dimension` | `*int32` | No | Vector dimensionality. Auto-detected from the first upsert if nil. |
-| `Metric` | `*string` | No | Distance metric (`"euclidean"`, `"squared_euclidean"`, `"cosine"`). Defaults to the server's default. |
+| `Metric` | `*string` | No | Distance metric (`"euclidean"`, `"squared_euclidean"`, `"cosine"`). Defaults to the server's default (`"euclidean"`). |
 | `EmbeddingModel` | `*string` | No | Optional sentence-transformers model name for automatic embedding generation. |
 | `StoragePrecision` | `*string` | No | On-disk rerank-vector dtype: `"float32"` (default) or `"float16"`. |
 
@@ -137,7 +137,7 @@ key, _ := cyborgdb.GenerateKey()
 
 // Create an index with automatic embedding generation
 metric := "cosine"
-embeddingModel := "text-embedding-3-large"
+embeddingModel := "all-MiniLM-L6-v2"
 
 params := &cyborgdb.CreateIndexParams{
     IndexName:      "large-dataset",

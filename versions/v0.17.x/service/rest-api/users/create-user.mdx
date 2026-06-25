@@ -34,6 +34,8 @@ The legacy single API key (`CYBORGDB_API_KEY`) is **not** accepted on this route
 }
 ```
 
+<Note>For `POST`, the index key rides in the JSON body as `index_key` (alongside `permissions`). The sibling `GET /v1/indexes/{index_name}/users` and `DELETE /v1/indexes/{index_name}/users/{user_id}` endpoints have no request body, so they take the same key via the `X-Index-Key` header instead.</Note>
+
 <Expandable title="parameters">
   <ParamField body="permissions" type="array[string]" required="true">
     Non-empty subset of `["read", "write"]`. The grant is enforced cryptographically by the service — the wrapped data-encryption keys that exist for a user *are* their permission set.

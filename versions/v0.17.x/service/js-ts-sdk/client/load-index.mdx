@@ -3,7 +3,7 @@ title: "Load Index"
 mode: "wide"
 ---
 
-Loads and connects to an existing encrypted index using its name and encryption key.
+Loads and connects to an existing encrypted index by name. `indexKey` is optional in v0.17: SDK-supplied indexes (`provider: none`) must pass the exact 32-byte key used at creation, while KMS-backed indexes omit it — the service resolves the KEK via the stored `KMSBlob`.
 
 ```typescript
 async loadIndex({
@@ -35,6 +35,7 @@ For SDK-supplied indexes, the encryption key must exactly match the key used dur
     <Accordion title="Error">
         - Throws if the index doesn't exist on the server
         - Throws if the encryption key is incorrect or invalid
+        - Throws by the server if a KMS-backed index's slot is unavailable.
         - Throws if the server returns an HTTP error status.
         - Throws if authentication fails (invalid API key).
     </Accordion>

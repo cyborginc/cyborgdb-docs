@@ -42,7 +42,10 @@ admin = Client(base_url='http://localhost:8000', api_key=ROOT_KEY)
 index = admin.load_index('documents')  # KMS-backed: no index_key
 
 user = index.create_user(permissions=['read', 'write'])
-print(user['user_id'], user['api_key'])  # capture once
+user_id = user['user_id']
+api_key = user['api_key']
+# Hand `api_key` to the new user via a secure channel — it is never recoverable.
+# Avoid logging or printing it.
 ```
 
 ### Exceptions

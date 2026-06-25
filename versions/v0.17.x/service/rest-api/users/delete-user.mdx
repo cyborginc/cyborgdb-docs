@@ -30,6 +30,8 @@ X-API-Key: cyborg_your_root_api_key_here
 |---|---|---|
 | `X-Index-Key` | `string` | _(Optional)_ 32-byte index KEK as a hex string. Required for SDK-supplied indexes (`provider: none`). Omit for KMS-backed indexes — the service resolves the KEK via the stored `KMSBlob`. |
 
+<Note>`GET`/`DELETE` on this resource have no request body, so the index key travels in the `X-Index-Key` header. The sibling `POST /v1/indexes/{index_name}/users` endpoint takes the same key as an `index_key` field in its JSON body.</Note>
+
 ## Response
 
 `204 No Content` on success — body is empty.

@@ -21,14 +21,16 @@ index.query(query_contents=text, top_k=10)
 |-----------|------|---------|-------------|
 | `query_vectors` | `List[List[float]]` or `List[float]` or `np.ndarray` | `None` | _(Optional)_ Multiple query vectors for batch search |
 | `query_contents` | `str` | `None` | _(Optional)_ Text content for semantic search |
-| `top_k` | `int` | `None` | _(Optional)_ Number of results to return per query. When `None`, the server determines the default (typically 100) |
+| `top_k` | `int` | `None` (server default: `100`) | _(Optional)_ Number of results to return per query. |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of clusters to probe for search |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filters to apply |
 | `include` | `List[str]` | `None` | _(Optional)_ Fields to include in results. `None` uses the server default (`[]` — only `id` is returned). Note: `id` is always included |
-| `greedy` | `bool` | `None` | _(Optional)_ Use greedy search algorithm. When `None`, the server determines the default behavior |
+| `greedy` | `bool` | `None` (server default: `false`) | _(Optional)_ Use greedy search algorithm. |
 | `rerank_mult` | `int` | `None` | _(Optional)_ Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `top_k * rerank_mult` candidates before the rerank pass narrows to `top_k`. Higher values trade query latency for recall. Server default is `10`. Ignored by indexes that do not rerank. |
 
 <Tip>When `np.ndarray` is passed as `query_vectors`, queries are automatically sent in an optimized binary format for better performance.</Tip>
+
+<Note>`include` defaults differ between endpoints: `query` returns `[]` (only `id`) by default, while [`get`](./get) returns `["vector", "contents", "metadata"]`.</Note>
 
 ### Returns
 
@@ -131,7 +133,8 @@ for i, query_results in enumerate(batch_results):
 # Search using text content
 results = index.query(
     query_contents="machine learning healthcare applications",
-    top_k=10
+    top_k=10,
+    include=["contents"]
 )
 
 for result in results:

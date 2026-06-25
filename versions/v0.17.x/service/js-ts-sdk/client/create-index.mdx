@@ -13,7 +13,7 @@ async createIndex({
     indexKey?: Uint8Array,                                  // optional (see Key Management)
     kmsName?: string,                                       // optional (see Key Management)
     dimension?: number,                                     // optional, auto-detected from first upsert
-    metric?: 'euclidean' | 'squared_euclidean' | 'cosine',  // optional, defaults to server default
+    metric?: 'euclidean' | 'squared_euclidean' | 'cosine',  // optional, defaults to server default ('euclidean')
     embeddingModel?: string,                                // optional
     storagePrecision?: 'float32' | 'float16'                // optional, defaults to 'float32'
 }): Promise<EncryptedIndex>

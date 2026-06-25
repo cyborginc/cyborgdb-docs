@@ -68,7 +68,10 @@ admin = Client(base_url='http://localhost:8000', api_key=ROOT_KEY)
 index = admin.load_index('documents')  # KMS-backed: no index_key
 
 result = index.create_user(permissions=['read', 'write'])
-print(result['user_id'], result['api_key'])  # capture once
+user_id = result['user_id']
+api_key = result['api_key']
+# Hand `api_key` to the new user via a secure channel — it is never recoverable.
+# Avoid logging or printing it.
 ```
 
 ```typescript TypeScript SDK icon="code"
@@ -86,7 +89,10 @@ admin, _ := cyborgdb.NewClient("http://localhost:8000", rootKey)
 index, _ := admin.LoadIndex(context.Background(), "documents", nil)
 
 user, _ := index.CreateUser(context.Background(), []string{"read", "write"})
-fmt.Println(user.UserID, user.APIKey)  // capture once
+// Hand user.APIKey to the new user via a secure channel — it is never recoverable.
+// Avoid logging or printing it.
+_ = user.UserID
+_ = user.APIKey
 ```
 </CodeGroup>
 

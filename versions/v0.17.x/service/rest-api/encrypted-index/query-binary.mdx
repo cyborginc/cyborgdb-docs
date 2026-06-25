@@ -71,7 +71,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
     Metadata filters to apply to the search
   </ParamField>
   <ParamField body="include" type="array[string]">
-    Fields to include in response: `"distance"`, `"metadata"`. Defaults to `[]` (only `id` is returned)
+    Fields to include in response: `"distance"`, `"metadata"`, `"vector"`. Defaults to `[]` (only `id` is returned). `"contents"` is **not** a valid value — fetch contents via `POST /v1/vectors/get` with the matching IDs afterwards.
   </ParamField>
 </Expandable>
 
@@ -115,7 +115,7 @@ curl -X POST "http://localhost:8000/v1/vectors/query_binary" \
        "index_name": "my_index",
        "index_key": "your_64_character_hex_key_here",
        "batch": {
-         "vectors_b64": "zczMPc3MzD2amZk+mpkZPw==",
+         "vectors_b64": "zczMPc3MTD6amZk+zczMPg==",
          "dimension": 4
        },
        "top_k": 5

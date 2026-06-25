@@ -19,6 +19,8 @@ async get({
 | `ids` | `string[]` | - | Array of vector IDs to retrieve from the index |
 | `include` | `string[]` | `["vector", "contents", "metadata"]` | _(Optional)_ Fields to include in the response. Valid options: `"vector"`, `"contents"`, `"metadata"` |
 
+<Note>`include` defaults differ between endpoints: `get` returns `["vector", "contents", "metadata"]` by default, while [`query`](./query) returns `[]` (only `id`).</Note>
+
 ### Returns
 
 `Promise<GetResultItem[]>`: A Promise that resolves to an array of retrieved vector items with type-safe access to fields. Each item contains the requested fields based on the `include` parameter. See the [GetResultItem type](../types#getresultitem) for more details.

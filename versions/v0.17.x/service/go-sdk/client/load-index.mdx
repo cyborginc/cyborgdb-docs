@@ -3,7 +3,7 @@ title: "Load Index"
 mode: "wide"
 ---
 
-Loads an existing encrypted index by name and key. The provided key must match the one used during index creation.
+Loads an existing encrypted index by name. `indexKey` is optional in v0.17: SDK-supplied indexes (`provider: none`) must pass the exact 32-byte key used at creation, while KMS-backed indexes omit it — the service resolves the KEK via the stored `KMSBlob`.
 
 ```go
 func (c *Client) LoadIndex(ctx context.Context, indexName string, indexKey []byte) (*EncryptedIndex, error)
@@ -34,10 +34,11 @@ For SDK-supplied indexes, the encryption key must exactly match the key used dur
 
 <AccordionGroup>
     <Accordion title="Error">
-        - Throws if the index doesn't exist on the server
-        - Throws if the encryption key is incorrect or invalid
-        - Throws if the server returns an HTTP error status.
-        - Throws if authentication fails (invalid API key).
+        - Returns error if the index doesn't exist on the server
+        - Returns error if the encryption key is incorrect or invalid
+        - Returns error from the server if a KMS-backed index's slot is unavailable
+        - Returns error if the server returns an HTTP error status
+        - Returns error if authentication fails (invalid API key)
     </Accordion>
     <Accordion title="Service Errors">
         - Throws if the CyborgDB service is unavailable or unreachable.
@@ -65,8 +66,12 @@ func main() {
         log.Fatal(err)
     }
     
-    // Replace with your actual encryption key (must be exactly 32 bytes)
-    key := []byte("example-index-key-12345678901234")
+    // 32-byte encryption key encoded as 64 hex chars
+    indexKeyHex := "your-64-character-hex-key-here"
+    key, err := hex.DecodeString(indexKeyHex)
+    if err != nil {
+        log.Fatal(err)
+    }
 
     // Load existing SDK-supplied index
     ctx := context.Background()

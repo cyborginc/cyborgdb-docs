@@ -35,6 +35,8 @@ async query({
 
 <Tip>Passing a `Float32Array` as `queryVectors` uses an optimized binary transfer format for better performance. When using `Float32Array`, the `dimension` parameter is required so the SDK can correctly reshape the flat array into individual query vectors.</Tip>
 
+<Note>`include` defaults differ between endpoints: `query` returns `[]` (only `id`) by default, while [`get`](./get) returns `["vector", "contents", "metadata"]`.</Note>
+
 ### Returns
 
 `Promise<QueryResponse>`: A Promise that resolves to search results. The response format depends on the query type:

@@ -42,7 +42,10 @@ user, err := index.CreateUser(context.Background(), []string{"read", "write"})
 if err != nil {
     log.Fatal(err)
 }
-fmt.Println(user.UserID, user.APIKey)  // capture once
+// Hand user.APIKey to the new user via a secure channel — it is never recoverable.
+// Avoid logging or printing it.
+_ = user.UserID
+_ = user.APIKey
 ```
 
 ### Errors

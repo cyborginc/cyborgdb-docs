@@ -80,7 +80,7 @@ The `CreateIndexRequest` interface defines the parameters for creating a new enc
 | `indexKey` | `string \| null` | Conditional | Hex-encoded 32-byte encryption key. Required when `kmsName` is omitted; mutually exclusive with `kmsName` against a real-KMS slot. |
 | `kmsName` | `string \| null` | Conditional | Name of a `kms.registry` entry in the service YAML. Required when `indexKey` is omitted. |
 | `dimension` | `number \| null` | No | Vector dimensionality (auto-detected from the first upsert if omitted) |
-| `metric` | `string \| null` | No | Distance metric (`'euclidean'`, `'squared_euclidean'`, or `'cosine'`). If omitted, the server's default is used. |
+| `metric` | `string \| null` | No | Distance metric (`'euclidean'`, `'squared_euclidean'`, or `'cosine'`). If omitted, the server's default (`'euclidean'`) is used. |
 | `embeddingModel` | `string \| null` | No | Optional embedding model name for automatic vector generation |
 | `storagePrecision` | `'float32' \| 'float16' \| null` | No | On-disk rerank-vector dtype. Defaults to `'float32'`. |
 
@@ -480,13 +480,14 @@ Enhanced type-safe result item for get operations. This type extends `GetResultI
 ```typescript
 import { GetResultItem } from 'cyborgdb';
 
-const response = await index.get({
+const items: GetResultItem[] = await index.get({
     ids: ['doc1', 'doc2'],
     include: ['vector', 'metadata', 'contents']
 });
 
-// Use GetResultItem for type-safe access
-response.results.forEach((item: GetResultItem) => {
+// `get()` returns a bare GetResultItem[] — the SDK unwraps the server's
+// `{ results: [...] }` envelope for you. Iterate the array directly.
+items.forEach((item) => {
     console.log(`ID: ${item.id}`);
     if (item.metadata) {
         console.log(`Title: ${item.metadata.title}`);

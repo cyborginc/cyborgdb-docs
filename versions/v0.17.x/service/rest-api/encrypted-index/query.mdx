@@ -98,13 +98,16 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
     MongoDB-style metadata filters
   </ParamField>
   <ParamField body="include" type="array[string]" default={[]}>
-    Fields to include in response:
+    Fields to include in response. `id` is always returned. `contents` is **not** a valid value for query — to retrieve contents, call `GET /v1/vectors/get` (or the SDK's `get`) with the matching IDs afterwards.
     <Expandable title="include options">
       <ParamField body="distance" type="string">
         Include distance/similarity score to query vector
       </ParamField>
       <ParamField body="metadata" type="string">
         Include item metadata key-value pairs
+      </ParamField>
+      <ParamField body="vector" type="string">
+        Include the stored rerank vector (returned at the index's configured `storage_precision`)
       </ParamField>
     </Expandable>
   </ParamField>

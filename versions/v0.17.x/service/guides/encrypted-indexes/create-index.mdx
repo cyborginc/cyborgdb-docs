@@ -17,7 +17,7 @@ client = Client(
 )
 
 # Generate an encryption key for the index
-index_key = client.generate_key(save=True)
+index_key = client.generate_key(save=False)
 
 # Create an encrypted index
 index = client.create_index(
@@ -148,8 +148,10 @@ client = Client(
     api_key='your-api-key'
 )
 
-# Generate an encryption key for the index
-index_key = client.generate_key(save=True)
+# Generate an encryption key for the index.
+# `save=True` is available for local evaluation (caches the key under ~/.cyborgdb/);
+# leave it as `save=False` (default) and persist the key in your own secret store.
+index_key = client.generate_key(save=False)
 
 # Set embedding model (from HuggingFace)
 embedding_model = "all-MiniLM-L6-v2"

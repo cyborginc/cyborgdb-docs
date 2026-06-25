@@ -15,6 +15,8 @@ index.get(ids, include=["vector", "contents", "metadata"])
 | `ids` | `List[str]` | - | List of vector IDs to retrieve |
 | `include` | `List[str]` | `["vector", "contents", "metadata"]` | Fields to include in the response |
 
+<Note>`include` defaults differ between endpoints: `get` returns `["vector", "contents", "metadata"]` by default, while [`query`](./query) returns `[]` (only `id`).</Note>
+
 ### Returns
 
 `List[Dict]` - List of dictionaries containing the requested vector data.

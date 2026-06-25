@@ -29,6 +29,8 @@ results = index.query_binary(
 | `greedy` | `bool` | `None` | _(Optional)_ Use the greedy approximate search algorithm. |
 | `rerank_mult` | `int` | `None` (server default: `10`) | _(Optional)_ Multiplier for stage 1 retrieval on reranking indexes. Stage 1 returns `top_k * rerank_mult` candidates before reranking narrows to `top_k`. Ignored by indexes that do not rerank. |
 
+<Note>`include` defaults differ between endpoints: `query_binary` returns `[]` (only `id`) by default, while [`get`](./get) returns `["vector", "contents", "metadata"]`.</Note>
+
 ### Returns
 
 - **Single query** (1D `query_vectors`): `List[Dict]` — one result dict per neighbor.

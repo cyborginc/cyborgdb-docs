@@ -2,7 +2,7 @@
 title: "Getters"
 ---
 
-<Note>v0.17 removes the `GetIndexType` and `GetIndexConfig` methods — there is now a single DiskIVF index type. The Go SDK exposes `GetIndexName`, `IsTrained`, `CheckTrainingStatus`, and the three describe-backed accessors `Dimension`, `Metric`, and `NLists`.</Note>
+<Note>v0.17 removes the `GetIndexType` and `GetIndexConfig` methods — there is now a single DiskIVF index type. The Go SDK exposes `GetIndexName`, `IsTrained`, `IsTraining`, and the three describe-backed accessors `Dimension`, `Metric`, and `NLists`.</Note>
 
 ## GetIndexName
 
@@ -146,12 +146,12 @@ if trained {
 
 ---
 
-## CheckTrainingStatus
+## IsTraining
 
 Queries the server to check if the index is currently being trained (either actively training or queued).
 
 ```go
-func (e *EncryptedIndex) CheckTrainingStatus(ctx context.Context) (bool, error)
+func (e *EncryptedIndex) IsTraining(ctx context.Context) (bool, error)
 ```
 
 **Parameters**:
@@ -163,7 +163,7 @@ func (e *EncryptedIndex) CheckTrainingStatus(ctx context.Context) (bool, error)
 
 **Example**:
 ```go
-isTraining, err := index.CheckTrainingStatus(context.Background())
+isTraining, err := index.IsTraining(context.Background())
 if err != nil {
     log.Printf("Failed to check training status: %v", err)
     return
@@ -173,7 +173,7 @@ if isTraining {
     fmt.Println("Index is currently being trained")
     for isTraining {
         time.Sleep(10 * time.Second)
-        isTraining, err = index.CheckTrainingStatus(context.Background())
+        isTraining, err = index.IsTraining(context.Background())
         if err != nil {
             log.Printf("Error checking training status: %v", err)
             break

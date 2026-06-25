@@ -29,7 +29,7 @@ index.delete(ids)
     </Accordion>
     <Accordion title="Validation Errors">
         - Throws if the `ids` parameter is null, undefined, or empty.
-        - Throws if any of the provided IDs are invalid format.
+        - Returns `422` from the server if `ids` is not a list of strings.
     </Accordion>
 </AccordionGroup>
 

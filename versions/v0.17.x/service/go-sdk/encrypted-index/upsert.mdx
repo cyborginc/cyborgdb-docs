@@ -84,7 +84,11 @@ import (
 func main() {
     // Load existing index
     client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-    key := []byte("example-index-key-12345678901234") // Replace with your actual encryption key (must be 32 bytes)
+    indexKeyHex := "your-64-character-hex-key-here" // 32-byte key encoded as 64 hex chars
+    key, err := hex.DecodeString(indexKeyHex)
+    if err != nil {
+        log.Fatal(err)
+    }
     index, _ := client.LoadIndex(context.Background(), "my-documents", key)
     
     // Create vector items
