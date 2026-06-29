@@ -5,7 +5,7 @@ mode: "wide"
 
 Trains the encrypted index to optimize it for efficient similarity search queries. Training is essential for IVF-based indexes to achieve optimal query performance and accuracy.
 
-<Tip>In CyborgDB Service, training is typically handled automatically by the service. However, you can explicitly trigger training once enough vectors have been added.</Tip>
+<Tip>In CyborgDB Service v0.17, training is **auto-triggered** server-side once upserts cross the configured `RETRAIN_THRESHOLD`. `upsert()` returns `None` either way — to observe training, poll [`is_training()`](../getters#is_training). Calling `train()` explicitly forces immediate clustering and is useful when you want to block until the index is ready (for example, before benchmarking queries). Auto-training can be disabled service-side with the `AUTO_TRAIN_DISABLED` setting.</Tip>
 
 ```python
 index.train(

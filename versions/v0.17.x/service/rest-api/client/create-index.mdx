@@ -5,7 +5,9 @@ api: "POST /v1/indexes/create"
 playground: "simple"
 ---
 
-Create a new encrypted index with the specified configuration.
+Create a new encrypted DiskIVF index.
+
+<Note>v0.17 introduces a single **DiskIVF** index type and removes the polymorphic `index_config` object from previous versions. Configuration parameters (`dimension`, `metric`, `embedding_model`, `storage_precision`) are now top-level fields. The IVFFlat/IVFPQ/IVFSQ distinction no longer applies.</Note>
 
 ## Request Body
 
@@ -13,97 +15,45 @@ Create a new encrypted index with the specified configuration.
 {
   "index_name": "my_index",
   "index_key": "64_character_hex_string_representing_32_bytes",
-  "index_config": {
-    "type": "ivfpq",
-    "dimension": 384,
-    "pq_dim": 64,
-    "pq_bits": 8
-  },
+  "dimension": 384,
   "metric": "euclidean",
-  "embedding_model": "all-MiniLM-L6-v2"
+  "embedding_model": "all-MiniLM-L6-v2",
+  "storage_precision": "float32"
 }
 ```
 
 <Expandable title="parameters">
   <ParamField body="index_name" type="string" required="true">
-    Unique name for the index
+    Unique name for the index.
   </ParamField>
-  <ParamField body="index_key" type="string" required="true">
-    32-byte encryption key as hex string
+  <ParamField body="index_key" type="string">
+    32-byte encryption key as a hex string. Required when `kms_name` is omitted (SDK-supplied KEK path). Must be omitted when `kms_name` is set against a real KMS provider — supplying both is rejected with 400.
   </ParamField>
-  <ParamField body="index_config" type="object">
-    Index configuration object. Optional when using `embedding_model` (defaults to IVFFlat).
-    When provided, must contain:
-    - `type`: Index type (`ivfflat`, `ivfpq`, `ivfsq`). `ivf` is also accepted but deprecated — use `ivfflat` instead.
-    - `dimension`: Embedding dimension (optional)
-    - `pq_dim`: Product quantization dimension (required for `ivfpq`)
-    - `pq_bits`: Number of bits per sub-vector (required for `ivfpq`)
-    - `sq_bits`: Number of bits per dimension for scalar quantization (required for `ivfsq`, default: 16)
-    See [Index Types](#index-types) for details.
+  <ParamField body="kms_name" type="string">
+    Name of a `kms.registry` entry in the service YAML configuration. When supplied, the service generates a fresh KEK, wraps it under the named provider (e.g. `aws-kms`), and persists the envelope. The SDK never sees the plaintext key. Mutually exclusive with `index_key` against a real provider.
+  </ParamField>
+  <ParamField body="dimension" type="integer">
+    Vector dimensionality. If omitted, the server auto-detects from the first upsert.
   </ParamField>
   <ParamField body="metric" type="string">
-    Distance metric to use for the index. Options: `euclidean`, `cosine`, `squared_euclidean`.
-    Defaults to `euclidean`
+    Distance metric. Options: `euclidean`, `squared_euclidean`, `cosine`. Defaults to the server's default (`euclidean`).
   </ParamField>
   <ParamField body="embedding_model" type="string">
-    Optional sentence-transformers model for automatic embedding generation.
-    When specified, `dimension` in `index_config` becomes optional as it will be inferred from the model
+    Optional sentence-transformers model name for automatic embedding generation on upsert/query. When set, `dimension` is inferred from the model and may be omitted.
+  </ParamField>
+  <ParamField body="storage_precision" type="string">
+    On-disk rerank-vector dtype. Accepts `"float32"` (default) or `"float16"`. Use `"float16"` to halve storage at the cost of small recall.
   </ParamField>
 </Expandable>
 
-## Index Types
+## Key Management Modes
 
-### IVFFlat (Recommended)
+Exactly one of `index_key` / `kms_name` must be supplied:
 
-Suitable for applications requiring high recall with moderate memory usage:
+- **SDK-supplied KEK** (set `index_key`, omit `kms_name`) — the service records the index with `provider: none`. The same key must be re-supplied on every subsequent request (load, query, upsert, etc.).
+- **KMS-backed** (set `kms_name`, omit `index_key`) — the service generates the KEK, wraps it under the named registry slot, and persists the envelope. Subsequent requests omit `index_key` entirely; the service resolves it via the stored `KMSBlob`.
 
-```json
-{
-  "type": "ivfflat",
-  "dimension": 384
-}
-```
-
-**Speed:** Fast | **Recall:** Highest | **Index Size:** Biggest
-
-### IVFSQ
-
-Scalar Quantization compresses each dimension independently, balancing speed and index size:
-
-```json
-{
-  "type": "ivfsq",
-  "dimension": 384,
-  "sq_bits": 16
-}
-```
-
-**Speed:** Fast | **Recall:** High | **Index Size:** Small
-
-### IVFPQ
-
-Product Quantization compresses embeddings, balancing memory use and recall:
-
-```json
-{
-  "type": "ivfpq",
-  "dimension": 384,
-  "pq_dim": 64,
-  "pq_bits": 8
-}
-```
-
-**Speed:** Fast | **Recall:** High | **Index Size:** Medium
-
-### IVF (Deprecated)
-
-<Warning>The `ivf` type is deprecated. Use `ivfflat` instead, which provides equivalent functionality.</Warning>
-
-## Distance Metrics
-
-- `"euclidean"`: Euclidean distance
-- `"cosine"`: Cosine similarity  
-- `"squared_euclidean"`: Squared Euclidean distance
+Supplying both against a real-KMS slot is rejected with 400. (The `none` provider is not addressable by name — omit `kms_name` to use the SDK-supplied path.)
 
 ## Response
 
@@ -116,13 +66,16 @@ Product Quantization compresses embeddings, balancing memory use and recall:
 
 ## Exceptions
 
+- `400`: Missing/conflicting key parameters (e.g. both `index_key` and `kms_name` against a real KMS slot, or neither supplied)
 - `401`: Authentication failed (invalid API key)
 - `409`: Index name already exists
 - `422`: Invalid request parameters
 - `500`: Internal server error
+- `502`: KMS error (e.g. wrap operation failed)
 
 ## Example Usage
 
+**Basic (SDK-supplied key):**
 ```bash
 curl -X POST "http://localhost:8000/v1/indexes/create" \
      -H "X-API-Key: cyborg_your_api_key_here" \
@@ -130,43 +83,47 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
      -d '{
        "index_name": "my_index",
        "index_key": "your_64_character_hex_key_here",
-       "index_config": {
-         "type": "ivfflat",
-         "dimension": 384
-       }
+       "dimension": 384
      }'
 ```
 
-## With Auto-Embedding
-
+**KMS-backed:**
 ```bash
-# With explicit index config
 curl -X POST "http://localhost:8000/v1/indexes/create" \
      -H "X-API-Key: cyborg_your_api_key_here" \
      -H "Content-Type: application/json" \
      -d '{
-       "index_name": "semantic_search_index",
+       "index_name": "kms_index",
+       "kms_name": "prod-aws",
+       "dimension": 384
+     }'
+```
+
+**With auto-embedding:**
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "semantic_index",
        "index_key": "your_64_character_hex_key_here",
-       "index_config": {
-         "type": "ivfflat"
-       },
        "embedding_model": "all-MiniLM-L6-v2"
      }'
+```
 
-# Minimal configuration - index_config defaults to IVFFlat
+**Float16 storage for reduced footprint:**
+```bash
 curl -X POST "http://localhost:8000/v1/indexes/create" \
      -H "X-API-Key: cyborg_your_api_key_here" \
      -H "Content-Type: application/json" \
      -d '{
-       "index_name": "auto_index",
+       "index_name": "compact_index",
        "index_key": "your_64_character_hex_key_here",
-       "embedding_model": "all-MiniLM-L6-v2"
+       "dimension": 768,
+       "storage_precision": "float16"
      }'
 ```
 
 <Note>
-When `embedding_model` is specified:
-- The `dimension` parameter in `index_config` is optional 
-- The entire `index_config` object is optional (defaults to IVFFlat with auto-detected dimension)
-- The index will automatically generate embeddings for text content during upsert operations
+When `embedding_model` is specified, `dimension` is optional — the server infers it from the model. The index will automatically generate embeddings for text content during upsert operations.
 </Note>

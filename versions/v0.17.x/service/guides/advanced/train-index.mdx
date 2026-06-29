@@ -4,7 +4,7 @@ sidebarTitle: "Train Index"
 mode: "wide"
 ---
 
-CyborgDB uses `IVF*` index types, which leverage clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
+CyborgDB Service stores every encrypted index as a **DiskIVF** index — an inverted-file (IVF) index whose clusters are produced by a training step. Training fits the clustering model to the actual vectors in your index so queries can probe a small number of clusters instead of scanning everything.
 
 In CyborgDB Service, training is handled automatically after 10,000 vectors have been upserted. However, you can explicitly trigger training once enough vectors have been added, if you wish to specify training parameters.
 

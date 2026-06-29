@@ -2,62 +2,25 @@
 title: "Types"
 ---
 
-## Index Configuration Types
+## Index Configuration
 
-### IndexIVFSQ
+<Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` types from v0.16 have been removed — there is no `index_config` argument any more. Configuration is expressed as flat keyword arguments to `client.create_index`.</Note>
 
-IVFSQ (Scalar Quantization) index configuration, compresses each dimension independently for a balance of speed and index size:
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dimension` | `int` | `None` (auto-detect) | Vector dimensionality. Inferred from the first upsert or from `embedding_model` when omitted. |
+| `metric` | `str` | server default (`"euclidean"`) | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
+| `embedding_model` | `str` | `None` | Optional sentence-transformers model name for automatic embedding generation. |
+| `storage_precision` | `str` | `"float32"` | On-disk rerank-vector dtype: `"float32"` or `"float16"`. |
 
-| Speed | Accuracy | Memory Usage |
-|-------|----------|--------------|
-| Fast  | High     | Low          |
+## Key Management
 
-```python
-from cyborgdb import IndexIVFSQ
+| Parameter | Type | Notes |
+|-----------|------|-------|
+| `index_key` | `bytes` | 32-byte encryption key. Used by the SDK-supplied KEK path. Required on every subsequent call for that index. |
+| `kms_name` | `str` | Name of a `kms.registry` entry in the service YAML. The server generates and wraps the DEK on creation; subsequent calls omit `index_key`. |
 
-config = IndexIVFSQ(
-    sq_bits=16,       # optional, default: 16
-    dimension=768     # optional, defaults to auto-detect
-)
-```
-
-<Note> The `sq_bits` parameter controls the precision of the scalar quantization. Higher values provide higher recall at the cost of larger index sizes. Accepted values are `8` and `16`, with `16` being the default.</Note>
-
-### IndexIVFFlat
-
-IVFFlat index configuration, suitable for highest accuracy requirements:
-
-| Speed | Accuracy | Memory Usage |
-|-------|----------|--------------|
-| Medium| Highest  | High         |
-
-```python
-from cyborgdb import IndexIVFFlat
-
-config = IndexIVFFlat(
-    dimension=512 # optional, defaults to auto-detect
-)
-```
-
-### IndexIVFPQ
-
-IVFPQ (Product Quantization) index configuration, optimized for memory efficiency:
-
-| Speed | Accuracy | Memory Usage |
-|-------|----------|--------------|
-| Fast  | Good     | Low          |
-
-```python
-from cyborgdb import IndexIVFPQ
-
-config = IndexIVFPQ(
-    pq_dim=64,        # required: product quantization dimension
-    pq_bits=8,        # required: bits per quantization code
-    dimension=1536    # optional, defaults to auto-detect
-)
-```
-
-<Note>Both `pq_dim` and `pq_bits` are required parameters for IndexIVFPQ. Unlike IndexIVFSQ and IndexIVFFlat, these parameters must be explicitly specified.</Note>
+At least one of `index_key` / `kms_name` must be supplied to `create_index`. Supplying both against a real-KMS slot is rejected.
 
 ## Vector Item Format
 

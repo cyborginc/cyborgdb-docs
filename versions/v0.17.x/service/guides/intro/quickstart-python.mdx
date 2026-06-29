@@ -46,23 +46,23 @@ The Python service is ideal for developers who prefer managing Python environmen
         <Note>While conda is mentioned in the build instructions, the wheel works with any Python environment manager including pip, pipenv, poetry, etc.</Note>
     </Step>
 
-    <Step title="Choose Your Database Backend (Optional)">
-        For **quick evaluation and testing**, you can skip database setup entirely - the service will automatically use a built-in **standalone** instance.
+    <Step title="Choose Your Storage Backend (Optional)">
+        The service ships with three storage backends. Skip this
+        step and you get **disk** (embedded RocksDB) by default —
+        the data directory is `~/.cyborgdb/data`.
 
-        For **production deployments** or if you have existing database infrastructure, CyborgDB service supports external database backends:
+        - **Disk** (default) — embedded RocksDB on local disk. Persistent,
+          no external dependencies. Best for single-node deployments and
+          edge devices.
+        - **S3** — AWS S3 or any S3-compatible store (MinIO,
+          Cloudflare R2, …). Best for cloud-native and multi-node
+          deployments.
+        - **Memory** — in-process only, nothing persists across
+          restarts. For tests and ephemeral indexes.
 
-        - **PostgreSQL**: Compatible with your existing PostgreSQL infrastructure
-          - Managed services: AWS RDS, Azure Database for PostgreSQL, Google Cloud SQL, DigitalOcean Managed Databases
-          - Self-hosted PostgreSQL instances
-        - **Redis**: Compatible with your existing Redis infrastructure
-          - Managed services: AWS ElastiCache, Azure Cache for Redis, Google Cloud Memorystore, Redis Cloud
-          - Self-hosted Redis instances
-        - **Amazon S3**: Cloud-native object storage for scalable, serverless deployments
-          - Compatible with AWS S3, MinIO, Cloudflare R2, and any S3-compatible store
+        For full details, see the [Backing Stores guide](../../../intro/backing-stores).
 
-        All backends provide identical CyborgDB functionality. For more info, refer to [this guide](../../../intro/backing-stores).
-
-        <Warning>**Standalone is for evaluation and testing only** - For production use, configure an external PostgreSQL, Redis, or S3 backend.</Warning>
+        <Note>v0.17 collapsed the storage surface. The previous `standalone`, `postgres`, and `redis` backends and the catch-all `CYBORGDB_CONNECTION_STRING` are gone — switch `standalone` → `disk` and use the new `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.</Note>
     </Step>
 
     <Step title="Install CyborgDB Service">
@@ -103,80 +103,80 @@ The Python service is ideal for developers who prefer managing Python environmen
         Set the required environment variables for your deployment:
 
         <Tabs>
-            <Tab title="Quick Start (Standalone)">
+            <Tab title="Disk (default)">
                 <CodeGroup>
                 ```bash Linux/macOS
-                # Minimal configuration - uses built-in standalone
+                # Minimal — disk is the default; data goes to ~/.cyborgdb/data
                 export CYBORGDB_API_KEY=cyborg_your_api_key_here
-                # No database configuration needed - standalone starts automatically
+                # Optional: pin the data directory
+                # export CYBORGDB_DISK_PATH=/var/lib/cyborgdb
                 ```
 
                 ```bash .env File
-                # Create a .env file in your working directory
-                # Minimal configuration - uses built-in standalone
                 CYBORGDB_API_KEY=cyborg_your_api_key_here
-                # No database configuration needed - standalone starts automatically
-                ```
-                </CodeGroup>
-
-                <Warning>Standalone is for evaluation and testing only. For production, use PostgreSQL, Redis, or S3.</Warning>
-            </Tab>
-
-            <Tab title="PostgreSQL Backend">
-                <CodeGroup>
-                ```bash Linux/macOS
-                export CYBORGDB_API_KEY=cyborg_your_api_key_here
-                export CYBORGDB_DB_TYPE=postgres
-                export CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=postgres user=postgres password=your_password"
-                ```
-
-                ```bash .env File
-                # Create a .env file in your working directory
-                CYBORGDB_API_KEY=cyborg_your_api_key_here
-                CYBORGDB_DB_TYPE=postgres
-                CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=postgres user=postgres password=your_password
+                # CYBORGDB_DISK_PATH=/var/lib/cyborgdb
                 ```
                 </CodeGroup>
             </Tab>
 
-            <Tab title="Redis Backend">
+            <Tab title="Memory">
                 <CodeGroup>
                 ```bash Linux/macOS
                 export CYBORGDB_API_KEY=cyborg_your_api_key_here
-                export CYBORGDB_DB_TYPE=redis
-                export CYBORGDB_CONNECTION_STRING="host:localhost,port:6379,db:0"
+                export CYBORGDB_DB_TYPE=memory
                 ```
 
                 ```bash .env File
-                # Create a .env file in your working directory
                 CYBORGDB_API_KEY=cyborg_your_api_key_here
-                CYBORGDB_DB_TYPE=redis
-                CYBORGDB_CONNECTION_STRING=host:localhost,port:6379,db:0
+                CYBORGDB_DB_TYPE=memory
                 ```
                 </CodeGroup>
+
+                <Warning>Memory storage does not persist across restarts. Use for tests and ephemeral indexes only.</Warning>
             </Tab>
 
-            <Tab title="S3 Backend">
+            <Tab title="S3 (AWS)">
                 <CodeGroup>
                 ```bash Linux/macOS
                 export CYBORGDB_API_KEY=cyborg_your_api_key_here
                 export CYBORGDB_DB_TYPE=s3
-                export CYBORGDB_CONNECTION_STRING="s3://my-bucket?region=us-east-1"
-                # Optional: set credentials if not using IAM roles
-                # export AWS_ACCESS_KEY_ID=AKID...
-                # export AWS_SECRET_ACCESS_KEY=...
+                export CYBORGDB_S3_BUCKET=my-bucket
+                export CYBORGDB_S3_REGION=us-east-1
+                # On EC2/ECS/EKS the instance role is picked up automatically.
+                # Off AWS, set AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY instead.
                 ```
 
                 ```bash .env File
                 CYBORGDB_API_KEY=cyborg_your_api_key_here
                 CYBORGDB_DB_TYPE=s3
-                CYBORGDB_CONNECTION_STRING=s3://my-bucket?region=us-east-1
-                # AWS_ACCESS_KEY_ID=AKID...
-                # AWS_SECRET_ACCESS_KEY=...
+                CYBORGDB_S3_BUCKET=my-bucket
+                CYBORGDB_S3_REGION=us-east-1
+                ```
+                </CodeGroup>
+            </Tab>
+
+            <Tab title="S3 (MinIO / R2)">
+                <CodeGroup>
+                ```bash Linux/macOS
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=s3
+                export CYBORGDB_S3_BUCKET=my-bucket
+                export CYBORGDB_S3_ENDPOINT=https://minio.internal:9000
+                export CYBORGDB_S3_ACCESS_KEY=minioadmin
+                export CYBORGDB_S3_SECRET_KEY=minioadmin
+                ```
+
+                ```bash .env File
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=s3
+                CYBORGDB_S3_BUCKET=my-bucket
+                CYBORGDB_S3_ENDPOINT=https://minio.internal:9000
+                CYBORGDB_S3_ACCESS_KEY=minioadmin
+                CYBORGDB_S3_SECRET_KEY=minioadmin
                 ```
                 </CodeGroup>
 
-                <Note>For MinIO or other S3-compatible stores, add `&endpoint=http://...&access_key=...&secret_key=...` to the connection string. See [Environment Variables](../advanced/env-vars#s3-connection-string) for full details.</Note>
+                <Note>With a custom `CYBORGDB_S3_ENDPOINT` the AWS default credential chain is bypassed entirely — `CYBORGDB_S3_ACCESS_KEY` / `CYBORGDB_S3_SECRET_KEY` are required.</Note>
             </Tab>
         </Tabs>
 
@@ -193,11 +193,11 @@ The Python service is ideal for developers who prefer managing Python environmen
         ```
 
         The service will start and display startup information including:
-        - Database connection status
+        - Configured storage backend (`memory`, `disk`, or `s3`)
         - Server URL (default: `http://localhost:8000`)
         - Available API endpoints
 
-        <Note>For additional configuration options, run `cyborgdb-service --help` to see all available command-line arguments and connection string examples.</Note>
+        <Note>For additional configuration options, run `cyborgdb-service --help` to see all available command-line arguments.</Note>
     </Step>
 
     <Step title="Verify Installation">
@@ -222,13 +222,15 @@ The Python service is ideal for developers who prefer managing Python environmen
                 | Variable | Description | Required | Example |
                 |----------|-------------|----------|---------|
                 | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
-                | `CYBORGDB_DB_TYPE` | Database backend type | ⚠️ Optional (defaults to standalone) | `standalone`, `postgres`, `redis`, `s3`, or `memory` |
-                | `CYBORGDB_CONNECTION_STRING` | Database connection details | ⚠️ Optional (defaults to standalone) | See connection formats |
+                | `CYBORGDB_DB_TYPE` | Storage backend (`memory`, `disk`, `s3`) | ❌ (defaults to `disk`) | `s3` |
+                | `CYBORGDB_DISK_PATH` | Data directory for `disk` storage | ❌ | `/var/lib/cyborgdb` |
+                | `CYBORGDB_S3_BUCKET` | Bucket name for `s3` storage | Required for S3 | `my-bucket` |
+                | `CYBORGDB_S3_REGION` | Region for `s3` storage | ❌ | `us-east-1` |
                 | `PORT` | Service port | ❌ | `8000` |
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
                 | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
 
-                <Note>If `CYBORGDB_DB_TYPE` and `CYBORGDB_CONNECTION_STRING` are not set, the service uses a built-in standalone database for evaluation. For production, configure an external database. For more information, refer to [this guide](../advanced/env-vars).</Note>
+                <Note>Without `CYBORGDB_DB_TYPE`, the service uses `disk` storage rooted at `~/.cyborgdb/data`. For the full list (including S3 credentials and KMS), see the [Environment Variables](../advanced/env-vars) guide.</Note>
 
             </Tab>
 
@@ -259,8 +261,9 @@ The Python service is ideal for developers who prefer managing Python environmen
                 ```bash
                 # Set all required environment variables including SSL
                 export CYBORGDB_API_KEY=cyborg_your_api_key_here
-                export CYBORGDB_DB_TYPE=postgres
-                export CYBORGDB_CONNECTION_STRING="host=localhost port=5432 dbname=postgres user=postgres password=your_password"
+                export CYBORGDB_DB_TYPE=s3
+                export CYBORGDB_S3_BUCKET=cyborgdb-prod
+                export CYBORGDB_S3_REGION=us-east-1
                 export SSL_CERT_PATH=/etc/ssl/certs/server.crt
                 export SSL_KEY_PATH=/etc/ssl/private/server.key
 
@@ -273,8 +276,9 @@ The Python service is ideal for developers who prefer managing Python environmen
                 # Create a .env file with SSL configuration
                 cat > .env << EOF
                 CYBORGDB_API_KEY=cyborg_your_api_key_here
-                CYBORGDB_DB_TYPE=postgres
-                CYBORGDB_CONNECTION_STRING=host=localhost port=5432 dbname=postgres user=postgres password=your_password
+                CYBORGDB_DB_TYPE=s3
+                CYBORGDB_S3_BUCKET=cyborgdb-prod
+                CYBORGDB_S3_REGION=us-east-1
                 SSL_CERT_PATH=/path/to/certificate.crt
                 SSL_KEY_PATH=/path/to/private.key
                 EOF

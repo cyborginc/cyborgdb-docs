@@ -304,9 +304,8 @@ If you provided an `embedding_model` during index creation, you can automaticall
 # ... index creation and embedding model setup
 embedding_model = "all-MiniLM-L6-v2"
 index = client.create_index(
-  index_name="my_index", 
-  index_key=index_key, 
-  index_config=index_config, 
+  index_name="my_index",
+  index_key=index_key,
   embedding_model=embedding_model
 )
 
@@ -323,11 +322,10 @@ index.upsert(items)
 ```javascript JavaScript SDK icon="js"
 // ... index creation and embedding model setup
 const embeddingModel = "all-MiniLM-L6-v2";
-const index = await client.createIndex({ 
-    indexName: "my_index", 
-    indexKey, 
-    indexConfig, 
-    embeddingModel 
+const index = await client.createIndex({
+    indexName: "my_index",
+    indexKey,
+    embeddingModel
 });
 
 // Items to add to the encrypted index
@@ -346,10 +344,9 @@ import { VectorItem, UpsertRequest, EncryptedIndex, CreateIndexRequest } from 'c
 // ... index creation and embedding model setup
 const embeddingModel: string = "all-MiniLM-L6-v2";
 const indexParams: CreateIndexRequest = {
-    indexName: "my_index", 
-    indexKey, 
-    indexConfig, 
-    embeddingModel 
+    indexName: "my_index",
+    indexKey,
+    embeddingModel
 };
 const index: EncryptedIndex = await client.createIndex(indexParams);
 
@@ -403,6 +400,23 @@ curl -X POST "http://localhost:8000/v1/vectors/upsert" \
 In this example, the `embedding_model` will automatically generate embeddings for the `contents` field. The contents will also be stored alongside the generated embeddings.
 
 This feature uses various embedding models available through the service. You can use any model supported by the CyborgDB service, including models from the [HuggingFace Model Hub](https://huggingface.co/models).
+
+## Automatic training on upsert
+
+In v0.17, `upsert` may trigger background training automatically once the index has accumulated enough vectors (`num_vectors > n_lists * RETRAIN_THRESHOLD`, with `RETRAIN_THRESHOLD` defaulting to `10000`). When this happens, the upsert response carries two extra fields:
+
+```json
+{
+  "status": "success",
+  "message": "Upserted 5000 vectors",
+  "training_triggered": true,
+  "training_message": "Index training has been triggered (vectors: 15000, threshold: 10000)"
+}
+```
+
+Training runs asynchronously — the upsert itself does not block on it. Use `isTraining()` (per-index) or `GET /v1/indexes/training-status` (global) to poll progress.
+
+To disable this behavior — e.g. when benchmarking a fixed index state — set `AUTO_TRAIN_DISABLED=true` on the service. Explicit `train()` / `POST /v1/indexes/train` keep working in either mode.
 
 ## API Reference
 

@@ -1,522 +1,187 @@
 ---
 title: "Configure an Encrypted Index"
 sidebarTitle: "Configure Index"
+mode: "wide"
 ---
 
-<Info>Index configuration is automatically handled by default. This guide allows you to override these defaults to customize index behavior & performance characteristics.</Info>
+<Note>
+v0.17 collapsed the embedded family of index types (`IVFFlat`, `IVFPQ`, `IVFSQ`) into a single **DiskIVF** index type at the service layer. The polymorphic `index_config` argument is gone — configuration is now expressed as flat parameters on `create_index`.
+</Note>
 
-CyborgDB offers three index types, all of which offer varying characteristics:
+CyborgDB Service stores every encrypted index as a **DiskIVF** index: an inverted-file (IVF) index whose data is persisted by the service's configured storage backend (`memory`, `disk`, or `s3`). The four knobs you control at create time are:
 
-|  Index Type  |  Speed  | Accuracy | Memory Usage |
-| :-----: | :-----: | :----: | :--------: |
-| [`IVFFlat`](#ivfflat-index-type) | Medium | Highest |  High  |
-| [`IVFPQ`](#ivfpq-index-type) | Fast | Good |  Low  |
-| [`IVFSQ`](#ivfsq-index-type) | Fast | High |  Low  |
+| Parameter | Default | What it controls |
+|---|---|---|
+| `dimension` | auto-detect | Vector dimensionality. If you omit it, the server fixes the dimension to whatever shape the **first upsert** uses. |
+| `metric` | `euclidean` | Distance function used for similarity search. Accepts `euclidean`, `squared_euclidean`, or `cosine`. |
+| `embedding_model` | unset | Optional sentence-transformers model name. When set, the service generates embeddings server-side from `contents` on upsert/query; `dimension` is inferred from the model. |
+| `storage_precision` | `float32` | On-disk rerank-vector dtype. `float32` is highest recall; `float16` halves on-disk storage at the cost of small recall loss. |
 
-Generally-speaking, we recommend that you start with `IVFFlat`, which provides the highest recall (accuracy) with high indexing and retrieval speeds. For most use-cases, this index type will scale well. If minimizing index size is important, `IVFPQ` takes `IVFFlat` and applies Product-Quantization (PQ, a form of lossy compression) to the vector embeddings which can greatly reduce index size. For an alternative that balances speed and index size, `IVFSQ` uses Scalar Quantization to compress each dimension independently.
+Two more parameters control key management — they are mutually exclusive against a real KMS slot, and at least one must be supplied:
 
-## `IVFFlat` Index Type
+| Parameter | When to use it |
+|---|---|
+| `index_key` | SDK-supplied KEK path. You generate and persist a 32-byte key locally; the service records the index as `provider: none`. The same key must be re-supplied on every subsequent call. |
+| `kms_name` | KMS-backed path. References a named entry in the service YAML's `kms.registry` (e.g. `aws-kms` or `aws`). The service generates the KEK, wraps it via the named provider, and persists the envelope. The SDK never sees the plaintext key. |
 
-The `IVFFlat` index type improves `IVF` significantly by storing encrypted vector embeddings in the index. In addition to selecting the closest clusters for a query vector, the exact distance can be computed between each candidate vector and the query, yielding very high recall rates (up to >99%). This comes at the cost of index size and some search speed.
+See [KMS & BYOK](./kms-byok) for the registry schema and [Managing Encryption Keys](./managing-keys) for the SDK-supplied path.
 
-We recommend `IVFFlat` indexes for most applications, as it provides the highest recall rates, and it's possible to mitigate index size constraints later via `IVFPQ`.
+## Distance metric
 
-To create an `IVFFlat` index, you can use its configuration constructor:
-
-<CodeGroup>
 ```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVFFlat
+from cyborgdb import Client
 
-# Create a client
-client = Client(
-    base_url='http://localhost:8000', 
-    api_key='your-api-key'
-)
-
-# Create the IVFFlat index config
-index_config = IndexIVFFlat()
-
-# Generate encryption key and create the index
-index_name = "test_index"
-index_key = client.generate_key(save=True)  # Generate secure 32-byte key
-index = client.create_index(
-    index_name=index_name, 
-    index_key=index_key, 
-    index_config=index_config
-)
-```
-
-```javascript JavaScript SDK icon="js"
-import { Client } from 'cyborgdb';
-
-// Create a client
-const client = new Client({
-    baseUrl: 'http://localhost:8000',
-    apiKey: 'your-api-key'
-});
-
-// Create the IVFFlat index config
-const indexConfig = { type: 'ivfflat' };
-
-// Generate encryption key and create the index
-const indexName = "test_index";
-const indexKey = client.generateKey(); // Generate secure 32-byte key
-
-const index = await client.createIndex({
-    indexName,
-    indexKey,
-    indexConfig
-});
-```
-
-```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFFlat } from 'cyborgdb';
-
-// Create a client
-const client = new Client({
-    baseUrl: 'http://localhost:8000',
-    apiKey: 'your-api-key'
-});
-
-// Create the IVFFlat index config
-const indexConfig: IndexIVFFlat = { type: 'ivfflat' };
-
-// Generate encryption key and create the index
-const indexName = "test_index";
-const indexKey = client.generateKey(); // Generate secure 32-byte key
-
-const index = await client.createIndex({
-    indexName,
-    indexKey,
-    indexConfig
-});
-```
-
-```go Go SDK icon="golang"
-package main
-
-import (
-    "context"
-    "log"
-
-    "github.com/cyborginc/cyborgdb-go"
-)
-
-func main() {
-    // Create a client
-    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Create the IVFFlat index config (specify dimension, e.g., 768 for many embedding models)
-    indexConfig := cyborgdb.IndexIVFFlat(768)
-
-    // Generate encryption key and create the index
-    indexName := "test_index"
-    indexKey, err := cyborgdb.GenerateKey()
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
-        IndexName:   indexName,
-        IndexKey:    indexKey,
-        IndexConfig: indexConfig,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    log.Printf("Created index: %s", index.GetIndexName())
-}
-```
-
-</CodeGroup>
-
-## `IVFPQ` Index Type
-
-The `IVFPQ` index type builds upon `IVFFlat` by applying Product Quantization (PQ) - a form of lossy compression - to reduce the index size. When applied correctly, `IVFPQ` indexes can maintain high recall (>95%) while reducing index size significantly (2-4x).
-
-We recommend `IVFPQ` indexes for mature applications, where the dataset and query distributions are well-established. This is because `IVFPQ` requires the most tuning to yield an ideal balance between recall and index size. It is possible to go from `IVFFlat` to `IVFPQ` on the same index, but not vice-versa.
-
-To create an `IVFPQ` index, you can use its configuration constructor:
-
-<CodeGroup>
-```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVFPQ
-
-# Create a client
-client = Client(
-    base_url='http://localhost:8000', 
-    api_key='your-api-key'
-)
-
-# Set index parameters
-pq_dim = 32 # Dimension must be divisible by pq_dim
-pq_bits = 8 # Number of bits for each pq dimension
-
-# Create the IVFPQ index config
-index_config = IndexIVFPQ(pq_dim, pq_bits)
-
-# Generate encryption key and create the index
-index_name = "test_index"
-index_key = client.generate_key(save=True)  # Generate secure 32-byte key
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+index_key = client.generate_key()
 
 index = client.create_index(
-    index_name=index_name, 
-    index_key=index_key, 
-    index_config=index_config
-)
-```
-
-```javascript JavaScript SDK icon="js"
-import { Client } from 'cyborgdb';
-
-// Create a client
-const client = new Client({
-    baseUrl: 'http://localhost:8000',
-    apiKey: 'your-api-key'
-});
-
-// Set index parameters
-const pqDim = 32; // Dimension must be divisible by pqDim
-const pqBits = 8; // Number of bits for each pq dimension
-
-// Create the IVFPQ index config
-const indexConfig = { type: 'ivfpq', pqDim, pqBits };
-
-// Generate encryption key and create the index
-const indexName = "test_index";
-const indexKey = client.generateKey(); // Generate secure 32-byte key
-
-const index = await client.createIndex({
-    indexName,
-    indexKey,
-    indexConfig
-});
-```
-
-```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFPQ } from 'cyborgdb';
-
-// Create a client
-const client = new Client({
-    baseUrl: 'http://localhost:8000',
-    apiKey: 'your-api-key'
-});
-
-// Set index parameters
-const pqDim = 32; // Dimension must be divisible by pqDim
-const pqBits = 8; // Number of bits for each pq dimension
-
-// Create the IVFPQ index config
-const indexConfig: IndexIVFPQ = { type: 'ivfpq', pqDim, pqBits };
-
-// Generate encryption key and create the index
-const indexName = "test_index";
-const indexKey = client.generateKey(); // Generate secure 32-byte key
-
-const index = await client.createIndex({
-    indexName,
-    indexKey,
-    indexConfig
-});
-```
-
-```go Go SDK icon="golang"
-package main
-
-import (
-    "context"
-    "log"
-
-    "github.com/cyborginc/cyborgdb-go"
-)
-
-func main() {
-    // Create a client
-    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Set index parameters
-    dimension := int32(768)  // Vector dimension
-    pqDim := int32(32)       // Dimension must be divisible by pqDim
-    pqBits := int32(8)       // Number of bits for each pq dimension
-
-    // Create the IVFPQ index config
-    indexConfig := cyborgdb.IndexIVFPQ(dimension, pqDim, pqBits)
-
-    // Generate encryption key and create the index
-    indexName := "test_index"
-    indexKey, err := cyborgdb.GenerateKey()
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
-        IndexName:   indexName,
-        IndexKey:    indexKey,
-        IndexConfig: indexConfig,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    log.Printf("Created index: %s", index.GetIndexName())
-}
-```
-
-</CodeGroup>
-
-`pq_dim` is the number of dimensionality for each vector after product-quantization. It must be between `1` and `dimension`, and `dimension` must be cleanly divisible by `pq_dim`. Lower `pq_dim` will yield smaller index sizes but lower recall.
-
-`pq_bits` is the number of bits that will be used to represent each dimension of the product-quantized vector embeddings. It must be between `1` and `16`, with lower values yielding smaller index sizes but lower recall.
-
-## `IVFSQ` Index Type
-
-The `IVFSQ` index type uses Scalar Quantization (SQ) to compress each vector dimension independently, balancing speed and index size. This makes it a good choice when you want fast search with a smaller index footprint while maintaining high recall.
-
-To create an `IVFSQ` index, you can use its configuration constructor:
-
-<CodeGroup>
-```python Python SDK icon="python"
-from cyborgdb import Client, IndexIVFSQ
-
-# Create a client
-client = Client(
-    base_url='http://localhost:8000',
-    api_key='your-api-key'
-)
-
-# Create the IVFSQ index config
-index_config = IndexIVFSQ(sq_bits=16)
-
-# Generate encryption key and create the index
-index_name = "test_index"
-index_key = client.generate_key(save=True)  # Generate secure 32-byte key
-
-index = client.create_index(
-    index_name=index_name,
+    'documents',
     index_key=index_key,
-    index_config=index_config
+    dimension=384,
+    metric='cosine',
 )
 ```
 
-```javascript JavaScript SDK icon="js"
+```typescript TypeScript SDK icon="code"
 import { Client } from 'cyborgdb';
 
-// Create a client
-const client = new Client({
-    baseUrl: 'http://localhost:8000',
-    apiKey: 'your-api-key'
-});
-
-// Create the IVFSQ index config
-const indexConfig = { type: 'ivfsq', sqBits: 16 };
-
-// Generate encryption key and create the index
-const indexName = "test_index";
-const indexKey = client.generateKey(); // Generate secure 32-byte key
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+const indexKey = client.generateKey();
 
 const index = await client.createIndex({
-    indexName,
+    indexName: 'documents',
     indexKey,
-    indexConfig
-});
-```
-
-```typescript TypeScript SDK icon="code"
-import { Client, IndexIVFSQ } from 'cyborgdb';
-
-// Create a client
-const client = new Client({
-    baseUrl: 'http://localhost:8000',
-    apiKey: 'your-api-key'
-});
-
-// Create the IVFSQ index config
-const indexConfig: IndexIVFSQ = { type: 'ivfsq', sqBits: 16 };
-
-// Generate encryption key and create the index
-const indexName = "test_index";
-const indexKey = client.generateKey(); // Generate secure 32-byte key
-
-const index = await client.createIndex({
-    indexName,
-    indexKey,
-    indexConfig
+    dimension: 384,
+    metric: 'cosine',
 });
 ```
 
 ```go Go SDK icon="golang"
-package main
+import "github.com/cyborginc/cyborgdb-go"
 
-import (
-    "context"
-    "log"
+client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+indexKey, _ := cyborgdb.GenerateKey()
 
-    "github.com/cyborginc/cyborgdb-go"
-)
+dimension := int32(384)
+metric := "cosine"
 
-func main() {
-    // Create a client
-    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Create the IVFSQ index config (specify dimension and sq_bits)
-    indexConfig := cyborgdb.IndexIVFSQ(768, 16)
-
-    // Generate encryption key and create the index
-    indexName := "test_index"
-    indexKey, err := cyborgdb.GenerateKey()
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
-        IndexName:   indexName,
-        IndexKey:    indexKey,
-        IndexConfig: indexConfig,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    log.Printf("Created index: %s", index.GetIndexName())
+params := &cyborgdb.CreateIndexParams{
+    IndexName: "documents",
+    IndexKey:  indexKey,
+    Dimension: &dimension,
+    Metric:    &metric,
 }
-```
-
-</CodeGroup>
-
-`sq_bits` is the number of bits per dimension used for scalar quantization. Lower values yield smaller index sizes but may reduce recall. Accepted values are `8` and `16`, with `16` being the default.
-
-## Customizing Distance Metrics
-
-By default, CyborgDB uses `euclidean` distance as its metric for all index types. You can override this default by providing a `metric` parameter to any of the index constructors. For example:
-
-<CodeGroup>
-```python Python SDK icon="python"
-# Example with cosine similarity
-index_config = IndexIVFFlat()
-
-index = client.create_index(
-    index_name="index_name", 
-    index_key=index_key, 
-    index_config=index_config, 
-    metric="cosine"
-)
-```
-
-```javascript JavaScript SDK icon="js"
-// Example with cosine similarity
-const indexConfig = { type: 'ivfflat' };
-const indexName = "index_name";
-const indexKey = client.generateKey(); // Generate secure 32-byte key
-
-const index = await client.createIndex({
-    indexName,
-    indexKey,
-    indexConfig,
-    metric: "cosine"
-});
-```
-
-```typescript TypeScript SDK icon="code"
-// Example with cosine similarity
-const indexConfig: IndexIVFFlat = { type: 'ivfflat' };
-const indexName = "index_name";
-const indexKey = client.generateKey(); // Generate secure 32-byte key
-
-const index = await client.createIndex({
-    indexName,
-    indexKey,
-    indexConfig,
-    metric: "cosine"
-});
-```
-
-```go Go SDK icon="golang"
-package main
-
-import (
-    "context"
-    "log"
-
-    "github.com/cyborginc/cyborgdb-go"
-)
-
-func main() {
-    // Create a client
-    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Example with cosine similarity
-    indexConfig := cyborgdb.IndexIVFFlat(768)
-    indexName := "index_name"
-    indexKey, err := cyborgdb.GenerateKey()
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    metric := "cosine"
-    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
-        IndexName:   indexName,
-        IndexKey:    indexKey,
-        IndexConfig: indexConfig,
-        Metric:      &metric,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    log.Printf("Created index: %s", index.GetIndexName())
-}
+index, _ := client.CreateIndex(context.Background(), params)
 ```
 
 ```bash cURL icon="rectangle-terminal"
-# Example with cosine similarity
 curl -X POST "http://localhost:8000/v1/indexes/create" \
-     -H "X-API-Key: your-api-key" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
      -H "Content-Type: application/json" \
      -d '{
-       "index_name": "my_index",
+       "index_name": "documents",
        "index_key": "your_64_character_hex_key_here",
-       "index_config": {
-         "type": "ivfflat"
-       },
+       "dimension": 384,
        "metric": "cosine"
      }'
 ```
-</CodeGroup>
 
-The currently supported distance metrics are:
+Supported values:
+- `euclidean` — L2 distance. Default if omitted.
+- `squared_euclidean` — L2 without the square root; faster, ordering identical to `euclidean`.
+- `cosine` — cosine distance. Use with normalized vectors.
 
-- `"cosine"`: Cosine similarity.
-- `"euclidean"`: Euclidean distance.
-- `"squared_euclidean"`: Squared Euclidean distance.
+## `storage_precision`: float32 vs float16
 
-## API Reference
+`storage_precision` selects the dtype used for the on-disk rerank vectors. Reranking happens after IVF candidate retrieval to recover recall; storing rerank vectors at lower precision halves the on-disk footprint with a small recall trade-off.
 
-For more information on the `IndexConfig` classes, refer to the API Reference:
+| Value | On-disk size | Recall | When to use |
+|---|---|---|---|
+| `float32` (default) | 4 bytes / element | Highest | Most workloads, especially small/medium indexes |
+| `float16` | 2 bytes / element | Small recall loss | Large indexes where disk footprint matters more than the last 1–2% of recall |
+
+```python Python SDK icon="python"
+# 50% smaller on-disk footprint
+index = client.create_index(
+    'compact_documents',
+    index_key=index_key,
+    dimension=768,
+    storage_precision='float16',
+)
+```
+
+```typescript TypeScript SDK icon="code"
+const index = await client.createIndex({
+    indexName: 'compact_documents',
+    indexKey,
+    dimension: 768,
+    storagePrecision: 'float16',
+});
+```
+
+```go Go SDK icon="golang"
+dimension := int32(768)
+precision := cyborgdb.StoragePrecisionFloat16
+
+params := &cyborgdb.CreateIndexParams{
+    IndexName:        "compact_documents",
+    IndexKey:         indexKey,
+    Dimension:        &dimension,
+    StoragePrecision: &precision,
+}
+index, _ := client.CreateIndex(context.Background(), params)
+```
+
+## Automatic embeddings (`embedding_model`)
+
+Pass a sentence-transformers model name and the server will embed text `contents` server-side on upsert and query. When `embedding_model` is set, `dimension` is inferred from the model and can be omitted.
+
+```python Python SDK icon="python"
+index = client.create_index(
+    'semantic_documents',
+    index_key=index_key,
+    embedding_model='all-MiniLM-L6-v2',
+)
+```
+
+```typescript TypeScript SDK icon="code"
+const index = await client.createIndex({
+    indexName: 'semantic_documents',
+    indexKey,
+    embeddingModel: 'all-MiniLM-L6-v2',
+});
+```
+
+```go Go SDK icon="golang"
+embeddingModel := "all-MiniLM-L6-v2"
+
+params := &cyborgdb.CreateIndexParams{
+    IndexName:      "semantic_documents",
+    IndexKey:       indexKey,
+    EmbeddingModel: &embeddingModel,
+}
+index, _ := client.CreateIndex(context.Background(), params)
+```
+
+<Tip>The Docker service image bundles sentence-transformers. For the pip-installed service, install with `pip install 'cyborgdb-service[embeddings]'` (or `'cyborgdb-service-cu12[embeddings]'` on CUDA hosts).</Tip>
+
+## Training the index
+
+DiskIVF needs to be trained once it has enough vectors. The service auto-triggers training when `num_vectors > n_lists * RETRAIN_THRESHOLD` (default `RETRAIN_THRESHOLD = 10000`) — most callers do not need to call `train()` explicitly. See [Train an Encrypted Index](./train-index) for the manual-training path and the tuning knobs (`n_lists`, `batch_size`, `max_iters`, `tolerance`, `max_memory`).
+
+## API reference
 
 <CardGroup cols={2}>
-    <Card title="REST API Reference" href="../../rest-api/client/create-index#index-types" icon="rectangle-terminal">
-        REST API reference for `/v1/indexes/create`
+    <Card title="REST API Reference" href="../../rest-api/client/create-index" icon="rectangle-terminal">
+        `POST /v1/indexes/create`
     </Card>
-    <Card title="Python SDK Reference" href="../../python-sdk/types#indexconfig" icon="python">
-        API reference for `IndexConfig` in Python
+    <Card title="Python SDK Reference" href="../../python-sdk/client/create-index" icon="python">
+        `Client.create_index()` in Python
     </Card>
-    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/types#indexconfig" icon="js">
-        API reference for `IndexConfig` in JavaScript/TypeScript
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/create-index" icon="js">
+        `Client.createIndex()` in JavaScript/TypeScript
     </Card>
-    <Card title="Go SDK Reference" href="../../go-sdk/types#indexconfig" icon="golang">
-        API reference for `IndexConfig` in Go
+    <Card title="Go SDK Reference" href="../../go-sdk/client/create-index" icon="golang">
+        `Client.CreateIndex()` in Go
     </Card>
 </CardGroup>

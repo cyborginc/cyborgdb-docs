@@ -2,9 +2,11 @@
 title: "Getters"
 ---
 
+<Note>v0.17 removes the `GetIndexType` and `GetIndexConfig` methods — there is now a single DiskIVF index type. The Go SDK exposes `GetIndexName`, `IsTrained`, `IsTraining`, and the three describe-backed accessors `Dimension`, `Metric`, and `NLists`.</Note>
+
 ## GetIndexName
 
-Returns the unique name of the index.
+Returns the unique name of the index. Known at construction — no API call.
 
 ```go
 func (e *EncryptedIndex) GetIndexName() string
@@ -20,48 +22,108 @@ fmt.Printf("Working with index: %s\n", indexName)
 
 ---
 
-## GetIndexType
+## Dimension
 
-Returns the algorithm type of the index.
+Returns the vector dimensionality of the index.
+
+- Returns the real dimension when `CreateIndex` was called with an explicit `Dimension`, or after the first upsert (auto-detect).
+- Returns `0` when the index was created with auto-detect AND no upsert has happened yet.
+
+Each call queries the describe endpoint for live state.
 
 ```go
-func (e *EncryptedIndex) GetIndexType() string
+func (e *EncryptedIndex) Dimension(ctx context.Context) (int32, error)
 ```
 
-**Returns**: `string` - Index type ("ivfflat", "ivfpq", or "ivfsq")
+**Parameters**:
+- `ctx`: `context.Context` — context for cancellation and timeouts
+
+**Returns**:
+- `int32` — vector dimension
+- `error` — any error encountered during the lookup
 
 **Example**:
 ```go
-indexType := index.GetIndexType()
-fmt.Printf("Index type: %s\n", indexType)
-
-// Use type for conditional logic
-switch indexType {
-case "ivfflat":
-    fmt.Println("Using IVFFlat (IVF with flat search) index")
-case "ivfpq":
-    fmt.Println("Using IVFPQ (IVF with Product Quantization) index")
-case "ivfsq":
-    fmt.Println("Using IVFSQ (IVF with Scalar Quantization) index")
+dim, err := index.Dimension(context.Background())
+if err != nil {
+    log.Fatal(err)
 }
+fmt.Printf("Dimension: %d\n", dim)
+```
+
+---
+
+## Metric
+
+Returns the distance metric used by this index: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`.
+
+```go
+func (e *EncryptedIndex) Metric(ctx context.Context) (string, error)
+```
+
+**Parameters**:
+- `ctx`: `context.Context` — context for cancellation and timeouts
+
+**Returns**:
+- `string` — the distance metric
+- `error` — any error encountered during the lookup
+
+**Example**:
+```go
+metric, err := index.Metric(context.Background())
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Metric: %s\n", metric)
+```
+
+---
+
+## NLists
+
+Returns the number of inverted lists in the IVF index.
+
+- Returns `1` for untrained indexes.
+- Returns the trained cluster count after `Train` completes.
+
+Each call queries the describe endpoint so post-training callers see the updated value.
+
+```go
+func (e *EncryptedIndex) NLists(ctx context.Context) (int32, error)
+```
+
+**Parameters**:
+- `ctx`: `context.Context` — context for cancellation and timeouts
+
+**Returns**:
+- `int32` — number of inverted lists
+- `error` — any error encountered during the lookup
+
+**Example**:
+```go
+n, err := index.NLists(context.Background())
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Lists: %d\n", n)
 ```
 
 ---
 
 ## IsTrained
 
-Checks whether the index has been optimized through training. This method makes an API call to get the current training status from the server.
+Checks whether the index has been optimized through training. Makes an API call to get the current training status from the server.
 
 ```go
 func (e *EncryptedIndex) IsTrained(ctx context.Context) (bool, error)
 ```
 
 **Parameters**:
-- `ctx`: `context.Context` - Context for cancellation and timeouts
+- `ctx`: `context.Context` — context for cancellation and timeouts
 
 **Returns**:
-- `bool` - `true` if the index has been trained, `false` otherwise
-- `error` - Any error encountered during the status check
+- `bool` — `true` if the index has been trained, `false` otherwise
+- `error` — any error encountered during the status check
 
 **Example**:
 ```go
@@ -76,10 +138,7 @@ if trained {
     fmt.Println("Index is trained and optimized")
 } else {
     fmt.Println("Index may benefit from training")
-    // Optionally trigger training
-    params := cyborgdb.TrainParams{}
-    err := index.Train(ctx, params)
-    if err != nil {
+    if err := index.Train(ctx, cyborgdb.TrainParams{}); err != nil {
         log.Printf("Training failed: %v", err)
     }
 }
@@ -87,63 +146,24 @@ if trained {
 
 ---
 
-## GetIndexConfig
+## IsTraining
 
-Returns the detailed configuration of the index.
-
-```go
-func (e *EncryptedIndex) GetIndexConfig() internal.IndexConfig
-```
-
-**Returns**: `internal.IndexConfig` - The index configuration, or empty if not available
-
-**Note**: For indexes loaded via `LoadIndex()`, the configuration may be incomplete.
-
-**Example**:
-```go
-config := index.GetIndexConfig()
-
-// Access configuration based on index type
-switch index.GetIndexType() {
-case "ivfsq":
-    if config.IndexIVFSQModel != nil {
-        fmt.Printf("IVFSQ Dimension: %d\n", config.IndexIVFSQModel.GetDimension())
-    }
-case "ivfflat":
-    if config.IndexIVFFlatModel != nil {
-        fmt.Printf("IVFFlat Dimension: %d\n", config.IndexIVFFlatModel.GetDimension())
-    }
-case "ivfpq":
-    if config.IndexIVFPQModel != nil {
-        fmt.Printf("IVFPQ Dimension: %d\n", config.IndexIVFPQModel.GetDimension())
-        fmt.Printf("PQ Dimension: %d\n", config.IndexIVFPQModel.GetPqDim())
-        fmt.Printf("PQ Bits: %d\n", config.IndexIVFPQModel.GetPqBits())
-    }
-}
-```
-
----
-
-## CheckTrainingStatus
-
-Queries the server to check if the index is currently being trained and updates the cached training status.
+Queries the server to check if the index is currently being trained (either actively training or queued).
 
 ```go
-func (e *EncryptedIndex) CheckTrainingStatus(ctx context.Context) (bool, error)
+func (e *EncryptedIndex) IsTraining(ctx context.Context) (bool, error)
 ```
 
 **Parameters**:
-- `ctx`: `context.Context` - Context for cancellation and timeouts
+- `ctx`: `context.Context` — context for cancellation and timeouts
 
 **Returns**:
-- `bool` - `true` if the index is currently being trained, `false` otherwise
-- `error` - Any error encountered during the status check
-
-**Note**: This method makes an API call and updates the cached `IsTrained()` value if training has completed.
+- `bool` — `true` if the index is currently being trained or queued, `false` otherwise
+- `error` — any error encountered during the status check
 
 **Example**:
 ```go
-isTraining, err := index.CheckTrainingStatus(context.Background())
+isTraining, err := index.IsTraining(context.Background())
 if err != nil {
     log.Printf("Failed to check training status: %v", err)
     return
@@ -151,27 +171,14 @@ if err != nil {
 
 if isTraining {
     fmt.Println("Index is currently being trained")
-    // Wait for training to complete
     for isTraining {
         time.Sleep(10 * time.Second)
-        isTraining, err = index.CheckTrainingStatus(context.Background())
+        isTraining, err = index.IsTraining(context.Background())
         if err != nil {
             log.Printf("Error checking training status: %v", err)
             break
         }
-        fmt.Println("Still training...")
     }
     fmt.Println("Training completed!")
-} else {
-    trained, err := index.IsTrained(context.Background())
-    if err != nil {
-        log.Printf("Failed to check training status: %v", err)
-        return
-    }
-    if trained {
-        fmt.Println("Index is trained")
-    } else {
-        fmt.Println("Index is not trained and not currently training")
-    }
 }
 ```

@@ -14,6 +14,7 @@ async query({
     filters?: FilterExpression,             // optional, default: {}
     include?: string[],                     // optional, default: [] (only `id` is returned)
     greedy?: boolean,                       // optional, default: false
+    rerankMult?: number,                    // optional, default: undefined (server default: 10)
     dimension?: number                      // optional, required when queryVectors is Float32Array
 }): Promise<QueryResponse>
 ```
@@ -29,9 +30,12 @@ async query({
 | `filters` | [`FilterExpression`](../types#filterexpression) | `undefined` | _(Optional)_ Metadata filters to apply to the search (no filtering when undefined) |
 | `include` | `string[]` | `undefined` (server default: `[]` — only `id` is returned) | _(Optional)_ Fields to include: `"distance"`, `"metadata"`, `"vector"`, `"contents"` |
 | `greedy` | `boolean` | `false` | _(Optional)_ Use faster approximate search |
-| `dimension` | `number` | `-` | _(Optional)_ Required when `queryVectors` is a `Float32Array`. Specifies vector dimensionality so the SDK can reshape the flat typed array. |
+| `rerankMult` | `number` | `undefined` (server default: 10) | _(Optional)_ Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `topK * rerankMult` candidates before the rerank pass narrows the result to `topK`. Higher values trade query latency for recall. Ignored by indexes that do not rerank. |
+| `dimension` | `number` | `-` | **Required when `queryVectors` is a `Float32Array`** — the SDK uses it to reshape the flat typed array into individual query vectors. Optional (and ignored) for `number[]` / `number[][]` inputs. |
 
 <Tip>Passing a `Float32Array` as `queryVectors` uses an optimized binary transfer format for better performance. When using `Float32Array`, the `dimension` parameter is required so the SDK can correctly reshape the flat array into individual query vectors.</Tip>
+
+<Note>`include` defaults differ between endpoints: `query` returns `[]` (only `id`) by default, while [`get`](./get) returns `["vector", "contents", "metadata"]`.</Note>
 
 ### Returns
 

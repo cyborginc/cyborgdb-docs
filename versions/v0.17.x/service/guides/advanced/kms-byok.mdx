@@ -1,0 +1,381 @@
+---
+title: "Per-Index KMS & BYOK"
+sidebarTitle: "KMS & BYOK"
+mode: "wide"
+---
+
+CyborgDB Service v0.17 supports per-index Key Management Service
+(KMS) integration: each index can be wrapped by its own
+operator-managed key, optionally living in a customer's own AWS
+account (Bring Your Own KMS). The SDK never holds long-term
+encryption keys for KMS-backed indexes.
+
+<Note>
+This page is service-only. The embedded libraries' KMS story is
+covered separately under [Managing Encryption Keys](./managing-keys).
+</Note>
+
+<Warning>
+**When KMS-backed, omit `index_key` everywhere.** Migrating an index from the SDK-supplied path to KMS-backed means **removing `index_key` from every call** — `create_index`, `load_index`, `upsert`, `query`, `get`, `delete`, `delete_index`. The service resolves the KEK server-side from the stored `KMSBlob`; supplying `index_key` against a real KMS slot is rejected with HTTP 400. If your code still passes a key, the rejection is loud — but worth a single search-and-clean pass before you ramp.
+</Warning>
+
+## AWS access — what the service expects
+
+The service uses the **standard AWS credential provider chain** to reach `aws-kms` and `aws` (Secrets Manager) slots. The exact resolution depends on where you run it:
+
+| Environment | What you set | What the service uses |
+|---|---|---|
+| EC2 / ECS / EKS (same account) | Nothing — attach an IAM role to the instance/task with the required KMS or Secrets Manager permissions | Instance/task role via IMDS |
+| EC2 / ECS / EKS (cross-account, BYOK) | `role_arn` + `external_id` on the registry slot | Instance/task role → `sts:AssumeRole` into the customer role |
+| Off-AWS / local | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` (and optionally `AWS_SESSION_TOKEN`) env vars, or `AWS_PROFILE` pointing at `~/.aws/credentials` | Default chain picks them up |
+| Off-AWS, BYOK | Local credentials *plus* `role_arn` + `external_id` on the slot | Local creds → `sts:AssumeRole` |
+
+<Note>The `CYBORGDB_S3_*` storage credentials are deliberately **separate** from `AWS_*` KMS credentials. KMS uses the AWS default chain (or AssumeRole); S3 storage with a custom endpoint uses its own explicit keys. This means your storage backend (MinIO, R2, etc.) and your KMS (AWS) cannot accidentally end up sharing credentials.</Note>
+
+### Required IAM permissions (per provider)
+
+**`provider: aws-kms`** — on the wrap key:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["kms:Encrypt", "kms:Decrypt"],
+    "Resource": "<KMS_KEY_ARN>"
+  }]
+}
+```
+
+For same-account setups, these permissions can live on the KMS key's **key policy** (preferred) or on the runtime principal's IAM policy.
+
+**`provider: aws`** (Secrets Manager) — on the secret:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "secretsmanager:GetSecretValue",
+    "Resource": "<FULL_SECRET_ARN>-*"
+  }]
+}
+```
+
+The trailing `-*` is required (Secrets Manager appends 6 random characters to every secret ARN).
+
+## Model
+
+CyborgDB Service uses a two-key hierarchy per index:
+
+- **KEK** (Key-Encryption Key, 32 bytes) — per index. Resolved
+  from the named KMS registry slot at index creation, then re-fetched
+  (or unwrapped) on every load. Held in a short-lived in-process
+  cache; the TTL is set by `INDEX_KEK_CACHE_TTL_SECONDS` (default
+  60 s).
+- **DEK** (Data-Encryption Key, 32 bytes) — per index. Generated
+  internally at index-creation time, wrapped under the KEK with
+  AES-GCM, and persisted alongside the index. Never crosses out of
+  the core engine.
+
+There are exactly two ways to provision a CyborgDB index:
+
+| Mode | `kms_name` | `index_key` | KEK lives in… | SDK behavior |
+|------|------------|-------------|----------------|--------------|
+| **KMS-backed** | a registry slot | omitted | the KMS provider | SDK omits `index_key` on every call; service resolves the KEK on demand. |
+| **SDK-supplied** | omitted | 32 bytes from caller | the SDK client only | SDK supplies the same `index_key` on every call. Persisted envelope records `provider: none`. |
+
+Supplying both `kms_name` **and** `index_key` is rejected with a 400.
+Supplying neither is also a 400.
+
+## YAML Registry
+
+Per-index KMS slots live in the service YAML file (not environment
+variables) under `kms.registry`. Each slot is a named entry that
+`create_index(..., kms_name=<slot>)` can reference.
+
+```yaml cyborgdb.yaml
+kms:
+  registry:
+    vendor-default:
+      provider: aws-kms
+      key_id:   alias/cyborgdb-default
+      region:   us-east-1
+
+    customer-acme:
+      provider:    aws
+      key_id:      customers/acme/kek          # Secrets Manager name or ARN
+      region:      us-west-2
+      role_arn:    ${ACME_BYOK_ROLE_ARN}       # BYOK: customer's AWS role
+      external_id: ${ACME_BYOK_EXTERNAL_ID}
+      role_session_name: cyborgdb-acme         # optional
+```
+
+<Note>String values support env-var substitution: `${VAR}` (required, fails on startup if unset) and `${VAR:-default}` (uses the default when unset). Use this to keep BYOK role ARNs and external IDs out of the checked-in file.</Note>
+
+### Provider types
+
+The `provider` field selects how the KEK is wrapped:
+
+| Provider | Where the wrap key lives | KEK lifecycle |
+|----------|--------------------------|----------------|
+| `aws-kms` | AWS KMS (HSM-managed) | Service generates a random KEK and calls `kms.Encrypt`. On load, calls `kms.Decrypt`. |
+| `aws` | AWS Secrets Manager | Service generates a random KEK and AES-GCM-wraps it under the Secrets Manager value. On load, fetches the secret and unwraps locally. |
+
+Both providers additionally accept `role_arn` + `external_id` for
+cross-account access (BYOK) — the service calls `sts:AssumeRole`
+before reaching the key.
+
+There is no registry slot for the SDK-supplied path. Omit
+`kms_name` entirely from `create_index` and supply `index_key`
+directly; the persisted envelope records `provider: none`.
+
+### Caching and revocation
+
+The service caches plaintext KEKs in memory for
+`INDEX_KEK_CACHE_TTL_SECONDS` (default 60 s). Only KMS-derived KEKs
+are cached — the SDK-supplied path always passes through. Shorter
+TTLs propagate KMS revocations (key deletion, IAM policy detach,
+trust-policy edit) faster but cost more KMS calls.
+
+To force-revoke an index globally, revoke the wrap key in the KMS
+provider; cached KEKs expire within `INDEX_KEK_CACHE_TTL_SECONDS`.
+
+## Creating a KMS-backed index
+
+The SDK call is unchanged except for swapping `index_key=` for
+`kms_name=`:
+
+<CodeGroup>
+```python Python SDK icon="python"
+from cyborgdb import Client
+
+client = Client(base_url="http://localhost:8000", api_key="your-api-key")
+
+# KMS-backed: service generates and wraps the KEK; SDK never sees it
+index = client.create_index(
+    "documents",
+    kms_name="vendor-default",
+    dimension=384,
+    metric="cosine",
+)
+
+# All subsequent calls omit index_key entirely
+results = index.query(query_vectors=[0.1] * 384, top_k=5)
+```
+
+```typescript JavaScript / TypeScript icon="js"
+import { Client } from "cyborgdb";
+
+const client = new Client({ baseUrl: "http://localhost:8000", apiKey: "your-api-key" });
+
+// KMS-backed: service generates and wraps the KEK; SDK never sees it
+const index = await client.createIndex({
+  indexName: "documents",
+  kmsName: "vendor-default",
+  dimension: 384,
+  metric: "cosine",
+});
+
+// All subsequent calls omit indexKey entirely
+const results = await index.query({ queryVectors: new Array(384).fill(0.1), topK: 5 });
+```
+
+```bash cURL icon="rectangle-terminal"
+# Create index — note: no index_key, just kms_name
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "documents",
+       "kms_name": "vendor-default",
+       "dimension": 384,
+       "metric": "cosine"
+     }'
+```
+</CodeGroup>
+
+On every subsequent request for this index — `load_index`, `upsert`,
+`query`, `delete` — the SDK omits `index_key`. The service looks up
+the index's persisted envelope, resolves the KEK via the named KMS
+slot (cache hit, or fresh wrap/unwrap on miss), and passes it to the
+engine.
+
+## Bring Your Own KMS (cross-account)
+
+In BYOK, the wrap key lives in the **customer's** AWS account.
+CyborgDB Service holds no long-term credentials to that account —
+access flows through `sts:AssumeRole` with an `ExternalId` on every
+wrap or unwrap call.
+
+Setup is a two-party handshake:
+
+<Steps>
+    <Step title="Service operator: generate an ExternalId">
+        Treat as a credential — it's the cryptographic gate
+        preventing one customer's role ARN from being abused by
+        another.
+
+        ```bash
+        python3 -c "import uuid; print(uuid.uuid4())"
+        ```
+    </Step>
+    <Step title="Service operator: share three values with the customer">
+        - The service's AWS principal ARN (the identity boto3 will
+          use). Get it with:
+          ```bash
+          aws sts get-caller-identity --query 'Arn' --output text
+          ```
+        - The `ExternalId` you generated.
+        - The customer-facing setup steps (Step 3 below).
+    </Step>
+    <Step title="Customer: create the wrap key and IAM role">
+        **1. Create the wrap key in Secrets Manager** (32 random
+        bytes):
+
+        ```bash
+        aws secretsmanager create-secret \
+          --name cyborgdb/<tenant>/wrap-key \
+          --secret-binary fileb://<(head -c 32 /dev/urandom) \
+          --region <region>
+        ```
+
+        <Warning>Keep a backup. If this secret is deleted, every index wrapped under it becomes permanently unreadable.</Warning>
+
+        **2. Create an IAM role** with this trust policy (substituting
+        the operator-supplied values):
+
+        ```json
+        {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {"AWS": "<VENDOR_PRINCIPAL_ARN>"},
+            "Action": "sts:AssumeRole",
+            "Condition": {
+              "StringEquals": {"sts:ExternalId": "<EXTERNAL_ID>"}
+            }
+          }]
+        }
+        ```
+
+        **3. Attach an inline permission policy** for the secret:
+
+        ```json
+        {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Action": "secretsmanager:GetSecretValue",
+            "Resource": "<FULL_SECRET_ARN>-*"
+          }]
+        }
+        ```
+
+        The trailing `-*` is required (Secrets Manager appends 6
+        random chars to every secret ARN).
+
+        Send three values back to the operator: **role ARN**,
+        **secret name**, **region**. Never share AWS credentials.
+    </Step>
+    <Step title="Service operator: add the slot to YAML">
+        Under `kms.registry:`:
+
+        ```yaml
+        customer-acme:
+          provider:    aws
+          key_id:      <secret-name-from-customer>
+          region:      <region-from-customer>
+          role_arn:    <role-ARN-from-customer>
+          external_id: <UUID-from-step-1>
+          role_session_name: cyborgdb-acme   # optional; appears in customer's CloudTrail
+        ```
+
+        Then restart the service. On boot, look for:
+
+        ```
+        KMS registry loaded (N entries: [..., 'customer-acme', ...])
+        ```
+    </Step>
+    <Step title="(Optional) Verify the AssumeRole">
+        From the same shell environment as the service:
+
+        ```bash
+        aws sts assume-role \
+          --role-arn <role-ARN-from-customer> \
+          --role-session-name verify \
+          --external-id <UUID-from-step-1> \
+          --query 'Credentials.AccessKeyId' --output text
+        ```
+
+        Prints `ASIA...` → trust policy and ExternalId match.
+        `AccessDenied` → the customer's trust policy is wrong; share
+        the error.
+    </Step>
+</Steps>
+
+### Revocation
+
+- **Pause access** — customer detaches the inline permission policy
+  from the role. The service starts failing on the next cache
+  miss (i.e. within `INDEX_KEK_CACHE_TTL_SECONDS`).
+- **Permanent revoke** — customer deletes the role or the secret.
+  Note: deleting the secret renders every index wrapped under it
+  permanently unreadable.
+
+## Configuration changes after creation
+
+The persisted envelope records a snapshot of the YAML config
+(`provider`, `key_id`, `region`) that was used to wrap each index.
+At startup the service compares that snapshot against the current
+YAML and:
+
+- **`role_arn` / `external_id` / `role_session_name` changes** —
+  applied transparently on the next unwrap. No restart of the index
+  needed.
+- **`provider` / `key_id` / `region` changes** — interpreted as an
+  operator-initiated rotation. The service automatically unwraps
+  the existing KEK with the **old** snapshot, generates a new KEK
+  via the **new** entry, re-wraps the data, and updates the
+  snapshot. The old wrap key must still be accessible for this to
+  succeed.
+
+## Troubleshooting
+
+<AccordionGroup>
+    <Accordion title="`AccessDenied` on sts:AssumeRole">
+        Trust policy mismatch. Either the `Principal` doesn't match
+        the service's AWS identity, or `sts:ExternalId` doesn't
+        match the operator-provided UUID. Re-run the manual verify
+        in Step 5 above and share the exact error with the customer.
+    </Accordion>
+    <Accordion title="`AccessDenied` on GetSecretValue">
+        The permission policy on the customer's role doesn't cover
+        the secret, or the `Resource` ARN is missing the required
+        `-*` suffix (Secrets Manager appends 6 random chars).
+    </Accordion>
+    <Accordion title="`ResourceNotFoundException` on the secret">
+        Secret was deleted, or the `region` in the YAML slot
+        doesn't match the region where the secret lives.
+    </Accordion>
+    <Accordion title="`Wrap key must be 32 bytes`">
+        The Secrets Manager value is the wrong size. Replace with
+        exactly 32 random bytes.
+    </Accordion>
+    <Accordion title="Index creation: `index_key and kms_name are mutually exclusive`">
+        Supplying both fields is rejected with HTTP 400 regardless
+        of provider type. Pick one path per index.
+    </Accordion>
+    <Accordion title="Cached KEK after revoking access">
+        Plaintext KEKs are cached for
+        `INDEX_KEK_CACHE_TTL_SECONDS` (default 60 s). For tighter
+        revocation windows, drop the TTL — at the cost of more KMS
+        calls. There is no live invalidation API in v0.17.
+    </Accordion>
+</AccordionGroup>
+
+## See also
+
+- [Environment Variables](./env-vars) — full configuration reference, including `INDEX_KEK_CACHE_TTL_SECONDS`.
+- [Managing Encryption Keys](./managing-keys) — the SDK-supplied (`provider: none`) path and the legacy "client decrypts via KMS" pattern.
+- [Create Index](../encrypted-indexes/create-index) — the `kms_name` parameter and the SDK-supplied alternative.

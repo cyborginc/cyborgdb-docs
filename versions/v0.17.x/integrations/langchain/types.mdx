@@ -14,40 +14,31 @@ mode: "wide"
 
         | Parameter | Type | Default | Description |
         |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
-        | `location` | `string` | - | DB location (`redis`, `postgres`, `rocksdb`, `memory`, `threadsafememory`) |
-        | `table_name` | `string` | None | _(Optional)_ Table name (`postgres`-only) |
-        | `connection_string` | `string` | None | _(Optional)_ Connection string to access DB |
+        | `location` | `string` | - | DB location (`rocksdb`, `s3`, `memory`, `threadsafememory`) |
+        | `connection_string` | `string` | None | _(Optional)_ Connection string or path for the chosen location. |
 
         The supported `location` options are:
 
-        - `"redis"`: Use for high-speed, in-memory storage (recommended for `index_location`)
-        - `"postgres"`: Use for reliable, SQL-based storage (recommended for `config_location`)
-        - `"rocksdb"`: Use for persistent, on-disk key-value storage
-        - `"memory"`: Use for temporary in-memory storage (for benchmarking and evaluation purposes)
-        - `"threadsafememory"`: Use for thread-safe in-memory storage (for multi-threaded benchmarking)
+        - `"rocksdb"`: Use for persistent, on-disk key-value storage (recommended for embedded/local deployments).
+        - `"s3"`: Use for AWS S3 or any S3-compatible object store (MinIO, Cloudflare R2). Connection string carries the URI and credentials.
+        - `"memory"`: Use for temporary in-memory storage (for benchmarking and evaluation purposes).
+        - `"threadsafememory"`: Use for thread-safe in-memory storage (for multi-threaded benchmarking).
 
         ### Example Usage
 
         ```python
         from cyborgdb_core import DBConfig
 
-        # Redis configuration
-        index_location = DBConfig(
-            location="redis",
-            connection_string="redis://localhost:6379"
-        )
-
-        # PostgreSQL configuration
-        config_location = DBConfig(
-            location="postgres",
-            table_name="config_table",
-            connection_string="host=localhost dbname=vectordb user=postgres"
-        )
-
-        # RocksDB configuration
+        # RocksDB (persistent local storage)
         rocksdb_location = DBConfig(
             location="rocksdb",
             connection_string="/path/to/rocksdb"
+        )
+
+        # S3 (cloud-native)
+        s3_location = DBConfig(
+            location="s3",
+            connection_string="s3://my-bucket?region=us-east-1"
         )
 
         # Memory configuration (for testing)
