@@ -132,8 +132,8 @@
                     "group": "CyborgDB Service",
                     "pages": [
                       "versions/v0.17.x/service/guides/intro/about",
-                      "versions/v0.17.x/service/guides/intro/quickstart-python",
-                      "versions/v0.17.x/service/guides/intro/quickstart-docker"
+                      "versions/v0.17.x/service/guides/intro/quickstart-docker",
+                      "versions/v0.17.x/service/guides/intro/quickstart-python"
                     ]
                   },
                   {
