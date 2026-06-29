@@ -6,8 +6,10 @@ mode: "wide"
 Lists all item IDs currently stored in the index.
 
 ```cpp
-std::vector<std::string> ListIDs();
+std::vector<std::string> ListIDs(const KeyContext& key);
 ```
+
+The trailing `key` is the index's 32-byte KEK. A bare `std::array<uint8_t, 32>` implicitly converts to a `KeyContext`, so you can pass `index_key` directly; for an RBAC user pass `cyborg::KeyContext{user_kek, user_id}`.
 
 ### Returns
 
@@ -29,7 +31,7 @@ std::vector<std::string> ListIDs();
 // ... Create or load an encrypted index ...
 
 // Get all IDs in the index
-auto all_ids = index->ListIDs();
+auto all_ids = index->ListIDs(index_key);
 
 // Print all IDs
 std::cout << "Index contains " << all_ids.size() << " items:" << std::endl;

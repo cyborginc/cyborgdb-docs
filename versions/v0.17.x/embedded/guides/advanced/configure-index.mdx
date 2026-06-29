@@ -5,121 +5,75 @@ sidebarTitle: "Configure Index"
 
 <Info>Index configuration is automatically handled by default. This guide allows you to override these defaults to customize index behavior & performance characteristics.</Info>
 
-CyborgDB offers four index types, all of which offer varying characteristics:
+CyborgDB uses a single index type: **DiskIVF**, a disk-backed inverted-file index. Rather than choosing between several index variants, you tune one index with a small set of knobs.
 
-|  Index Type  |  Speed  | Recall | Index Size |
-| :-----: | :-----: | :----: | :--------: |
-| [`IVFSQ`](#ivfsq-index-type) | Fastest | High |  Small  |
-| [`IVFFlat`](#ivfflat-index-type) | Fast | Highest |  Biggest  |
-| [`IVFPQ`](#ivfpq-index-type) | Fast | High |  Medium  |
-| [`IVF`](#ivf-index-type) | Fast | Lowest |  Smallest  |
+DiskIVF retrieves results in two stages: a fast first stage narrows down candidates using a compact Product-Quantized (PQ) representation, then a rerank stage recomputes exact distances against the stored vectors (in `float32` or `float16`) to deliver high recall. This gives you the speed of a quantized index with the accuracy of an exact rerank, all within a single index that scales to disk.
 
-Generally-speaking, we recommend that you start with `IVFSQ`, which is the **default** index type. It provides high recall with a good balance of speed and index size. If you need the absolute highest recall, use `IVFFlat`. If minimizing index size is important, `IVFPQ` applies Product-Quantization (PQ, a form of lossy compression) to the vector embeddings which can greatly reduce index size.
+There are no longer any `IVFFlat` / `IVFPQ` / `IVFSQ` variants to choose between — a single DiskIVF index covers all of these use cases. You configure it at **creation time** (dimension, storage precision, metric), at **training time** (clustering parameters), and at **query time** (`n_probes`, `rerank_mult`).
 
-## `IVFSQ` Index Type
+---
 
-The `IVFSQ` index type applies Scalar Quantization (SQ) to compress vector embeddings while maintaining high recall. This provides a good balance of recall, speed, and index size, making it the **default index type** in CyborgDB.
+## Creating a DiskIVF Index
 
-We recommend `IVFSQ` indexes for most applications, as it provides high recall rates with significantly smaller index sizes than `IVFFlat`. The default configuration uses 16-bit scalar quantization.
-
-To create an `IVFSQ` index, you can use its configuration constructor:
+The most common path is to let CyborgDB choose sensible defaults. You only need an index name and a 32-byte key; the `dimension` is auto-detected from your first upsert (or derived from `embedding_model` if you provide one).
 
 <CodeGroup>
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
+import secrets
 
-# Create the IVFSQ index config (default: 16-bit SQ)
-index_config = cyborgdb.IndexIVFSQ(sq_bits=16)
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
 
-# Create the index
-index_name = "test_index"
-index_key = bytes([0] * 32) # Set your private key here
-index = client.create_index(
-    index_name=index_name,
-    index_key=index_key,
-    index_config=index_config)
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+
+index_key = secrets.token_bytes(32)  # 32-byte index KEK
+
+# Create a DiskIVF index with defaults (dimension auto-detected on first upsert)
+index = client.create_index("test_index", index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
+#include <array>
+#include <openssl/rand.h>
 
-// Create the IVFSQ index config (default: 16-bit SQ)
-cyborg::IndexIVFSQ index_config(0, 16);
+std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
 
-// Create the index
-std::string index_name = "test_index";
-std::array<uint8_t, 32> index_key = {0}; // Set your private key here
-auto index = client.CreateIndex(index_name, index_key, index_config);
+cyborg::Client client(api_key, cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+
+std::array<uint8_t, 32> index_key;
+RAND_bytes(index_key.data(), index_key.size());  // 32-byte index KEK
+
+// Create a DiskIVF index with defaults (dimension auto-detected on first upsert)
+auto index = client.CreateIndex("test_index", index_key);
 ```
 </CodeGroup>
 
-`sq_bits` controls the precision of the scalar quantization. Higher values (e.g., 16) provide higher recall at the cost of larger index sizes. Lower values (e.g., 4 or 8) provide smaller index sizes but may reduce recall.
+### Creation Parameters
 
-## `IVFFlat` Index Type
+You can override the defaults at creation time:
 
-The `IVFFlat` index type improves `IVF` significantly by storing encrypted vector embeddings in the index. In addition to selecting the closest clusters for a query vector, the exact distance can be computed between each candidate vector and the query, yielding very high recall rates (up to >99%). This comes at the cost of index size and some search speed.
-
-Use `IVFFlat` indexes when you need the absolute highest recall rates and index size is not a concern.
-
-To create an `IVFFlat` index, you can use its configuration constructor:
+- `dimension`: vector dimensionality. Optional — auto-detected from the first upsert, or derived from `embedding_model` if provided.
+- `storage_precision`: the on-disk dtype used for the rerank vectors. `float32` (default) gives the highest recall; `float16` roughly **halves disk footprint** with a slight precision loss. Acceptable values are `numpy.float32` / `numpy.float16` (or the strings `"float32"` / `"float16"`) in Python, and `StoragePrecision::Float32` / `StoragePrecision::Float16` in C++.
+- `embedding_model`: an optional [`sentence-transformers`](https://www.sbert.net/) model name (Python only) that enables automatic embedding generation and fixes the dimension.
+- `metric`: the distance metric — `"euclidean"` (default), `"cosine"`, or `"squared_euclidean"`.
 
 <CodeGroup>
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
+import numpy as np
+import secrets
 
-# Create the IVF index config
-index_config = cyborgdb.IndexIVFFlat()
+index_key = secrets.token_bytes(32)
 
-# Create the index
-index_name = "test_index"
-index_key = bytes([0] * 32) # Set your private key here
+# Create a DiskIVF index with explicit configuration
 index = client.create_index(
-    index_name=index_name,
-    index_key=index_key,
-    index_config=index_config)
-```
-
-```cpp C++ icon="brackets-curly"
-#include "cyborgdb_core/client.hpp"
-#include "cyborgdb_core/encrypted_index.hpp"
-
-// Create the IVF index config
-cyborg::IndexIVFFlat index_config;
-
-// Create the index
-std::string index_name = "test_index";
-std::array<uint8_t, 32> index_key = {0}; // Set your private key here
-auto index = client.CreateIndex(index_name, index_key, index_config);
-```
-</CodeGroup>
-
-## `IVFPQ` Index Type
-
-The `IVFPQ` index type builds upon `IVFFlat` by applying Product Quantization (PQ) - a form of lossy compression - to reduce the index size. When applied correctly, `IVFPQ` indexes can maintain high recall (>95%) while reducing index size significantly (2-4x).
-
-We recommend `IVFPQ` indexes for mature applications, where the dataset and query distributions are well-established. This is because `IVFPQ` requires the most tuning to yield an ideal balance between recall and index size. It is possible to go from `IVFFlat` to `IVFPQ` on the same index, but not vice-versa.
-
-To create an `IVFPQ` index, you can use its configuration constructor:
-
-<CodeGroup>
-```python Python icon="python"
-import cyborgdb_core as cyborgdb
-
-# Set index parameters (both are now optional with defaults)
-pq_dim = 32 # Dimension must be divisible by pq_dim (0 = auto-detect)
-pq_bits = 8 # Number of bits for each pq dimension (default: 8)
-
-# Create the IVFPQ index config
-index_config = cyborgdb.IndexIVFPQ(pq_dim=pq_dim, pq_bits=pq_bits)
-
-# Create the index
-index_name = "test_index"
-index_key = bytes([0] * 32) # Set your private key here
-index = client.create_index(
-    index_name=index_name,
-    index_key=index_key,
-    index_config=index_config
+    "test_index",
+    index_key,
+    dimension=768,
+    storage_precision=np.float16,   # halve disk footprint vs. float32
+    metric="cosine"
 )
 ```
 
@@ -127,86 +81,114 @@ index = client.create_index(
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
 
-// Set index parameters (both are now optional with defaults)
-size_t pq_dim = 32; // Dimension must be divisible by pq_dim (0 = auto-detect)
-size_t pq_bits = 8; // Number of bits for each pq dimension (default: 8)
+// Build a DiskIVF config: dimension 768, float16 rerank storage
+cyborg::IndexDiskIVF index_config(
+    /*dimension=*/768,
+    /*embedding_model=*/"",
+    cyborg::StoragePrecision::Float16);   // halve disk footprint vs. Float32
 
-// Create the IVFPQ index config
-cyborg::IndexIVFPQ index_config(0, pq_dim, pq_bits);
-
-// Create the index
-std::string index_name = "test_index";
-std::array<uint8_t, 32> index_key = {0}; // Set your private key here
-auto index = client.CreateIndex(index_name, index_key, index_config);
+// Create the index with a cosine metric
+auto index = client.CreateIndex(
+    "test_index", index_key, index_config, cyborg::DistanceMetric::Cosine);
 ```
 </CodeGroup>
 
-`pq_dim` is the number of dimensionality for each vector after product-quantization. It must be between `1` and `dimension`, and `dimension` must be cleanly divisible by `pq_dim`. Lower `pq_dim` will yield smaller index sizes but lower recall.
+<Tip>Use `float16` storage precision when disk footprint matters more than the last fraction of a percent of recall. For most workloads the recall difference is negligible.</Tip>
 
-`pq_bits` is the number of bits that will be used to represent each dimension of the product-quantized vector embeddings. It must be between `1` and `16`, with lower values yielding smaller index sizes but lower recall.
+---
 
-## `IVF` Index Type
+## Training Parameters
 
-<Warning>The `IVF` type is deprecated and will be removed in a future release.</Warning>
+For datasets larger than ~50,000 vectors, you should train the index to build the IVF clustering. Training accepts several optional tuning parameters:
 
-The `IVF` index type (Inverted File Index) is the simplest offered by CyborgDB. We recommend `IVF` indexes for applications which require high-speed, low-latency search with low recall requirements (or where `top_k` is rather large, i.e. >500).
-
-To create an `IVF` index, you can use its configuration constructor:
+- `n_lists`: the number of clusters (inverted lists). `0` (default) auto-selects a value based on the dataset size. More lists make each list smaller (faster, finer-grained search) but require more `n_probes` at query time to maintain recall.
+- `max_iters`: maximum k-means iterations (default `100`).
+- `tolerance`: convergence tolerance for k-means (default `1e-6`).
+- `max_memory`: a soft cap (in MB) on memory used during training; `0` (default) means no limit.
+- `batch_size`: training batch size; `0` (default) lets CyborgDB choose automatically.
 
 <CodeGroup>
 ```python Python icon="python"
-import cyborgdb_core as cyborgdb
-
-# Create the IVF index config
-index_config = cyborgdb.IndexIVF()
-
-# Create the index
-index_name = "test_index"
-index_key = bytes([0] * 32) # Set your private key here
-index = client.create_index(
-    index_name=index_name,
-    index_key=index_key,
-    index_config=index_config
+# Train the index with custom clustering parameters
+index.train(
+    n_lists=4096,
+    max_iters=100,
+    tolerance=1e-6,
+    max_memory=0      # no limit
 )
 ```
 
 ```cpp C++ icon="brackets-curly"
-#include "cyborgdb_core/client.hpp"
-#include "cyborgdb_core/encrypted_index.hpp"
+// Train the index with custom clustering parameters
+cyborg::TrainingConfig training_config(
+    /*n_lists=*/4096,
+    /*batch_size=*/0,     // auto
+    /*max_iters=*/100,
+    /*tolerance=*/1e-6,
+    /*max_memory=*/0);    // no limit
 
-// Create the IVF index config
-cyborg::IndexIVF index_config;
-
-// Create the index
-std::string index_name = "test_index";
-std::array<uint8_t, 32> index_key = {0}; // Set your private key here
-auto index = client.CreateIndex(index_name, index_key, index_config);
+index->TrainIndex(training_config, index_key);
 ```
 </CodeGroup>
+
+For more on the training lifecycle, see [Training an Encrypted Index](../encrypted-indexes/train-index).
+
+---
+
+## Query-Time Parameters
+
+DiskIVF exposes two knobs at query time that trade recall against latency:
+
+- `n_probes`: how many clusters to search per query. Higher values increase recall at some latency cost. `0` (default) auto-selects based on `n_lists`.
+- `rerank_mult`: the stage-1 retrieval multiplier. CyborgDB first retrieves `rerank_mult * top_k` candidates using the compact PQ representation, then reranks them against the stored `float32`/`float16` vectors. Higher values improve recall at some latency cost (default `10`).
+
+<CodeGroup>
+```python Python icon="python"
+# Tune recall vs. latency at query time
+results = index.query(
+    query_vectors=[0.5, 0.9, 0.2, 0.7],
+    top_k=10,
+    n_probes=32,
+    rerank_mult=10
+)
+```
+
+```cpp C++ icon="brackets-curly"
+// Tune recall vs. latency at query time
+cyborg::Array2D<float> query_vectors{{0.5, 0.9, 0.2, 0.7}};
+cyborg::QueryParams query_params(
+    /*top_k=*/10,
+    /*n_probes=*/32,
+    /*filters=*/"",
+    /*include=*/{},
+    /*greedy=*/false,
+    /*rerank_mult=*/10);
+
+cyborg::QueryResults results = index->Query(query_vectors, query_params, index_key);
+```
+</CodeGroup>
+
+---
 
 ## Customizing Distance Metrics
 
-By default, CyborgDB uses `euclidean` distance as its metric for all index types. You can override this default by providing a `distance_metric` parameter to any of the index constructors. For example:
+By default, CyborgDB uses `euclidean` distance. You can override this by providing a `metric` parameter at index creation:
 
 <CodeGroup>
 ```python Python icon="python"
 # Existing setup ...
 
-index_config = cyborgdb.IndexIVFFlat()
-
 index = client.create_index(
-    index_name="index_name", 
-    index_key=index_key, 
-    index_config=index_config, 
-    metric="euclidean"
+    "index_name",
+    index_key,
+    metric="cosine"
 )
 ```
 
 ```cpp C++ icon="brackets-curly"
-// Existing setup
-cyborg::IndexIVFFlat index_config;
+// Existing setup ...
 
-auto index = client.CreateIndex("index_name", index_key, index_config, cyborg::DistanceMetric::Euclidean);
+auto index = client.CreateIndex("index_name", index_key, cyborg::DistanceMetric::Cosine);
 ```
 </CodeGroup>
 
@@ -216,15 +198,17 @@ The currently supported distance metrics are:
 - `"euclidean"`: Euclidean distance.
 - `"squared_euclidean"`: Squared Euclidean distance.
 
+---
+
 ## API Reference
 
-For more information on the `IndexConfig` classes, refer to the API Reference:
+For more information on configuring an encrypted index, refer to the API Reference:
 
 <CardGroup cols={2}>
-    <Card title="Python API Reference" href="../../python/types#indexconfig" icon="python">
-        API reference for `IndexConfig` in Python
+    <Card title="Python API Reference" href="../../python/types" icon="python">
+        API reference for `StoragePrecision` and index types in Python
     </Card>
-    <Card title="C++ API Reference" href="../../cpp/types#indexconfig" icon="brackets-curly">
-        API reference for `IndexConfig` in C++
+    <Card title="C++ API Reference" href="../../cpp/types" icon="brackets-curly">
+        API reference for `IndexDiskIVF` and `StoragePrecision` in C++
     </Card>
 </CardGroup>

@@ -9,9 +9,7 @@ mode: "wide"
 
 ```python
 Client(api_key: str,
-       index_location: DBConfig,
-       config_location: DBConfig,
-       items_location: DBConfig,
+       storage_config: StorageConfig,
        cpu_threads: int = 0,
        gpu_config: GPUConfig | None = None)
 ```
@@ -22,19 +20,19 @@ Initializes a new CyborgDB `Client` instance.
 
 | Parameter | Type | Default | Description |
 |-------------------|--------------------|---------------------------------------------------------------------|---|
-| `api_key` | `str` | - | API key for your CyborgDB account. |
-| `index_location` | [`DBConfig`](../types#dbconfig) | - | Configuration for index storage location. Use a dictionary with keys `location`, `table_name`, and `connection_string`. |
-| `config_location` | [`DBConfig`](../types#dbconfig) | - | Configuration for index metadata storage. Uses the same dictionary structure as `index_location`. |
-| `items_location` | [`DBConfig`](../types#dbconfig) | - | Configuration for encrypted item storage. Uses the same dictionary structure as `index_location`. |
+| `api_key` | `str` | - | API key for your CyborgDB account. Get one [here](../../../intro/get-api-key). |
+| `storage_config` | [`StorageConfig`](../types#storageconfig) | - | Backing store for all index keystores. Built via the static factories `StorageConfig.memory()`, `StorageConfig.disk(path)`, or `StorageConfig.s3(bucket)`. |
 | `cpu_threads` | `int` | `0` | _(Optional)_ Number of CPU threads to use for computations (defaults to `0` = all cores). |
 | `gpu_config` | [`GPUConfig`](../types#gpuconfig) \| `None` | `None` | _(Optional)_ GPU operations configuration. Specify which operations use GPU acceleration (defaults to `None`, no GPU). |
+
+<Note>A single `storage_config` replaces the former `index_location` / `config_location` / `items_location` trio. The store is shared across all per-index keystores.</Note>
 
 ### Exceptions
 
 <AccordionGroup>
     <Accordion title="ValueError">
         - Throws if the `cpu_threads` parameter is less than `0`.
-        - Throws if any [`DBConfig`](../types#dbconfig) is invalid.
+        - Throws if the [`StorageConfig`](../types#storageconfig) is invalid.
         - Throws if the GPU is not available when `gpu_config` is set.
     </Accordion>
     <Accordion title="RuntimeError">
@@ -48,33 +46,28 @@ Initializes a new CyborgDB `Client` instance.
 ```python
 import cyborgdb_core as cyborgdb
 
-api_key = "your_api_key_here"
-index_location = cyborgdb.DBConfig(location='rocksdb')
-config_location = cyborgdb.DBConfig(location='rocksdb')
-items_location = cyborgdb.DBConfig(location='rocksdb')
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
 
 # Example 1: Enable GPU for specific operations (upsert and train)
 gpu_config = cyborgdb.GPUConfig(upsert=True, train=True)
 client1 = cyborgdb.Client(
     api_key=api_key,
-    index_location=index_location,
-    config_location=config_location,
-    items_location=items_location,
+    storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"),
     cpu_threads=4,
     gpu_config=gpu_config
 )
 
-# Example 2: Disable GPU (default)
+# Example 2: In-memory backing store, no GPU (default)
 client2 = cyborgdb.Client(
     api_key=api_key,
-    index_location=index_location,
-    config_location=config_location,
-    items_location=items_location,
+    storage_config=cyborgdb.StorageConfig.memory(),
     cpu_threads=4
 )
 
 # Proceed with further operations
 ```
+
+<Tip>Use `StorageConfig.memory()` for ephemeral testing, `StorageConfig.disk("/path")` for local persistence, or `StorageConfig.s3("bucket")` for S3-backed persistence. See [`StorageConfig`](../types#storageconfig).</Tip>
 
 ---
 

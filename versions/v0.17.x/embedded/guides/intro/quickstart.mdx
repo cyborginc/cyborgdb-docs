@@ -7,6 +7,17 @@ mode: "wide"
 Get started with CyborgDB in minutes.
 
 <Steps>
+    <Step title="Get an API Key">
+        To use CyborgDB, you need an API key:
+
+        ```python
+        api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+        ```
+
+        Get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+        Make sure to keep your API key secure and do not share it publicly.
+    </Step>
     <Step title="Install CyborgDB">
         Install CyborgDB on your machine:
 
@@ -40,27 +51,19 @@ Get started with CyborgDB in minutes.
         <Note>You will need to replace `<token>` with your token provided by Cyborg.</Note>
     </Step>
     <Step title="Create a Client">
-        Create a CyborgDB client. No API key is required:
+        Create a CyborgDB client:
 
         <CodeGroup>
         ```python Python icon="python"
         import cyborgdb_core as cyborgdb
         import secrets
 
-        # Persistent local storage (RocksDB on disk). For cloud / multi-replica
-        # deployments, swap `disk` for an `s3`-compatible object store (AWS S3,
-        # MinIO, Cloudflare R2, …).
+        # Get your API key
+        api_key = "your_api_key_here"  # Replace with your CyborgDB API key
 
-        index_location = cyborgdb.StorageConfig("disk")   # Where encrypted index is stored (for queries)
-        config_location = cyborgdb.StorageConfig("disk")  # Where encrypted index config is stored (for config/loading)
-        items_location = cyborgdb.StorageConfig("disk")   # Where item contents are stored (for upsert/get)
-
-        # Create a client
-        client = cyborgdb.Client(
-            index_location=index_location,
-            config_location=config_location,
-            items_location=items_location
-        )
+        # Backing store: disk (local, RocksDB-backed) for simple persistent storage.
+        # Use .memory() for ephemeral storage or .s3("bucket") for cloud persistence.
+        client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
         ```
 
         ```cpp C++ icon="brackets-curly"
@@ -70,16 +73,12 @@ Get started with CyborgDB in minutes.
         #include <string>
         #include <openssl/rand.h>
 
-        // Persistent local storage (RocksDB on disk). For cloud / multi-replica
-        // deployments, swap `kDisk` for `kS3` to target AWS S3 or any
-        // S3-compatible object store (MinIO, Cloudflare R2, …).
+        // Get your API key
+        std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
 
-        cyborg::StorageConfig index_location(cyborg::Location::kDisk);    // Where encrypted index is stored (for queries)
-        cyborg::StorageConfig config_location(cyborg::Location::kDisk);   // Where encrypted index config is stored (for config/loading)
-        cyborg::StorageConfig contents_location(cyborg::Location::kDisk); // Where item contents are stored (for upsert/get)
-
-        // Create a client
-        cyborg::Client client(index_location, config_location, contents_location, 0, cyborg::kNone);
+        // Backing store: disk (local, RocksDB-backed) for simple persistent storage.
+        // Use StorageConfig::Memory() for ephemeral storage or ::S3("bucket") for cloud persistence.
+        cyborg::Client client(api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
         ```
         </CodeGroup>
 
@@ -116,10 +115,6 @@ Get started with CyborgDB in minutes.
         ```
         </CodeGroup>
 
-        <Note>
-        The **encryption key** protects your index contents. Store it securely, outside your source code — if you lose it, the index cannot be decrypted, and if you commit it to version control, you expose your data. This is the only key CyborgDB needs; there is no separate account or API key.
-        </Note>
-
         For more info, refer to [Create an Encrypted Index](../encrypted-indexes/create-index).
     </Step>
     <Step title="Add Items to Encrypted Index">
@@ -151,7 +146,7 @@ Get started with CyborgDB in minutes.
             std::vector<uint8_t>{'H', 'o', 'l', 'a', '!'}
         };
 
-        index->Upsert(ids, vectors, contents);
+        index->Upsert(ids, vectors, contents, /*metadata=*/{}, index_key);
         ```
         </CodeGroup>
 
@@ -166,7 +161,7 @@ Get started with CyborgDB in minutes.
 
         # Query the encrypted index
         query_vectors = [0.1, 0.2, 0.3, 0.4]
-        results = index.query(query_vectors=query_vectors)
+        results = index.query(query_vectors=query_vectors, include=["distance"])
 
         # Print the results
         for result in results:
@@ -178,7 +173,7 @@ Get started with CyborgDB in minutes.
         cyborg::Array2D<float> query_vectors{{0.1, 0.2, 0.3, 0.4}};
 
         // Query using the standard params
-        cyborg::QueryResults results = index->Query(query_vectors);
+        cyborg::QueryResults results = index->Query(query_vectors, cyborg::QueryParams{}, index_key);
 
         // Print the results
         auto view = results[0];
@@ -188,9 +183,40 @@ Get started with CyborgDB in minutes.
         ```
         </CodeGroup>
 
-        Seeing IDs and distances printed means your client, index, and query are all working end-to-end.
-
         For more info, refer to [Query an Encrypted Index](../data-operations/query).
+    </Step>
+    <Step title="Retrieve Items from Encrypted Index">
+        Retrieve data from the encrypted index:
+
+        <CodeGroup>
+        ```python Python icon="python"
+        # ... Continuing from the previous step
+
+        # Retrieve items from the encrypted index
+        ids = ["item_1", "item_2", "item_3"]
+        items = index.get(ids)
+
+        # Print the items
+        for item in items:
+            print(f"ID: {item['id']}, Vector: {item['vector']}, Contents: {item['contents']}")
+        ```
+
+        ```cpp C++ icon="brackets-curly"
+        // ... Continuing from the previous step
+
+        // Retrieve items from the encrypted index
+        std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
+        std::vector<cyborg::ItemFields> include = {cyborg::ItemFields::kContents};
+        std::vector<cyborg::Item> items = index->Get(ids, include, index_key);
+
+        // Print the items
+        for (const auto& item : items) {
+            std::cout << "ID: " << item.id << ", Contents: " << std::string(item.contents.begin(), item.contents.end()) << std::endl;
+        }
+        ```
+        </CodeGroup>
+
+        For more info, refer to [Get Items](../data-operations/get-items).
     </Step>
     <Step title="Next Steps">
         Learn more about CyborgDB:
