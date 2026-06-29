@@ -7,20 +7,6 @@ mode: "wide"
 Get started with CyborgDB in minutes.
 
 <Steps>
-    <Step title="Get an API Key">
-        To use CyborgDB, you need an API key. The quickest way to get started is with a demo key:
-
-        ```python
-        import cyborgdb_core as cyborgdb
-
-        # Get a demo API key for evaluation
-        api_key = cyborgdb.get_demo_api_key()
-        ```
-
-        For production use, get a full API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
-
-        Make sure to keep your API key secure and do not share it publicly.
-    </Step>
     <Step title="Install CyborgDB">
         Install CyborgDB on your machine:
 
@@ -54,26 +40,23 @@ Get started with CyborgDB in minutes.
         <Note>You will need to replace `<token>` with your token provided by Cyborg.</Note>
     </Step>
     <Step title="Create a Client">
-        Create a CyborgDB client:
+        Create a CyborgDB client. No API key is required:
 
         <CodeGroup>
         ```python Python icon="python"
         import cyborgdb_core as cyborgdb
         import secrets
 
-        # Using `rocksdb` for simple persistent local storage.
-        # `s3`, `memory`, and `threadsafememory` are also supported.
+        # Persistent local storage (RocksDB on disk). For cloud / multi-replica
+        # deployments, swap `disk` for an `s3`-compatible object store (AWS S3,
+        # MinIO, Cloudflare R2, …).
 
-        index_location = cyborgdb.DBConfig("rocksdb")  # Where encrypted index is stored (for queries)
-        config_location = cyborgdb.DBConfig("rocksdb") # Where encrypted index config is stored (for config/loading)
-        items_location = cyborgdb.DBConfig("rocksdb")  # Where item contents are stored (for upsert/get)
-
-        # Get your API key (use get_demo_api_key() for evaluation, or your own key)
-        api_key = cyborgdb.get_demo_api_key()
+        index_location = cyborgdb.StorageConfig("disk")   # Where encrypted index is stored (for queries)
+        config_location = cyborgdb.StorageConfig("disk")  # Where encrypted index config is stored (for config/loading)
+        items_location = cyborgdb.StorageConfig("disk")   # Where item contents are stored (for upsert/get)
 
         # Create a client
         client = cyborgdb.Client(
-            api_key=api_key,
             index_location=index_location,
             config_location=config_location,
             items_location=items_location
@@ -87,18 +70,16 @@ Get started with CyborgDB in minutes.
         #include <string>
         #include <openssl/rand.h>
 
-        // Using `rocksdb` for simple persistent local storage.
-        // `kS3`, `kMemory`, and `kThreadSafeMemory` are also supported.
+        // Persistent local storage (RocksDB on disk). For cloud / multi-replica
+        // deployments, swap `kDisk` for `kS3` to target AWS S3 or any
+        // S3-compatible object store (MinIO, Cloudflare R2, …).
 
-        cyborg::DBConfig index_location(cyborg::Location::kRocksDB);  // Where encrypted index is stored (for queries)
-        cyborg::DBConfig config_location(cyborg::Location::kRocksDB); // Where encrypted index config is stored (for config/loading)
-        cyborg::DBConfig contents_location(cyborg::Location::kRocksDB);  // Where item contents are stored (for upsert/get)
-
-        // Get your API key
-        std::string api_key = "your_api_key_here";  // Replace with your actual API key
+        cyborg::StorageConfig index_location(cyborg::Location::kDisk);    // Where encrypted index is stored (for queries)
+        cyborg::StorageConfig config_location(cyborg::Location::kDisk);   // Where encrypted index config is stored (for config/loading)
+        cyborg::StorageConfig contents_location(cyborg::Location::kDisk); // Where item contents are stored (for upsert/get)
 
         // Create a client
-        cyborg::Client client(api_key, index_location, config_location, contents_location, 0, cyborg::kNone);
+        cyborg::Client client(index_location, config_location, contents_location, 0, cyborg::kNone);
         ```
         </CodeGroup>
 
@@ -134,6 +115,10 @@ Get started with CyborgDB in minutes.
         auto index = client.CreateIndex("my_index", index_key);
         ```
         </CodeGroup>
+
+        <Note>
+        The **encryption key** protects your index contents. Store it securely, outside your source code — if you lose it, the index cannot be decrypted, and if you commit it to version control, you expose your data. This is the only key CyborgDB needs; there is no separate account or API key.
+        </Note>
 
         For more info, refer to [Create an Encrypted Index](../encrypted-indexes/create-index).
     </Step>
@@ -203,40 +188,9 @@ Get started with CyborgDB in minutes.
         ```
         </CodeGroup>
 
+        Seeing IDs and distances printed means your client, index, and query are all working end-to-end.
+
         For more info, refer to [Query an Encrypted Index](../data-operations/query).
-    </Step>
-    <Step title="Retrieve Items from Encrypted Index">
-        Retrieve data from the encrypted index:
-
-        <CodeGroup>
-        ```python Python icon="python"
-        # ... Continuing from the previous step
-
-        # Retrieve items from the encrypted index
-        ids = ["item_1", "item_2", "item_3"]
-        items = index.get(ids)
-
-        # Print the items
-        for item in items:
-            print(f"ID: {item['id']}, Vector: {item['vector']}, Contents: {item['contents']}")
-        ```
-
-        ```cpp C++ icon="brackets-curly"
-        // ... Continuing from the previous step
-
-        // Retrieve items from the encrypted index
-        std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-        std::vector<cyborg::ItemFields> include = {cyborg::ItemFields::kContents};
-        std::vector<cyborg::Item> items = index->Get(ids, include);
-
-        // Print the items
-        for (const auto& item : items) {
-            std::cout << "ID: " << item.id << ", Contents: " << std::string(item.contents.begin(), item.contents.end()) << std::endl;
-        }
-        ```
-        </CodeGroup>
-
-        For more info, refer to [Get Items](../data-operations/get-items).
     </Step>
     <Step title="Next Steps">
         Learn more about CyborgDB:
