@@ -15,7 +15,9 @@ func (e *EncryptedIndex) Get(ctx context.Context, ids []string, include []string
 |-----------|------|-------------|
 | `ctx` | `context.Context` | Context for cancellation and timeouts |
 | `ids` | `[]string` | Slice of vector IDs to retrieve |
-| `include` | `[]string` | Fields to include in response: "vector", "metadata", "contents" |
+| `include` | `[]string` | Fields to include in response. Valid values: `"vector"`, `"contents"`, `"metadata"`. Pass `nil` or an empty slice to fall back to the server default (`["vector", "contents", "metadata"]`). `id` is always included. |
+
+<Note>`include` defaults differ between endpoints: `Get` returns `["vector", "contents", "metadata"]` by default, while [`Query`](./query) returns `[]` (only `Id`).</Note>
 
 ### Returns
 

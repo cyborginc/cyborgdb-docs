@@ -1,453 +1,152 @@
 ---
 title: "Managing Encryption Keys"
+mode: "wide"
 ---
 
-Encryption keys are one of the most critical elements that enable the security guarantees of CyborgDB. By default, one key is used for the entire index, and it is used to generate and secure other encryption keys, including:
+CyborgDB encrypts every index under a 256-bit AES key (the **index key**, also called the KEK in the service code). Without that key it is impossible to read the index — you cannot query, list, upsert, or even safely delete its contents.
 
-- Encrypted index tokens
-- Index centroid salted hashes
-- Index payload (embedding) encryption
-- Item content encryptions
-- Encrypted query tokens
+v0.17 supports two completely different ways to provision and hold that key. Pick one per index:
 
-This main key, known in the code as the `index_key`, is a 256-bit symmetric cryptographic key—the same you would find when using AES-256 encryption. CyborgDB's cryptography is based entirely on well-established cryptographic standards, including AES, HMAC, and SHA-3 (Keccak). 
+| Mode | What you set on `create_index` | Who holds the plaintext key | Best for |
+|---|---|---|---|
+| **SDK-supplied** | `index_key` (32 bytes) | Your SDK / application | Development, evaluation, single-tenant deployments where you already have a secure key store |
+| **KMS-backed** | `kms_name` (registry slot) | The service's KMS (AWS KMS or Secrets Manager) | Production, multi-tenant, BYOK |
 
-Without the correct `index_key`, it is impossible to use a CyborgDB Encrypted Index. You cannot upsert vectors, query the index, or even delete it. Hence, it is critical to manage these encryption keys safely.
+This page covers the **SDK-supplied** path. For production, prefer the KMS-backed path — see [Per-Index KMS & BYOK](./kms-byok) for the end-to-end setup.
 
----
+<Warning>
+**Do not commit, log, or check in `index_key` material**, and do not store it in plaintext on shared filesystems. Lost keys cannot be recovered — every index wrapped under a lost key becomes permanently unreadable.
+</Warning>
 
-## Generating Key Locally (for Development)
+## Generating a key for development
 
-<Warning>**Do not store keys locally for production purposes.** For production environments, always use secure options such as Hardware Security Modules (HSMs) or a Key Management Service (KMS). See [Using Key Management Services (for Production)](#using-key-management-services-for-production).</Warning>
-
-For local development and evaluation, you can generate a 256-bit encryption key locally and use it in your calls to CyborgDB. Here’s how you can do this using OpenSSL and integrate it with CyborgDB in Python.
-
-<Steps>
-    <Step title="Generate a Key with OpenSSL">
-
-    Run the following command to generate a 256-bit encryption key, encoded in Base64:
-
-    ```bash
-    openssl rand -base64 32 > index_key.txt
-    ```
-
-    This saves the key to a file named `index_key.txt`. Ensure that this file is kept secure and not included in your source control.
-    </Step>
-    <Step title="Use the Key in Python">
-
-    You can either load the key directly from the file and use it with CyborgDB service SDKs.
+For local development and evaluation, generate a 256-bit key locally and pass it as `index_key` (or the SDK's typed equivalent).
 
 <CodeGroup>
-```python Python SDK icon="python"
-from cyborgdb import Client
-import base64
-
-# Create a client
-client = Client(
-    base_url='http://localhost:8000', 
-    api_key='your-api-key'
-)
-
-# Load the encryption key
-with open("index_key.txt", "r") as key_file:
-    key_b64 = key_file.read().strip()
-    index_key = base64.b64decode(key_b64)
-
-# Use the encryption key
-index = client.create_index("index_name", index_key)
+```bash OpenSSL icon="rectangle-terminal"
+# 32 random bytes, hex-encoded (64 hex chars)
+openssl rand -hex 32
 ```
 
-```javascript JavaScript SDK icon="js"
-import { Client } from 'cyborgdb';
-import fs from 'fs';
+```python Python SDK icon="python"
+from cyborgdb import Client
 
-// Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
-});
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
-// Load the encryption key
-const keyB64 = fs.readFileSync("index_key.txt", 'utf8').trim();
-const indexKey = new Uint8Array(Buffer.from(keyB64, 'base64'));
-const indexName = "indexName";
-
-// Use the encryption key
-const index = await client.createIndex({ indexName, indexKey });
+# Generate a 32-byte key; `save=True` writes it to ~/.cyborgdb/index_key
+index_key = client.generate_key(save=False)
 ```
 
 ```typescript TypeScript SDK icon="code"
 import { Client } from 'cyborgdb';
-import fs from 'fs';
 
-// Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
-});
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
-// Load the encryption key
-const keyB64 = fs.readFileSync("index_key.txt", 'utf8').trim();
-const indexKey = new Uint8Array(Buffer.from(keyB64, 'base64'));
-const indexName = "indexName";
-
-// Use the encryption key
-const index = await client.createIndex({ indexName, indexKey });
+// Returns a fresh 32-byte Uint8Array
+const indexKey: Uint8Array = client.generateKey();
 ```
 
 ```go Go SDK icon="golang"
-package main
+import "github.com/cyborginc/cyborgdb-go"
 
-import (
-    "context"
-    "encoding/base64"
-    "io/ioutil"
-    "log"
-
-    "github.com/cyborginc/cyborgdb-go"
-)
-
-func main() {
-    // Create a client
-    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Load the encryption key
-    keyB64, err := ioutil.ReadFile("index_key.txt")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    indexKey, err := base64.StdEncoding.DecodeString(string(keyB64))
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Use the encryption key
-    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
-        IndexName: "index_name",
-        IndexKey:  indexKey,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    log.Printf("Created index: %s", index.GetIndexName())
+// Returns ([]byte, error)
+indexKey, err := cyborgdb.GenerateKey()
+if err != nil {
+    log.Fatal(err)
 }
-```
-
-```bash cURL icon="rectangle-terminal"
-# Load the base64 key from file and use in REST API
-KEY_B64=$(cat index_key.txt)
-
-# Convert base64 to hex format for REST API
-# Note: REST API expects 64-character hex string
-curl -X POST "http://localhost:8000/v1/indexes/create" \
-     -H "X-API-Key: your-api-key" \
-     -H "Content-Type: application/json" \
-     -d "{
-       \"index_name\": \"test_index\",
-       \"index_key\": \"$(echo $KEY_B64 | base64 -d | xxd -p -c 32)\"
-     }"
 ```
 </CodeGroup>
-    </Step>
-</Steps>
 
-Again, this should only be used for development and evaluation purposes; do not store encryption keys locally for production use.
+## Using the key
 
----
-
-## Using Key Management Services (for Production)
-
-For production environments, a Key Management Service (KMS) or Hardware Security Module (HSM) is strongly recommended to securely store and manage encryption keys. This ensures the highest level of security by isolating the keys from application logic and providing robust access controls.
-
-### Overview of KMS
-
-A KMS is a managed service that provides centralized control over encryption keys, including:
-
-- **Key Generation:** Automatically generating keys with required levels of entropy.
-- **Secure Storage:** Storing keys in a tamper-proof environment.
-- **Access Control:** Enforcing strict role-based access control (RBAC) policies.
-- **Auditing:** Logging key usage for compliance and monitoring.
-
-### Supported KMS Providers
-
-CyborgDB can integrate with popular KMS providers, such as:
-
-- **AWS Key Management Service (AWS KMS)**
-- **Google Cloud Key Management (Google Cloud KMS)**
-- **Azure Key Vault**
-- **HashiCorp Vault**
-
----
-
-## Step-by-Step Example: AWS KMS
-
-<Steps>
-    <Step title="Generate a Data Key Using AWS KMS">
-
-    **Option A: Command Line**
-
-    Use the AWS CLI to generate a data key:
-
-    ```bash
-    aws kms generate-data-key \
-        --key-id <Your-Key-Id> \
-        --key-spec AES_256 \
-        --output json
-    ```
-
-    - Replace `<Your-Key-Id>` with your KMS Key ID or ARN.
-    - The command outputs a JSON object containing both the plaintext key and the encrypted key.
-
-    **Example Output:**
-
-    ```json
-    {
-    "CiphertextBlob": "<Base64-encoded encrypted key>",
-    "Plaintext": "<Base64-encoded plaintext key>",
-    "KeyId": "arn:aws:kms:region:account-id:key/Your-Key-Id"
-    }
-    ```
-
-    **Note:** The `Plaintext` and `CiphertextBlob` are Base64-encoded binary data.
-
-    **Option B: Python**
-
-    ```python
-    import boto3
-
-    # Initialize AWS KMS client
-    kms_client = boto3.client('kms')
-
-    # Generate a data key
-    response = kms_client.generate_data_key(
-        KeyId='Your-Key-Id',  # Replace with your KMS Key ID or ARN
-        KeySpec='AES_256'
-    )
-
-    # Extract the plaintext and encrypted data key
-    plaintext_key = response['Plaintext']       # This is the raw binary key
-    encrypted_key = response['CiphertextBlob']  # This is the encrypted key
-    ```
-    </Step>
-    <Step title="Store the Encrypted Key">
-
-    - **Encrypted Key:** Since it's encrypted, you can safely store it in your application's configuration file, environment variable, or secure parameter store.
-
-    Example of storing the encrypted key in Base64-encoded format:
-
-    ```python
-    import base64
-
-    # Base64-encode the encrypted key for storage
-    encrypted_key_b64 = base64.b64encode(encrypted_key).decode('utf-8')
-
-    # Store 'encrypted_key_b64' in your application's configuration
-    ```
-    </Step>
-    <Step title="Use the Encrypted Key in Your Application at Runtime">
-
-    In your application code, decrypt the encrypted key at runtime using AWS KMS:
+The same `index_key` you passed to `create_index` must be re-supplied on **every** subsequent request for that index — `load_index`, `upsert`, `query`, `get`, `delete`, `delete_index`. The service stores only a hash to verify the key on each request; it never persists the plaintext.
 
 <CodeGroup>
 ```python Python SDK icon="python"
-import boto3
-import base64
-from cyborgdb import Client
+# Create
+index = client.create_index('my_index', index_key=index_key, dimension=384)
 
-# Create a client
-client = Client(
-    base_url='http://localhost:8000',
-    api_key='your-api-key'
-)
-
-# Initialize AWS KMS client
-kms_client = boto3.client('kms')
-
-# Load the encrypted key from your configuration
-encrypted_key_b64 = '...'  # Replace with your stored encrypted key (Base64-encoded)
-
-# Decode the Base64-encoded encrypted key
-encrypted_key = base64.b64decode(encrypted_key_b64)
-
-# Decrypt the key at runtime
-response = kms_client.decrypt(
-    CiphertextBlob=encrypted_key
-)
-index_key = response['Plaintext']  # This is your 256-bit key
-
-# Use the key with CyborgDB
-index = client.create_index("my_index", index_key)
-```
-
-```javascript JavaScript SDK icon="js"
-import { Client } from 'cyborgdb';
-const AWS = require('aws-sdk');
-
-// Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
-});
-
-// Initialize AWS KMS client
-const kms = new AWS.KMS();
-
-// Load the encrypted key from your configuration
-const encryptedKeyB64 = '...';  // Replace with your stored encrypted key (Base64-encoded)
-
-// Decode the Base64-encoded encrypted key
-const encryptedKey = Buffer.from(encryptedKeyB64, 'base64');
-
-// Decrypt the key at runtime
-const response = await kms.decrypt({
-    CiphertextBlob: encryptedKey
-}).promise();
-const indexKey = new Uint8Array(response.Plaintext);  // This is your 256-bit key
-
-// Use the key with CyborgDB
-const index = await client.createIndex({ indexName: "my_index", indexKey, indexConfig });
+# Subsequent calls — same key
+index = client.load_index('my_index', index_key=index_key)
+index.upsert([{'id': 'a', 'vector': [0.1] * 384}])
+results = index.query(query_vectors=[0.1] * 384, top_k=5)
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { Client } from 'cyborgdb';
-const AWS = require('aws-sdk');
-
-// Create a client
-const client = new Client({ 
-    baseUrl: 'http://localhost:8000', 
-    apiKey: 'your-api-key' 
+// Create
+const index = await client.createIndex({
+    indexName: 'my_index',
+    indexKey,
+    dimension: 384,
 });
 
-// Initialize AWS KMS client
-const kms = new AWS.KMS();
-
-// Load the encrypted key from your configuration
-const encryptedKeyB64 = '...';  // Replace with your stored encrypted key (Base64-encoded)
-
-// Decode the Base64-encoded encrypted key
-const encryptedKey = Buffer.from(encryptedKeyB64, 'base64');
-
-// Decrypt the key at runtime
-const response = await kms.decrypt({
-    CiphertextBlob: encryptedKey
-}).promise();
-const indexKey = new Uint8Array(response.Plaintext);  // This is your 256-bit key
-
-// Use the key with CyborgDB
-const index = await client.createIndex({ indexName: "my_index", indexKey, indexConfig });
+// Subsequent calls — same key
+const loaded = await client.loadIndex({ indexName: 'my_index', indexKey });
+await loaded.upsert({ items: [{ id: 'a', vector: new Array(384).fill(0.1) }] });
+const results = await loaded.query({ queryVectors: new Array(384).fill(0.1), topK: 5 });
 ```
 
 ```go Go SDK icon="golang"
-package main
+dim := int32(384)
 
-import (
-    "context"
-    "encoding/base64"
-    "log"
+// Create
+index, _ := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
+    IndexName: "my_index",
+    IndexKey:  indexKey,
+    Dimension: &dim,
+})
 
-    "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/kms"
-    "github.com/cyborginc/cyborgdb-go"
-)
-
-func main() {
-    // Create a client
-    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Initialize AWS KMS client
-    sess, err := session.NewSession()
-    if err != nil {
-        log.Fatal(err)
-    }
-    kmsClient := kms.New(sess)
-
-    // Load the encrypted key from your configuration
-    encryptedKeyB64 := "..." // Replace with your stored encrypted key (Base64-encoded)
-
-    // Decode the Base64-encoded encrypted key
-    encryptedKey, err := base64.StdEncoding.DecodeString(encryptedKeyB64)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Decrypt the key at runtime
-    decryptOutput, err := kmsClient.Decrypt(&kms.DecryptInput{
-        CiphertextBlob: encryptedKey,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-    indexKey := decryptOutput.Plaintext // This is your 256-bit key
-
-    // Use the key with CyborgDB
-    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
-        IndexName: "my_index",
-        IndexKey:  indexKey,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    log.Printf("Created index: %s", index.GetIndexName())
-}
+// Subsequent calls — same key
+loaded, _ := client.LoadIndex(context.Background(), "my_index", indexKey)
+_ = loaded.Upsert(context.Background(), cyborgdb.VectorItems{
+    {Id: "a", Vector: []float32{ /* 384 values */ }},
+})
 ```
 
 ```bash cURL icon="rectangle-terminal"
-# Decrypt key using AWS CLI and use with REST API
-ENCRYPTED_KEY_B64="your_encrypted_key_here"
+INDEX_KEY=$(openssl rand -hex 32)
 
-# Decrypt the key using AWS KMS
-DECRYPTED_KEY=$(aws kms decrypt \
-    --ciphertext-blob "$(echo $ENCRYPTED_KEY_B64 | base64 -d | base64)" \
-    --output text --query Plaintext | base64 -d | xxd -p -c 32)
-
-# Use the decrypted key with CyborgDB REST API
+# Create
 curl -X POST "http://localhost:8000/v1/indexes/create" \
-     -H "X-API-Key: your-api-key" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
      -H "Content-Type: application/json" \
      -d "{
        \"index_name\": \"my_index\",
-       \"index_key\": \"$DECRYPTED_KEY\"
+       \"index_key\": \"$INDEX_KEY\",
+       \"dimension\": 384
+     }"
+
+# Subsequent calls — same hex key
+curl -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d "{
+       \"index_name\": \"my_index\",
+       \"index_key\": \"$INDEX_KEY\"
      }"
 ```
-</CodeGroup>    
+</CodeGroup>
 
-    **Explanation:**
+## Persisting the key
 
-    - **Encrypted Key Storage:** The encrypted key (`encrypted_key_b64`) is safe to store in configuration files since it's encrypted.
-    - **Runtime Decryption:** The `kms_client.decrypt` method securely retrieves the plaintext key at runtime.
-    </Step>
-    <Step title="Ensure IAM Permissions">
+The service never persists the plaintext key, so your application owns key storage. For development, the Python SDK's `generate_key(save=True)` will cache the generated key in `~/.cyborgdb/index_key` — useful for evaluation, **not for production**.
 
-    Your application needs permission to use the `kms:Decrypt` action. Attach a policy to your IAM role or user:
+For production:
+- Store the key in your platform's secret store (Vault, AWS Secrets Manager, GCP Secret Manager, Azure Key Vault, k8s Secret) and fetch it at runtime.
+- Or **switch to the KMS-backed path** so the SDK never holds a long-term key: see [Per-Index KMS & BYOK](./kms-byok).
 
-    ```json
-    {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-        "Effect": "Allow",
-        "Action": "kms:Decrypt",
-        "Resource": "arn:aws:kms:your-region:your-account-id:key/Your-Key-Id"
-        }
-    ]
-    }
-    ```
-    </Step>
-</Steps>
+## Migrating from SDK-supplied to KMS-backed
 
-### Benefits of This Approach
+You cannot rotate an index *in place* from `provider: none` to a real KMS provider — the wrapping model changes. The migration path is:
 
-- **Security:** The plaintext key is never stored persistently. It's only available in memory during runtime.
-- **Simplicity:** You can generate and manage the key using AWS KMS and standard AWS tools.
-- **No Need for Secure Storage:** Since the encrypted key is safe to store in your application's configuration, you don't need additional secure storage solutions.
+1. Create a new index with `kms_name` set instead of `index_key`.
+2. Replay your data (`upsert`) into the new index.
+3. Delete the old index.
 
-By generating the data key using AWS KMS and storing only the encrypted key, you can securely manage your encryption key without needing to store it securely elsewhere. Your application decrypts the encrypted key at runtime using AWS KMS, ensuring that the plaintext key is only available in memory during execution.
+This is intentional: the persisted envelope for `provider: none` records no wrap key, so there is nothing for the KMS path to unwrap. Bulk re-encryption against a fresh DEK happens on the upsert.
+
+## See also
+
+- [Per-Index KMS & BYOK](./kms-byok) — production setup with AWS KMS or Secrets Manager (preferred for production).
+- [Environment Variables](./env-vars) — `CYBORGDB_API_KEY` and other service-level configuration.
+- [Create an Encrypted Index](../encrypted-indexes/create-index) — full `create_index` reference, including `kms_name`.

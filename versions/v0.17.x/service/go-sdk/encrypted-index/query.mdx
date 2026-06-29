@@ -26,8 +26,11 @@ func (e *EncryptedIndex) Query(ctx context.Context, input QueryInput) (*QueryRes
 | `TopK` | `int32` | _(Optional)_ Number of nearest neighbors to return (default: 100) |
 | `NProbes` | `*int32` | _(Optional)_ Number of clusters to probe for search |
 | `Filters` | `map[string]interface{}` | _(Optional)_ Metadata filters to apply |
-| `Include` | `[]string` | _(Optional)_ Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"`. Defaults to `[]` (only `id` is returned) |
+| `Include` | `[]string` | _(Optional)_ Fields to include in results: `"metadata"`, `"distance"`, `"vector"`. Defaults to `[]` (only `id` is returned). `QueryResultItem` has no `Contents` field — to retrieve contents, use [`Get`](./get) with the matching IDs after querying. |
 | `Greedy` | `*bool` | _(Optional)_ Use greedy search algorithm |
+| `RerankMult` | `*int32` | _(Optional)_ Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `TopK * RerankMult` candidates before reranking narrows to `TopK`. Server default: `10`. Ignored by indexes that do not rerank. |
+
+<Note>`Include` defaults differ between endpoints: `Query` returns `[]` (only `Id`) by default, while [`Get`](./get) returns `["vector", "contents", "metadata"]`.</Note>
 
 ### Returns
 
@@ -69,8 +72,12 @@ if err != nil {
     log.Fatalf("Query failed: %v", err)
 }
 
-for i, result := range results.Results {
-    fmt.Printf("%d. ID: %s, Distance: %.4f\n", i+1, result.Id, result.GetDistance())
+// QueryResponse.Results is a oneOf wrapper — single-vector queries populate
+// ArrayOfQueryResultItem; batch queries populate ArrayOfArrayOfQueryResultItem.
+if results.Results.ArrayOfQueryResultItem != nil {
+    for i, result := range *results.Results.ArrayOfQueryResultItem {
+        fmt.Printf("%d. ID: %s, Distance: %.4f\n", i+1, result.Id, result.GetDistance())
+    }
 }
 ```
 
@@ -95,9 +102,14 @@ if err != nil {
     log.Fatalf("Batch query failed: %v", err)
 }
 
-// Note: Batch queries return nested results ([][]QueryResultItem)
-// You may need to type assert the Results field based on your query type
-fmt.Printf("Batch query returned %d result sets\n", len(batchResults.Results))
+// Batch queries populate ArrayOfArrayOfQueryResultItem ([][]QueryResultItem).
+if batchResults.Results.ArrayOfArrayOfQueryResultItem != nil {
+    resultSets := *batchResults.Results.ArrayOfArrayOfQueryResultItem
+    fmt.Printf("Batch query returned %d result sets\n", len(resultSets))
+    for i, set := range resultSets {
+        fmt.Printf("Query %d: %d results\n", i+1, len(set))
+    }
+}
 ```
 
 #### Semantic Search with Text
@@ -108,7 +120,7 @@ textQuery := "machine learning healthcare applications"
 params := cyborgdb.QueryParams{
     QueryContents: &textQuery,
     TopK:          10,
-    Include:       []string{"metadata", "contents"},
+    Include:       []string{"metadata", "distance"},
 }
 
 results, err := index.Query(context.Background(), params)
@@ -116,12 +128,16 @@ if err != nil {
     log.Fatalf("Content search failed: %v", err)
 }
 
-for i, result := range results.Results {
-    fmt.Printf("%d. ID: %s, Distance: %.4f\n", i+1, result.Id, result.GetDistance())
-    if result.Metadata != nil {
-        fmt.Printf("   Metadata: %v\n", result.Metadata)
+if results.Results.ArrayOfQueryResultItem != nil {
+    for i, result := range *results.Results.ArrayOfQueryResultItem {
+        fmt.Printf("%d. ID: %s, Distance: %.4f\n", i+1, result.Id, result.GetDistance())
+        if result.Metadata != nil {
+            fmt.Printf("   Metadata: %v\n", result.Metadata)
+        }
     }
 }
 ```
 
 <Tip>`BinaryQueryParams` is available as an alternative to `QueryParams` that uses binary transfer for large batch queries. This can significantly improve performance when querying with many vectors at once.</Tip>
+
+<Note>`BinaryQueryParams` does **not** accept `RerankMult` — it is supported only on `QueryParams`. Use `QueryParams` if you need to tune the stage-1 candidate multiplier on a reranking index.</Note>

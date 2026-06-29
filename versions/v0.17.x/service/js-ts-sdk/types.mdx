@@ -76,27 +76,37 @@ The `CreateIndexRequest` interface defines the parameters for creating a new enc
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `indexConfig` | [`IndexConfig`](#indexconfig) | No | Configuration model specifying index type and parameters. Defaults to `{ type: 'ivfflat' }` if not provided |
-| `indexKey` | `string` | Yes | Hex-encoded 32-byte encryption key |
 | `indexName` | `string` | Yes | Unique name/identifier for the index |
+| `indexKey` | `string \| null` | Conditional | Hex-encoded 32-byte encryption key. Required when `kmsName` is omitted; mutually exclusive with `kmsName` against a real-KMS slot. |
+| `kmsName` | `string \| null` | Conditional | Name of a `kms.registry` entry in the service YAML. Required when `indexKey` is omitted. |
+| `dimension` | `number \| null` | No | Vector dimensionality (auto-detected from the first upsert if omitted) |
+| `metric` | `string \| null` | No | Distance metric (`'euclidean'`, `'squared_euclidean'`, or `'cosine'`). If omitted, the server's default (`'euclidean'`) is used. |
 | `embeddingModel` | `string \| null` | No | Optional embedding model name for automatic vector generation |
+| `storagePrecision` | `'float32' \| 'float16' \| null` | No | On-disk rerank-vector dtype. Defaults to `'float32'`. |
 
 ### Example Usage
 
 ```typescript
-import { CreateIndexRequest, IndexIVFSQ } from 'cyborgdb';
+import { CreateIndexRequest } from 'cyborgdb';
 
 const createRequest: CreateIndexRequest = {
-    indexConfig: {
-        type: 'ivfsq',
-        sqBits: 16,
-        dimension: 768
-    },
-    indexKey: 'a1b2c3...', // hex-encoded 32-byte key
     indexName: 'my-vector-index',
-    embeddingModel: 'text-embedding-3-small'
+    indexKey: 'a1b2c3...', // hex-encoded 32-byte key
+    dimension: 768,
+    metric: 'cosine',
+    embeddingModel: 'text-embedding-3-small',
+    storagePrecision: 'float32',
+};
+
+// KMS-backed alternative:
+const kmsRequest: CreateIndexRequest = {
+    indexName: 'kms-index',
+    kmsName: 'prod-aws',
+    dimension: 768,
 };
 ```
+
+<Note>v0.17 removed the polymorphic `indexConfig` and the associated `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` model types — there is now a single DiskIVF index type. Configuration parameters are flat fields on `CreateIndexRequest`.</Note>
 
 <Note>The `createIndex()` method on the `Client` class accepts a `Uint8Array` for `indexKey` and automatically converts it to a hex-encoded string for the request. The `CreateIndexRequest` model itself uses the hex-encoded `string` type.</Note>
 
@@ -144,6 +154,7 @@ Interface for performing similarity search in the encrypted index.
 | `topK` | `number` | No | `undefined` (server default: 100) | Number of nearest neighbors to return |
 | `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during query. Auto-determined when undefined for optimal performance. |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
+| `rerankMult` | `number` | No | `undefined` (server default: 10) | Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `topK * rerankMult` candidates before reranking narrows to `topK`. Ignored by indexes that do not rerank. |
 | `filters` | `object \| null` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
 | `include` | `string[]` | No | `undefined` (server default: `[]` — only `id` is returned) | Fields to include in response. Note: `id` is always included. |
 
@@ -157,6 +168,7 @@ const queryRequest: QueryRequest = {
     topK: 10,
     nProbes: 5,
     greedy: false,
+    rerankMult: 20,
     filters: { category: 'research' },
     include: ['distance', 'metadata', 'vector']
 };
@@ -176,6 +188,7 @@ Interface for performing batch similarity searches with multiple vectors.
 | `topK` | `number` | No | `undefined` (server default: 100) | Number of nearest neighbors to return per query |
 | `nProbes` | `number` | No | `undefined` (auto) | Number of lists to probe during each query. Auto-determined when undefined. |
 | `greedy` | `boolean` | No | `false` | Whether to use greedy search algorithm |
+| `rerankMult` | `number` | No | `undefined` (server default: 10) | Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `topK * rerankMult` candidates before reranking narrows to `topK`. Ignored by indexes that do not rerank. |
 | `filters` | `object` | No | `undefined` | JSON-like dictionary for metadata filtering (no filtering when undefined) |
 | `include` | `string[]` | No | `undefined` (server default: `[]` — only `id` is returned) | Fields to include in response. Note: `id` is always included. |
 
@@ -211,6 +224,7 @@ Interface for training an index to optimize query performance.
 | `batchSize` | `number` | No | Size of each batch for training |
 | `maxIters` | `number` | No | Maximum iterations for training |
 | `tolerance` | `number` | No | Convergence tolerance for training |
+| `maxMemory` | `number` | No | Maximum memory usage in MB during training. `0` = no limit. |
 
 ### Example Usage
 
@@ -307,91 +321,25 @@ const vectorItem: VectorItem = {
 
 ---
 
-## Index Configuration Types
+## Index Configuration
 
-### IndexIVFSQ
+<Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` interfaces have been removed — there is no `IndexConfig` discriminated-union type any more. Configuration is expressed as flat fields on `CreateIndexRequest` / `Client.createIndex()`.</Note>
 
-IVFSQ (Scalar Quantization) index configuration, compresses each dimension independently for a balance of speed and index size:
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dimension` | `number` | auto-detect | Vector dimensionality. Inferred from the first upsert or from `embeddingModel` when omitted. |
+| `metric` | `string` | server default (`'euclidean'`) | `'euclidean'`, `'squared_euclidean'`, or `'cosine'`. |
+| `embeddingModel` | `string` | — | Optional sentence-transformers model name for automatic embedding generation. |
+| `storagePrecision` | `'float32' \| 'float16'` | `'float32'` | On-disk rerank-vector dtype. |
 
-| Speed | Accuracy | Memory Usage |
-|-------|----------|--------------|
-| Fast  | High     | Low          |
+### Key Management
 
-#### Properties
+| Parameter | Type | Notes |
+|-----------|------|-------|
+| `indexKey` | `Uint8Array` (SDK) / `string` hex (request) | 32-byte encryption key. SDK-supplied KEK path. Required on every subsequent call for that index. |
+| `kmsName` | `string` | Name of a `kms.registry` entry in the service YAML. The server generates and wraps the DEK on creation; subsequent calls omit `indexKey`. |
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `type` | `'ivfsq'` | Yes | - | Index type identifier |
-| `sqBits` | `number` | No | `16` | Number of bits per dimension for scalar quantization |
-| `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
-
-#### Example Usage
-
-```typescript
-import { IndexIVFSQ } from 'cyborgdb';
-
-const indexConfig: IndexIVFSQ = {
-    type: 'ivfsq',
-    sqBits: 16,
-    dimension: 768
-};
-```
-
-### IndexIVFFlat
-
-IVFFlat index configuration, suitable for highest accuracy requirements:
-
-| Speed | Accuracy | Memory Usage |
-|-------|----------|--------------|
-| Medium| Highest  | High         |
-
-#### Properties
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `type` | `'ivfflat'` | Yes | - | Index type identifier |
-| `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
-
-#### Example Usage
-
-```typescript
-import { IndexIVFFlat } from 'cyborgdb';
-
-const indexConfig: IndexIVFFlat = {
-    type: 'ivfflat',
-    dimension: 1536
-};
-```
-
-### IndexIVFPQ
-
-IVFPQ (Product Quantization) index configuration, optimized for memory efficiency:
-
-| Speed | Accuracy | Memory Usage |
-|-------|----------|--------------|
-| Fast  | Good     | Low          |
-
-#### Properties
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `type` | `'ivfpq'` | Yes | - | Index type identifier |
-| `pqDim` | `number` | Yes | - | Dimensionality after quantization |
-| `pqBits` | `number` | Yes | - | Number of bits per quantizer (1-16) |
-| `dimension` | `number \| null` | No | - | Dimensionality of vector embeddings |
-
-#### Example Usage
-
-```typescript
-import { IndexIVFPQ } from 'cyborgdb';
-
-const indexConfig: IndexIVFPQ = {
-    type: 'ivfpq',
-    pqDim: 64,
-    pqBits: 8,
-    dimension: 768
-};
-```
+At least one of `indexKey` / `kmsName` must be supplied. Supplying both against a real-KMS slot is rejected by the server.
 
 ---
 
@@ -492,25 +440,17 @@ const health: HealthResponse = await client.getHealth();
 console.log(`Service status: ${health.status}`);
 ```
 
-### TrainingStatus
+### Training status
 
-Response interface for training status queries.
-
-#### Properties
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `training_indexes` | `string[]` | Array of index names currently being trained |
-| `retrain_threshold` | `number` | The multiplier used for the retraining threshold |
-
-#### Example Usage
+There is no public `TrainingStatus` type in v0.17. Use `index.isTraining()` on an `EncryptedIndex` instance — it returns a `Promise<boolean>` indicating whether _this_ index is currently being trained (or queued for training) on the server.
 
 ```typescript
-import { TrainingStatus } from 'cyborgdb';
-
-const status: TrainingStatus = await client.isTraining();
-console.log(`Training indexes: ${status.training_indexes.join(', ')}`);
+if (await index.isTraining()) {
+    console.log('Training in progress for this index');
+}
 ```
+
+Internally, this calls the global `/v1/indexes/training-status` endpoint and tests whether the index name is in the returned `trainingIndexes` list. The full server-side response shape (`trainingIndexes`, `retrainThreshold`, `currentlyTraining`, `queuedIndexes`, `workerRunning`) is the OpenAPI-generated `IndexTrainingStatusResponseModel` and is not part of the SDK's public surface.
 
 ### GetResponseModel
 
@@ -540,13 +480,14 @@ Enhanced type-safe result item for get operations. This type extends `GetResultI
 ```typescript
 import { GetResultItem } from 'cyborgdb';
 
-const response = await index.get({
+const items: GetResultItem[] = await index.get({
     ids: ['doc1', 'doc2'],
     include: ['vector', 'metadata', 'contents']
 });
 
-// Use GetResultItem for type-safe access
-response.results.forEach((item: GetResultItem) => {
+// `get()` returns a bare GetResultItem[] — the SDK unwraps the server's
+// `{ results: [...] }` envelope for you. Iterate the array directly.
+items.forEach((item) => {
     console.log(`ID: ${item.id}`);
     if (item.metadata) {
         console.log(`Title: ${item.metadata.title}`);
@@ -602,6 +543,7 @@ Class representing a single result from similarity search.
 | `distance` | `number \| null` | Distance from query vector (lower = more similar) |
 | `metadata` | `object \| null` | Additional metadata for the result |
 | `vector` | `number[] \| null` | Retrieved vector (if included in response) |
+| `contents` | `Buffer \| Blob \| string \| null` | Stored contents associated with the item (if included in response) |
 
 ---
 

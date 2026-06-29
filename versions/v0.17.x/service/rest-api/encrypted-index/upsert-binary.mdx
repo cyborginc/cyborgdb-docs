@@ -40,8 +40,8 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="index_name" type="string" required="true">
     Name of the target index
   </ParamField>
-  <ParamField body="index_key" type="string" required="true">
-    32-byte encryption key as hex string
+  <ParamField body="index_key" type="string">
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key via the stored KMSBlob).
   </ParamField>
   <ParamField body="batch" type="object" required="true">
     Batch of vectors in binary format:
@@ -87,7 +87,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key)
+- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
 - `422`: Invalid request parameters or vector dimensions
 - `500`: Internal server error
@@ -107,7 +107,7 @@ curl -X POST "http://localhost:8000/v1/vectors/upsert_binary" \
        "index_key": "your_64_character_hex_key_here",
        "batch": {
          "ids": ["item_1", "item_2"],
-         "vectors_b64": "zczMPc3MzD2amZk+mpkZP83MTD/NzEw/zcyMPwAAgD8=",
+         "vectors_b64": "zczMPc3MTD6amZk+zczMPgAAAD+amRk/MzMzP83MTD8=",
          "dimension": 4
        }
      }'

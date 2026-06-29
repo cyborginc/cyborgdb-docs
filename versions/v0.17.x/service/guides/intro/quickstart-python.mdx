@@ -11,9 +11,32 @@ mode: "wide"
 ## Overview
 The Python service is ideal for developers who prefer managing Python environments directly, need custom dependency management, or want to integrate CyborgDB service into existing Python applications. It provides the same REST API functionality as the Docker version.
 
-This guide takes you from a clean machine to your first encrypted query in one sitting — no API key to obtain, and no database to configure.
-
 <Steps>
+    <Step title="Get an API Key">
+        To use CyborgDB, you need an API key. You can get one from the [CyborgDB Admin Dashboard](https://cyborgdb.co/).
+
+        For quick evaluation, you can generate a temporary demo key using any of the SDKs:
+
+        <CodeGroup>
+        ```python Python
+        import cyborgdb
+        print(cyborgdb.get_demo_api_key())
+        ```
+        ```javascript JavaScript
+        import { getDemoApiKey } from 'cyborgdb';
+        console.log(await getDemoApiKey());
+        ```
+        ```go Go
+        demoKey, _ := cyborgdb.GetDemoAPIKey("my demo app")
+        fmt.Println(demoKey)
+        ```
+        </CodeGroup>
+
+        Then use the printed key as your `CYBORGDB_API_KEY` when starting the service, and as the `api_key` when connecting with an SDK client.
+
+        Make sure to keep your API key secure and do not share it publicly.
+    </Step>
+
     <Step title="Check Prerequisites">
         Ensure you have the required Python version and environment tools:
 
@@ -23,8 +46,27 @@ This guide takes you from a clean machine to your first encrypted query in one s
         <Note>While conda is mentioned in the build instructions, the wheel works with any Python environment manager including pip, pipenv, poetry, etc.</Note>
     </Step>
 
+    <Step title="Choose Your Storage Backend (Optional)">
+        The service ships with three storage backends. Skip this
+        step and you get **disk** (embedded RocksDB) by default —
+        the data directory is `~/.cyborgdb/data`.
+
+        - **Disk** (default) — embedded RocksDB on local disk. Persistent,
+          no external dependencies. Best for single-node deployments and
+          edge devices.
+        - **S3** — AWS S3 or any S3-compatible store (MinIO,
+          Cloudflare R2, …). Best for cloud-native and multi-node
+          deployments.
+        - **Memory** — in-process only, nothing persists across
+          restarts. For tests and ephemeral indexes.
+
+        For full details, see the [Backing Stores guide](../../../intro/backing-stores).
+
+        <Note>v0.17 collapsed the storage surface. The previous `standalone`, `postgres`, and `redis` backends and the catch-all `CYBORGDB_CONNECTION_STRING` are gone — switch `standalone` → `disk` and use the new `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.</Note>
+    </Step>
+
     <Step title="Install CyborgDB Service">
-        Install the CyborgDB service package:
+        Install the CyborgDB service package using conda and pip:
 
         <CodeGroup>
         ```bash Conda Environment (Recommended)
@@ -57,6 +99,92 @@ This guide takes you from a clean machine to your first encrypted query in one s
         <Warning>Using conda or a virtual environment is strongly recommended to avoid dependency conflicts with other Python packages.</Warning>
     </Step>
 
+    <Step title="Configure Environment Variables">
+        Set the required environment variables for your deployment:
+
+        <Tabs>
+            <Tab title="Disk (default)">
+                <CodeGroup>
+                ```bash Linux/macOS
+                # Minimal — disk is the default; data goes to ~/.cyborgdb/data
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                # Optional: pin the data directory
+                # export CYBORGDB_DISK_PATH=/var/lib/cyborgdb
+                ```
+
+                ```bash .env File
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                # CYBORGDB_DISK_PATH=/var/lib/cyborgdb
+                ```
+                </CodeGroup>
+            </Tab>
+
+            <Tab title="Memory">
+                <CodeGroup>
+                ```bash Linux/macOS
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=memory
+                ```
+
+                ```bash .env File
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=memory
+                ```
+                </CodeGroup>
+
+                <Warning>Memory storage does not persist across restarts. Use for tests and ephemeral indexes only.</Warning>
+            </Tab>
+
+            <Tab title="S3 (AWS)">
+                <CodeGroup>
+                ```bash Linux/macOS
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=s3
+                export CYBORGDB_S3_BUCKET=my-bucket
+                export CYBORGDB_S3_REGION=us-east-1
+                # On EC2/ECS/EKS the instance role is picked up automatically.
+                # Off AWS, set AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY instead.
+                ```
+
+                ```bash .env File
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=s3
+                CYBORGDB_S3_BUCKET=my-bucket
+                CYBORGDB_S3_REGION=us-east-1
+                ```
+                </CodeGroup>
+            </Tab>
+
+            <Tab title="S3 (MinIO / R2)">
+                <CodeGroup>
+                ```bash Linux/macOS
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=s3
+                export CYBORGDB_S3_BUCKET=my-bucket
+                export CYBORGDB_S3_ENDPOINT=https://minio.internal:9000
+                export CYBORGDB_S3_ACCESS_KEY=minioadmin
+                export CYBORGDB_S3_SECRET_KEY=minioadmin
+                ```
+
+                ```bash .env File
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=s3
+                CYBORGDB_S3_BUCKET=my-bucket
+                CYBORGDB_S3_ENDPOINT=https://minio.internal:9000
+                CYBORGDB_S3_ACCESS_KEY=minioadmin
+                CYBORGDB_S3_SECRET_KEY=minioadmin
+                ```
+                </CodeGroup>
+
+                <Note>With a custom `CYBORGDB_S3_ENDPOINT` the AWS default credential chain is bypassed entirely — `CYBORGDB_S3_ACCESS_KEY` / `CYBORGDB_S3_SECRET_KEY` are required.</Note>
+            </Tab>
+        </Tabs>
+
+        <Tip>Using a `.env` file is the most convenient method as it persists your configuration and keeps sensitive data out of your shell history.</Tip>
+
+        For more information on environment variables, refer to [this guide](../advanced/env-vars).
+    </Step>
+
     <Step title="Start the Service">
         Run the CyborgDB service using the installed command:
 
@@ -64,104 +192,136 @@ This guide takes you from a clean machine to your first encrypted query in one s
         cyborgdb-service
         ```
 
-        No configuration is required to get started. The service launches with a built-in **standalone** store, so there is no database type or connection string to set. It displays startup information including the server URL (default: `http://localhost:8000`) and the available API endpoints.
+        The service will start and display startup information including:
+        - Configured storage backend (`memory`, `disk`, or `s3`)
+        - Server URL (default: `http://localhost:8000`)
+        - Available API endpoints
 
-        <Warning>The service listens on `localhost` by default and has no authentication layer. Keep it bound to localhost during development — do not expose the port to the public internet.</Warning>
-
-        <Note>The standalone store is for evaluation and local development. For production backends (PostgreSQL, Redis, S3) and HTTPS, see [Environment Variables](../advanced/env-vars) and [Backing Stores](../../../intro/backing-stores).</Note>
+        <Note>For additional configuration options, run `cyborgdb-service --help` to see all available command-line arguments.</Note>
     </Step>
 
-    <Step title="Verify the Service">
-        Once the service is running, confirm it's healthy:
+    <Step title="Verify Installation">
+        Once the service is running, verify it's working correctly:
 
+        **Health Check:**
         ```bash
         curl http://localhost:8000/v1/health
         ```
 
-        You should see a response indicating the service is healthy and ready to accept requests. You can also explore the interactive API documentation at [http://localhost:8000/v1/docs](http://localhost:8000/v1/docs).
+        **API Documentation:**
+        Navigate to [http://localhost:8000/v1/docs](http://localhost:8000/v1/docs) to explore the interactive API documentation.
+
+        You should see a response indicating the service is healthy and ready to accept requests.
     </Step>
 
-    <Step title="Install the Client SDK">
-        With the service running, install the Python client SDK in your application environment:
+    <Step title="Advanced Configuration">
+        For production deployments, consider these additional configurations:
 
-        ```bash
-        pip install cyborgdb
-        ```
-    </Step>
+        <Tabs>
+            <Tab title="Environment Variables">
+                | Variable | Description | Required | Example |
+                |----------|-------------|----------|---------|
+                | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
+                | `CYBORGDB_DB_TYPE` | Storage backend (`memory`, `disk`, `s3`) | ❌ (defaults to `disk`) | `s3` |
+                | `CYBORGDB_DISK_PATH` | Data directory for `disk` storage | ❌ | `/var/lib/cyborgdb` |
+                | `CYBORGDB_S3_BUCKET` | Bucket name for `s3` storage | Required for S3 | `my-bucket` |
+                | `CYBORGDB_S3_REGION` | Region for `s3` storage | ❌ | `us-east-1` |
+                | `PORT` | Service port | ❌ | `8000` |
+                | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
+                | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
 
-    <Step title="Connect to the Service">
-        Create a client pointing at your running service:
+                <Note>Without `CYBORGDB_DB_TYPE`, the service uses `disk` storage rooted at `~/.cyborgdb/data`. For the full list (including S3 credentials and KMS), see the [Environment Variables](../advanced/env-vars) guide.</Note>
 
-        ```python
-        from cyborgdb import Client
+            </Tab>
 
-        # Connect to the local service — no API key required
-        client = Client(base_url='http://localhost:8000')
-        ```
-    </Step>
+            <Tab title="Production Deployment">
+                For production environments, consider using a process manager:
 
-    <Step title="Create an Encrypted Index">
-        Generate an encryption key and create an index:
+                ```bash
+                # Using gunicorn (install separately)
+                pip install gunicorn
+                gunicorn cyborgdb_service.main:app --port 8000
 
-        ```python
-        # ... Continuing from the previous step
+                # Using systemd service (Linux)
+                sudo systemctl enable cyborgdb-service
+                sudo systemctl start cyborgdb-service
+                ```
+            </Tab>
 
-        # Generate a 32-byte encryption key for the index
-        index_key = client.generate_key()
+            <Tab title="HTTPS Configuration">
+                For production deployments, configure HTTPS by providing SSL certificates:
 
-        # Create an encrypted index
-        index = client.create_index(
-            index_name="my_index",
-            index_key=index_key
-        )
-        ```
+                **Environment Variables:**
+                ```bash
+                export SSL_CERT_PATH=/path/to/certificate.crt
+                export SSL_KEY_PATH=/path/to/private.key
+                ```
 
-        <Note>
-        The **encryption key** protects your index contents and is separate from how you connect to the service. Store it securely, outside your source code — if you lose it, the index cannot be decrypted, and if you commit it to version control, you expose your data. This is not an account or API key; the service itself requires no key to run.
-        </Note>
-    </Step>
+                **Complete Production Example:**
+                ```bash
+                # Set all required environment variables including SSL
+                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                export CYBORGDB_DB_TYPE=s3
+                export CYBORGDB_S3_BUCKET=cyborgdb-prod
+                export CYBORGDB_S3_REGION=us-east-1
+                export SSL_CERT_PATH=/etc/ssl/certs/server.crt
+                export SSL_KEY_PATH=/etc/ssl/private/server.key
 
-    <Step title="Add Items">
-        Add items to the encrypted index with `upsert`:
+                # Start service (will automatically use HTTPS)
+                cyborgdb-service
+                ```
 
-        ```python
-        # ... Continuing from the previous step
+                **Using .env File with SSL:**
+                ```bash
+                # Create a .env file with SSL configuration
+                cat > .env << EOF
+                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                CYBORGDB_DB_TYPE=s3
+                CYBORGDB_S3_BUCKET=cyborgdb-prod
+                CYBORGDB_S3_REGION=us-east-1
+                SSL_CERT_PATH=/path/to/certificate.crt
+                SSL_KEY_PATH=/path/to/private.key
+                EOF
 
-        items = [
-            {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "contents": "Hello!"},
-            {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8], "contents": "Bonjour!"},
-            {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "contents": "Hola!"}
-        ]
+                # Start service
+                cyborgdb-service
+                ```
 
-        index.upsert(items)
-        ```
-    </Step>
+                **Using Let's Encrypt (Production):**
+                ```bash
+                # Install certbot (Ubuntu/Debian)
+                sudo apt-get install certbot
 
-    <Step title="Query the Index">
-        Search the encrypted index for the nearest vectors:
+                # Generate certificate for your domain
+                sudo certbot certonly --standalone -d your-domain.com
 
-        ```python
-        # ... Continuing from the previous step
+                # Set environment variables to Let's Encrypt certificates
+                export SSL_CERT_PATH=/etc/letsencrypt/live/your-domain.com/fullchain.pem
+                export SSL_KEY_PATH=/etc/letsencrypt/live/your-domain.com/privkey.pem
 
-        query_vector = [0.1, 0.2, 0.3, 0.4]
-        results = index.query(query_vectors=query_vector, top_k=3)
+                # Start service with HTTPS
+                cyborgdb-service
+                ```
 
-        # Results are a flat list of {"id", "distance"}, nearest first
-        for result in results:
-            print(f"ID: {result['id']}, Distance: {result['distance']}")
-        ```
-
-        Seeing IDs and distances printed means your service, index, and query are all working end-to-end.
+                <Note>The server automatically switches to HTTPS when both certificate files are provided and exist. Without certificates, it starts in HTTP mode.</Note>
+            </Tab>
+        </Tabs>
     </Step>
 
     <Step title="Next Steps">
-        You've gone from install to your first encrypted query. Explore further, or integrate from another language:
+        Now that your CyborgDB service is running, you can interact with it using client SDKs:
 
+        **Install Client SDKs:**
+        
         <CodeGroup>
+        ```bash Python icon="python"
+        pip install cyborgdb
+        ```
+
         ```bash JavaScript icon="js"
         npm install cyborgdb
         ```
-
+        
         ```bash TypeScript icon="code"
         npm install cyborgdb
         ```
@@ -185,8 +345,6 @@ This guide takes you from a clean machine to your first encrypted query in one s
                 Learn how to use the Go SDK for direct integration
             </Card>
         </CardGroup>
-
-        <Note>As your index grows, train it for fast approximate search, and configure an external backend and HTTPS for production — see [Environment Variables](../advanced/env-vars).</Note>
     </Step>
 </Steps>
 

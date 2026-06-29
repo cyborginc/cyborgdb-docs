@@ -169,6 +169,28 @@ try {
 }
 ```
 
+#### Pattern 2 (Binary Fast Path): Float32Array
+
+For large batches, pack vectors into a single `Float32Array` and pass it as `vectors`. The SDK detects the typed array and uses an optimized binary transfer (no per-vector JSON encoding), which substantially reduces wire size and CPU on both ends.
+
+```typescript
+const dim = 384;
+const ids = ['vec1', 'vec2', 'vec3'];
+
+// Flat, contiguous buffer — vectors laid out back-to-back
+const flat = new Float32Array(ids.length * dim);
+for (let i = 0; i < ids.length; i++) {
+    for (let j = 0; j < dim; j++) {
+        flat[i * dim + j] = Math.random();
+    }
+}
+
+const result = await index.upsert({ ids, vectors: flat });
+console.log(`Upserted ${result.upsertedCount} vectors via binary transfer`);
+```
+
+<Tip>Use `Float32Array` whenever you already have vectors in a typed buffer (e.g. from a model output, an `ArrayBuffer` over a socket, or an embedding library that exposes `Float32Array` directly). Avoid the cost of converting back to `number[][]`.</Tip>
+
 #### Updating Existing Vectors
 
 ```typescript

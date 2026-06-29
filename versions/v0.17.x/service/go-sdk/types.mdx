@@ -9,9 +9,9 @@ Represents a single vector with its associated data.
 
 ```go
 type VectorItem struct {
-    Id       string                 `json:"id"`                // Unique identifier
-    Vector   []float32              `json:"vector,omitempty"`  // Vector data
-    Contents NullableContents       `json:"contents,omitempty"` // Optional text content  
+    Id       string                 `json:"id"`                 // Unique identifier
+    Vector   []float32              `json:"vector,omitempty"`   // Vector data
+    Contents internal.NullableContents `json:"contents,omitempty"` // Optional payload (see note)
     Metadata map[string]interface{} `json:"metadata,omitempty"` // Optional metadata
 }
 ```
@@ -22,23 +22,29 @@ type VectorItem struct {
 |-------|------|-------------|
 | `Id` | `string` | Unique identifier for the vector (required) |
 | `Vector` | `[]float32` | The vector data as float32 slice |
-| `Contents` | `NullableContents` | Optional text content associated with the vector |
+| `Contents` | `internal.NullableContents` | Optional payload (string or bytes). See note below. |
 | `Metadata` | `map[string]interface{}` | Optional key-value pairs for filtering and retrieval |
+
+<Note>
+`Contents` is a generated nullable wrapper from the internal OpenAPI models — the type is not re-exported on the public package, so most Go code leaves the field zero-valued and relies on JSON round-tripping. If you need to set it from Go, use the generated helpers on the underlying `internal.VectorItem`: `item.SetContents(internal.Contents{String: &s})` or `item.SetContents(internal.Contents{Bytes: &b})`. Contents read back from `Get` / `Query` responses are accessible via the same nullable accessors.
+</Note>
 
 
 ---
 
 ## CreateIndexParams
 
-Parameters for creating a new encrypted vector index.
+Parameters for creating a new encrypted DiskIVF index.
 
 ```go
 type CreateIndexParams struct {
-    IndexName      string     `json:"index_name"`            // Unique identifier for the index
-    IndexKey       []byte     `json:"index_key"`             // 32-byte encryption key
-    IndexConfig    IndexModel `json:"index_config,omitempty"` // Index configuration
-    Metric         *string    `json:"metric,omitempty"`       // Distance metric
-    EmbeddingModel *string    `json:"embedding_model,omitempty"` // Associated embedding model
+    IndexName        string  `json:"index_name"`
+    IndexKey         []byte  `json:"index_key,omitempty"`         // SDK-supplied KEK
+    KmsName          *string `json:"kms_name,omitempty"`           // KMS-backed path
+    Dimension        *int32  `json:"dimension,omitempty"`
+    Metric           *string `json:"metric,omitempty"`
+    EmbeddingModel   *string `json:"embedding_model,omitempty"`
+    StoragePrecision *string `json:"storage_precision,omitempty"` // "float32" | "float16"
 }
 ```
 
@@ -47,69 +53,14 @@ type CreateIndexParams struct {
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `IndexName` | `string` | Yes | Unique identifier for the index |
-| `IndexKey` | `[]byte` | Yes | 32-byte encryption key (use GenerateKey() to create) |
-| `IndexConfig` | `IndexModel` | No | Index configuration (IVFFlat, IVFPQ, or IVFSQ) |
-| `Metric` | `*string` | No | Distance metric ("euclidean", "squared_euclidean", "cosine") |
-| `EmbeddingModel` | `*string` | No | Name of embedding model to associate |
+| `IndexKey` | `[]byte` | Conditional | 32-byte encryption key. Required when `KmsName` is nil; mutually exclusive with `KmsName` against a real-KMS slot. |
+| `KmsName` | `*string` | Conditional | Name of a `kms.registry` entry in the service YAML. Required when `IndexKey` is nil. |
+| `Dimension` | `*int32` | No | Vector dimensionality (auto-detected from first upsert if nil) |
+| `Metric` | `*string` | No | Distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. Defaults to the server's default (`"euclidean"`). |
+| `EmbeddingModel` | `*string` | No | Optional sentence-transformers model name for auto-embedding |
+| `StoragePrecision` | `*string` | No | On-disk rerank-vector dtype: `"float32"` (default) or `"float16"`. Use `cyborgdb.StoragePrecisionFloat32` / `StoragePrecisionFloat16` constants. |
 
----
-
-## Index Configuration Types
-
-### IndexModel Interface
-
-All index configuration types implement this interface.
-
-```go
-type IndexModel interface {
-    ToIndexConfig() *internal.IndexConfig
-}
-```
-
-### IVFSQ Configuration
-
-Create an IVFSQ (Scalar Quantization) index configuration that compresses each dimension independently.
-
-```go
-func IndexIVFSQ(dimension int32, sqBits int32) *indexIVFSQ
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dimension` | `int32` | The dimensionality of vectors that will be stored |
-| `sqBits` | `int32` | Number of bits per dimension for scalar quantization (default: 16) |
-
-### IVFFlat Configuration
-
-Create an IVFFlat (Inverted File Flat) index configuration for higher accuracy.
-
-```go
-func IndexIVFFlat(dimension int32) *indexIVFFlat
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dimension` | `int32` | The dimensionality of vectors that will be stored |
-
-### IVFPQ Configuration
-
-Create an IVFPQ (Inverted File with Product Quantization) index configuration for memory efficiency.
-
-```go
-func IndexIVFPQ(dimension int32, pqDim int32, pqBits int32) *indexIVFPQ
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `dimension` | `int32` | The dimensionality of vectors that will be stored |
-| `pqDim` | `int32` | Product quantization dimension (typically dimension/8 or dimension/16) |
-| `pqBits` | `int32` | Bits per PQ code (typically 8, higher = more accurate but larger) |
+<Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` constructors and the `IndexModel` interface have been removed.</Note>
 
 ---
 
@@ -290,6 +241,7 @@ type QueryParams struct {
     TopK              int32                  `json:"top_k"`
     NProbes           *int32                 `json:"n_probes,omitempty"`
     Greedy            *bool                  `json:"greedy,omitempty"`
+    RerankMult        *int32                 `json:"rerank_mult,omitempty"`
     Filters           map[string]interface{} `json:"filters,omitempty"`
     Include           []string               `json:"include"`
 }
@@ -305,5 +257,30 @@ type QueryParams struct {
 | `TopK` | `int32` | No | Number of nearest neighbors to return |
 | `NProbes` | `*int32` | No | Number of clusters to probe for search |
 | `Greedy` | `*bool` | No | Use greedy search algorithm |
+| `RerankMult` | `*int32` | No | Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `TopK * RerankMult` candidates before reranking. Server default: `10`. Ignored by indexes that do not rerank. |
 | `Filters` | `map[string]interface{}` | No | Metadata filters to apply |
-| `Include` | `[]string` | No | Fields to include in results: `"metadata"`, `"distance"`, `"vector"`, `"contents"`. Defaults to `[]` (only `id` is returned) |
+| `Include` | `[]string` | No | Fields to include in results: `"metadata"`, `"distance"`, `"vector"`. Defaults to `[]` (only `id` is returned). `QueryResultItem` has no `Contents` field — fetch contents via `Get` if needed. |
+
+
+---
+
+## Constants
+
+```go
+const KeySize = 32
+```
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `KeySize` | `32` | Required length, in bytes, of an SDK-supplied index encryption key (AES-256). `Client.GenerateKey()` returns a slice of this length; `LoadIndex` / `CreateIndex` reject any `IndexKey` whose length is not `KeySize`. |
+
+## Error Variables
+
+The package exports sentinel errors that callers can match against with `errors.Is`:
+
+| Variable | Returned when |
+|----------|---------------|
+| `ErrInvalidKeyLength` | An `IndexKey` is supplied with a length other than `KeySize` bytes. |
+| `ErrKeyGeneration` | `GenerateKey` fails to read from the OS CSPRNG. |
+| `ErrInvalidURL` | `NewClient` is called with a malformed base URL. |
+| `ErrMissingKeyOrKMS` | `CreateIndex` is called with neither `IndexKey` nor `KmsName` set. |

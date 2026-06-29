@@ -30,6 +30,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   "top_k": 10,
   "n_probes": 5,
   "greedy": false,
+  "rerank_mult": 10,
   "filters": {"category": "research"},
   "include": ["distance", "metadata"]
 }
@@ -39,8 +40,8 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="index_name" type="string" required="true">
     Name of the target index
   </ParamField>
-  <ParamField body="index_key" type="string" required="true">
-    32-byte encryption key as hex string
+  <ParamField body="index_key" type="string">
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key via the stored KMSBlob).
   </ParamField>
   <ParamField body="batch" type="object" required="true">
     Batch of query vectors in binary format:
@@ -63,11 +64,14 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="greedy" type="boolean">
     Whether to use greedy search algorithm. Defaults to false
   </ParamField>
+  <ParamField body="rerank_mult" type="integer" default={10}>
+    Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `top_k * rerank_mult` candidates before the rerank pass narrows the result down to `top_k`. Higher values trade query latency for recall. Ignored by indexes that do not rerank.
+  </ParamField>
   <ParamField body="filters" type="object">
     Metadata filters to apply to the search
   </ParamField>
   <ParamField body="include" type="array[string]">
-    Fields to include in response: `"distance"`, `"metadata"`. Defaults to `[]` (only `id` is returned)
+    Fields to include in response: `"distance"`, `"metadata"`, `"vector"`. Defaults to `[]` (only `id` is returned). `"contents"` is **not** a valid value — fetch contents via `POST /v1/vectors/get` with the matching IDs afterwards.
   </ParamField>
 </Expandable>
 
@@ -92,7 +96,7 @@ The response format is the same as the standard [query endpoint](./query):
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key)
+- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
 - `422`: Invalid request parameters or vector dimensions
 - `500`: Internal server error
@@ -111,7 +115,7 @@ curl -X POST "http://localhost:8000/v1/vectors/query_binary" \
        "index_name": "my_index",
        "index_key": "your_64_character_hex_key_here",
        "batch": {
-         "vectors_b64": "zczMPc3MzD2amZk+mpkZPw==",
+         "vectors_b64": "zczMPc3MTD6amZk+zczMPg==",
          "dimension": 4
        },
        "top_k": 5

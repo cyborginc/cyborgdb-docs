@@ -10,15 +10,13 @@ The `DBConfig` class specifies the storage location for the index, with options 
 
 | Parameter | Type | Default | Description |
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
-| `location` | `string` | - | DB location (`redis`, `postgres`, `memory`, `rocksdb`, `threadsafememory`) |
-| `table_name` | `string` | None | _(Optional)_ Table name (`postgres`-only) |
-| `connection_string` | `string` | None | _(Optional)_ Connection string to access DB. |
+| `location` | `string` | - | DB location (`rocksdb`, `s3`, `memory`, `threadsafememory`) |
+| `connection_string` | `string` | None | _(Optional)_ Connection string or path for the chosen location. |
 
 The supported `location` options are:
 
 - `"rocksdb"`: Use for persistent local storage with no network dependency (recommended for embedded/local deployments).
-- `"redis"`: Use for high-speed, in-memory storage (recommended for `index_location`).
-- `"postgres"`: Use for reliable, SQL-based storage (recommended for `config_location`).
+- `"s3"`: Use for AWS S3 or any S3-compatible object store (MinIO, Cloudflare R2). Carry the URI and credentials in `connection_string`.
 - `"memory"`: Use for temporary in-memory storage (for benchmarking and evaluation purposes).
 - `"threadsafememory"`: Use for thread-safe in-memory storage (for multi-threaded benchmarking and evaluation).
 
@@ -29,15 +27,14 @@ The supported `location` options are:
 ```python
 import cyborgdb_core as cyborgdb
 
-index_location = cyborgdb.DBConfig(
-    location="redis",
-    connection_string="redis://localhost"
-)
+# Persistent local storage
+index_location = cyborgdb.DBConfig(location="rocksdb")
+config_location = cyborgdb.DBConfig(location="rocksdb")
 
-config_location = cyborgdb.DBConfig(
-    location="postgres",
-    table_name="config_table",
-    connection_string="host=localhost dbname=postgres"
+# S3-backed storage (cloud-native)
+s3_location = cyborgdb.DBConfig(
+    location="s3",
+    connection_string="s3://my-bucket?region=us-east-1"
 )
 ```
 

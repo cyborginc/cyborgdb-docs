@@ -3,7 +3,9 @@ title: "Create Index"
 mode: "wide"
 ---
 
-Creates a new encrypted vector index using comprehensive parameters. The new index is empty and ready for vector operations.
+Creates a new encrypted DiskIVF vector index. The new index is empty and ready for vector operations.
+
+<Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` helpers and the `IndexConfig` field have been removed — configuration is now expressed as flat fields on `CreateIndexParams` (`Dimension`, `Metric`, `StoragePrecision`).</Note>
 
 ```go
 func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*EncryptedIndex, error)
@@ -14,17 +16,26 @@ func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*E
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `ctx` | `context.Context` | Context for cancellation/timeouts |
-| `params` | [`*CreateIndexParams`](#createindexparams) | Complete configuration for the new index |
+| `params` | [`*CreateIndexParams`](#createindexparams) | Configuration for the new index |
 
 #### CreateIndexParams
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `IndexName` | `string` | Yes | Unique identifier for the index |
-| `IndexKey` | `[]byte` | Yes | 32-byte encryption key |
-| `IndexConfig` | `IndexModel` | No | Index configuration (IVFFlat, IVFPQ, or IVFSQ) |
-| `Metric` | `*string` | No | Distance metric (e.g., "euclidean", "cosine") |
-| `EmbeddingModel` | `*string` | No | Associated embedding model name |
+| `IndexKey` | `[]byte` | Conditional | 32-byte encryption key. Required when `KmsName` is nil; mutually exclusive with `KmsName` against a real-KMS slot. |
+| `KmsName` | `*string` | Conditional | Name of a `kms.registry` entry in the service YAML. Required when `IndexKey` is nil. |
+| `Dimension` | `*int32` | No | Vector dimensionality. Auto-detected from the first upsert if nil. |
+| `Metric` | `*string` | No | Distance metric (`"euclidean"`, `"squared_euclidean"`, `"cosine"`). Defaults to the server's default (`"euclidean"`). |
+| `EmbeddingModel` | `*string` | No | Optional sentence-transformers model name for automatic embedding generation. |
+| `StoragePrecision` | `*string` | No | On-disk rerank-vector dtype: `"float32"` (default) or `"float16"`. |
+
+### Key Management Modes
+
+At least one of `IndexKey` / `KmsName` must be supplied; supplying both against a real-KMS slot is rejected by the server:
+
+- **SDK-supplied KEK** — set `IndexKey`, leave `KmsName` nil. The server records the index with `provider: none`; you must re-supply the same key on every subsequent call.
+- **KMS-backed** — set `KmsName`, leave `IndexKey` nil. The server generates the DEK, wraps it under the named registry slot, and persists the envelope. Subsequent calls omit `IndexKey` entirely.
 
 ### Returns
 
@@ -33,24 +44,25 @@ func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*E
 | `*EncryptedIndex` | Handle for performing vector operations on the new index |
 | `error` | Any error encountered during index creation |
 
-### Exceptions
+### Errors
 
 <AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the index name already exists on the server.
-        - Throws if the index configuration is invalid or missing required parameters.
-        - Throws if the encryption key is not exactly 32 bytes.
-        - Throws if the embedding model is not supported by the server.
+    <Accordion title="Common errors">
+        - `ErrMissingKeyOrKMS` — Returned when neither `IndexKey` nor `KmsName` is provided.
+        - Returns error if `IndexKey` is provided but is not exactly 32 bytes.
+        - Returns error if the index name already exists on the server.
+        - Returns error if both `IndexKey` and `KmsName` are provided against a real-KMS slot (server-side 400).
+        - Returns error if the embedding model is unsupported.
     </Accordion>
     <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unavailable or unreachable.
-        - Throws if there are internal server errors on the CyborgDB service.
+        - Returns error if the CyborgDB service is unavailable or unreachable.
+        - Returns error on 5xx responses, including KMS-wrap failures (502).
     </Accordion>
 </AccordionGroup>
 
 ### Example Usage
 
-#### Automatic Index Config
+#### SDK-supplied key
 
 ```go
 package main
@@ -58,7 +70,7 @@ package main
 import (
     "context"
     "log"
-    
+
     "github.com/cyborginc/cyborgdb-go"
 )
 
@@ -68,48 +80,68 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    
+
     // Generate encryption key
     key, err := cyborgdb.GenerateKey()
     if err != nil {
         log.Fatal(err)
     }
-    
+
     // Create basic index
+    dimension := int32(384)
     params := &cyborgdb.CreateIndexParams{
         IndexName: "my-documents",
-        IndexKey:  key,  // Pass bytes directly
+        IndexKey:  key,
+        Dimension: &dimension,
     }
-    
+
     ctx := context.Background()
     index, err := client.CreateIndex(ctx, params)
     if err != nil {
         log.Fatal(err)
     }
-    
+
     log.Printf("Created index: %s", index.GetIndexName())
 }
 ```
 
 <Note>For more info on `GenerateKey`, refer to [Generate Key](./generate-key).</Note>
 
-#### IVFFlat Index with Embedding Model
+#### KMS-backed index
 
 ```go
-// Initialize client
+// The service generates the KEK, wraps it via the 'prod-aws' registry slot,
+// and persists the envelope. The SDK never sees the plaintext key.
+kmsName := "prod-aws"
+dimension := int32(384)
+
+params := &cyborgdb.CreateIndexParams{
+    IndexName: "kms-documents",
+    KmsName:   &kmsName,
+    Dimension: &dimension,
+}
+
+index, err := client.CreateIndex(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+// Subsequent calls — including LoadIndex — pass a nil key.
+```
+
+#### Auto-embedding with cosine metric
+
+```go
+// Initialize client and key (omitted for brevity)
 client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
 key, _ := cyborgdb.GenerateKey()
 
-// Create an IVFFlat index with automatic embedding generation
-config := cyborgdb.IndexIVFFlat(3072)
-
+// Create an index with automatic embedding generation
 metric := "cosine"
-embeddingModel := "text-embedding-3-large"
+embeddingModel := "all-MiniLM-L6-v2"
 
 params := &cyborgdb.CreateIndexParams{
     IndexName:      "large-dataset",
     IndexKey:       key,
-    IndexConfig:    config,
     Metric:         &metric,
     EmbeddingModel: &embeddingModel,
 }
@@ -118,6 +150,21 @@ ctx := context.Background()
 index, err := client.CreateIndex(ctx, params)
 if err != nil {
     log.Fatal(err)
+}
+```
+
+#### Float16 storage for reduced footprint
+
+```go
+// Create a compact index using float16 on-disk rerank vectors
+dimension := int32(768)
+storage := cyborgdb.StoragePrecisionFloat16
+
+params := &cyborgdb.CreateIndexParams{
+    IndexName:        "compact-index",
+    IndexKey:         key,
+    Dimension:        &dimension,
+    StoragePrecision: &storage,
 }
 ```
 

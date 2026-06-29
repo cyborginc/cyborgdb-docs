@@ -3,12 +3,12 @@ title: "Load Index"
 mode: "wide"
 ---
 
-Loads and returns an existing `EncryptedIndex` instance based on its name and key.
+Loads and returns an existing `EncryptedIndex` instance.
 
 ```python
 client.load_index(
     index_name,
-    index_key
+    index_key = None,
 )
 ```
 
@@ -17,45 +17,52 @@ client.load_index(
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `index_name` | `str` | Name of an existing index |
-| `index_key` | `bytes` | 32-byte encryption key |
+| `index_key` | `bytes` | _(Optional)_ 32-byte encryption key. Required for indexes created with the SDK-supplied KEK path (`provider: none`); omit for KMS-backed indexes. |
+
+<Note>In v0.17 `index_key` is optional. KMS-backed indexes (created with `kms_name`) omit it — the server resolves the DEK via the persisted `KMSBlob`. SDK-supplied indexes (created with only `index_key`) must re-supply the same 32-byte key here.</Note>
 
 <Warning>
-The encryption key must exactly match the key used during index creation.
+For SDK-supplied indexes, the encryption key must exactly match the key used during index creation. KMS-backed indexes are tied to their `kms_name` slot in the service YAML — load fails if that slot is missing or unreachable.
 </Warning>
 
 ### Returns
 
-An instance of `EncryptedIndex` if the index exists and the key is valid.
+An instance of `EncryptedIndex` bound to the loaded index. The SDK probes the describe endpoint during load, so a missing or inaccessible index raises here rather than silently returning a phantom handle.
 
 ### Exceptions
 
 <AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the index doesn't exist on the server
-        - Throws if the encryption key is incorrect or invalid
-        - Throws if the encryption key is not exactly 32 bytes
-        - Throws if authentication fails (invalid API key)
+    <Accordion title="ValueError">
+        - Raised if `index_key` is provided but is not exactly 32 bytes.
+        - Raised if the index does not exist on the server (the describe probe fails).
+        - Raised if the supplied key does not match the cached envelope hash (SDK-supplied path).
+        - Raised by the server if a KMS-backed index's slot is unavailable.
     </Accordion>
     <Accordion title="Network/API Errors">
-        - Throws if the API request fails due to network issues
-        - Throws if the server returns an HTTP error status
-        - Throws if the server is unreachable or times out
+        - Raised if the API request fails due to network issues.
+        - Raised if the server returns an HTTP error status.
+        - Raised if the server is unreachable or times out.
     </Accordion>
 </AccordionGroup>
 
 ### Example Usage
 
-Basic usage of the `load_index` method to retrieve an existing index:
+#### SDK-supplied index
 
 ```python
 from cyborgdb import Client
 
-# Create a client
 client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
-# Provide the same index key used when creating the index
+# Same 32-byte key used during create_index()
 index_key = your_existing_32_byte_key
 
-# Connect to existing index
 index = client.load_index("my_index", index_key)
+```
+
+#### KMS-backed index
+
+```python
+# No key required — the server resolves the DEK via the index's KMSBlob.
+index = client.load_index("kms_index")
 ```

@@ -69,8 +69,8 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="index_name" type="string" required="true">
     Name of the target index
   </ParamField>
-  <ParamField body="index_key" type="string" required="true">
-    32-byte encryption key as hex string
+  <ParamField body="index_key" type="string">
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key via the stored KMSBlob).
   </ParamField>
   <ParamField body="query_vectors" type="array[number] | array[array[number]]">
     Query vector(s) for similarity search:
@@ -91,17 +91,23 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="greedy" type="boolean" default="false">
     Use greedy search for higher recall
   </ParamField>
+  <ParamField body="rerank_mult" type="integer" default={10}>
+    Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `top_k * rerank_mult` candidates before the rerank pass narrows the result down to `top_k`. Higher values trade query latency for recall. Ignored by indexes that do not rerank.
+  </ParamField>
   <ParamField body="filters" type="object">
     MongoDB-style metadata filters
   </ParamField>
   <ParamField body="include" type="array[string]" default={[]}>
-    Fields to include in response:
+    Fields to include in response. `id` is always returned. `contents` is **not** a valid value for query — to retrieve contents, call `GET /v1/vectors/get` (or the SDK's `get`) with the matching IDs afterwards.
     <Expandable title="include options">
       <ParamField body="distance" type="string">
         Include distance/similarity score to query vector
       </ParamField>
       <ParamField body="metadata" type="string">
         Include item metadata key-value pairs
+      </ParamField>
+      <ParamField body="vector" type="string">
+        Include the stored rerank vector (returned at the index's configured `storage_precision`)
       </ParamField>
     </Expandable>
   </ParamField>
@@ -172,7 +178,7 @@ Use MongoDB-style query operators:
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key)
+- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
 - `422`: Invalid request parameters or vector dimensions
 - `500`: Internal server error
@@ -256,10 +262,11 @@ curl -X POST "http://localhost:8000/v1/vectors/query" \
        "query_vectors": [0.1, 0.2, 0.3, 0.4],
        "top_k": 20,
        "n_probes": 10,
+       "rerank_mult": 20,
        "greedy": true
      }'
 ```
 
 <Note>If `embedding_model` is configured for the index, you can use either `query_vectors` for direct vector search or `query_contents` for text-based semantic search.</Note>
 
-<Tip>Higher `n_probes` values and `greedy=true` increase recall but may reduce query performance. Start with default values and adjust based on your recall requirements.</Tip>
+<Tip>Higher `n_probes`, `rerank_mult`, and `greedy=true` all increase recall but reduce query performance. Start with defaults and adjust based on your recall requirements.</Tip>

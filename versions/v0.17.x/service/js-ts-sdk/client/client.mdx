@@ -47,8 +47,12 @@ const client = new Client({ baseUrl: 'https://api.cyborgdb.co', apiKey: 'your-ap
 // Create client for local development (SSL auto-disabled)
 const localClient = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
-// Create client with explicit SSL verification disabled
-const devClient = new Client({ baseUrl: 'https://dev.cyborgdb.co', apiKey: 'dev-api-key', verifySsl: false });
+// Override the auto-detection — for example, to point at a local dev service over plain HTTP
+// (auto-detection already disables verification for `http://` and `localhost`, so this is
+// only needed when you need to opt out of TLS verification deliberately, e.g. against a
+// staging host with a self-signed cert). Never set `verifySsl: false` against a public
+// HTTPS host in production.
+const devClient = new Client({ baseUrl: 'http://dev.internal:8000', apiKey: 'dev-api-key', verifySsl: false });
 ```
 
 ## Error Handling
@@ -68,9 +72,9 @@ The TypeScript SDK provides comprehensive type safety with:
 - **Strongly typed method parameters and return values**: All methods have explicit return types (e.g., `Promise<HealthResponse>`, `Promise<TrainResponse>`)
 - **JSON type definitions**: Use `JsonValue`, `JsonObject`, `VectorMetadata`, and related types for type-safe metadata handling
 - **Filter expressions**: `FilterExpression` and `FilterOperator` types for MongoDB-style query filtering
-- **Response types**: Dedicated interfaces like `UpsertResponse`, `DeleteResponse`, `TrainResponse`, `HealthResponse`, and `TrainingStatus`
+- **Response types**: Dedicated interfaces like `UpsertResponse`, `DeleteResponse`, `TrainResponse`, and `HealthResponse` (training status is exposed via `index.isTraining(): Promise<boolean>`, not a public type)
 - **Utility functions**: Type guards (`isJsonValue`, `isError`) and helpers (`getErrorMessage`) for safer error handling
-- **Configuration objects**: Full type definitions for `CreateIndexRequest`, `IndexIVFPQ`, `IndexIVFFlat`, `IndexIVFSQ`, and `IndexOperationRequest`
+- **Configuration objects**: Full type definitions for `CreateIndexRequest`, `IndexOperationRequest`, `UpsertRequest`, `QueryRequest`, `BatchQueryRequest`, `TrainRequest`, `GetRequest`, and `DeleteRequest`
 - **IntelliSense support**: Full autocomplete and inline documentation in compatible IDEs
 - **Compile-time validation**: Catch type errors at compile time rather than runtime
 

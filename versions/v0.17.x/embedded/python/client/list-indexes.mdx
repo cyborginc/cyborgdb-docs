@@ -26,10 +26,10 @@ def list_indexes(self)
 ```python
 import cyborgdb_core as cyborgdb
 
-index_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
-config_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+index_location = cyborgdb.DBConfig(location='rocksdb')
+config_location = cyborgdb.DBConfig(location='rocksdb')
 
-items_location = cyborgdb.DBConfig(location='redis', connection_string="redis://localhost")
+items_location = cyborgdb.DBConfig(location='rocksdb')
 
 client = cyborgdb.Client(
     api_key=api_key,

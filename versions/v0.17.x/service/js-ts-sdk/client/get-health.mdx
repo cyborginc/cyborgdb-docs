@@ -37,7 +37,7 @@ try {
     const health: HealthResponse = await client.getHealth();
     console.log('Service health status:', health);
     console.log('Status:', health.status);
-    // Typical output: { status: 'healthy', api_version: 'v1', version: '1.2.3' }
+    // Typical output: { status: 'healthy', api_version: 'v1', version: '0.17.0' }
 } catch (error) {
     console.error('Health check failed:', error.message);
 }
