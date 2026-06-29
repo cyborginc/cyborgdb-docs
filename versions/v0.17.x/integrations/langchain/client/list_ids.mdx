@@ -1,0 +1,66 @@
+---
+title: "list_ids"
+mode: "wide"
+---
+
+Returns a list of all document IDs stored in the vector store.
+
+<Tabs>
+    <Tab title="Embedded">
+
+        ```python
+        list_ids() -> List[str]
+        ```
+
+        ### Returns
+
+        `List[str]`: List of all document IDs in the store
+
+        ### Example Usage
+
+        ```python
+        ids = store.list_ids()
+        print(f"Store contains {len(ids)} documents")
+        print(f"First 5 IDs: {ids[:5]}")
+        ```
+
+    </Tab>
+
+    <Tab title="Python SDK">
+
+        ```python
+        list_ids() -> List[str]
+        ```
+
+        ### Returns
+
+        `List[str]`: List of all document IDs in the store
+
+        ### Example Usage
+
+        ```python
+        ids = store.list_ids()
+        print(f"Store contains {len(ids)} documents")
+        ```
+
+    </Tab>
+
+    <Tab title="JS/TS">
+
+        ```typescript
+        listIds(): Promise<string[]>
+        ```
+
+        ### Returns
+
+        `Promise<string[]>`: Array of all document IDs in the store
+
+        ### Example Usage
+
+        ```typescript
+        const ids = await store.listIds();
+        console.log(`Store contains ${ids.length} documents`);
+        ```
+
+    </Tab>
+</Tabs>

@@ -1,0 +1,57 @@
+---
+title: "List Indexes"
+mode: "wide"
+api: "GET /v1/indexes/list"
+playground: "simple"
+---
+
+Retrieve a list of all available encrypted indexes.
+
+## Parameters
+
+None
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Response
+
+```json
+{
+  "indexes": ["my_index", "another_index", "demo_index"]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `indexes` | `array[string]` | List of available index names |
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key)
+- `500`: Internal server error
+
+## Example Usage
+
+```bash
+curl -X GET "http://localhost:8000/v1/indexes/list" \
+     -H "X-API-Key: cyborg_your_api_key_here"
+
+# Or with HTTPS
+curl -X GET "https://your-domain.com:8000/v1/indexes/list" \
+     -H "X-API-Key: cyborg_your_api_key_here"
+```
+
+## Use Cases
+
+- **Index discovery**: Find all available indexes in your deployment
+- **Administrative tasks**: List indexes for management operations
+- **Application initialization**: Verify required indexes exist
+- **Monitoring**: Track index inventory across environments
