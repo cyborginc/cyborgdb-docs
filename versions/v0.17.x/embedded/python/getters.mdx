@@ -4,7 +4,7 @@ title: "Getter Functions"
 
 ## is_trained
 
-Returns `True` if the index has been trained, enabling efficient approximate nearest neighbor search. An untrained index will default to exhaustive search.
+Returns `True` only when training is **complete**, enabling efficient approximate nearest neighbor search. An untrained index defaults to exhaustive search.
 
 ```python
 def is_trained(self) -> bool
@@ -12,7 +12,9 @@ def is_trained(self) -> bool
 
 ### Returns
 
-`bool`: `True` if the index has been trained; otherwise, `False`.
+`bool`: `True` only when the index is fully trained; otherwise, `False`.
+
+<Note>`is_trained()` returns `False` while a (re)train rebuild is in progress. During that window, queries transparently fall back to the untrained (exhaustive) search path. To distinguish "untrained" from "currently (re)training", use [`is_training()`](#is_training) or [`training_state()`](#training_state).</Note>
 
 ### Example Usage
 
@@ -22,6 +24,48 @@ if index.is_trained():
     print("The index is ready for efficient querying.")
 else:
     print("The index is not trained; consider calling train().")
+```
+
+---
+
+## is_training
+
+Returns `True` while a (re)train rebuild is in progress. While this is `True`, [`is_trained()`](#is_trained) returns `False` and queries fall back to exhaustive search.
+
+```python
+def is_training(self) -> bool
+```
+
+### Returns
+
+`bool`: `True` if a training rebuild is currently running; otherwise, `False`.
+
+### Example Usage
+
+```python
+if index.is_training():
+    print("A training rebuild is in progress; queries use exhaustive search for now.")
+```
+
+---
+
+## training_state
+
+Returns the current training state of the index as a string.
+
+```python
+def training_state(self) -> str
+```
+
+### Returns
+
+`str`: One of `"untrained"`, `"training"`, or `"trained"`.
+
+### Example Usage
+
+```python
+state = index.training_state()
+print(f"Training state: {state}")  # "untrained" | "training" | "trained"
 ```
 
 ---
@@ -49,7 +93,7 @@ print("Current index name:", index.index_name())
 
 ## index_type
 
-Returns the type of the current index (e.g., `ivf`, `ivfpq`, `ivfflat`, `ivfsq`).
+Returns the type of the current index. CyborgDB indexes are DiskIVF indexes, so this returns `"disk_ivf"`.
 
 ```python
 def index_type(self) -> str
@@ -58,7 +102,7 @@ def index_type(self) -> str
 ### Returns
 | Return Type | Description |
 |-------------|-------------------------------------|
-| `str` | Type of the current index. |
+| `str` | Type of the current index (`"disk_ivf"`). |
 
 ### Example Usage
 
@@ -81,12 +125,9 @@ def index_config(self) -> dict
 
 `dict`: A dictionary containing the configuration of the index with the following keys:
 - `dimension`: The dimensionality of the vectors
-- `metric`: The distance metric used (e.g., 'euclidean', 'cosine')
-- `index_type`: The type of the index (e.g., 'ivf', 'ivfpq', 'ivfflat', 'ivfsq')
+- `metric`: The distance metric used (e.g., `'euclidean'`, `'cosine'`)
+- `index_type`: The type of the index (`'disk_ivf'`)
 - `n_lists`: The number of inverted lists in the index
-- `pq_dim`: The PQ dimension (if applicable)
-- `pq_bits`: The PQ bits (if applicable)
-- `sq_bits`: The SQ bits (if applicable)
 
 ### Example Usage
 
@@ -174,12 +215,17 @@ print(f"Distance metric: {dist_metric}")
 Returns the number of vectors currently stored in the index.
 
 ```python
-def get_num_vectors(self) -> int
+def get_num_vectors(self,
+                    *,
+                    index_key: bytes = None,
+                    user_id: bytes = None) -> int
 ```
 
 ### Returns
 
 `int`: The number of vectors in the index.
+
+<Note>The simple call reuses the key supplied at `create_index()` / `load_index()`. Pass `index_key=` (and `user_id=` for an [RBAC user](./encrypted-index/manage-users)) to override the per-operation key in stateless/service deployments.</Note>
 
 ### Example Usage
 
@@ -196,12 +242,17 @@ print(f"The index contains {num_vectors} vectors.")
 Lists all item IDs currently stored in the index.
 
 ```python
-def list_ids(self) -> List[str]
+def list_ids(self,
+             *,
+             index_key: bytes = None,
+             user_id: bytes = None) -> List[str]
 ```
 
 ### Returns
 
 `List[str]`: A list containing all item IDs in the index.
+
+<Note>The simple call reuses the key supplied at `create_index()` / `load_index()`. Pass `index_key=` (and `user_id=` for an [RBAC user](./encrypted-index/manage-users)) to override the per-operation key in stateless/service deployments.</Note>
 
 ### Exceptions
 

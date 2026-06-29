@@ -38,7 +38,7 @@ cyborg::Array2D<float> vectors{{0.1, 0.1, 0.1, 0.1}, {0.2, 0.2, 0.2, 0.2}};
 std::vector<std::string> metadata = {R"({"category": "dog"})", R"({"category": "cat"})"};
 
 // Upsert data with metadata
-index->Upsert(ids, vectors, {}, metadata);
+index->Upsert(ids, vectors, /*contents=*/{}, metadata, index_key);
 ```
 </CodeGroup>
 
@@ -80,7 +80,7 @@ cyborg::QueryParams query_params(top_k);
 query_params.filters = filters;
 
 // Perform query
-cyborg::QueryResults results = index->Query(query_vectors, query_params);
+cyborg::QueryResults results = index->Query(query_vectors, query_params, index_key);
 ```
 </CodeGroup>
 

@@ -9,9 +9,7 @@ The `cyborg::Client` class manages storage configurations and acts as a factory 
 
 ```cpp
 cyborg::Client(const std::string& api_key,
-               const DBConfig& index_location,
-               const DBConfig& config_location,
-               const DBConfig& contents_location,
+               cyborg::StorageConfig storage_config,
                const int cpu_threads,
                const GPUConfig gpu_config);
 ```
@@ -22,18 +20,18 @@ Initializes a new instance of `Client`.
 | Parameter | Type | Description |
 |-------------------|-----------------------|------------------------------------------------------|
 | `api_key` | `std::string` | API key for your CyborgDB account. |
-| `index_location` | [`DBConfig`](../types#DBConfig) | Configuration for index storage location. |
-| `config_location` | [`DBConfig`](../types#DBConfig) | Configuration for index metadata storage. |
-| `contents_location` | [`DBConfig`](../types#DBConfig) | Configuration for encrypted item contents storage. Used by upsert and get operations. |
+| `storage_config` | [`StorageConfig`](../types#storageconfig) | Backing store shared across the client and all of its indexes. Built via `StorageConfig::Memory()`, `StorageConfig::Disk(path)`, or `StorageConfig::S3(bucket)`. |
 | `cpu_threads` | `int` | Number of CPU threads to use (e.g., `0` to use all available cores).|
 | `gpu_config` | [`GPUConfig`](../types#gpuconfig) | GPU operations configuration (requires CUDA). Use bitflags: `kNone` (no GPU), `kUpsert` (GPU for upsert), `kTrain` (GPU for training), `kQuery` (GPU for query), or `kAll` (GPU for all operations). Combine with `\|` operator.|
+
+<Warning>`Client` is **non-copyable and non-movable** — it owns unique keystore handles. Construct it in place, or hold it via `std::unique_ptr<cyborg::Client>`.</Warning>
 
 ### Exceptions
 
 <AccordionGroup>
     <Accordion title="std::invalid_argument">
         - Throws if the `cpu_threads` parameter is less than `0`.
-        - Throws if any [`DBConfig`](../types#DBConfig) is invalid.
+        - Throws if the [`StorageConfig`](../types#storageconfig) is invalid.
         - Throws if the GPU is not available when `gpu_accelerate` is `true`.
     </Accordion>
     <Accordion title="std::runtime_error">
@@ -47,28 +45,28 @@ Initializes a new instance of `Client`.
 ```cpp
 #include "cyborgdb_core/client.hpp"
 
-std::string api_key = "your_api_key_here";
-cyborg::DBConfig index_location(Location::kRocksDB);
-cyborg::DBConfig config_location(Location::kRocksDB);
-cyborg::DBConfig contents_location(Location::kRocksDB); // Where encrypted item contents are stored
+std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
 int cpu_threads = 4;
 
+// In-memory backing store (use StorageConfig::Disk(path) or ::S3(bucket) to persist).
+cyborg::StorageConfig storage = cyborg::StorageConfig::Memory();
+
 // Example 1: Enable GPU for all operations
-cyborg::GPUConfig gpu_config_all = cyborg::kAll;
-cyborg::Client client1(api_key, index_location, config_location, contents_location, cpu_threads, gpu_config_all);
+cyborg::Client client1(api_key, cyborg::StorageConfig::Memory(), cpu_threads, cyborg::kAll);
 
 // Example 2: Enable GPU for specific operations (upsert, train, and query)
 cyborg::GPUConfig gpu_config_selective = cyborg::kUpsert | cyborg::kTrain | cyborg::kQuery;
-cyborg::Client client2(api_key, index_location, config_location, contents_location, cpu_threads, gpu_config_selective);
+cyborg::Client client2(api_key, cyborg::StorageConfig::Memory(), cpu_threads, gpu_config_selective);
 
-// Example 3: Enable GPU only for training and query
-cyborg::GPUConfig gpu_config_train_query = cyborg::kTrain | cyborg::kQuery;
-cyborg::Client client3(api_key, index_location, config_location, contents_location, cpu_threads, gpu_config_train_query);
+// Example 3: Disable GPU completely
+cyborg::Client client3(api_key, cyborg::StorageConfig::Memory(), cpu_threads, cyborg::kNone);
 
-// Example 4: Disable GPU completely
-cyborg::GPUConfig gpu_config_none = cyborg::kNone;
-cyborg::Client client4(api_key, index_location, config_location, contents_location, cpu_threads, gpu_config_none);
+// Hold the client via unique_ptr (Client is non-movable)
+auto client = std::make_unique<cyborg::Client>(
+    api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), cpu_threads, cyborg::kNone);
 ```
+
+<Note>Get your API key from the [API key page](../../../intro/get-api-key).</Note>
 
 ---
 

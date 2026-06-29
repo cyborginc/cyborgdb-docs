@@ -3,7 +3,9 @@ title: "Query Encrypted Index"
 mode: "wide"
 ---
 
-Once you've added items to an encrypted index, you can query the index to retrieve the items that match a given query. This is done via `query()`:
+Once you've added items to an encrypted index, you can query the index to retrieve the items that match a given query. This is done via `query()`.
+
+In Python, results are returned as a `list[dict]` with string keys — access fields with `r["id"]`, `r["distance"]`, and `r["metadata"]`. A batch query returns a `list[list[dict]]`.
 
 <CodeGroup>
 ```python Python icon="python"
@@ -11,12 +13,15 @@ Once you've added items to an encrypted index, you can query the index to retrie
 query_vectors = [0.5, 0.9, 0.2, 0.7]
 top_k = 10
 
-# Perform query
+# Perform query (returns a list of dicts)
 results = index.query(query_vectors=query_vectors, top_k=top_k)
 
 print(results)
-# Example results (IDs and distances)
+# Example results (list[dict] with string keys)
 # [{"id": "item_12"}, {"id": "item_7"}, ...]
+
+for r in results:
+    print(r["id"])
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -24,9 +29,9 @@ print(results)
 cyborg::Array2D<float> query_vectors{{0.5, 0.9, 0.2, 0.7}};
 size_t top_k = 10;
 
-// Perform query
+// Perform query (index_key implicitly builds the KeyContext)
 cyborg::QueryParams query_params(top_k);
-cyborg::QueryResults results = index->Query(query_vectors, query_params);
+cyborg::QueryResults results = index->Query(query_vectors, query_params, index_key);
 
 // Print the results
 auto view = results[0];
@@ -45,6 +50,7 @@ You can specify additional parameters for the query, such as:
 - `filters`: a list of metadata filters to apply to the query.
 - `include`: a list of item fields to return (e.g., `["distance", "metadata"]`).
 - `greedy`: whether to perform a greedy search (higher recall but slower).
+- `rerank_mult`: stage-1 retrieval multiplier for the reranking pass on `DiskIVF` indexes (default `10`). Higher values retrieve more candidates before the float32/float16 rerank, increasing recall at some latency cost.
 
 <CodeGroup>
 ```python Python icon="python"
@@ -57,16 +63,20 @@ include = ["distance", "metadata"]
 
 # Perform query
 results = index.query(
-    query_vectors=query_vectors, 
-    top_k=top_k, 
-    n_probes=n_probes, 
-    filters=filters, 
-    include=include
+    query_vectors=query_vectors,
+    top_k=top_k,
+    n_probes=n_probes,
+    filters=filters,
+    include=include,
+    rerank_mult=10
 )
 
 print(results)
-# Example results (IDs only)
+# Example results (list[dict] with string keys)
 # [{"id": "item_12", "distance": 0.01, "metadata": {"age": 25}}, ...]
+
+for r in results:
+    print(f"ID: {r['id']}, Distance: {r['distance']}, Metadata: {r['metadata']}")
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -77,10 +87,11 @@ size_t n_probes = 5;
 bool greedy = false;
 std::string filters = R"({"age": {"$gt": 18}})";
 std::vector<cyborg::ResultFields> include = {cyborg::ResultFields::kDistance, cyborg::ResultFields::kMetadata};
+size_t rerank_mult = 10;
 
-// Perform query
-cyborg::QueryParams query_params(top_k, n_probes, filters, include, greedy);
-cyborg::QueryResults results = index->Query(query_vectors, query_params);
+// Perform query (params + key are required)
+cyborg::QueryParams query_params(top_k, n_probes, filters, include, greedy, rerank_mult);
+cyborg::QueryResults results = index->Query(query_vectors, query_params, index_key);
 
 // Print the results
 auto view = results[0];
@@ -111,7 +122,7 @@ size_t top_k = 10;
 
 // Perform batch query
 cyborg::QueryParams query_params(top_k);
-cyborg::QueryResults results = index->Query(query_vectors, query_params);
+cyborg::QueryResults results = index->Query(query_vectors, query_params, index_key);
 ```
 </CodeGroup>
 
@@ -137,9 +148,8 @@ If you provided an `embedding_model` during index creation, you can automaticall
 # ... index creation and embedding model setup
 embedding_model = "all-MiniLM-L6-v2"
 index = client.create_index(
-    index_name="my_index", 
-    index_key=index_key, 
-    index_config=index_config, 
+    index_name="my_index",
+    index_key=index_key,
     embedding_model=embedding_model
 )
 

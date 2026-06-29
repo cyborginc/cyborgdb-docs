@@ -10,9 +10,11 @@ Encryption keys are one of the most critical elements that enable the security g
 - Item content encryptions
 - Encrypted query tokens
 
-This main key, known in the code as the `index_key`, is a 256-bit symmetric cryptographic key—the same you would find when using AES-256 encryption. CyborgDB's cryptography is based entirely on well-established cryptographic standards, including AES, HMAC, and SHA-3 (Keccak). 
+This main key, known in the code as the `index_key`, is a 256-bit (32-byte) symmetric Key-Encryption-Key (KEK)—the same you would find when using AES-256 encryption. CyborgDB wraps a per-index data key (DEK) under this KEK internally and encrypts all index data with that DEK using **AES-256-GCM**; callers only ever handle the KEK. CyborgDB's cryptography is based entirely on well-established cryptographic standards, including AES-256-GCM, HMAC, and SHA-3 (Keccak).
 
 Without the correct `index_key`, it is impossible to use a CyborgDB Encrypted Index. You cannot upsert vectors, query the index, or even delete it. Hence, it is critical to manage these encryption keys safely.
+
+<Note>For multi-tenant scenarios, you can mint per-user keys with scoped read/write permissions instead of sharing the root KEK — see [Access Control (RBAC)](./access-control). To persist an external-KMS wrapping envelope for the KEK, see [External Key Management (KMS)](./kms).</Note>
 
 ---
 
@@ -22,52 +24,75 @@ Without the correct `index_key`, it is impossible to use a CyborgDB Encrypted In
 
 For local development and evaluation, you can generate a 256-bit encryption key locally and use it in your calls to CyborgDB. Here’s how you can do this using OpenSSL and integrate it with CyborgDB in Python.
 
-<Steps>
-    <Step title="Generate a Key with OpenSSL">
+The `index_key` must be **exactly 32 raw bytes**. The simplest way to generate one is with the language's cryptographic RNG.
 
-    Run the following command to generate a 256-bit encryption key, encoded in Base64:
+<Steps>
+    <Step title="Generate a 32-byte key">
+
+    <CodeGroup>
+    ```python Python icon="python"
+    import secrets
+
+    index_key = secrets.token_bytes(32)  # 32-byte index KEK
+    ```
+
+    ```cpp C++ icon="brackets-curly"
+    #include <array>
+    #include <openssl/rand.h>
+
+    std::array<uint8_t, 32> index_key;
+    RAND_bytes(index_key.data(), index_key.size());  // 32-byte index KEK
+    ```
+    </CodeGroup>
+
+    Alternatively, generate a key on the command line and persist the raw bytes to a file:
 
     ```bash
-    openssl rand -base64 32 > index_key.txt
+    openssl rand 32 > index_key.bin
     ```
 
-    This saves the key to a file named `index_key.txt`. Ensure that this file is kept secure and not included in your source control.
+    This saves 32 raw bytes to `index_key.bin`. Ensure that this file is kept secure and not included in your source control.
     </Step>
-    <Step title="Use the Key in Python">
+    <Step title="Use the key with CyborgDB">
 
-    You can either load the key directly from the file and use it directly with CyborgDB.
+    Pass the key directly to `create_index` (or `load_index`):
 
-    ```python
+    <CodeGroup>
+    ```python Python icon="python"
     import cyborgdb_core as cyborgdb
 
-    # Example setup
-    index_location = cyborgdb.DBConfig(location='rocksdb')
-    config_location = cyborgdb.DBConfig(location='rocksdb')
-    client = cyborgdb.Client(
-        api_key=api_key,
-        index_location=index_location,
-        config_location=config_location
-    )
+    api_key = "your_api_key_here"  # Replace with your CyborgDB API key
 
-    # Example index configuration
-    index_config = cyborgdb.IndexIVFFlat()
-    index_name = "test_index"
+    # Backing store: in-memory (use .disk("/path") or .s3("bucket") for persistence)
+    client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
 
-    # Load the encryption key
-    with open("index_key.txt", "rb") as key_file:
-        index_key = key_file.read().strip()
+    # Load the raw 32-byte key (or use the one generated above)
+    with open("index_key.bin", "rb") as key_file:
+        index_key = key_file.read()
 
     # Use the encryption key
-    client.create_index(
-        index_name=index_name,
-        index_key=index_key,
-        index_config=index_config
-    )
+    index = client.create_index("test_index", index_key)
     ```
+
+    ```cpp C++ icon="brackets-curly"
+    #include "cyborgdb_core/client.hpp"
+    #include "cyborgdb_core/encrypted_index.hpp"
+
+    std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
+
+    // In-memory backing store (use StorageConfig::Disk(path) or ::S3(bucket) to persist)
+    cyborg::Client client(api_key, cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+
+    // index_key holds the 32 raw bytes generated above
+    auto index = client.CreateIndex("test_index", index_key);
+    ```
+    </CodeGroup>
     </Step>
 </Steps>
 
 Again, this should only be used for development and evaluation purposes; do not store encryption keys locally for production use.
+
+<Tip>If you don't have an API key yet, see [Get an API Key](../../../intro/get-api-key).</Tip>
 
 ---
 
@@ -169,14 +194,10 @@ CyborgDB can integrate with popular KMS providers, such as:
     import base64
     import cyborgdb_core as cyborgdb
 
-    # Example setup
-    index_location = cyborgdb.DBConfig(location='rocksdb')
-    config_location = cyborgdb.DBConfig(location='rocksdb')
-    client = cyborgdb.Client(
-        api_key=api_key,
-        index_location=index_location,
-        config_location=config_location
-    )
+    api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+
+    # Backing store: in-memory (use .disk("/path") or .s3("bucket") for persistence)
+    client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
 
     # Initialize AWS KMS client
     kms_client = boto3.client('kms')
@@ -187,18 +208,15 @@ CyborgDB can integrate with popular KMS providers, such as:
     # Decode the Base64-encoded encrypted key
     encrypted_key = base64.b64decode(encrypted_key_b64)
 
-    # Decrypt the key at runtime
+    # Decrypt the key at runtime — yields the raw 32-byte KEK
     response = kms_client.decrypt(
         CiphertextBlob=encrypted_key
     )
-    index_key = response['Plaintext']  # This is your 256-bit key
+    index_key = response['Plaintext']  # This is your 256-bit (32-byte) KEK
 
     # Use the key with CyborgDB
-    client.create_index(
-        index_name=index_name,
-        index_key=index_key,
-        index_config=index_config
-    )
+    index = client.create_index("test_index", index_key)
+    ```
 
     **Explanation:**
 
@@ -231,3 +249,5 @@ CyborgDB can integrate with popular KMS providers, such as:
 - **No Need for Secure Storage:** Since the encrypted key is safe to store in your application's configuration, you don't need additional secure storage solutions.
 
 By generating the data key using AWS KMS and storing only the encrypted key, you can securely manage your encryption key without needing to store it securely elsewhere. Your application decrypts the encrypted key at runtime using AWS KMS, ensuring that the plaintext key is only available in memory during execution.
+
+<Note>CyborgDB can also persist a per-index **KMS envelope** describing how the KEK is wrapped, so a service layer can unwrap it at request time. See [External Key Management (KMS)](./kms) for details on `KMSBlob` and the `create_index_kms` / `push_index_kms` / `get_index_kms` / `delete_index_kms` functions.</Note>

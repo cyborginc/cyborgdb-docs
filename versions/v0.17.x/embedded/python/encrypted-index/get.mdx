@@ -10,14 +10,19 @@ Retrieves, decrypts and returns items from their IDs. If an item does not exist 
 ```python
 def get(self,
         ids: List[str],
-        include: List[str] = ["vector", "contents", "metadata"])
+        include: List[str] = ["vector", "contents", "metadata"],
+        *,
+        index_key: bytes = None,
+        user_id: bytes = None)
 ```
 
 ### Parameters
 | Parameter | Type | Default | Description |
 |-------------------|-------------------------|---------|--------------|
 | `ids` | `List[str]` | - | Item IDs to retrieve & decrypt |
-| `include` | `List[str]` | `"vector", "contents", "metadata"` | _(Optional)_ List of item fields to return. Can include `vector`, `contents`, and `metadata` (`vector` only for `IVFFlat` indexes). |
+| `include` | `List[str]` | `"vector", "contents", "metadata"` | _(Optional)_ List of item fields to return. Can include `vector`, `contents`, and `metadata`. |
+| `index_key` | `bytes` | `None` | _(Optional, keyword-only)_ Override the per-operation index key. See [Per-operation key override](#per-operation-key-override). |
+| `user_id` | `bytes` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Per-operation key override](#per-operation-key-override). |
 
 ### Returns
 
@@ -59,4 +64,12 @@ print(items)
 # Example output (contents returned as bytes):
 # [{"id": "item_1", "contents": b"Example contents..."},
 #  {"id": "item_2", "contents": b"Example contents..."}]
+```
+
+### Per-operation key override
+
+The calls above reuse the key supplied at [`create_index()`](../client/create-index) / [`load_index()`](../client/load-index). You may instead pass `index_key=` (and `user_id=` for an [RBAC user](./manage-users)) to override the per-operation key. This is required in stateless/service deployments that reload the index per request:
+
+```python
+items = index.get(["item_1", "item_2"], index_key=index_key)
 ```
