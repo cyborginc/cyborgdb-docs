@@ -7,17 +7,6 @@ mode: "wide"
 Get started with CyborgDB in minutes.
 
 <Steps>
-    <Step title="Get an API Key">
-        To use CyborgDB, you need an API key:
-
-        ```python
-        api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-        ```
-
-        Get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
-
-        Make sure to keep your API key secure and do not share it publicly.
-    </Step>
     <Step title="Install CyborgDB">
         Install CyborgDB on your machine:
 
@@ -58,12 +47,9 @@ Get started with CyborgDB in minutes.
         import cyborgdb_core as cyborgdb
         import secrets
 
-        # Get your API key
-        api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
         # Backing store: disk (local, RocksDB-backed) for simple persistent storage.
         # Use .memory() for ephemeral storage or .s3("bucket") for cloud persistence.
-        client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+        client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
         ```
 
         ```cpp C++ icon="brackets-curly"
@@ -73,14 +59,16 @@ Get started with CyborgDB in minutes.
         #include <string>
         #include <openssl/rand.h>
 
-        // Get your API key
-        std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
-
         // Backing store: disk (local, RocksDB-backed) for simple persistent storage.
         // Use StorageConfig::Memory() for ephemeral storage or ::S3("bucket") for cloud persistence.
-        cyborg::Client client(api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
+        // Pass "" for api_key to run in free-tier mode.
+        cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
         ```
         </CodeGroup>
+
+        <Note>
+        Without an API key the client runs in free-tier mode, capped at 1,000,000 items per index. Pass a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co) as the first argument (`cyborgdb.Client(api_key, storage_config=...)`) for unlimited usage. See [Get an API Key](../../../intro/get-api-key).
+        </Note>
 
         For more info, refer to [Create a Client](../encrypted-indexes/create-client).
     </Step>
@@ -131,7 +119,8 @@ Get started with CyborgDB in minutes.
             {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "contents": "Hola!"}
         ]
 
-        index.upsert(items)
+        # index_key must be supplied on every data operation
+        index.upsert(items, index_key=index_key)
         ```
 
         ```cpp C++ icon="brackets-curly"
@@ -161,7 +150,7 @@ Get started with CyborgDB in minutes.
 
         # Query the encrypted index
         query_vectors = [0.1, 0.2, 0.3, 0.4]
-        results = index.query(query_vectors=query_vectors, include=["distance"])
+        results = index.query(query_vectors=query_vectors, include=["distance"], index_key=index_key)
 
         # Print the results
         for result in results:
@@ -194,9 +183,9 @@ Get started with CyborgDB in minutes.
 
         # Retrieve items from the encrypted index
         ids = ["item_1", "item_2", "item_3"]
-        items = index.get(ids)
+        items = index.get(ids, index_key=index_key)
 
-        # Print the items
+        # Print the items (contents are returned as bytes)
         for item in items:
             print(f"ID: {item['id']}, Vector: {item['vector']}, Contents: {item['contents']}")
         ```
