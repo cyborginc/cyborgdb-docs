@@ -1,0 +1,97 @@
+---
+title: "Describe Index"
+mode: "wide"
+api: "POST /v1/indexes/describe"
+playground: "simple"
+---
+
+Get detailed information about an existing index.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes"
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the index to describe.
+  </ParamField>
+  <ParamField body="index_key" type="string">
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path (`provider: none`). Omit for KMS-backed indexes — the service resolves the key via the stored `KMSBlob`.
+  </ParamField>
+</Expandable>
+
+## Response
+
+```json
+{
+  "index_name": "my_index",
+  "is_trained": true,
+  "dimension": 384,
+  "metric": "euclidean",
+  "n_lists": 1024
+}
+```
+
+<Expandable title="response fields">
+  <ResponseField name="index_name" type="string">
+    Name of the index.
+  </ResponseField>
+  <ResponseField name="is_trained" type="boolean">
+    Whether the index has been trained for optimized queries.
+  </ResponseField>
+  <ResponseField name="dimension" type="integer">
+    Vector dimensionality. Returns `0` if the index was created without an explicit dimension and the first upsert has not yet happened (auto-detect pending).
+  </ResponseField>
+  <ResponseField name="metric" type="string">
+    Distance metric (`euclidean`, `squared_euclidean`, or `cosine`).
+  </ResponseField>
+  <ResponseField name="n_lists" type="integer">
+    Number of inverted lists in the IVF index. Returns `1` for untrained indexes; populated with the trained cluster count after `train()`.
+  </ResponseField>
+</Expandable>
+
+<Note>v0.17 simplified the describe response. The `index_type` and nested `index_config` fields from v0.16 are gone — there is now a single DiskIVF index type and the relevant parameters are returned as top-level fields.</Note>
+
+## Exceptions
+
+- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
+- `404`: Index not found
+- `422`: Invalid request parameters
+- `500`: Internal server error
+
+## Example Usage
+
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+```
+
+**KMS-backed index (no key required):**
+```bash
+curl -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "kms_index"
+     }'
+```

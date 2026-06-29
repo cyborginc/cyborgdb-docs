@@ -1,0 +1,149 @@
+---
+title: "add_texts"
+mode: "wide"
+---
+
+Adds text documents to the vector store with optional metadata.
+
+<Tabs>
+    <Tab title="Embedded">
+
+        ```python
+        add_texts(
+            texts: Iterable[str],
+            metadatas: Optional[List[dict]] = None,
+            *,
+            ids: Optional[List[str]] = None,
+            **kwargs: Any
+        ) -> List[str]
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `texts` | `Iterable[str]` | Iterable of text strings to add |
+        | `metadatas` | `Optional[List[dict]]` | _(Optional)_ List of metadata dictionaries for each text |
+        | `ids` | `Optional[List[str]]` | _(Optional)_ List of IDs for the texts (auto-generated if not provided) |
+        | `**kwargs` | `Any` | Additional keyword arguments (currently unused) |
+
+        ### Returns
+
+        `List[str]`: List of IDs for the added texts
+
+        ### Example Usage
+
+        ```python
+        # Add texts with auto-generated IDs
+        texts = ["Document about AI", "Document about ML", "Document about NLP"]
+        ids = store.add_texts(texts)
+        print(f"Added {len(ids)} documents")
+
+        # Add texts with metadata and custom IDs
+        texts = ["Python tutorial", "JavaScript guide"]
+        metadatas = [
+            {"language": "python", "level": "beginner"},
+            {"language": "javascript", "level": "intermediate"}
+        ]
+        custom_ids = ["doc1", "doc2"]
+        ids = store.add_texts(texts, metadatas=metadatas, ids=custom_ids)
+        ```
+
+    </Tab>
+
+    <Tab title="Python SDK">
+
+        ```python
+        add_texts(
+            texts: Iterable[str],
+            metadatas: Optional[List[dict]] = None,
+            *,
+            ids: Optional[List[str]] = None,
+            **kwargs: Any
+        ) -> List[str]
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `texts` | `Iterable[str]` | Iterable of text strings to add |
+        | `metadatas` | `Optional[List[dict]]` | _(Optional)_ List of metadata dictionaries for each text |
+        | `ids` | `Optional[List[str]]` | _(Optional)_ List of IDs for the texts (auto-generated if not provided) |
+        | `**kwargs` | `Any` | Additional keyword arguments |
+
+        ### Returns
+
+        `List[str]`: List of IDs for the added texts
+
+        <Note>The Python SDK supports passing pre-computed embeddings via `kwargs` for cases where you want to skip the embedding step.</Note>
+
+        ### Example Usage
+
+        ```python
+        texts = ["Document about AI", "Document about ML"]
+        metadatas = [{"topic": "ai"}, {"topic": "ml"}]
+        ids = store.add_texts(texts, metadatas=metadatas)
+        ```
+
+    </Tab>
+
+    <Tab title="JS/TS">
+
+        ```typescript
+        addTexts(
+            texts: string[],
+            metadatas?: Record<string, any>[],
+            options?: { ids?: string[] }
+        ): Promise<string[]>
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `texts` | `string[]` | Array of text strings to add |
+        | `metadatas` | `Record<string, any>[]` | _(Optional)_ Array of metadata objects for each text |
+        | `options` | `object` | _(Optional)_ Options object with optional `ids` array |
+
+        ### Returns
+
+        `Promise<string[]>`: Array of IDs for the added texts
+
+        <Note>The JS/TS SDK also provides `addVectors()` for adding pre-computed embedding vectors directly, bypassing the embedding step.</Note>
+
+        ### Example Usage
+
+        ```typescript
+        const texts = ["Document about AI", "Document about ML"];
+        const metadatas = [{ topic: "ai" }, { topic: "ml" }];
+        const ids = await store.addTexts(texts, metadatas);
+        ```
+
+    </Tab>
+</Tabs>
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if length of ids doesn't match length of texts
+    </Accordion>
+</AccordionGroup>
+
+### Async
+
+<Accordion title="Python async variants">
+
+The Embedded and Python SDK provide async versions of this method prefixed with `a`:
+
+```python
+# aadd_texts — async variant
+ids = await store.aadd_texts(texts, metadatas=metadatas)
+```
+
+</Accordion>
+
+<Note>
+JS/TS methods are natively async — all signatures above already return `Promise<...>`. No separate async variant is needed.
+</Note>

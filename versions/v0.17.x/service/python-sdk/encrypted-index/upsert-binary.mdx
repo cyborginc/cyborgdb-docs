@@ -1,0 +1,56 @@
+---
+title: "Upsert (Binary)"
+mode: "wide"
+---
+
+`upsert_binary` is the low-level, high-throughput upsert path. Vectors are sent as base64-encoded binary instead of JSON arrays, which is significantly faster for large batches. Unlike the two-arg form of [`upsert()`](./upsert), this method also accepts parallel `metadata` and `contents` lists.
+
+```python
+index.upsert_binary(
+    ids,
+    vectors,
+    metadata=None,
+    contents=None,
+)
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ids` | `List[str]` | - | Unique identifier for each vector. Length must match `vectors.shape[0]`. |
+| `vectors` | `np.ndarray` (shape `(n, dim)`) | - | Vector data as a 2D numpy array. The SDK casts to little-endian `float32` if needed. |
+| `metadata` | `List[Optional[Dict]]` | `None` | _(Optional)_ Per-vector metadata. Same length as `ids`. Use `None` for entries without metadata. |
+| `contents` | `List[Optional[str \| bytes]]` | `None` | _(Optional)_ Per-vector contents. Same length as `ids`. Bytes are base64-encoded, strings are passed through; all contents are encrypted before storage. Use `None` for entries without contents. |
+
+### Returns
+
+`None`
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - `TypeError`: `vectors` is not a numpy array.
+        - `ValueError`: `vectors.ndim != 2`, or `len(ids) != vectors.shape[0]`, or the server rejects the upsert.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import numpy as np
+
+ids = ["vec1", "vec2", "vec3"]
+vectors = np.random.rand(3, 384).astype(np.float32)
+metadata = [
+    {"category": "news", "lang": "en"},
+    {"category": "research"},
+    None,
+]
+contents = ["First doc body", "Second doc body", None]
+
+index.upsert_binary(ids, vectors, metadata=metadata, contents=contents)
+```
+
+<Tip>For small batches and most application code, prefer the dictionary form of [`upsert()`](./upsert) for readability. Reach for `upsert_binary` when you have vectors already in numpy form and JSON encoding is on your critical path.</Tip>

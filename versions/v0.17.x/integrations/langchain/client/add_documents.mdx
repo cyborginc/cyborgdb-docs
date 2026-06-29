@@ -1,0 +1,155 @@
+---
+title: "add_documents"
+mode: "wide"
+---
+
+Adds LangChain Document objects to the vector store.
+
+<Tabs>
+    <Tab title="Embedded">
+
+        ```python
+        add_documents(
+            documents: List[Document],
+            ids: Optional[List[str]] = None,
+            **kwargs
+        ) -> List[str]
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `documents` | `List[Document]` | List of LangChain Document objects to add |
+        | `ids` | `Optional[List[str]]` | _(Optional)_ List of IDs for the documents (auto-generated if not provided) |
+        | `**kwargs` | `Any` | Additional keyword arguments passed to add_texts |
+
+        ### Returns
+
+        `List[str]`: List of IDs for the added documents
+
+        ### Example Usage
+
+        ```python
+        from langchain_core.documents import Document
+
+        # Create documents with metadata
+        documents = [
+            Document(
+                page_content="Introduction to machine learning",
+                metadata={"chapter": 1, "topic": "ML basics"}
+            ),
+            Document(
+                page_content="Deep learning fundamentals",
+                metadata={"chapter": 2, "topic": "Neural networks"}
+            )
+        ]
+
+        # Add documents to the store
+        ids = store.add_documents(documents)
+        print(f"Added {len(ids)} documents")
+        ```
+
+    </Tab>
+
+    <Tab title="Python SDK">
+
+        ```python
+        add_documents(
+            documents: List[Document],
+            ids: Optional[List[str]] = None,
+            **kwargs
+        ) -> List[str]
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `documents` | `List[Document]` | List of LangChain Document objects to add |
+        | `ids` | `Optional[List[str]]` | _(Optional)_ List of IDs for the documents (auto-generated if not provided) |
+        | `**kwargs` | `Any` | Additional keyword arguments passed to add_texts |
+
+        ### Returns
+
+        `List[str]`: List of IDs for the added documents
+
+        ### Example Usage
+
+        ```python
+        from langchain_core.documents import Document
+
+        documents = [
+            Document(
+                page_content="Introduction to machine learning",
+                metadata={"chapter": 1, "topic": "ML basics"}
+            ),
+            Document(
+                page_content="Deep learning fundamentals",
+                metadata={"chapter": 2, "topic": "Neural networks"}
+            )
+        ]
+
+        ids = store.add_documents(documents)
+        ```
+
+    </Tab>
+
+    <Tab title="JS/TS">
+
+        ```typescript
+        addDocuments(
+            documents: Document[],
+            options?: { ids?: string[] }
+        ): Promise<string[]>
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `documents` | `Document[]` | Array of LangChain Document objects to add |
+        | `options` | `object` | _(Optional)_ Options object with optional `ids` array |
+
+        ### Returns
+
+        `Promise<string[]>`: Array of IDs for the added documents
+
+        ### Example Usage
+
+        ```typescript
+        import { Document } from '@langchain/core/documents';
+
+        const documents = [
+            new Document({
+                pageContent: "Introduction to machine learning",
+                metadata: { chapter: 1, topic: "ML basics" }
+            }),
+            new Document({
+                pageContent: "Deep learning fundamentals",
+                metadata: { chapter: 2, topic: "Neural networks" }
+            })
+        ];
+
+        const ids = await store.addDocuments(documents);
+        ```
+
+    </Tab>
+</Tabs>
+
+### Async
+
+<Accordion title="Python async variants">
+
+The Embedded and Python SDK provide async versions of this method prefixed with `a`:
+
+```python
+# aadd_documents — async variant
+ids = await store.aadd_documents(documents)
+```
+
+</Accordion>
+
+<Note>
+JS/TS methods are natively async — all signatures above already return `Promise<...>`. No separate async variant is needed.
+</Note>

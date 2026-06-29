@@ -1,0 +1,134 @@
+---
+title: "Getters"
+---
+
+<Note>v0.17 replaces the v0.16 getters (`index_type`, `index_config`) with explicit properties for the single DiskIVF index type: `dimension`, `metric`, and `n_lists`. Most are lazily fetched and cached on first read.</Note>
+
+## index_name
+
+```python
+@property
+index_name: str
+```
+
+Returns the name of the encrypted index. Always available locally — no network call.
+
+### Example Usage
+
+```python
+print(f'Index name: {index.index_name}')
+# Output: "my-vectors"
+```
+
+---
+
+## dimension
+
+```python
+@property
+dimension: int
+```
+
+Vector dimensionality.
+
+- Returns the real dimension when `create_index` was called with an explicit `dimension`, or after the first upsert (auto-detect).
+- Returns `0` if the index was created with auto-detect AND no upsert has happened yet.
+
+Cached on first read; subsequent reads do not hit the server.
+
+### Example Usage
+
+```python
+print(f'Vector dimensionality: {index.dimension}')
+# Output: 384
+```
+
+---
+
+## metric
+
+```python
+@property
+metric: str
+```
+
+Distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. Cached on first read alongside `dimension`.
+
+### Example Usage
+
+```python
+print(f'Metric: {index.metric}')
+# Output: "euclidean"
+```
+
+---
+
+## n_lists
+
+```python
+@property
+n_lists: int
+```
+
+Number of inverted lists in the IVF index.
+
+- Returns `1` for untrained indexes.
+- Returns the trained cluster count after `train()` completes.
+
+Unlike `dimension` and `metric`, `n_lists` is **fetched fresh on every read** so callers reading immediately after training see the new value.
+
+### Example Usage
+
+```python
+print(f'Lists: {index.n_lists}')
+# Output: 1024  (after training)
+```
+
+---
+
+## is_trained
+
+```python
+def is_trained(self) -> bool
+```
+
+Returns whether the index has been trained. Training is required for optimal query performance on large indexes.
+
+### Returns
+
+`bool`: `True` if the index has been trained, `False` otherwise (or if the underlying describe call fails).
+
+### Example Usage
+
+```python
+if not index.is_trained():
+    print('Index needs training for optimal performance')
+    index.train()
+```
+
+---
+
+## is_training
+
+```python
+def is_training(self) -> bool
+```
+
+Returns whether this index is currently in the process of training (either actively training or queued).
+
+### Returns
+
+`bool`: `True` if the index is currently training or queued, `False` otherwise.
+
+### Example Usage
+
+```python
+import time
+
+index.train()  # Kicks off training
+
+while index.is_training():
+    print('Index is still training...')
+    time.sleep(5)
+print('Index training complete')
+```

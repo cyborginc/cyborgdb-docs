@@ -1,0 +1,187 @@
+---
+title: "Configure an Encrypted Index"
+sidebarTitle: "Configure Index"
+mode: "wide"
+---
+
+<Note>
+v0.17 collapsed the embedded family of index types (`IVFFlat`, `IVFPQ`, `IVFSQ`) into a single **DiskIVF** index type at the service layer. The polymorphic `index_config` argument is gone — configuration is now expressed as flat parameters on `create_index`.
+</Note>
+
+CyborgDB Service stores every encrypted index as a **DiskIVF** index: an inverted-file (IVF) index whose data is persisted by the service's configured storage backend (`memory`, `disk`, or `s3`). The four knobs you control at create time are:
+
+| Parameter | Default | What it controls |
+|---|---|---|
+| `dimension` | auto-detect | Vector dimensionality. If you omit it, the server fixes the dimension to whatever shape the **first upsert** uses. |
+| `metric` | `euclidean` | Distance function used for similarity search. Accepts `euclidean`, `squared_euclidean`, or `cosine`. |
+| `embedding_model` | unset | Optional sentence-transformers model name. When set, the service generates embeddings server-side from `contents` on upsert/query; `dimension` is inferred from the model. |
+| `storage_precision` | `float32` | On-disk rerank-vector dtype. `float32` is highest recall; `float16` halves on-disk storage at the cost of small recall loss. |
+
+Two more parameters control key management — they are mutually exclusive against a real KMS slot, and at least one must be supplied:
+
+| Parameter | When to use it |
+|---|---|
+| `index_key` | SDK-supplied KEK path. You generate and persist a 32-byte key locally; the service records the index as `provider: none`. The same key must be re-supplied on every subsequent call. |
+| `kms_name` | KMS-backed path. References a named entry in the service YAML's `kms.registry` (e.g. `aws-kms` or `aws`). The service generates the KEK, wraps it via the named provider, and persists the envelope. The SDK never sees the plaintext key. |
+
+See [KMS & BYOK](./kms-byok) for the registry schema and [Managing Encryption Keys](./managing-keys) for the SDK-supplied path.
+
+## Distance metric
+
+```python Python SDK icon="python"
+from cyborgdb import Client
+
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+index_key = client.generate_key()
+
+index = client.create_index(
+    'documents',
+    index_key=index_key,
+    dimension=384,
+    metric='cosine',
+)
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+const indexKey = client.generateKey();
+
+const index = await client.createIndex({
+    indexName: 'documents',
+    indexKey,
+    dimension: 384,
+    metric: 'cosine',
+});
+```
+
+```go Go SDK icon="golang"
+import "github.com/cyborginc/cyborgdb-go"
+
+client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+indexKey, _ := cyborgdb.GenerateKey()
+
+dimension := int32(384)
+metric := "cosine"
+
+params := &cyborgdb.CreateIndexParams{
+    IndexName: "documents",
+    IndexKey:  indexKey,
+    Dimension: &dimension,
+    Metric:    &metric,
+}
+index, _ := client.CreateIndex(context.Background(), params)
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "documents",
+       "index_key": "your_64_character_hex_key_here",
+       "dimension": 384,
+       "metric": "cosine"
+     }'
+```
+
+Supported values:
+- `euclidean` — L2 distance. Default if omitted.
+- `squared_euclidean` — L2 without the square root; faster, ordering identical to `euclidean`.
+- `cosine` — cosine distance. Use with normalized vectors.
+
+## `storage_precision`: float32 vs float16
+
+`storage_precision` selects the dtype used for the on-disk rerank vectors. Reranking happens after IVF candidate retrieval to recover recall; storing rerank vectors at lower precision halves the on-disk footprint with a small recall trade-off.
+
+| Value | On-disk size | Recall | When to use |
+|---|---|---|---|
+| `float32` (default) | 4 bytes / element | Highest | Most workloads, especially small/medium indexes |
+| `float16` | 2 bytes / element | Small recall loss | Large indexes where disk footprint matters more than the last 1–2% of recall |
+
+```python Python SDK icon="python"
+# 50% smaller on-disk footprint
+index = client.create_index(
+    'compact_documents',
+    index_key=index_key,
+    dimension=768,
+    storage_precision='float16',
+)
+```
+
+```typescript TypeScript SDK icon="code"
+const index = await client.createIndex({
+    indexName: 'compact_documents',
+    indexKey,
+    dimension: 768,
+    storagePrecision: 'float16',
+});
+```
+
+```go Go SDK icon="golang"
+dimension := int32(768)
+precision := cyborgdb.StoragePrecisionFloat16
+
+params := &cyborgdb.CreateIndexParams{
+    IndexName:        "compact_documents",
+    IndexKey:         indexKey,
+    Dimension:        &dimension,
+    StoragePrecision: &precision,
+}
+index, _ := client.CreateIndex(context.Background(), params)
+```
+
+## Automatic embeddings (`embedding_model`)
+
+Pass a sentence-transformers model name and the server will embed text `contents` server-side on upsert and query. When `embedding_model` is set, `dimension` is inferred from the model and can be omitted.
+
+```python Python SDK icon="python"
+index = client.create_index(
+    'semantic_documents',
+    index_key=index_key,
+    embedding_model='all-MiniLM-L6-v2',
+)
+```
+
+```typescript TypeScript SDK icon="code"
+const index = await client.createIndex({
+    indexName: 'semantic_documents',
+    indexKey,
+    embeddingModel: 'all-MiniLM-L6-v2',
+});
+```
+
+```go Go SDK icon="golang"
+embeddingModel := "all-MiniLM-L6-v2"
+
+params := &cyborgdb.CreateIndexParams{
+    IndexName:      "semantic_documents",
+    IndexKey:       indexKey,
+    EmbeddingModel: &embeddingModel,
+}
+index, _ := client.CreateIndex(context.Background(), params)
+```
+
+<Tip>The Docker service image bundles sentence-transformers. For the pip-installed service, install with `pip install 'cyborgdb-service[embeddings]'` (or `'cyborgdb-service-cu12[embeddings]'` on CUDA hosts).</Tip>
+
+## Training the index
+
+DiskIVF needs to be trained once it has enough vectors. The service auto-triggers training when `num_vectors > n_lists * RETRAIN_THRESHOLD` (default `RETRAIN_THRESHOLD = 10000`) — most callers do not need to call `train()` explicitly. See [Train an Encrypted Index](./train-index) for the manual-training path and the tuning knobs (`n_lists`, `batch_size`, `max_iters`, `tolerance`, `max_memory`).
+
+## API reference
+
+<CardGroup cols={2}>
+    <Card title="REST API Reference" href="../../rest-api/client/create-index" icon="rectangle-terminal">
+        `POST /v1/indexes/create`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/client/create-index" icon="python">
+        `Client.create_index()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/create-index" icon="js">
+        `Client.createIndex()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/client/create-index" icon="golang">
+        `Client.CreateIndex()` in Go
+    </Card>
+</CardGroup>
