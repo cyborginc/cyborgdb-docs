@@ -1,0 +1,50 @@
+---
+title: "Get"
+mode: "wide"
+---
+
+Retrieves and decrypts items associated with the specified IDs.
+
+```cpp
+std::vector<cyborg::Item>
+    Get(const std::vector<std::string>& ids,
+        const std::vector<cyborg::ItemFields>& include,
+        const KeyContext& key);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `ids` | `const std::vector<std::string>&` | IDs to retrieve. (For a single item, provide a `std::vector` with one element.)|
+| `include` | [`std::vector<cyborg::ItemFields>`](../types#itemfields) | List of item fields to return. Can include `kVector`, `kContents`, and `kMetadata`. |
+| `key` | [`KeyContext`](../types#keycontext) | Key context for the operation. A bare 32-byte index key (the `index_key`) implicitly converts to a `KeyContext`. For an RBAC user, pass `cyborg::KeyContext{user_kek, user_id}` (read permission required). |
+
+### Returns
+
+[`std::vector<cyborg::Item>`](../types#item):  Decrypted items with requested fields.
+
+<Tip>IDs will always be included in the returned items.</Tip>
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::runtime_error">
+        - Throws if the items could not be retrieved or decrypted.
+        - Throws if the supplied key context lacks read permission.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+std::vector<std::string> item_ids = {"item_1", "item_2"};
+auto items = index->Get(item_ids, {cyborg::ItemFields::kContents}, index_key);
+
+for (const auto& item : items) {
+    // Process each decrypted item (IDs & contents)
+    std::string id = item.id;
+}
+```
+
+<Tip>`index_key` is the 32-byte `std::array<uint8_t, 32>` index KEK and converts implicitly to a `KeyContext`.</Tip>

@@ -1,0 +1,129 @@
+---
+title: "Create Client"
+mode: "wide"
+---
+
+The `Client` class provides an interface to initialize, create, load and list Encrypted Indexes. Encrypted Indexes, in turn, expose data-related functionality such as upserting, querying, and deleting.
+
+## Creating the Client
+
+To create the client, you must supply your API key and a [backing store](../../../intro/backing-stores) (`StorageConfig`) which it will use to persist all encrypted index data. The simplest option is an in-memory store, which is ephemeral and ideal for development and tests:
+
+<CodeGroup>
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+
+# Get your API key
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+
+# In-memory backing store (ephemeral, for development/tests)
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/encrypted_index.hpp"
+#include <array>
+
+// Get your API key
+std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
+
+// In-memory backing store (ephemeral, for development/tests)
+cyborg::Client client(api_key, cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+```
+</CodeGroup>
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+Bear in mind that all contents stored in the backing store are end-to-end encrypted, meaning that **no index contents are stored in plaintext**.
+
+<Note>The C++ `cyborg::Client` is non-copyable and non-movable (it owns the keystore handles). Construct it in place, or hold it via `std::unique_ptr<cyborg::Client>` if you need to move ownership.</Note>
+
+## Persistent Backing Stores
+
+For persistence, use a disk-backed or S3 backing store instead of memory. `StorageConfig` exposes three static factories: `memory()`, `disk(path)` (local, RocksDB-backed), and `s3(bucket)` (AWS S3 or S3-compatible).
+
+<CodeGroup>
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+
+# Local, RocksDB-backed persistent storage
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+
+# Or AWS S3 / S3-compatible (MinIO, etc.)
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.s3(
+    "my-bucket",
+    region="us-east-1",
+    credentials=cyborgdb.S3Credentials(access_key="...", secret_key="..."),  # omit for the default credential chain
+))
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/client.hpp"
+
+std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
+
+// Local, RocksDB-backed persistent storage
+cyborg::Client disk_client(api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
+
+// Or AWS S3 / S3-compatible (MinIO, etc.)
+cyborg::S3Options s3_opts;
+s3_opts.region = "us-east-1";
+cyborg::Client s3_client(api_key, cyborg::StorageConfig::S3("my-bucket", s3_opts), 0, cyborg::kNone);
+```
+</CodeGroup>
+
+Omit `credentials=` (Python) / leave `credentials` unset in `S3Options` (C++) to use the AWS default credential provider chain (environment variables, `~/.aws/credentials`, EC2 instance profile, EKS IRSA). The disk store also accepts cache options (`cache_vectors`, `cache_metadata`, `cache_ids`) to keep hot data in memory.
+
+## Setting Device Configurations
+
+CyborgDB can be accelerated in two ways:
+
+- CPU Multithreading (via `OpenMP`) -> can scale with the number of CPU cores available
+- GPU Acceleration (via `CUDA` & `cuVS`) -> can increase the speed of certain operations (e.g., ingestion) by an order of magnitude.
+
+You can control either of these with the optional `cpu_threads` and `gpu_config` parameters:
+
+<CodeGroup>
+```python Python icon="python"
+# ... existing setup (with api_key defined above)
+
+# Enable GPU for specific operations (upsert and train)
+gpu_config = cyborgdb.GPUConfig(upsert=True, train=True)
+
+client = cyborgdb.Client(
+    api_key,
+    cyborgdb.StorageConfig.disk("/tmp/cyborgdb"),
+    cpu_threads=4,
+    gpu_config=gpu_config
+)
+```
+
+```cpp C++ icon="brackets-curly"
+// ... existing setup (with api_key defined above)
+
+// Enable GPU for specific operations (upsert and train)
+cyborg::GPUConfig gpu_config = cyborg::kUpsert | cyborg::kTrain;
+
+cyborg::Client client(api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 4, gpu_config);
+```
+</CodeGroup>
+
+<Info>`gpu_config` can only be set if running on a CUDA-enabled system with the CUDA driver installed. Use [`GPUConfig`](../../python/types#gpuconfig) to specify which operations (upsert, train, query) should use GPU acceleration.</Info>
+
+By default, `cpu_threads` will use all available cores, and `gpu_config` will be `None` (no GPU acceleration).
+
+## API Reference
+
+For more information on the `Client` class, refer to the API Reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../python/client/client" icon="python">
+        API reference for `Client` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../cpp/client" icon="brackets-curly">
+        API reference for `cyborg::Client` in C++
+    </Card>
+</CardGroup>

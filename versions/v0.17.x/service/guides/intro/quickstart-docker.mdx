@@ -1,0 +1,419 @@
+---
+title: "Docker Service Quickstart"
+sidebarTitle: "Docker Quickstart"
+mode: "wide"
+---
+
+**CyborgDB** can be deployed as a standalone microservice using Docker. This allows you to run a fully self-contained encrypted vector search service on your own infrastructure with minimal setup. The service exposes a REST API for integration with any stack.
+
+<Tip>Looking to use the Python service? Check out our [Python Quickstart Guide](./quickstart-python).</Tip>
+
+## Overview
+The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on-prem, or containerized environments.
+
+<Steps>
+    <Step title="Get an API Key">
+        To use CyborgDB, you need an API key. You can get one from the [CyborgDB Admin Dashboard](https://cyborgdb.co/).
+
+        For quick evaluation, you can generate a temporary demo key using any of the SDKs:
+
+        <CodeGroup>
+        ```python Python
+        import cyborgdb
+        print(cyborgdb.get_demo_api_key())
+        ```
+        ```javascript JavaScript
+        import { getDemoApiKey } from 'cyborgdb';
+        console.log(await getDemoApiKey());
+        ```
+        ```go Go
+        demoKey, _ := cyborgdb.GetDemoAPIKey("my demo app")
+        fmt.Println(demoKey)
+        ```
+        </CodeGroup>
+
+        Then use the printed key as your `CYBORGDB_API_KEY` when starting the service, and as the `api_key` when connecting with an SDK client.
+
+        Make sure to keep your API key secure and do not share it publicly.
+    </Step>
+
+    <Step title="Choose Your Storage Backend (Optional)">
+        The container ships with three storage backends. Skip this
+        step and you get **disk** (embedded RocksDB) by default —
+        persisted in `/app/cyborgdb_data` inside the container, which
+        you'll typically bind to a host volume.
+
+        - **Disk** (default) — embedded RocksDB. Persistent, no
+          external dependencies.
+        - **S3** — AWS S3 or any S3-compatible store (MinIO,
+          Cloudflare R2, …). Best for cloud-native and multi-replica
+          deployments.
+        - **Memory** — in-process only, nothing persists across
+          restarts. For tests and ephemeral indexes.
+
+        For full details, see the [Backing Stores guide](../../../intro/backing-stores).
+
+        <Note>v0.17 collapsed the storage surface. The previous `standalone`, `postgres`, and `redis` backends and the catch-all `CYBORGDB_CONNECTION_STRING` are gone — switch `standalone` → `disk` and use the new `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.</Note>
+    </Step>
+
+    <Step title="Pull the Docker Image">
+        The CyborgDB service is available as a Docker image. You can pull it from Docker Hub:
+
+        ```bash
+        docker pull cyborginc/cyborgdb-service:latest
+        ```
+
+        This image contains everything you need to run the CyborgDB service, including all dependencies and configurations.
+    </Step>
+
+    <Step title="Run with Docker (Quick Start)">
+        <Tabs>
+            <Tab title="Disk (default)">
+                <CodeGroup>
+                ```bash Linux
+                # Minimal — disk is the default; bind the data dir to a host volume
+                sudo docker run -it --rm --network host \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -v cyborgdb_data:/app/cyborgdb_data \
+                  cyborginc/cyborgdb-service:latest
+                ```
+
+                ```bash macOS
+                sudo docker run -it -p 8000:8000 \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -v cyborgdb_data:/app/cyborgdb_data \
+                  cyborginc/cyborgdb-service:latest
+                ```
+                </CodeGroup>
+
+                <Note>Inside the container the disk path defaults to `/app/cyborgdb_data` — the `-v` mount above is what makes the data survive container recreation.</Note>
+            </Tab>
+
+            <Tab title="Memory">
+                <CodeGroup>
+                ```bash Linux
+                sudo docker run -it --rm --network host \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -e CYBORGDB_DB_TYPE=memory \
+                  cyborginc/cyborgdb-service:latest
+                ```
+
+                ```bash macOS
+                sudo docker run -it -p 8000:8000 \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -e CYBORGDB_DB_TYPE=memory \
+                  cyborginc/cyborgdb-service:latest
+                ```
+                </CodeGroup>
+
+                <Warning>Memory storage does not persist across container restarts. Use for tests and ephemeral indexes only.</Warning>
+            </Tab>
+
+            <Tab title="S3 (AWS)">
+                <CodeGroup>
+                ```bash Linux
+                sudo docker run -it --network host \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -e CYBORGDB_DB_TYPE=s3 \
+                  -e CYBORGDB_S3_BUCKET=my-bucket \
+                  -e CYBORGDB_S3_REGION=us-east-1 \
+                  -e AWS_ACCESS_KEY_ID=AKID... \
+                  -e AWS_SECRET_ACCESS_KEY=... \
+                  cyborginc/cyborgdb-service:latest
+                ```
+
+                ```bash macOS
+                sudo docker run -it -p 8000:8000 \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -e CYBORGDB_DB_TYPE=s3 \
+                  -e CYBORGDB_S3_BUCKET=my-bucket \
+                  -e CYBORGDB_S3_REGION=us-east-1 \
+                  -e AWS_ACCESS_KEY_ID=AKID... \
+                  -e AWS_SECRET_ACCESS_KEY=... \
+                  cyborginc/cyborgdb-service:latest
+                ```
+                </CodeGroup>
+
+                <Note>On EC2/ECS/EKS the instance/task role is picked up automatically — drop the `AWS_*` vars.</Note>
+            </Tab>
+
+            <Tab title="S3 (MinIO / R2)">
+                <CodeGroup>
+                ```bash Linux
+                sudo docker run -it --network host \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -e CYBORGDB_DB_TYPE=s3 \
+                  -e CYBORGDB_S3_BUCKET=my-bucket \
+                  -e CYBORGDB_S3_ENDPOINT=http://minio:9000 \
+                  -e CYBORGDB_S3_ACCESS_KEY=minioadmin \
+                  -e CYBORGDB_S3_SECRET_KEY=minioadmin \
+                  cyborginc/cyborgdb-service:latest
+                ```
+
+                ```bash macOS
+                sudo docker run -it -p 8000:8000 \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -e CYBORGDB_DB_TYPE=s3 \
+                  -e CYBORGDB_S3_BUCKET=my-bucket \
+                  -e CYBORGDB_S3_ENDPOINT=http://host.docker.internal:9000 \
+                  -e CYBORGDB_S3_ACCESS_KEY=minioadmin \
+                  -e CYBORGDB_S3_SECRET_KEY=minioadmin \
+                  cyborginc/cyborgdb-service:latest
+                ```
+                </CodeGroup>
+
+                <Note>With a custom `CYBORGDB_S3_ENDPOINT` the AWS default credential chain is bypassed entirely — `CYBORGDB_S3_ACCESS_KEY` / `CYBORGDB_S3_SECRET_KEY` are required.</Note>
+            </Tab>
+        </Tabs>
+
+        <Note>
+        **Platform Differences:**
+        - **Linux** uses `--network host` because Docker runs natively and can directly access the host network
+        - **macOS** uses `-p 8000:8000` and `host.docker.internal` because Docker runs in a VM and needs port mapping
+        </Note>
+    </Step>
+
+    <Step title="Run with Docker Compose (Recommended)">
+        For a reproducible setup, use Docker Compose:
+
+        <Tabs>
+            <Tab title="Disk (default)">
+                Create a `docker-compose.yml` file:
+
+                ```yaml
+                services:
+                  cyborgdb:
+                    image: cyborginc/cyborgdb-service:latest
+                    ports:
+                      - "8000:8000"
+                    environment:
+                      - CYBORGDB_API_KEY=${CYBORGDB_API_KEY}
+                    volumes:
+                      - cyborgdb_data:/app/cyborgdb_data
+                      - ./logs:/app/logs
+
+                volumes:
+                  cyborgdb_data:
+                ```
+
+                Then run:
+                ```bash
+                docker-compose up -d
+                ```
+            </Tab>
+
+            <Tab title="S3 (AWS)">
+                Create a `docker-compose.yml` file:
+
+                ```yaml
+                services:
+                  cyborgdb:
+                    image: cyborginc/cyborgdb-service:latest
+                    ports:
+                      - "8000:8000"
+                    environment:
+                      - CYBORGDB_API_KEY=${CYBORGDB_API_KEY}
+                      - CYBORGDB_DB_TYPE=s3
+                      - CYBORGDB_S3_BUCKET=${CYBORGDB_S3_BUCKET}
+                      - CYBORGDB_S3_REGION=${CYBORGDB_S3_REGION:-us-east-1}
+                      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                ```
+
+                Then run:
+                ```bash
+                docker-compose up -d
+                ```
+            </Tab>
+
+            <Tab title="S3 (MinIO)">
+                Bring up MinIO + cyborgdb-service together:
+
+                ```yaml
+                services:
+                  minio:
+                    image: minio/minio:latest
+                    command: server /data --console-address ":9001"
+                    environment:
+                      - MINIO_ROOT_USER=minioadmin
+                      - MINIO_ROOT_PASSWORD=minioadmin
+                    ports:
+                      - "9000:9000"
+                      - "9001:9001"
+                    volumes:
+                      - minio_data:/data
+
+                  cyborgdb:
+                    image: cyborginc/cyborgdb-service:latest
+                    ports:
+                      - "8000:8000"
+                    environment:
+                      - CYBORGDB_API_KEY=${CYBORGDB_API_KEY}
+                      - CYBORGDB_DB_TYPE=s3
+                      - CYBORGDB_S3_BUCKET=cyborgdb
+                      - CYBORGDB_S3_ENDPOINT=http://minio:9000
+                      - CYBORGDB_S3_ACCESS_KEY=minioadmin
+                      - CYBORGDB_S3_SECRET_KEY=minioadmin
+                    depends_on:
+                      - minio
+
+                volumes:
+                  minio_data:
+                ```
+
+                Then run:
+                ```bash
+                docker-compose up -d
+                ```
+
+                <Note>Create the `cyborgdb` bucket once via the MinIO console (`http://localhost:9001`) before first use.</Note>
+            </Tab>
+        </Tabs>
+    </Step>
+
+    <Step title="Verify Installation">
+        Once the service is running, verify it's working correctly:
+
+        **Health Check:**
+        ```bash
+        curl http://localhost:8000/v1/health
+        ```
+
+        **API Documentation:**
+        Navigate to [http://localhost:8000/v1/docs](http://localhost:8000/v1/docs) to explore the interactive API documentation.
+
+        You should see a response indicating the service is healthy and ready to accept requests.
+    </Step>
+
+        <Step title="Advanced Configuration">
+        For production deployments, consider these additional configurations:
+
+        <Tabs>
+            <Tab title="Environment Variables">
+                | Variable | Description | Required | Example |
+                |----------|-------------|----------|---------|
+                | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
+                | `CYBORGDB_DB_TYPE` | Storage backend (`memory`, `disk`, `s3`) | ❌ (defaults to `disk`) | `s3` |
+                | `CYBORGDB_DISK_PATH` | Data directory for `disk` storage | ❌ | `/var/lib/cyborgdb` |
+                | `CYBORGDB_S3_BUCKET` | Bucket name for `s3` storage | Required for S3 | `my-bucket` |
+                | `CYBORGDB_S3_REGION` | Region for `s3` storage | ❌ | `us-east-1` |
+                | `PORT` | Service port | ❌ | `8000` |
+                | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
+                | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
+
+                <Note>Without `CYBORGDB_DB_TYPE`, the service uses `disk` storage rooted at `/app/cyborgdb_data` inside the container. For the full list (including S3 credentials and KMS), see the [Environment Variables](../advanced/env-vars) guide.</Note>
+
+            </Tab>
+
+
+            <Tab title="HTTPS Configuration">
+                For production deployments, configure HTTPS by providing SSL certificates:
+
+                **Environment Variables:**
+                ```bash
+                SSL_CERT_PATH=/path/to/certificate.crt
+                SSL_KEY_PATH=/path/to/private.key
+                ```
+
+                **Docker Run Example:**
+                ```bash
+                sudo docker run -it -p 8000:8000 \
+                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
+                  -e CYBORGDB_DB_TYPE=s3 \
+                  -e CYBORGDB_S3_BUCKET=cyborgdb-prod \
+                  -e CYBORGDB_S3_REGION=us-east-1 \
+                  -e SSL_CERT_PATH=/certs/server.crt \
+                  -e SSL_KEY_PATH=/certs/server.key \
+                  -v /host/path/to/certs:/certs \
+                  cyborginc/cyborgdb-service:latest
+                ```
+
+                **Docker Compose with SSL:**
+                ```yaml
+                services:
+                  cyborgdb:
+                    image: cyborginc/cyborgdb-service:latest
+                    ports:
+                      - "8000:8000"
+                    environment:
+                      - CYBORGDB_API_KEY=cyborg_your_api_key_here
+                      - CYBORGDB_DB_TYPE=s3
+                      - CYBORGDB_S3_BUCKET=cyborgdb-prod
+                      - CYBORGDB_S3_REGION=us-east-1
+                      - SSL_CERT_PATH=/certs/server.crt
+                      - SSL_KEY_PATH=/certs/server.key
+                    volumes:
+                      - ./certs:/certs
+                ```
+
+                <Note>The server automatically switches to HTTPS when both certificate files are provided and exist. Without certificates, it starts in HTTP mode.</Note>
+            </Tab>
+        </Tabs>
+    </Step>
+
+    <Step title="Next Steps">
+        Now that your CyborgDB service is running, you can interact with it using client SDKs:
+
+        **Install Client SDKs:**
+        
+        <CodeGroup>
+        ```bash Python icon="python"
+        pip install cyborgdb
+        ```
+
+        ```bash JavaScript icon="js"
+        npm install cyborgdb
+        ```
+        
+        ```bash TypeScript icon="code"
+        npm install cyborgdb
+        ```
+
+        ```bash Go icon="golang"
+        go get github.com/cyborginc/cyborgdb-go
+        ```
+        </CodeGroup>
+
+        <CardGroup cols={2}>
+            <Card title="REST API Reference" href="../../rest-api/introduction" icon="rectangle-terminal">
+                Learn how to use the REST API for direct integration
+            </Card>
+            <Card title="Python SDK Reference" href="../../python-sdk/introduction" icon="python">
+                Learn how to use the Python SDK for direct integration
+            </Card>
+            <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/introduction" icon="js">
+                Learn how to use the JavaScript/TypeScript SDK for direct integration
+            </Card>
+            <Card title="Go SDK Reference" href="../../go-sdk/introduction" icon="golang">
+                Learn how to use the Go SDK for direct integration
+            </Card>
+        </CardGroup>
+    </Step>
+</Steps>
+
+<Accordion title="Technical Specifications">
+
+- **Base Image**: `python:3.11-slim`
+- **Python Version**: 3.11
+- **PyTorch**: CPU-optimized for maximum compatibility
+- **Docker Image Size**: ~1.8GB
+- **Platform**: linux/amd64, linux/arm64
+- **Default Port**: 8000
+
+</Accordion>
+
+<Accordion title="Comparison with Python Service">
+
+| Aspect | Python Service | Docker Service |
+|--------|---------------|----------------|
+| **Installation** | `pip install` | `docker run` |
+| **Dependencies** | Managed by pip/conda | Bundled in container |
+| **Resource Usage** | Lower overhead | Higher overhead |
+| **Environment Isolation** | Python virtualenv | Container isolation |
+| **Deployment Complexity** | Simple Python deployment | Container orchestration |
+| **Configuration** | Environment variables/files | Environment variables |
+| **Best For** | Development, Python-heavy workflows | Production, cloud deployment |
+
+<Tip>Both approaches provide identical CyborgDB functionality. Choose based on your deployment preferences and infrastructure requirements.</Tip>
+
+</Accordion>

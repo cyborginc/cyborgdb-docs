@@ -1,0 +1,565 @@
+---
+title: "Types"
+---
+
+## StorageConfig
+
+`StorageConfig` defines the backing store for an index and all of its per-index keystores. It is immutable and has no public default constructor — instances are created via the static factory methods below. A single `StorageConfig` is shared across the client and all indexes it manages.
+
+CyborgDB supports three backing stores: in-memory (ephemeral), local disk (RocksDB-backed), and S3 (or any S3-compatible store such as MinIO).
+
+### Static Factories
+
+```cpp
+static StorageConfig Memory();
+static StorageConfig Disk(std::optional<std::filesystem::path> path,
+                          CachePolicy cache_policy = {});
+static StorageConfig S3(std::string bucket, S3Options opts = {});
+```
+
+| Factory | Description |
+|---------|-------------|
+| `Memory()` | Ephemeral in-memory storage with no persistence. Useful for tests and short-lived workloads. |
+| `Disk(path, cache_policy)` | Local persistent storage backed by RocksDB at `path`. Pass a [`CachePolicy`](#cachepolicy) to keep hot data in memory. |
+| `S3(bucket, opts)` | AWS S3 or any S3-compatible object store. Configure region, endpoint, prefix, and credentials via [`S3Options`](#s3options). |
+
+### Example Usage
+
+```cpp
+#include "cyborgdb_core/client.hpp"
+
+// Ephemeral in-memory store
+cyborg::StorageConfig mem = cyborg::StorageConfig::Memory();
+
+// Local disk store with vector caching
+cyborg::CachePolicy cache;
+cache.vectors = true;
+cyborg::StorageConfig disk = cyborg::StorageConfig::Disk("/tmp/cyborgdb", cache);
+
+// S3 store with explicit credentials
+cyborg::S3Options opts;
+opts.region = "us-east-1";
+opts.credentials = cyborg::S3Credentials{"ACCESS_KEY", "SECRET_KEY"};
+cyborg::StorageConfig s3 = cyborg::StorageConfig::S3("my-bucket", opts);
+```
+
+For more info, you can read about supported backing stores [here](../../intro/backing-stores).
+
+---
+
+## CachePolicy
+
+`CachePolicy` controls which categories of data a disk-backed store keeps cached in memory for faster access.
+
+```cpp
+struct CachePolicy {
+    bool vectors = false;   // Cache vector data in memory
+    bool metadata = false;  // Cache metadata in memory
+    bool ids = false;       // Cache item IDs in memory
+};
+```
+
+---
+
+## S3Options
+
+`S3Options` configures an S3 backing store created via [`StorageConfig::S3`](#storageconfig).
+
+```cpp
+struct S3Options {
+    std::string prefix = "";                       // Key prefix within the bucket
+    std::optional<std::string> region;             // AWS region
+    std::optional<std::string> endpoint;           // Custom endpoint (MinIO/Ceph/R2)
+    std::optional<S3Credentials> credentials;      // Explicit credentials
+};
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `prefix` | `std::string` | _(Optional)_ Key prefix applied to all objects within the bucket. Defaults to `""`. |
+| `region` | `std::optional<std::string>` | _(Optional)_ AWS region. |
+| `endpoint` | `std::optional<std::string>` | _(Optional)_ Custom S3 endpoint for S3-compatible stores (MinIO, Ceph, Cloudflare R2). |
+| `credentials` | `std::optional<S3Credentials>` | _(Optional)_ Explicit S3 credentials. Omit to use the AWS default credential provider chain (environment variables, `~/.aws/credentials`, EC2 instance profile, EKS IRSA). |
+
+<Note>Path-style addressing is selected automatically when `endpoint` is set (MinIO/Ceph/R2); otherwise virtual-hosted addressing is used.</Note>
+
+---
+
+## S3Credentials
+
+`S3Credentials` holds explicit credentials for an S3 backing store.
+
+```cpp
+struct S3Credentials {
+    std::string access_key;
+    std::string secret_key;
+    std::optional<std::string> session_token;
+};
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `access_key` | `std::string` | AWS access key ID. |
+| `secret_key` | `std::string` | AWS secret access key. |
+| `session_token` | `std::optional<std::string>` | _(Optional)_ Session token for temporary credentials. |
+
+---
+
+## GPUConfig
+
+`GPUConfig` is an enum that specifies which operations should use GPU acceleration. It uses bitflags that can be combined using the `|` (OR) operator.
+
+### Enum Values
+
+```cpp
+enum GPUConfig : uint8_t {
+    kNone = 0,                        // No GPU usage
+    kUpsert = 1 << 0,                 // Use GPU for upsert operations
+    kTrain = 1 << 1,                  // Use GPU for training operations
+    kQuery = 1 << 2,                  // Use GPU for query operations
+    kAll = kUpsert | kTrain | kQuery  // Use GPU for all operations
+};
+```
+
+### Example Usage
+
+```cpp
+// Enable GPU for all operations
+cyborg::GPUConfig config1 = cyborg::kAll;
+
+// Enable GPU only for training and query
+cyborg::GPUConfig config2 = cyborg::kTrain | cyborg::kQuery;
+
+// Enable GPU only for upsert
+cyborg::GPUConfig config3 = cyborg::kUpsert;
+
+// Disable GPU completely
+cyborg::GPUConfig config4 = cyborg::kNone;
+```
+
+---
+
+## DeviceConfig
+
+`DeviceConfig` class holds the configuration details for the device used in vector search operations, such as the number of CPU threads and GPU acceleration settings.
+
+### Constructor
+
+```cpp
+DeviceConfig(const int cpu_threads = 0, const GPUConfig gpu_config = kNone);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|------------------------|-------------------------|-------------------------|
+| `cpu_threads` | `int` | _(Optional)_ Number of CPU threads to use. Defaults to `0` (use all available cores). |
+| `gpu_config` | [`GPUConfig`](#gpuconfig) | _(Optional)_ GPU operations configuration. Defaults to `kNone` (no GPU). |
+
+### Methods
+
+| Method | Return Type | Description |
+|------------------------|-------------------------|-------------------------|
+| `cpu_threads() const` | `int` | Get the number of CPU threads configured. |
+| `gpu_config() const` | [`GPUConfig`](#gpuconfig) | Get the GPU operations configuration. |
+
+### Example Usage
+
+```cpp
+// 4 CPU threads, GPU enabled for training and query
+cyborg::DeviceConfig device_config(4, cyborg::kTrain | cyborg::kQuery);
+int threads = device_config.cpu_threads();           // Returns 4
+cyborg::GPUConfig gpu = device_config.gpu_config();  // Returns kTrain | kQuery
+```
+
+---
+
+## DistanceMetric
+
+The `DistanceMetric` enum contains the supported distance metrics for CyborgDB. These are:
+
+```cpp
+enum class DistanceMetric {
+    Cosine,
+    Euclidean,
+    SquaredEuclidean};
+```
+
+---
+
+## IndexDiskIVF
+
+`IndexDiskIVF` configures a DiskIVF index — the single index type supported in CyborgDB. It replaces the older `IndexConfig` family. Pass an instance to [`CreateIndex`](./client/create-index) when you want explicit control over dimensionality or storage precision; otherwise the default-config overload of `CreateIndex` constructs one for you.
+
+### Constructor
+
+```cpp
+IndexDiskIVF(size_t dimension = 0,
+             std::optional<std::string> embedding_model = "",
+             StoragePrecision storage_precision = StoragePrecision::Float32);
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|--------------|-------------------------|---------|---------------------------------------|
+| `dimension` | `size_t` | `0` | _(Optional)_ Dimensionality of vector embeddings. Auto-detected from the first upsert if `0`. |
+| `embedding_model` | `std::optional<std::string>` | `""` | _(Optional)_ Embedding model name for auto-generation; dimension can be derived from it. |
+| `storage_precision` | [`StoragePrecision`](#storageprecision) | `Float32` | _(Optional)_ On-disk dtype of rerank vectors. `Float16` halves the disk footprint with a slight precision loss. |
+
+### Methods
+
+| Method | Return Type | Description |
+|--------------|-------------------------|---------------------------------------|
+| `dimension()` | `size_t` | Get vector dimensionality. |
+| `set_dimension(size_t)` | `void` | Set vector dimensionality. |
+| `metric()` | [`DistanceMetric`](#distancemetric) | Get distance metric. |
+| `set_metric(DistanceMetric)` | `void` | Set distance metric. |
+| `index_type()` | [`IndexType`](#indextype) | Returns `DISK_IVF`. |
+| `embedding_model()` | `std::optional<std::string>` | Get the embedding model name. |
+| `storage_precision()` | [`StoragePrecision`](#storageprecision) | Get the on-disk storage precision. |
+| `set_storage_precision(StoragePrecision)` | `void` | Set the on-disk storage precision. |
+| `n_lists()` | `size_t` | Get number of inverted lists (initially 1, set during training). |
+| `set_n_lists(size_t)` | `void` | Set number of inverted lists (usually done automatically during training). |
+
+### Example Usage
+
+```cpp
+// Default configuration (dimension auto-detected, float32 rerank vectors)
+cyborg::IndexDiskIVF config1;
+
+// Explicit dimension
+cyborg::IndexDiskIVF config2(1024);
+
+// Explicit dimension with float16 storage precision (smaller on-disk footprint)
+cyborg::IndexDiskIVF config3(1024, "", cyborg::StoragePrecision::Float16);
+```
+
+---
+
+## StoragePrecision
+
+`StoragePrecision` controls the on-disk dtype of rerank vectors for a DiskIVF index.
+
+```cpp
+enum class StoragePrecision {
+    Float32,   // Full precision (default)
+    Float16    // Half precision — halves disk footprint, slight precision loss
+};
+```
+
+---
+
+## TrainingState
+
+`TrainingState` reports the lifecycle state of an index's training.
+
+```cpp
+enum class TrainingState : uint8_t {
+    Untrained = 0,  // Index has not been trained
+    Training  = 1,  // A (re)train rebuild is in progress
+    Trained   = 2   // Training is complete
+};
+```
+
+While an index is in the `Training` state, queries transparently fall back to the untrained (exhaustive) path.
+
+---
+
+## IndexType
+
+The `IndexType` enum defines the supported index types in CyborgDB. CyborgDB now supports a single index type, DiskIVF:
+
+```cpp
+enum IndexType {
+    DISK_IVF
+};
+```
+
+---
+
+## Array2D
+
+`Array2D` class provides a 2D container for data, which can be initialized with a specific number of rows and columns, or from an existing vector.
+
+### Constructors
+
+```cpp
+Array2D(size_t rows, size_t cols, const T& initial_value = T());
+Array2D(std::vector<T>&& data, size_t cols);
+Array2D(const std::vector<T>& data, size_t cols);
+Array2D(std::initializer_list<std::initializer_list<T>> init_list);
+Array2D(Array2D&& other) noexcept;
+Array2D();
+```
+
+- **`Array2D(size_t rows, size_t cols, const T& initial_value = T())`**: Creates a 2D array with specified dimensions, initialized with the given value.
+- **`Array2D(std::vector<T>&& data, size_t cols)`**: Initializes the 2D array from a 1D vector (move semantics).
+- **`Array2D(const std::vector<T>& data, size_t cols)`**: Initializes the 2D array from a 1D vector (copy).
+- **`Array2D(std::initializer_list<std::initializer_list<T>> init_list)`**: Initializes from a nested initializer list (e.g., `{{1, 2}, {3, 4}}`).
+- **`Array2D(Array2D&& other) noexcept`**: Move constructor - transfers ownership without copying.
+- **`Array2D()`**: Default constructor - creates an empty array (0 rows, 0 columns).
+
+<Note>The copy constructor is deleted. Use `Clone()` or move semantics to copy an `Array2D`.</Note>
+
+### Access Methods
+
+- **`operator()(size_t row, size_t col) const`**: Access an element at the specified row and column (read-only).
+- **`operator()(size_t row, size_t col)`**: Access an element at the specified row and column (read-write).
+- **`size_t rows() const`**: Returns the number of rows.
+- **`size_t cols() const`**: Returns the number of columns.
+- **`size_t size() const`**: Returns the total number of elements.
+
+### Example Usage
+
+```cpp
+// Converting a vector to an array
+std::vector<uint8_t> vec = {0, 1, 2, 3, 4, 5, 6, 7};
+cyborg::Array2D<uint8_t> arr(vec, 2);
+// arr is now a 2D array of 4 rows and 2 columns, with the contents from vec
+
+// Creating a 2D array with 3 rows and 2 columns, initialized to zero
+cyborg::Array2D<int> array(3, 2, 0);
+
+// Access and modify elements
+array(0, 0) = 1;
+array(0, 1) = 2;
+
+// Printing the array
+for (size_t i = 0; i < array.rows(); ++i) {
+    for (size_t j = 0; j < array.cols(); ++j) {
+        std::cout << array(i, j) << " ";
+    }
+    std::cout << std::endl;
+}
+```
+
+---
+
+## TrainingConfig
+
+The `TrainingConfig` struct defines parameters for training an index, allowing control over convergence and memory usage.
+
+### Constructor
+
+```cpp
+TrainingConfig(std::optional<size_t> n_lists = std::nullopt,
+               std::optional<size_t> batch_size = std::nullopt,
+               std::optional<size_t> max_iters = std::nullopt,
+               std::optional<double> tolerance = std::nullopt,
+               std::optional<size_t> max_memory = std::nullopt);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|----------|---------------------------------------------------------------------------------------------|
+| `n_lists` | `std::optional<size_t>` | _(Optional)_ Number of inverted lists to create. Defaults to `std::nullopt` (auto-determines, typically `0`). |
+| `batch_size` | `std::optional<size_t>` | _(Optional)_ Size of each batch for training. Defaults to `std::nullopt` (auto-determined based on dataset size). |
+| `max_iters` | `std::optional<size_t>` | _(Optional)_ Maximum iterations for training. Defaults to `std::nullopt` (auto-determines, typically `100`). |
+| `tolerance` | `std::optional<double>` | _(Optional)_ Convergence tolerance for training. Defaults to `std::nullopt` (uses `1e-6`). |
+| `max_memory` | `std::optional<size_t>` | _(Optional)_ Maximum memory (MB) usage during training. Defaults to `std::nullopt` (no limit). |
+
+### Struct Members
+
+Note: The struct members are stored in this order (different from constructor parameter order):
+
+```cpp
+size_t batch_size;   // Batch size (default: 0, auto)
+size_t max_iters;    // Maximum iterations (default: 100)
+double tolerance;    // Convergence tolerance (default: 1e-6)
+size_t max_memory;   // Maximum memory in MB (default: 0, no limit)
+size_t n_lists;      // Number of inverted lists (default: 0, auto-determine)
+```
+
+---
+
+## QueryParams
+
+The `QueryParams` struct defines parameters for querying the index, controlling the number of results, probing behavior, and reranking.
+
+### Constructor
+
+```cpp
+explicit QueryParams(size_t top_k = 100,
+                     size_t n_probes = 0,
+                     std::string filters = "",
+                     std::vector<ResultFields> include = {},
+                     bool greedy = false,
+                     size_t rerank_mult = 50);   // kDefaultRerankMult = 50
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|----------|--------------------------------------------------------------------------|
+| `top_k` | `size_t` | _(Optional)_ Number of nearest neighbors to return. Defaults to `100`. |
+| `n_probes` | `size_t` | _(Optional)_ Number of lists to probe during query. Defaults to `0` which will auto-determine optimal probes. |
+| `filters` | `std::string` | _(Optional)_ A JSON string of filters to apply to vector metadata, limiting search scope to these vectors. |
+| `include` | `std::vector<ResultFields>` | _(Optional)_ List of result fields to return. Can include `kDistance` and `kMetadata`. Defaults to empty. |
+| `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |
+| `rerank_mult` | `size_t` | _(Optional)_ Stage-1 retrieval multiplier used for reranking on DiskIVF indexes. Defaults to `50` (`kDefaultRerankMult`). |
+
+Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs.
+
+<Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
+For instance: `filters: { "$and": [ { "label": "cat" }, { "confidence": { "$gte": 0.9 } } ] }` means that only vectors where `label == "cat"` and `confidence >= 0.9` will be considered for encrypted vector search.
+For more info on metadata, see [Metadata Filtering](../guides/data-operations/metadata-filtering).</Tip>
+
+---
+
+### QueryResults
+
+`QueryResults` class holds the results from a `Query` operation, including IDs, distances, and metadata for the nearest neighbors of each query. Results are vector-based and immutable after construction.
+
+### Getter Methods
+
+| Method | Return Type | Description |
+|--------------------------|------------------------------|------------------------------------------------------|
+| `ids()` | `const std::vector<std::vector<std::string>>&` | IDs of nearest neighbors for each query. |
+| `distances()` | `const std::vector<std::vector<float>>&` | Distances of nearest neighbors for each query. |
+| `metadata()` | `const std::vector<std::vector<std::string>>&` | Metadata for nearest neighbors for each query (JSON strings). |
+
+### Methods
+
+| Method | Return Type | Description |
+|--------------------------|------------------------------|------------------------------------------------------|
+| `ResultView operator[](size_t query_idx) const` | `ResultView` | Returns a read-only view of IDs, distances, and metadata for a specific query. |
+| `num_results() const` | `std::vector<uint32_t>` | Returns the actual number of results per query (may be less than top_k). |
+| `num_queries() const` | `size_t` | Returns the number of queries. |
+| `bool empty() const` | `bool` | Checks if the results are empty. |
+| `static QueryResults Empty(size_t num_queries)` | `QueryResults` | Factory method to create empty results for a given number of queries. |
+
+### ResultView
+
+The `ResultView` struct provides read-only access to results for a single query:
+
+```cpp
+struct ResultView {
+    const std::vector<std::string>& ids;
+    const std::vector<float>& distances;
+    const std::vector<std::string>& metadata;
+    const uint32_t& num_results;
+};
+```
+
+### Example Usage
+
+```cpp
+// Access results for each query
+for (size_t i = 0; i < results.num_queries(); ++i) {
+    auto view = results[i];
+    for (uint32_t j = 0; j < view.num_results; ++j) {
+        std::cout << "ID: " << view.ids[j]
+                  << ", Distance: " << view.distances[j] << std::endl;
+    }
+}
+
+// Access all IDs and distances directly
+const auto& all_ids = results.ids();
+const auto& all_distances = results.distances();
+
+// Get actual result counts per query
+auto counts = results.num_results();
+
+// Create empty results
+auto empty = QueryResults::Empty(num_queries);
+```
+
+---
+
+## ItemID
+
+`ItemID` is a type alias for unique identifiers used throughout CyborgDB.
+
+```cpp
+using ItemID = std::string;
+```
+
+`ItemID` is used to uniquely identify vectors and items within an encrypted index. Currently implemented as `std::string` for flexibility and human-readable identifiers.
+
+---
+
+### `Item`
+
+`Item` struct holds the individual results from a `Get` operation, including the requested fields.
+
+```cpp
+struct Item {
+    const std::string id;                   // Item ID
+    const std::vector<float> vector;        // Vector embedding
+    const std::vector<uint8_t> contents;    // Decrypted contents
+    const std::string metadata;             // Metadata (JSON string)
+};
+```
+
+---
+
+## ResultFields
+
+`ResultFields` enum specifies which fields to include in query results.
+
+```cpp
+enum class ResultFields {
+    kDistance,    // Include distance scores in query results
+    kMetadata     // Include metadata in query results
+};
+```
+
+---
+
+### ItemFields
+
+`ItemFields` enum defines the fields that can be requested for an `Item` object.
+
+```cpp
+enum class ItemFields {
+    kVector,       // Include vector in returned items
+    kMetadata,     // Include metadata in returned items
+    kContents      // Include content data in returned items
+};
+```
+
+By default, `ids` are always included in the returned items.
+
+---
+
+## KeyContext
+
+`KeyContext` carries the key material for a data operation. It holds the 32-byte index KEK and, for RBAC deployments, a 16-byte user identifier. A bare 32-byte index key (the `index_key`) implicitly converts to a `KeyContext`, so most callers pass the key directly; RBAC users construct one explicitly with their own `user_kek` and `user_id`.
+
+```cpp
+// Root access: a bare 32-byte index KEK converts implicitly.
+std::array<uint8_t, 32> index_key = {/* ... */};
+index->Query(q, cyborg::QueryParams{}, index_key);
+
+// RBAC user access: pass the user's 32-byte KEK and 16-byte user ID.
+std::array<uint8_t, 32> user_kek = {/* ... */};
+std::array<uint8_t, 16> user_id  = {/* ... */};
+index->Query(q, cyborg::QueryParams{}, cyborg::KeyContext{user_kek, user_id});
+```
+
+| Field | Type | Description |
+|-----------|--------------------------|-----------------------|
+| `kek` | `std::array<uint8_t, 32>` | The 32-byte key for the operation — the root `index_key`, or an RBAC user's `user_kek`. |
+| `user_id` | `std::array<uint8_t, 16>` | 16-byte RBAC user identifier. Omit for root access. |
+
+<Note>Operations that require the root index KEK (such as `DeleteIndex` and user management) reject a per-user `KeyContext`. See [Managing Users](./encrypted-index/manage-users) for RBAC details.</Note>
+
+---
+
+## KMSBlob
+
+`KMSBlob` describes how an index's Key-Encryption-Key (KEK) is wrapped by an external KMS. It is persisted per index via the module-level KMS functions (see the [KMS](./kms) reference). This is primarily for service-layer deployments; embedded SDK users supplying their own KEK can ignore it.
+
+```cpp
+struct KMSBlob {
+    std::string kms_name;             // Logical KMS name
+    std::string provider;             // "aws" | "aws-kms" | "none"
+    std::string key_id;               // KMS key identifier
+    std::string region;               // KMS region
+    std::vector<uint8_t> wrapped_kek; // Wrapped KEK bytes
+    uint32_t version = 0;             // Envelope version
+    int64_t created_at = 0;           // Unix epoch seconds
+};
+```

@@ -1,0 +1,157 @@
+---
+title: "KMS Key Management"
+mode: "wide"
+---
+
+These module-level functions persist a per-index **KMS envelope** describing how the index KEK is
+wrapped by an external Key Management Service. The envelope is stored as a FlatBuffer next to the
+index keystore.
+
+<Note>KMS key wrapping is primarily for the **service layer**. Embedded SDK users who supply their
+own KEK directly can ignore these functions, or use `provider = "none"`. They are advanced and
+optional.</Note>
+
+```cpp
+#include "cyborgdb_core/index_kms.hpp"
+```
+
+## Concepts
+
+- **KMS envelope.** A [`KMSBlob`](./types#kmsblob) records how an index's KEK is wrapped by an
+  external KMS. Callers never store the plaintext KEK in the envelope; they store the wrapped form
+  plus the metadata needed to unwrap it.
+- **Providers.**
+  - `"aws"` — the KEK is wrapped with AES-256-GCM under a value stored in AWS Secrets Manager.
+  - `"aws-kms"` — the KEK is wrapped via `kms.Encrypt`.
+  - `"none"` — nothing is stored; the SDK supplies the plaintext KEK per request.
+- **Strict insert vs. upsert.** `CreateIndexKMS` fails if an envelope already exists for the index;
+  `PushIndexKMS` is an idempotent upsert.
+
+---
+
+## CreateIndexKMS
+
+```cpp
+void CreateIndexKMS(const StorageConfig& config_location,
+                    const std::string& index_name,
+                    const KMSBlob& blob);
+```
+
+Stores a new KMS envelope for the index. Strict insert — throws if one already exists.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `config_location` | [`StorageConfig`](./types#storageconfig) | Backing store where the envelope is persisted. |
+| `index_name` | `const std::string&` | Name of the index. |
+| `blob` | [`KMSBlob`](./types#kmsblob) | The KMS envelope to store. |
+
+---
+
+## PushIndexKMS
+
+```cpp
+void PushIndexKMS(const StorageConfig& config_location,
+                  const std::string& index_name,
+                  const KMSBlob& blob);
+```
+
+Idempotent upsert of the KMS envelope for the index. Creates it if absent, overwrites it otherwise.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `config_location` | [`StorageConfig`](./types#storageconfig) | Backing store where the envelope is persisted. |
+| `index_name` | `const std::string&` | Name of the index. |
+| `blob` | [`KMSBlob`](./types#kmsblob) | The KMS envelope to store. |
+
+---
+
+## GetIndexKMS
+
+```cpp
+KMSBlob GetIndexKMS(const StorageConfig& config_location,
+                    const std::string& index_name);
+```
+
+Retrieves the stored KMS envelope for the index.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `config_location` | [`StorageConfig`](./types#storageconfig) | Backing store where the envelope lives. |
+| `index_name` | `const std::string&` | Name of the index. |
+
+### Returns
+
+[`KMSBlob`](./types#kmsblob): The stored KMS envelope.
+
+---
+
+## DeleteIndexKMS
+
+```cpp
+void DeleteIndexKMS(const StorageConfig& config_location,
+                    const std::string& index_name);
+```
+
+Deletes the stored KMS envelope for the index. Idempotent.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `config_location` | [`StorageConfig`](./types#storageconfig) | Backing store where the envelope lives. |
+| `index_name` | `const std::string&` | Name of the index. |
+
+---
+
+## KMSBlob
+
+The KMS envelope struct (see [`KMSBlob`](./types#kmsblob)):
+
+```cpp
+struct KMSBlob {
+    std::string kms_name;
+    std::string provider;         // "aws" | "aws-kms" | "none"
+    std::string key_id;
+    std::string region;
+    std::vector<uint8_t> wrapped_kek;
+    uint32_t version = 0;
+    int64_t created_at = 0;       // unix epoch seconds
+};
+```
+
+---
+
+## Example Usage
+
+```cpp
+#include "cyborgdb_core/client.hpp"
+#include "cyborgdb_core/index_kms.hpp"
+
+auto config_location = cyborg::StorageConfig::Disk("/tmp/cyborgdb");
+
+cyborg::KMSBlob blob;
+blob.kms_name = "my-kms";
+blob.provider = "aws-kms";
+blob.key_id = "arn:aws:kms:us-east-1:123456789012:key/abcd";
+blob.region = "us-east-1";
+blob.wrapped_kek = {/* wrapped KEK bytes */};
+blob.version = 1;
+
+// Strict insert
+cyborg::CreateIndexKMS(config_location, "my_index", blob);
+
+// Idempotent upsert
+cyborg::PushIndexKMS(config_location, "my_index", blob);
+
+// Retrieve
+cyborg::KMSBlob stored = cyborg::GetIndexKMS(config_location, "my_index");
+
+// Delete
+cyborg::DeleteIndexKMS(config_location, "my_index");
+```

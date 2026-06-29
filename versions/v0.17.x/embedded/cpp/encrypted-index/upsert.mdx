@@ -1,0 +1,64 @@
+---
+title: "Upsert"
+mode: "wide"
+---
+
+Adds or updates vector embeddings in the index. If an item already exists at `id`, then it will be overwritten.
+
+```cpp
+void Upsert(const std::vector<cyborg::ItemID>& ids,
+            Array2D<float>& vectors,
+            const std::vector<std::vector<uint8_t>>& contents,
+            const std::vector<std::string>& json_metadata_array,
+            const KeyContext& key);
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---------------|-----------------------------|-----------------------------------------------------|
+| `ids` | `std::vector<cyborg::ItemID>&` | Unique identifiers for each vector. |
+| `vectors` | [`Array2D<float>`](../types#array2d) | 2D container with vector embeddings to index. |
+| `contents` | `std::vector<std::vector<uint8_t>>&` | Item contents in bytes. Pass `{}` if none. |
+| `json_metadata_array` | `std::vector<std::string>&` | Item metadata as serialized JSON strings. Pass `{}` if none. |
+| `key` | [`KeyContext`](../types#keycontext) | Key context for the operation. A bare 32-byte index key (the `index_key`) implicitly converts to a `KeyContext`. For an RBAC user, pass `cyborg::KeyContext{user_kek, user_id}` (write permission required). |
+
+<Tip>For more info on metadata, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).</Tip>
+
+<Note>`contents` and `json_metadata_array` are required positional arguments. Pass an empty initializer `{}` when an item has no contents or metadata. When provided, their length must match `ids`.</Note>
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::invalid_argument">
+        - Throws if vector dimensions are incompatible with the index configuration.
+        - Throws if index was not created or loaded yet.
+        - Throws if there is a mismatch between the number of `vectors`, `ids`, `contents` or `json_metadata_array`.
+    </Accordion>
+    <Accordion title="std::runtime_error">
+        - Throws if the vectors could not be upserted.
+        - Throws if the supplied key context lacks write permission.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+cyborg::Array2D<float> embeddings{{0.1, 0.2, 0.3}, {0.4, 0.5, 0.6}};
+std::vector<std::string> ids = {"item_1", "item_2"};
+
+// Upsert without contents or metadata (pass {} for both)
+index->Upsert(ids, embeddings, {}, {}, index_key);
+
+// Upsert with associated item contents
+std::vector<std::vector<uint8_t>> contents = {
+    {'a', 'b', 'c'}, {'d', 'e', 'f'}
+};
+index->Upsert(ids, embeddings, contents, {}, index_key);
+
+// Upsert with contents and metadata
+std::vector<std::string> metadata = {"{\"type\": \"image\"}", "{\"type\": \"text\"}"};
+index->Upsert(ids, embeddings, contents, metadata, index_key);
+```
+
+<Tip>`index_key` is the 32-byte `std::array<uint8_t, 32>` index KEK. It converts implicitly to a `KeyContext`. In a stateless service that reloads the index per request, pass the key on every operation.</Tip>

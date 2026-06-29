@@ -1,0 +1,70 @@
+---
+title: "get"
+mode: "wide"
+---
+
+Retrieves documents by their IDs from the vector store.
+
+<Note>Available in Python SDK and JS/TS SDK. For the Embedded library, use `get_by_id()`, `get_by_ids()`, `get_document()`, or `get_documents()` directly on the CyborgVectorStore instance.</Note>
+
+<Tabs>
+    <Tab title="Python SDK">
+
+        ```python
+        get(ids: List[str]) -> List[Document]
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `ids` | `List[str]` | List of document IDs to retrieve |
+
+        ### Returns
+
+        `List[Document]`: List of Document objects matching the given IDs
+
+        ### Example Usage
+
+        ```python
+        # Retrieve specific documents by ID
+        doc_ids = ["doc1", "doc2", "doc3"]
+        documents = store.get(doc_ids)
+
+        for doc in documents:
+            print(f"Content: {doc.page_content[:100]}...")
+            print(f"Metadata: {doc.metadata}")
+        ```
+
+    </Tab>
+
+    <Tab title="JS/TS">
+
+        ```typescript
+        get(ids: string[]): Promise<Document[]>
+        ```
+
+        ### Parameters
+
+        | Parameter | Type | Description |
+        |-----------|------|-------------|
+        | `ids` | `string[]` | Array of document IDs to retrieve |
+
+        ### Returns
+
+        `Promise<Document[]>`: Array of Document objects matching the given IDs
+
+        ### Example Usage
+
+        ```typescript
+        const docIds = ["doc1", "doc2", "doc3"];
+        const documents = await store.get(docIds);
+
+        for (const doc of documents) {
+            console.log(`Content: ${doc.pageContent.slice(0, 100)}...`);
+            console.log(`Metadata:`, doc.metadata);
+        }
+        ```
+
+    </Tab>
+</Tabs>

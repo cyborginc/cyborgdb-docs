@@ -1,0 +1,52 @@
+---
+title: "Generate Key"
+mode: "wide"
+---
+
+Generates a cryptographically secure 256-bit (32-byte) encryption key suitable for creating encrypted indexes.
+
+```typescript
+generateKey(): Uint8Array        // instance method
+static generateKey(): Uint8Array // static method
+```
+
+Both forms are equivalent — `Client.generateKey()` works without a configured client, while `client.generateKey()` is convenient if you already have an instance in scope.
+
+### Returns
+
+`Uint8Array`: A 32-byte array containing cryptographically secure random data suitable for index encryption.
+
+### Security Notes
+
+The generated key is cryptographically secure and suitable for production use:
+
+- Uses Node.js `crypto.randomBytes()` which leverages OS entropy sources for maximum security
+- Provides 256 bits of entropy (32 bytes)
+- Compatible with AES-256 encryption used by CyborgDB
+
+<Warning>
+This key must be persisted securely. For more information, see [Managing Encryption Keys](../../guides/advanced/managing-keys).
+</Warning>
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+// Static form — useful before you've constructed a client
+const indexKey = Client.generateKey();
+console.log('Generated key length:', indexKey.length); // Output: 32
+
+// Instance form — equivalent, handy if you already have a client
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+const sameKindOfKey = client.generateKey();
+
+const index = await client.createIndex({
+    indexName: 'my-secure-index',
+    indexKey
+});
+
+// IMPORTANT: Store the key securely for future access
+// const keyHex = Buffer.from(indexKey).toString('hex');
+// console.log('Store this key safely:', keyHex);
+```

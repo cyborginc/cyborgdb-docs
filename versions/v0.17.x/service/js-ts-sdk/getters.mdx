@@ -1,0 +1,188 @@
+---
+title: "Getters"
+---
+
+<Note>v0.17 replaces the v0.16 getters (`getIndexType`, `getIndexConfig`) with explicit methods for the single DiskIVF index type: `getDimension`, `getMetric`, and `getNLists`. Cached methods avoid repeat round-trips.</Note>
+
+## getIndexName
+
+```typescript
+async getIndexName(): Promise<string>
+```
+
+Returns the name of the encrypted index. Known at construction — no API call.
+
+### Returns
+
+`Promise<string>`: The unique name identifier of the index.
+
+### Example Usage
+
+```typescript
+const indexName = await index.getIndexName();
+console.log('Index name:', indexName);
+// Output: "my-vectors"
+```
+
+---
+
+## getDimension
+
+```typescript
+async getDimension(): Promise<number>
+```
+
+Vector dimensionality.
+
+- Returns the real dimension when `createIndex` was called with an explicit `dimension`, or after the first upsert (auto-detect).
+- Returns `0` if the index was created with auto-detect AND no upsert has happened yet.
+
+Cached on first read; subsequent reads do not hit the server.
+
+### Returns
+
+`Promise<number>`
+
+### Example Usage
+
+```typescript
+const dimension = await index.getDimension();
+console.log('Dimension:', dimension);
+// Output: 384
+```
+
+---
+
+## getMetric
+
+```typescript
+async getMetric(): Promise<string>
+```
+
+Distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. Cached alongside `dimension`.
+
+### Returns
+
+`Promise<string>`
+
+### Example Usage
+
+```typescript
+const metric = await index.getMetric();
+console.log('Metric:', metric);
+// Output: "euclidean"
+```
+
+---
+
+## getNLists
+
+```typescript
+async getNLists(): Promise<number>
+```
+
+Number of inverted lists in the IVF index.
+
+- Returns `1` for untrained indexes.
+- Returns the trained cluster count after `train()` completes.
+
+Unlike `getDimension` / `getMetric`, this method is **not cached** — it fetches fresh on every call so callers reading immediately after training see the new value.
+
+### Returns
+
+`Promise<number>`
+
+### Example Usage
+
+```typescript
+const nLists = await index.getNLists();
+console.log('Lists:', nLists);
+// Output: 1024  (after training)
+```
+
+---
+
+## isTrained
+
+```typescript
+async isTrained(): Promise<boolean>
+```
+
+Returns whether the index has been trained. Not cached — training status can change server-side via auto-training.
+
+### Returns
+
+`Promise<boolean>`
+
+### Example Usage
+
+```typescript
+if (!(await index.isTrained())) {
+    console.log('Index needs training');
+    await index.train();
+}
+```
+
+---
+
+## isTraining
+
+```typescript
+async isTraining(): Promise<boolean>
+```
+
+Returns `true` if this index is currently being trained (or queued for training) on the server, `false` otherwise.
+
+Under the hood this calls the global training-status endpoint and checks whether this index appears in the returned `trainingIndexes` list — so it always reflects the live server state and is not cached.
+
+### Returns
+
+`Promise<boolean>`
+
+### Example Usage
+
+```typescript
+if (await index.isTraining()) {
+    console.log('Training in progress — try again shortly');
+}
+```
+
+---
+
+## Client.getHealth
+
+```typescript
+async getHealth(): Promise<HealthResponse>
+```
+
+Returns the service health status. Useful for liveness checks and CI smoke tests. Available on the `Client` (`CyborgDB`) instance.
+
+### Example Usage
+
+```typescript
+const health = await client.getHealth();
+console.log('Service status:', health.status);
+```
+
+---
+
+## Client.generateKey
+
+```typescript
+generateKey(): Uint8Array        // instance method
+static generateKey(): Uint8Array // static method
+```
+
+Generates a cryptographically secure 32-byte (256-bit) encryption key suitable for SDK-supplied index creation. Both forms exist for convenience — use the static form when you do not yet have a client instance.
+
+### Example Usage
+
+```typescript
+import { CyborgDB } from 'cyborgdb';
+
+// Static form — no client needed
+const key = CyborgDB.generateKey();
+
+// Instance form
+const sameKindOfKey = client.generateKey();
+```

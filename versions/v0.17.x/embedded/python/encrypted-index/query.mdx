@@ -1,0 +1,275 @@
+---
+title: "Query"
+mode: "wide"
+---
+
+## Single Query
+
+Retrieves the nearest neighbors for a given query vector.
+
+```python
+def query(self,
+          query_vectors: List[float] = None,
+          query_contents: str = None,
+          top_k: int = None,
+          n_probes: int = None,
+          filters: Dict[str, Any] = {},
+          include: List[str] = [],
+          greedy: bool = False,
+          rerank_mult: int = None,
+          *,
+          index_key: bytes = None,
+          user_id: bytes = None)
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
+| `query_vectors` | `List[float]` | - | A single query vector as a list of floats (for single query). |
+| `query_contents` | `str` | `None` | _(Optional)_ Text content to auto-embed as query vector (requires `embedding_model` set during index creation). |
+| `top_k` | `int` | `None` | _(Optional)_ Number of nearest neighbors to return. When `None`, defaults to 100. |
+| `n_probes` | `int` | `None` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When `None` or `0`, automatically determines the optimal value. |
+| `filters` | `Dict[str, Any]` | `{}` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
+| `include` | `List[str]` | `[]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
+| `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
+| `rerank_mult` | `int` | `10` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
+| `index_key` | `bytes` | `None` | _(Optional, keyword-only)_ Override the per-operation index key. See [Per-operation key override](#per-operation-key-override). |
+| `user_id` | `bytes` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Per-operation key override](#per-operation-key-override). |
+
+<Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index), then the `query_contents` parameter can be used instead of `query_vectors`.</Note>
+
+<Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
+For instance: `filters: { "$and": [ { "label": "cat" }, { "confidence": { "$gte": 0.9 } } ] }` means that only vectors where `label == "cat"` and `confidence >= 0.9` will be considered for encrypted vector search.
+For more info on metadata, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).</Tip>
+
+### Returns
+
+`List[Dict[str, Union[int, float, Dict[]]]]`: List of results for the query vector. Each result is a list of `top_k` dictionaries, each containing `id` (always included), and optionally `distance` and `metadata` based on `include`. When `include` is empty (the default), only `id` is returned.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the query vector has incompatible dimensions with the index.
+        - Throws if the index was not created or loaded yet.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the query could not be executed.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+_Single Query with Distances_:
+
+```python
+# Load index
+index = client.load_index(
+    index_name=index_name, 
+    index_key=index_key
+)
+
+# Define a single query vector
+query_vectors = [0.1, 0.2, 0.3]  # Single query vector of dimension 3
+
+# Perform a single query with distances
+results = index.query(
+    query_vectors=query_vectors, 
+    top_k=2, 
+    n_probes=5, 
+    include=["distance"]
+)
+# Example output:
+# [{"id": "101", "distance": 0.05}, {"id": "102", "distance": 0.1}]
+```
+
+_Single Query without Distances_:
+
+```python
+results = index.query(
+    query_vectors=query_vectors, 
+    top_k=10, 
+    n_probes=5, 
+    include=[]
+)
+# Example output:
+# [{"id": "101"}, {"id": "102"}]
+```
+
+_Single Query with Metadata_:
+
+```python
+results = index.query(
+    query_vectors=query_vectors, 
+    top_k=10, 
+    n_probes=5, 
+    filters={"label": "dog"}, 
+    include=["metadata"]
+)
+# Example output:
+# [{"id": "101", "metadata": {"label": "dog", "temperament": "good boy"}},
+#  {"id": "102", "metadata": {"label": "dog", "temperament": "hyper"})]]
+```
+
+Results are plain dictionaries — access fields by string key (`r['id']`, `r['distance']`, `r['metadata']`):
+
+```python
+for r in results:
+    print(r['id'], r['distance'])
+```
+
+### Per-operation key override
+
+The simple calls above reuse the key supplied at [`create_index()`](../client/create-index) / [`load_index()`](../client/load-index). You may instead pass `index_key=` (and `user_id=` for an [RBAC user](./manage-users)) to override the per-operation key. This is required in stateless/service deployments that reload the index per request:
+
+```python
+results = index.query(
+    query_vectors=[0.1, 0.2, 0.3],
+    top_k=2,
+    index_key=index_key,
+)
+```
+
+## Batched Queries
+
+Retrieves the nearest neighbors for one or more query vectors.
+
+```python
+def query(self,
+          query_vectors: Union[np.ndarray, List[List[float]]],
+          top_k: int = None,
+          n_probes: int = None,
+          filters: Dict[str, Any] = {},
+          include: List[str] = [],
+          greedy: bool = False,
+          rerank_mult: int = None,
+          *,
+          index_key: bytes = None,
+          user_id: bytes = None)
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
+| `query_vectors` | `np.ndarray` or `List[List[float]]` | - | A 2D NumPy array or list of lists, where each inner list represents a query vector (for batch query). |
+| `top_k` | `int` | `None` | _(Optional)_ Number of nearest neighbors to return. When `None`, defaults to 100. |
+| `n_probes` | `int` | `None` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When `None` or `0`, automatically determines the optimal value. |
+| `filters` | `Dict[str, Any]` | `{}` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
+| `include` | `List[str]` | `[]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
+| `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
+| `rerank_mult` | `int` | `10` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
+| `index_key` | `bytes` | `None` | _(Optional, keyword-only)_ Override the per-operation index key. See [Per-operation key override](#per-operation-key-override). |
+| `user_id` | `bytes` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Per-operation key override](#per-operation-key-override). |
+
+<Tip>`filters` use a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/).
+For instance: `filters: { "$and": [ { "label": "cat" }, { "confidence": { "$gte": 0.9 } } ] }` means that only vectors where `label == "cat"` and `confidence >= 0.9` will be considered for encrypted vector search.
+For more info on metadata, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).</Tip>
+
+### Returns
+
+`List[List[Dict[str, Union[int, float, Dict[]]]]]`: List of results for each query vector. Each result is a list of `top_k` dictionaries, each containing `id` (always included), and optionally `distance` and `metadata` based on `include`. When `include` is empty (the default), only `id` is returned.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the query vectors have incompatible dimensions with the index.
+        - Throws if the index was not created or loaded yet.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the query could not be executed.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+_Batch Query with Distances_:
+
+```python
+import numpy as np
+
+# Multiple query vectors
+query_vectors = np.array([
+    [0.1, 0.2, 0.3],
+    [0.4, 0.5, 0.6]
+])
+
+# Query with distances included
+results = index.query(query_vectors=query_vectors, include=["distance"])
+# Example output:
+# [
+#     [{"id": "item_101", "distance": 0.05}, {"id": "item_202", "distance": 0.1}],
+#     [{"id": "item_202", "distance": 0.2}, {"id": "item_303", "distance": 0.3}]
+# ]
+```
+
+---
+
+## NumPy Query
+
+A high-performance query variant that returns only integer IDs as a NumPy array. This is optimized for performance-critical workloads where metadata and distances are not needed.
+
+```python
+def query_numpy(self,
+                query_vectors: np.ndarray,
+                top_k: int = 100,
+                n_probes: int = 0,
+                greedy: bool = False,
+                batch: bool = False,
+                rerank_mult: int = 50,
+                *,
+                index_key: bytes = None,
+                user_id: bytes = None) -> np.ndarray
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
+| `query_vectors` | `np.ndarray` | - | Query vectors as a NumPy array. For a single query, a 1D array; for batch queries, a 2D array. |
+| `top_k` | `int` | `100` | _(Optional)_ Number of nearest neighbors to return. |
+| `n_probes` | `int` | `0` (auto) | _(Optional)_ Number of lists probed during the query. When set to `0`, automatically determines the optimal value. |
+| `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
+| `batch` | `bool` | `False` | _(Optional)_ Whether to treat the input as a batch of query vectors. |
+| `rerank_mult` | `int` | `50` | _(Optional)_ Stage-1 retrieval multiplier for reranking (retrieves `rerank_mult * top_k` candidates before reranking). |
+| `index_key` | `bytes` | `None` | _(Optional, keyword-only)_ Override the per-operation index key (see [Per-operation key override](#per-operation-key-override)). |
+| `user_id` | `bytes` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. |
+
+### Returns
+
+`np.ndarray`: A NumPy array of integer IDs for the nearest neighbors. For a single query, returns a 1D array of shape `(top_k,)`. For batch queries, returns a 2D array of shape `(num_queries, top_k)`.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the query vectors have incompatible dimensions with the index.
+        - Throws if the index was not created or loaded yet.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the query could not be executed.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import numpy as np
+
+# Single query
+query_vector = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+ids = index.query_numpy(query_vectors=query_vector, top_k=10)
+# ids is a 1D np.ndarray of integer IDs, e.g. array([101, 102, 103, ...])
+
+# Batch query
+query_vectors = np.array([
+    [0.1, 0.2, 0.3],
+    [0.4, 0.5, 0.6]
+], dtype=np.float32)
+ids = index.query_numpy(query_vectors=query_vectors, top_k=5, batch=True)
+# ids is a 2D np.ndarray of shape (2, 5)
+```
+
+<Note>`query_numpy` is a high-performance variant that returns only integer IDs. Use the standard `query()` method if you need distances, metadata, or string IDs.</Note>

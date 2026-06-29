@@ -1,0 +1,121 @@
+---
+title: "External Key Management (KMS)"
+sidebarTitle: "KMS"
+mode: "wide"
+---
+
+CyborgDB can persist a per-index **KMS envelope** — a small record describing how an index's 32-byte KEK is wrapped by an external Key Management Service. A service layer can then read the envelope at request time, unwrap the KEK with the external KMS, and hand the plaintext KEK to the SDK. The envelope itself is represented by the `KMSBlob` type and stored as a FlatBuffer next to the index keystore.
+
+<Note>KMS key wrapping is **advanced and optional**, and primarily intended for the **service layer**. Embedded SDK users who supply their own KEK directly (see [Managing Encryption Keys](./managing-keys)) can ignore these functions entirely, or use `provider="none"`, in which case nothing key-derived is stored and the caller supplies the plaintext KEK per request.</Note>
+
+---
+
+## The KMS Envelope
+
+Each index is encrypted with AES-256-GCM under a 32-byte KEK. The KMS envelope records *how* that KEK is wrapped so it can be unwrapped later. Supported providers:
+
+- `"aws"` — the KEK is wrapped with AES-256-GCM under a value stored in AWS Secrets Manager.
+- `"aws-kms"` — the KEK is wrapped via `kms.Encrypt` using an AWS KMS key.
+- `"none"` — no external wrapping; the caller supplies the plaintext KEK per request and nothing is stored.
+
+The envelope is described by a `KMSBlob`, whose fields are: `kms_name`, `provider`, `key_id`, `region` (strings), `wrapped_kek` (bytes), `version` (int), and `created_at` (unix epoch seconds).
+
+---
+
+## Storing an Envelope
+
+Use `create_index_kms` for a strict insert (fails if an envelope already exists) or `push_index_kms` for an idempotent upsert. Both take a `config_location` ([`StorageConfig`](../../python/types)) identifying where the index keystore lives, the index name, and the `KMSBlob`.
+
+<CodeGroup>
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+
+# Where the index keystore lives
+config = cyborgdb.StorageConfig.disk("/tmp/cyborgdb")
+
+blob = cyborgdb.KMSBlob(
+    kms_name="prod-kms",
+    provider="aws-kms",
+    key_id="arn:aws:kms:us-east-1:123456789012:key/abcd-...",
+    region="us-east-1",
+    wrapped_kek=b"...",  # KEK wrapped by the external KMS
+    version=1,
+)
+
+# Strict insert (fails if an envelope already exists for this index)
+cyborgdb.create_index_kms(config, "my_index", blob)
+
+# Idempotent upsert (creates or overwrites)
+cyborgdb.push_index_kms(config, "my_index", blob)
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/index_kms.hpp"
+
+// Where the index keystore lives
+cyborg::StorageConfig config = cyborg::StorageConfig::Disk("/tmp/cyborgdb");
+
+cyborg::KMSBlob blob;
+blob.kms_name = "prod-kms";
+blob.provider = "aws-kms";
+blob.key_id = "arn:aws:kms:us-east-1:123456789012:key/abcd-...";
+blob.region = "us-east-1";
+blob.wrapped_kek = {/* KEK wrapped by the external KMS */};
+blob.version = 1;
+
+// Strict insert (throws if an envelope already exists for this index)
+cyborg::CreateIndexKMS(config, "my_index", blob);
+
+// Idempotent upsert (creates or overwrites)
+cyborg::PushIndexKMS(config, "my_index", blob);
+```
+</CodeGroup>
+
+---
+
+## Reading and Deleting an Envelope
+
+`get_index_kms` returns the stored `KMSBlob`; `delete_index_kms` removes it (idempotent). A service layer typically reads the envelope, unwraps the KEK with the external KMS, then uses the plaintext KEK when loading the index.
+
+<CodeGroup>
+```python Python icon="python"
+# Read the envelope back
+blob = cyborgdb.get_index_kms(config, "my_index")
+print(blob.provider, blob.key_id, blob.version)
+
+# ... unwrap blob.wrapped_kek with your KMS to recover the 32-byte KEK ...
+# index_key = kms_unwrap(blob.wrapped_kek)
+# index = client.load_index("my_index", index_key)
+
+# Delete the envelope (idempotent)
+cyborgdb.delete_index_kms(config, "my_index")
+```
+
+```cpp C++ icon="brackets-curly"
+#include "cyborgdb_core/index_kms.hpp"
+
+// Read the envelope back
+cyborg::KMSBlob blob = cyborg::GetIndexKMS(config, "my_index");
+// ... unwrap blob.wrapped_kek with your KMS to recover the 32-byte KEK ...
+
+// Delete the envelope (idempotent)
+cyborg::DeleteIndexKMS(config, "my_index");
+```
+</CodeGroup>
+
+<Tip>For embedded deployments where you already hold the KEK, you don't need the KMS envelope at all — pass the KEK directly to `create_index` / `load_index`. See [Managing Encryption Keys](./managing-keys) and [Access Control (RBAC)](./access-control) for per-user keys.</Tip>
+
+---
+
+## API Reference
+
+For full signatures and the `KMSBlob` type, refer to the API Reference:
+
+<CardGroup cols={2}>
+    <Card title="Python API Reference" href="../../python/kms" icon="python">
+        API reference for the KMS module functions and `KMSBlob` in Python
+    </Card>
+    <Card title="C++ API Reference" href="../../cpp/kms" icon="brackets-curly">
+        API reference for the KMS module functions and `KMSBlob` in C++
+    </Card>
+</CardGroup>

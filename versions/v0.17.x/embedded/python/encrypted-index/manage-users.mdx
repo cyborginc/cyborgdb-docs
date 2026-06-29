@@ -1,0 +1,152 @@
+---
+title: "Manage Users (RBAC)"
+mode: "wide"
+---
+
+CyborgDB supports per-user access control (RBAC) on an encrypted index. The holder of the **root** index KEK can mint per-user wrapped keys, each granting `read` and/or `write` access. A user then loads the index with their own per-user key (KEK) and is restricted to the permissions they were granted.
+
+<Note>**Key model.** Each index is encrypted under a 32-byte Key-Encryption-Key (KEK) — the `index_key`. The root KEK holder mints per-user keys; **the set of wraps that exist defines the permission set** — there is no separate permission flag. A read-only user simply has no write wrap. Managing users (create / delete / list) is always gated on the root KEK.</Note>
+
+---
+
+## create_user_keys
+
+Creates per-user wrapped keys granting the specified permissions on the index. Gated on the root index KEK.
+
+```python
+def create_user_keys(self,
+                     user_id: bytes,
+                     user_kek: bytes,
+                     permissions: List[str],
+                     *,
+                     index_key: bytes)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `user_id` | `bytes` | 16-byte unique identifier for the user. |
+| `user_kek` | `bytes` | 32-byte per-user key (KEK). This is the key the user will pass as `index_key` when loading the index. |
+| `permissions` | `List[str]` | Subset of `{"read", "write"}`. At least one permission must be granted. |
+| `index_key` | `bytes` | _(Keyword-only, required)_ The 32-byte **root** index KEK. Acts as the admin gate authorizing user management. |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if `permissions` is empty or contains values outside `{"read", "write"}`.
+        - Throws if `user_id` or the keys are the wrong length.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the supplied `index_key` is not the root KEK.
+        - Throws if the user keys could not be created.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import secrets
+
+# Admin (root KEK holder) mints a read-only user
+user_id = secrets.token_bytes(16)   # 16-byte user identifier
+user_kek = secrets.token_bytes(32)  # 32-byte per-user key
+
+index.create_user_keys(
+    user_id=user_id,
+    user_kek=user_kek,
+    permissions=["read"],
+    index_key=index_key,  # root index KEK — the admin gate
+)
+
+# Distribute (user_id, user_kek) securely to the user.
+```
+
+---
+
+## delete_user_keys
+
+Revokes a user's keys. Idempotent — revoking a non-existent user is a no-op. Gated on the root index KEK.
+
+```python
+def delete_user_keys(self,
+                     user_id: bytes,
+                     *,
+                     index_key: bytes)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `user_id` | `bytes` | 16-byte identifier of the user to revoke. |
+| `index_key` | `bytes` | _(Keyword-only, required)_ The 32-byte **root** index KEK. |
+
+### Example Usage
+
+```python
+# Revoke a user (idempotent)
+index.delete_user_keys(user_id=user_id, index_key=index_key)
+```
+
+---
+
+## list_user_keys
+
+Lists the users with keys on the index and their effective permissions. Gated on the root index KEK.
+
+```python
+def list_user_keys(self,
+                   *,
+                   index_key: bytes) -> List[dict]
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `index_key` | `bytes` | _(Keyword-only, required)_ The 32-byte **root** index KEK. |
+
+### Returns
+
+`List[dict]`: One dictionary per user, each with the keys:
+- `user_id` (`bytes`): the 16-byte user identifier
+- `has_read` (`bool`): whether the user has a read wrap
+- `has_write` (`bool`): whether the user has a write wrap
+
+### Example Usage
+
+```python
+users = index.list_user_keys(index_key=index_key)
+for u in users:
+    print(u["user_id"], "read:", u["has_read"], "write:", u["has_write"])
+# Example output:
+# [{"user_id": b"...", "has_read": True, "has_write": False}]
+```
+
+---
+
+## Loading the index as an RBAC user
+
+A user loads the index by passing their own `user_kek` as the `index_key` and their `user_id` (keyword-only) to [`load_index()`](../client/load-index):
+
+```python
+import cyborgdb_core as cyborgdb
+
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+
+# user_id and user_kek were issued by the root KEK holder via create_user_keys()
+index = client.load_index("my_index", user_kek, user_id=user_id)
+
+# Permitted: this user has the "read" wrap
+results = index.query(query_vectors=[0.1, 0.2, 0.3], top_k=5)
+
+# Denied: a read-only user cannot write — this raises
+index.upsert([{"id": "item_1", "vector": [0.1, 0.2, 0.3]}])
+```
+
+The permission gate is enforced per operation: a read-only user can `query` / `get` / `list_ids`, but `upsert`, `delete`, and `train` are rejected. Admin operations (`create_user_keys`, `delete_user_keys`, `list_user_keys`, [`delete_index()`](./delete-index)) always require the **root** KEK and reject per-user contexts.
+
+<Tip>Per-operation key override: every data op accepts keyword-only `index_key=` and `user_id=`. In stateless/service deployments that reload the index per request, pass the user's `user_kek` as `index_key=` and their `user_id=` on each call instead of relying on the key bound at load time.</Tip>

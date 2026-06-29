@@ -1,0 +1,84 @@
+---
+title: "List Users"
+mode: "wide"
+api: "GET /v1/indexes/{index_name}/users"
+playground: "simple"
+---
+
+List the users provisioned for a specific index. Requires RBAC enabled and the root API key.
+
+<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the full operator playbook.</Note>
+
+## Authentication
+
+Required — root API key in the `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_root_api_key_here
+```
+
+## Path Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `index_name` | `string` | Name of the index to list users for. |
+
+## Headers
+
+| Header | Type | Description |
+|---|---|---|
+| `X-Index-Key` | `string` | _(Optional)_ 32-byte index KEK as a hex string. Required for SDK-supplied indexes (`provider: none`). Omit for KMS-backed indexes — the service resolves the KEK via the stored `KMSBlob`. |
+
+<Note>`GET`/`DELETE` on this resource have no request body, so the index key travels in the `X-Index-Key` header. The sibling `POST /v1/indexes/{index_name}/users` endpoint takes the same key as an `index_key` field in its JSON body.</Note>
+
+## Response
+
+```json
+{
+  "users": [
+    {
+      "user_id": "a1b2c3d4...",
+      "permissions": ["read", "write"]
+    },
+    {
+      "user_id": "e5f6a7b8...",
+      "permissions": ["read"]
+    }
+  ]
+}
+```
+
+<Expandable title="response fields">
+  <ResponseField name="users" type="array[object]">
+    Array of users scoped to this index.
+    <Expandable title="user fields">
+      <ResponseField name="user_id" type="string">
+        Hex-encoded identifier for the user.
+      </ResponseField>
+      <ResponseField name="permissions" type="array[string]">
+        Subset of `["read", "write"]`. Derived from which wrapped DEKs exist for the user (the cryptographic source of truth), not a stored field.
+      </ResponseField>
+    </Expandable>
+  </ResponseField>
+</Expandable>
+
+## Exceptions
+
+- `401`: Authentication failed (invalid root API key).
+- `403`: RBAC is not enabled, or the caller is not using the root key.
+- `404`: Index not found.
+- `500`: Internal server error.
+
+## Example Usage
+
+```bash
+curl -X GET "http://localhost:8000/v1/indexes/documents/users" \
+     -H "X-API-Key: cyborg_your_root_api_key_here"
+```
+
+**SDK-supplied index (legacy path):**
+```bash
+curl -X GET "http://localhost:8000/v1/indexes/documents/users" \
+     -H "X-API-Key: cyborg_your_root_api_key_here" \
+     -H "X-Index-Key: your_64_character_hex_key_here"
+```

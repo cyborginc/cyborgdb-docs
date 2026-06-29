@@ -1,0 +1,36 @@
+---
+title: "Delete"
+mode: "wide"
+---
+
+<Warning>This action is irreversible. Proceed with caution.</Warning>
+
+Deletes the specified encrypted items stored in the index, including all its associated fields (`vector`, `contents`, `metadata`).
+
+```cpp
+void Delete(const std::vector<std::string>& ids, const KeyContext& key);
+```
+
+**Parameters**:
+| Parameter | Type | Description |
+|-------------------|--------------------|-----------------------|
+| `ids` | `const std::vector<std::string>&` | IDs to delete. |
+| `key` | [`KeyContext`](../types#keycontext) | Key context for the operation. A bare 32-byte index key (the `index_key`) implicitly converts to a `KeyContext`. For an RBAC user, pass `cyborg::KeyContext{user_kek, user_id}` (write permission required). |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="std::runtime_error">
+        - Throws if the items could not be deleted.
+        - Throws if the supplied key context lacks write permission.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```cpp
+// Delete items with IDs "item_1" and "item_2"
+index->Delete({"item_1", "item_2"}, index_key);
+```
+
+<Tip>`index_key` is the 32-byte `std::array<uint8_t, 32>` index KEK and converts implicitly to a `KeyContext`.</Tip>

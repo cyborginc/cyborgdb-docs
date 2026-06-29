@@ -1,0 +1,31 @@
+---
+title: "CyborgDB Embedded - Python API Reference"
+sidebarTitle: "Python API Introduction"
+description: "`v0.17.x`"
+mode: "wide"
+---
+
+The Python API for CyborgDB is split into two main classes within the `CyborgDB` class:
+
+- `Client` – Handles configuration, index creation/loading, and listing available indexes.
+- `EncryptedIndex` – Provides data operations on a specific encrypted index such as upserting vectors, training the index, querying, and retrieving stored items.
+
+This API is also available in [C++](../cpp/introduction).
+
+## Module-level helpers
+
+Two module-level helpers report on CUDA/GPU support in the current build and environment:
+
+```python
+def cuda_available() -> bool   # True if a usable CUDA device is present at runtime
+def cuda_built() -> bool       # True if this build of cyborgdb_core was compiled with CUDA support
+```
+
+```python
+import cyborgdb_core as cyborgdb
+
+if cyborgdb.cuda_built() and cyborgdb.cuda_available():
+    print("GPU acceleration is available.")
+```
+
+<Note>**Removed in v0.17.** `set_working_dir()` has been removed. Configure storage locations through [`StorageConfig`](./types#storageconfig) (`memory` / `disk` / `s3`) on the [`Client`](./client/client) instead.</Note>

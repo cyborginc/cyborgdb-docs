@@ -1,0 +1,119 @@
+---
+title: "List Encrypted Indexes"
+sidebarTitle: "List Indexes"
+mode: "wide"
+---
+
+To see which existing encrypted indexes are available to your CyborgDB client, you can use `list_indexes`:
+
+<CodeGroup>
+```python Python SDK icon="python"
+from cyborgdb import Client
+
+# Create a client
+client = Client(
+    base_url='http://localhost:8000', 
+    api_key='your-api-key'
+)
+
+# List all available indexes
+indexes = client.list_indexes()
+
+print(indexes)
+# Example output:
+# ["index_one", "index_two", "index_three"]
+```
+
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
+
+// Create a client
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
+
+// List all available indexes
+const indexes = await client.listIndexes();
+
+console.log(indexes);
+// Example output:
+// ["index_one", "index_two", "index_three"]
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client } from 'cyborgdb';
+
+// Create a client
+const client = new Client({ 
+    baseUrl: 'http://localhost:8000', 
+    apiKey: 'your-api-key' 
+});
+
+// List all available indexes
+const indexes: string[] = await client.listIndexes();
+
+console.log(indexes);
+// Example output:
+// ["index_one", "index_two", "index_three"]
+```
+
+```go Go SDK icon="golang"
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+// Create client
+client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+if err != nil {
+    log.Fatal(err)
+}
+
+// List all indexes
+ctx := context.Background()
+indexes, err := client.ListIndexes(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(indexes)
+// Example output: ["index_one", "index_two", "index_three"]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X GET "http://localhost:8000/v1/indexes/list" \
+     -H "X-API-Key: your-api-key"
+
+# Response:
+# {
+#   "indexes": ["index_one", "index_two", "index_three"]
+# }
+```
+</CodeGroup>
+
+This returns an array of index names that are available to your API key.
+
+## API Reference
+
+For more information on listing encrypted indexes, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="REST API Reference" href="../../rest-api/client/list-indexes" icon="rectangle-terminal">
+        REST API reference for `/v1/indexes/list`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/client/list-indexes" icon="python">
+        API reference for `list_indexes()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/client/list-indexes" icon="js">
+        API reference for `listIndexes()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/client/list-indexes" icon="golang">
+        API reference for `ListIndexes()` in Go
+    </Card>
+</CardGroup>
