@@ -22,6 +22,8 @@ Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB micros
 
 You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
 
+<Note>`api_key` is **only required when the service has authentication enabled** — i.e. `CYBORGDB_SERVICE_ROOT_KEY` is set on the service. When the service runs unauthenticated (the default), you can omit `api_key`.</Note>
+
 ### Example Usage
 
 ```python

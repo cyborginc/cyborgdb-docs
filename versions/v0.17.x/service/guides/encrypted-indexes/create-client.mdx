@@ -75,6 +75,8 @@ To use CyborgDB, you'll need an API key for authentication. You can get an API k
 
 The client handles all authentication automatically once you provide the API key during initialization.
 
+<Note>The `api_key` (or `apiKey`) argument is **only required when the service has authentication enabled** — i.e. `CYBORGDB_SERVICE_ROOT_KEY` is set on the service. When the service runs unauthenticated (the default), you can omit the argument (or pass `""` in Go).</Note>
+
 ## Health Checking
 
 You can verify the service connection and health:
