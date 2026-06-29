@@ -8,7 +8,7 @@ mode: "wide"
 ## Constructor
 
 ```python
-Client(api_key: str,
+Client(api_key: str = "",
        storage_config: StorageConfig,
        cpu_threads: int = 0,
        gpu_config: GPUConfig | None = None)
@@ -20,7 +20,7 @@ Initializes a new CyborgDB `Client` instance.
 
 | Parameter | Type | Default | Description |
 |-------------------|--------------------|---------------------------------------------------------------------|---|
-| `api_key` | `str` | - | API key for your CyborgDB account. Get one [here](../../../intro/get-api-key). |
+| `api_key` | `str` | `""` | _(Optional)_ API key for your CyborgDB account. If omitted or empty, the client runs in free-tier mode, capped at 1,000,000 items per index. Pass a key from the [Admin Dashboard](../../../intro/get-api-key) for unlimited usage. When omitted, pass `storage_config` as a keyword argument. |
 | `storage_config` | [`StorageConfig`](../types#storageconfig) | - | Backing store for all index keystores. Built via the static factories `StorageConfig.memory()`, `StorageConfig.disk(path)`, or `StorageConfig.s3(bucket)`. |
 | `cpu_threads` | `int` | `0` | _(Optional)_ Number of CPU threads to use for computations (defaults to `0` = all cores). |
 | `gpu_config` | [`GPUConfig`](../types#gpuconfig) \| `None` | `None` | _(Optional)_ GPU operations configuration. Specify which operations use GPU acceleration (defaults to `None`, no GPU). |
@@ -46,22 +46,20 @@ Initializes a new CyborgDB `Client` instance.
 ```python
 import cyborgdb_core as cyborgdb
 
-api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
-# Example 1: Enable GPU for specific operations (upsert and train)
-gpu_config = cyborgdb.GPUConfig(upsert=True, train=True)
+# Example 1: In-memory backing store, free-tier (no API key)
 client1 = cyborgdb.Client(
+    storage_config=cyborgdb.StorageConfig.memory(),
+    cpu_threads=4
+)
+
+# Example 2: With an API key for unlimited usage, GPU on upsert and train
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+gpu_config = cyborgdb.GPUConfig(upsert=True, train=True)
+client2 = cyborgdb.Client(
     api_key=api_key,
     storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"),
     cpu_threads=4,
     gpu_config=gpu_config
-)
-
-# Example 2: In-memory backing store, no GPU (default)
-client2 = cyborgdb.Client(
-    api_key=api_key,
-    storage_config=cyborgdb.StorageConfig.memory(),
-    cpu_threads=4
 )
 
 # Proceed with further operations
