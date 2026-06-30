@@ -13,21 +13,17 @@ The CyborgDB REST API provides HTTP/HTTPS endpoints for all encrypted vector dat
 
 ## Authentication
 
-All endpoints (except `/v1/health`) require an API key header when the service runs with `REQUIRE_API_KEY=true` (the default):
+Authentication is controlled by the service's `CYBORGDB_SERVICE_ROOT_KEY`. When it is **unset** (the default), authentication is disabled — every endpoint is open and no header is required. When it is **set**, all endpoints except `/v1/health` require a credential in the `X-API-Key` header:
 
 ```http
-X-API-Key: cyborg_your_api_key_here
+X-API-Key: your-root-key-or-cdbk-token
 ```
 
-You can get an API key in three ways, listed from quickest to most production-ready:
+The accepted credential is either the root key itself or a per-user `cdbk_` token minted under it (see [Managing Keys](../guides/advanced/managing-keys)).
 
-| Source | Tier | Use case |
-|---|---|---|
-| `cyborgdb.get_demo_api_key()` / `getDemoApiKey()` / `cyborgdb.GetDemoAPIKey(...)` | **Free** | Quick evaluation — generates a real key without dashboard signup, time-limited. |
-| Unset `CYBORGDB_API_KEY` on the service | **Free** | Self-hosted evaluation. Service runs with the core library's 1M-item-per-index cap; the same empty value is treated as the bearer credential, so you also need `REQUIRE_API_KEY=false` to skip the header. |
-| Paid key from the [CyborgDB Admin Dashboard](https://cyborgdb.co) | **Paid** | Production. Unlimited items, full feature set. Set as `CYBORGDB_API_KEY` on the service and pass the same value as `X-API-Key`. |
-
-For full details, follow the [Get an API Key](../../intro/get-api-key) guide.
+<Note>
+This `X-API-Key` credential is **not** the same as `CYBORGDB_API_KEY`. `CYBORGDB_API_KEY` is the core *license* key — it sets the usage tier (unset → free tier with a 1M-item-per-index cap; a paid key from the [CyborgDB Admin Dashboard](https://cyborgdb.co) → unlimited) and is never sent by clients. Service request authentication is gated only by `CYBORGDB_SERVICE_ROOT_KEY`.
+</Note>
 
 ## Response Format
 

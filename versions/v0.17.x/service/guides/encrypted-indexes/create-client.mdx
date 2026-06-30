@@ -7,13 +7,16 @@ The `Client` class provides an interface to connect to the CyborgDB service and 
 
 ## Creating the Client
 
-To create the client, you need to provide the service URL and an API key for authentication:
+To create the client, provide the service URL. An API key is only needed when the service has authentication enabled (see [API Key Authentication](#api-key-authentication) below); against a service running with auth disabled — the default — you can omit it:
 
 <CodeGroup>
 ```python Python SDK icon="python"
 from cyborgdb import Client
 
-# Create client with API key
+# Auth disabled (default): no API key needed
+client = Client(base_url='http://localhost:8000')
+
+# Auth enabled: pass the root key or a cdbk_ user token
 client = Client(
     base_url='http://localhost:8000', 
     api_key='your-api-key'
@@ -71,9 +74,9 @@ curl -X GET "http://localhost:8000/v1/health"
 
 ## API Key Authentication
 
-To use CyborgDB, you'll need an API key for authentication. You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
+Request authentication is controlled by the service, not the client. When the service is started with `CYBORGDB_SERVICE_ROOT_KEY` set, every request must carry a credential in the `X-API-Key` header: either that root key or a per-user `cdbk_` token minted under it. When the service runs without `CYBORGDB_SERVICE_ROOT_KEY` (the default), authentication is disabled and the `api_key` argument can be omitted.
 
-The client handles all authentication automatically once you provide the API key during initialization.
+Pass the credential as `api_key` at construction and the client attaches the `X-API-Key` header to every request automatically. Note this is distinct from the service's `CYBORGDB_API_KEY` license key, which is not an authentication credential. See [Managing Keys](../advanced/managing-keys) for how to mint user tokens.
 
 ## Health Checking
 

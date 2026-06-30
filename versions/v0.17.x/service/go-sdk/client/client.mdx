@@ -18,10 +18,10 @@ Creates a new CyborgDB `Client` instance for connecting to a CyborgDB microservi
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `baseURL` | `string` | Base URL of the CyborgDB microservice endpoint |
-| `apiKey` | `string` | API key for authentication with the microservice |
+| `apiKey` | `string` | Service authentication credential, sent as the `X-API-Key` header. Pass `""` when the service runs unauthenticated |
 | `verifySSL` | `...bool` | _(Optional)_ SSL verification setting. If omitted, auto-detects based on URL |
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+<Note>`apiKey` is the service **authentication** credential — the root key or a per-user `cdbk_` token, sent as `X-API-Key`. It is required only when the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set; against an unauthenticated service (the default), pass `""`. This is distinct from the service's `CYBORGDB_API_KEY` license key. See [Managing Keys](../../guides/advanced/managing-keys).</Note>
 
 ### Example Usage
 

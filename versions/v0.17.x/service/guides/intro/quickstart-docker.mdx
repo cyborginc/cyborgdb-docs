@@ -12,10 +12,8 @@ mode: "wide"
 The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on-prem, or containerized environments.
 
 <Steps>
-    <Step title="Get an API Key">
-        To use CyborgDB, you need an API key. You can get one from the [CyborgDB Admin Dashboard](https://cyborgdb.co/).
-
-        For quick evaluation, you can generate a temporary demo key using any of the SDKs:
+    <Step title="Get an API Key (Optional)">
+        The service runs without an API key — leave `CYBORGDB_API_KEY` unset and the core engine starts in free-tier mode, capped at 1,000,000 items per index. Set it to lift that cap. Get a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co/), or generate a temporary demo key with any of the SDKs:
 
         <CodeGroup>
         ```python Python
@@ -32,9 +30,11 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         ```
         </CodeGroup>
 
-        Then use the printed key as your `CYBORGDB_API_KEY` when starting the service, and as the `api_key` when connecting with an SDK client.
+        Pass the key as `CYBORGDB_API_KEY` when starting the service. This is the core license key, not a service-authentication credential — it does not gate access to the REST API.
 
-        Make sure to keep your API key secure and do not share it publicly.
+        <Note>
+        Service authentication is separate and controlled by `CYBORGDB_SERVICE_ROOT_KEY`. Leave it unset (the default) and the service accepts all requests. Set it to require callers to send the root key — or a `cdbk_` user token minted under it — in the `X-API-Key` header. See [Managing Keys](../advanced/managing-keys).
+        </Note>
     </Step>
 
     <Step title="Choose Your Storage Backend (Optional)">
@@ -71,36 +71,32 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
             <Tab title="Disk (default)">
                 <CodeGroup>
                 ```bash Linux
-                # Minimal — disk is the default; bind the data dir to a host volume
+                # Minimal — no API key needed; disk is the default; bind the data dir to a host volume
                 sudo docker run -it --rm --network host \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   -v cyborgdb_data:/app/cyborgdb_data \
                   cyborginc/cyborgdb-service:latest
                 ```
 
                 ```bash macOS
                 sudo docker run -it -p 8000:8000 \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   -v cyborgdb_data:/app/cyborgdb_data \
                   cyborginc/cyborgdb-service:latest
                 ```
                 </CodeGroup>
 
-                <Note>Inside the container the disk path defaults to `/app/cyborgdb_data` — the `-v` mount above is what makes the data survive container recreation.</Note>
+                <Note>Inside the container the disk path defaults to `/app/cyborgdb_data` — the `-v` mount above is what makes the data survive container recreation. Add `-e CYBORGDB_API_KEY=…` to lift the free-tier 1M-items-per-index cap.</Note>
             </Tab>
 
             <Tab title="Memory">
                 <CodeGroup>
                 ```bash Linux
                 sudo docker run -it --rm --network host \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   -e CYBORGDB_DB_TYPE=memory \
                   cyborginc/cyborgdb-service:latest
                 ```
 
                 ```bash macOS
                 sudo docker run -it -p 8000:8000 \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   -e CYBORGDB_DB_TYPE=memory \
                   cyborginc/cyborgdb-service:latest
                 ```
@@ -113,7 +109,6 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 <CodeGroup>
                 ```bash Linux
                 sudo docker run -it --network host \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   -e CYBORGDB_DB_TYPE=s3 \
                   -e CYBORGDB_S3_BUCKET=my-bucket \
                   -e CYBORGDB_S3_REGION=us-east-1 \
@@ -124,7 +119,6 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
                 ```bash macOS
                 sudo docker run -it -p 8000:8000 \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   -e CYBORGDB_DB_TYPE=s3 \
                   -e CYBORGDB_S3_BUCKET=my-bucket \
                   -e CYBORGDB_S3_REGION=us-east-1 \
@@ -141,7 +135,6 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 <CodeGroup>
                 ```bash Linux
                 sudo docker run -it --network host \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   -e CYBORGDB_DB_TYPE=s3 \
                   -e CYBORGDB_S3_BUCKET=my-bucket \
                   -e CYBORGDB_S3_ENDPOINT=http://minio:9000 \
@@ -152,7 +145,6 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
                 ```bash macOS
                 sudo docker run -it -p 8000:8000 \
-                  -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   -e CYBORGDB_DB_TYPE=s3 \
                   -e CYBORGDB_S3_BUCKET=my-bucket \
                   -e CYBORGDB_S3_ENDPOINT=http://host.docker.internal:9000 \
@@ -186,8 +178,9 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                     image: cyborginc/cyborgdb-service:latest
                     ports:
                       - "8000:8000"
-                    environment:
-                      - CYBORGDB_API_KEY=${CYBORGDB_API_KEY}
+                    # No API key needed; add CYBORGDB_API_KEY to lift the free-tier cap:
+                    # environment:
+                    #   - CYBORGDB_API_KEY=${CYBORGDB_API_KEY}
                     volumes:
                       - cyborgdb_data:/app/cyborgdb_data
                       - ./logs:/app/logs
@@ -292,7 +285,8 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
             <Tab title="Environment Variables">
                 | Variable | Description | Required | Example |
                 |----------|-------------|----------|---------|
-                | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
+                | `CYBORGDB_API_KEY` | Core license key. Free tier (1M items/index) when unset | ❌ | `cyborg_abc123...` |
+                | `CYBORGDB_SERVICE_ROOT_KEY` | Service auth root (an operator-chosen secret). Auth disabled (all requests allowed) when unset | ❌ | `a-long-random-secret` |
                 | `CYBORGDB_DB_TYPE` | Storage backend (`memory`, `disk`, `s3`) | ❌ (defaults to `disk`) | `s3` |
                 | `CYBORGDB_DISK_PATH` | Data directory for `disk` storage | ❌ | `/var/lib/cyborgdb` |
                 | `CYBORGDB_S3_BUCKET` | Bucket name for `s3` storage | Required for S3 | `my-bucket` |
@@ -301,7 +295,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
                 | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
 
-                <Note>Without `CYBORGDB_DB_TYPE`, the service uses `disk` storage rooted at `/app/cyborgdb_data` inside the container. For the full list (including S3 credentials and KMS), see the [Environment Variables](../advanced/env-vars) guide.</Note>
+                <Note>None of these are required — the container starts with no configuration, using `disk` storage rooted at `/app/cyborgdb_data`, free-tier licensing, and authentication disabled. For the full list (including S3 credentials and KMS), see the [Environment Variables](../advanced/env-vars) guide.</Note>
 
             </Tab>
 
