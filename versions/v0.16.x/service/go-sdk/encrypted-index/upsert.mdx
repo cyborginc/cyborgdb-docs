@@ -3,7 +3,7 @@ title: "Upsert"
 mode: "wide"
 ---
 
-Adds new vectors to the index or updates existing ones. Vector data is encrypted end-to-end before being stored.
+Adds new vectors to the index or updates existing ones. Vector data is encrypted with your key inside your environment (AES-256-GCM). The backing store holds only ciphertext.
 
 ```go
 // Upsert accepts either VectorItems or BinaryUpsertParams

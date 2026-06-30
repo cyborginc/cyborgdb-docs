@@ -78,12 +78,12 @@ CyborgDB disrupts the attack chain through a **defense-in-depth** approach that 
 
 ```mermaid
 graph TD
-    A[CyborgDB Core Principles] --> B[Zero Plaintext Exposure]
+    A[CyborgDB Core Principles] --> B[Ciphertext-Only Storage]
     A --> C[Forward Privacy]
     A --> D[Key Isolation]
     
-    B --> F[In-Use Encryption]
-    B --> G[End-to-End Protection]
+    B --> F[Encrypted Index Traversal]
+    B --> G[Per-Operation Key Derivation]
     
     C --> H[Query Unlinkability]
     C --> I[Insertion Privacy]
@@ -94,12 +94,12 @@ graph TD
 
 This security is achieved through several key mechanisms:
 
-- **In-use encryption**: Embeddings remain encrypted even during computation
+- **Encrypted index search**: Index traversal operates over ciphertext; only the final candidates are decrypted
 - **Query unlinkability**: Current searches cannot be correlated with historical patterns
 - **Insertion obfuscation**: New data additions reveal no information about existing content
 - **Temporal isolation**: Past compromises do not affect future security
 - **Customer key control**: Encryption keys remain under customer management
-- **Zero-knowledge operation**: CyborgDB operates without access to decryption keys
+- **Per-operation key derivation**: Keys are fetched from your KMS per-operation and zeroized immediately after; Cyborg Inc. never has access to keys or data
 
 <Tip>To learn more about how CyborgDB implements these protections, read the [Encryption guide](./encryption).</Tip>
 
@@ -110,7 +110,7 @@ CyborgDB provides mathematically provable protections against the threat scenari
 | Attack Vector | Standard Vector DB | CyborgDB Protection | Security Guarantee |
 |---------------|-------------------|---------------------|-------------------|
 | **Embedding extraction** | ❌ Immediate plaintext access | ✅ AES-256-GCM encrypted storage | Computational security (2^256 operations) |
-| **Memory scraping** | ❌ Plaintext in RAM | ✅ In-use encryption | Semantic security preservation |
+| **Memory scraping** | ❌ Plaintext in RAM | ✅ Encrypted storage & index; only final candidates decrypted during active queries | Reduced exposure |
 | **Inversion attacks** | ❌ Direct ML exploitation | ✅ Ciphertext-only exposure | Information-theoretic privacy |
 | **Query correlation** | ❌ Full access pattern visibility | ✅ Forward-private indexing | Unlinkability guarantee |
 | **Cross-system linking** | ❌ Trivial metadata correlation | ✅ Per-record key isolation | Computational indistinguishability |
@@ -131,7 +131,7 @@ CyborgDB makes securing your AI database as straightforward as deploying it:
     </Step>
 </Steps>
 
-By protecting data across its full lifecycle and designing for zero-plaintext exposure, CyborgDB ensures that you can innovate with AI without creating a breach magnet for your organization's most valuable intelligence.
+By protecting data across its full lifecycle — ciphertext-only storage, encrypted index traversal, and per-operation key derivation from your KMS — CyborgDB ensures that you can innovate with AI without creating a breach magnet for your organization's most valuable intelligence.
 
 ## 6. Further Reading
 

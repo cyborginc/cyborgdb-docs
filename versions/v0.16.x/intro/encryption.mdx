@@ -2,7 +2,7 @@
 title: "Encryption"
 ---
 
-CyborgDB encrypts **all sensitive data** — including embeddings, document IDs, contents, and metadata — **end-to-end**, ensuring that nothing is stored or processed in plaintext without authorization. This section details the cryptographic design, the indexing scheme, and how forward privacy is achieved.
+CyborgDB encrypts **all sensitive data** — including embeddings, document IDs, contents, and metadata — ensuring that nothing is stored in plaintext. Only the final candidates are decrypted. Keys are derived per-operation from your KMS and zeroized after use. This section details the cryptographic design, the indexing scheme, and how forward privacy is achieved.
 
 <Check>The technology discussed in this guide is covered by Cyborg's IP portfolio, including US Patents [12,164,664](https://patents.google.com/patent/US12164664), [11,860,875](https://patents.google.com/patent/US11860875), [11,423,028](https://patents.google.com/patent/US11423028) and [10,977,315](https://patents.google.com/patent/US10977315), among others. Any use is subject to licensing agreements.</Check>
 
@@ -44,8 +44,8 @@ Forward privacy ensures that newly inserted entries cannot be linked to prior se
 3. **Token-scoped search**  
    Search queries produce tokens that only target the minimal set of node keys required to execute the query. Unnecessary index nodes are ignored.
 
-4. **In-use encryption**  
-   Queries are executed over ciphertext nodes, preventing leakage from memory.
+4. **Encrypted index traversal**  
+   Queries traverse the index over ciphertext nodes. Only the final candidates are decrypted for reranking.
 
 ### Cryptographic Vector Indexing Flow
 
@@ -135,9 +135,9 @@ The retrieval and decryption process:
 1. **Token-based retrieval**: Search tokens are used as lookup keys in the encrypted KV store
 2. **Optional decryption**: Embeddings can be decrypted for final distance computation
 
-This ensures that the server can execute efficient ANN search while never having persistent access to plaintext embeddings or the ability to decrypt irrelevant index nodes.
+This ensures that the server can execute efficient ANN search over ciphertext. Only the final candidates are decrypted for reranking; keys are zeroized after each operation.
 
-Alternatively, node decryption can happen client-side, ensuring the server only deals with ciphertext and never sees plaintext embeddings. 
+In embedded deployments, decryption happens inside the application process. In service deployments, the service decrypts and returns results over TLS. 
 
 ## 4. Security Benefits
 
@@ -148,8 +148,8 @@ CyborgDB's multi-layered cryptographic design provides comprehensive protection 
 | Threat Scenario          | Protection Mechanism                                                             |
 | ------------------------ | -------------------------------------------------------------------------------- |
 | **Disk theft**           | AES-256-GCM encryption at rest                                                   |
-| **Network interception** | TLS + AEAD encryption in transit                                                 |
-| **Server compromise**    | In-use encryption prevents extraction of plaintext embeddings or node keys       |
+| **Network interception** | TLS encryption in transit                                                         |
+| **Server compromise**    | Encrypted index and storage; only final candidates are decrypted during active queries |
 | **Index leakage**        | Forward privacy hides relationship between new inserts and past searches         |
 | **Embedding inversion**  | Ciphertext embeddings are never exposed — inversion is not possible without keys |
 
@@ -157,8 +157,8 @@ CyborgDB's multi-layered cryptographic design provides comprehensive protection 
 
 | Property | Implementation | Benefit |
 |----------|----------------|---------|
-| **Query Privacy** | Token-scoped key derivation | Server never sees full index keys |
-| **Result Confidentiality** | End-to-end encryption | Plaintext results never leave client |
+| **Query Privacy** | Token-scoped key derivation | Keys are derived per-operation and zeroized after use |
+| **Result Confidentiality** | TLS transport + encrypted storage | Backing store never holds plaintext results; results returned over TLS |
 | **Forward Security** | Counter-based key evolution | Past compromises don't affect future queries |
 | **Index Obfuscation** | Ciphertext-only storage | Unused index nodes remain opaque |
 | **Correlation Resistance** | Per-insertion randomization | Identical vectors produce different ciphertexts |

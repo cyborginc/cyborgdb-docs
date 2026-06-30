@@ -53,7 +53,7 @@ cyborg::Client client(api_key, index_location, config_location, contents_locatio
 
 You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
 
-Bear in mind that all contents stored in the backing stores is end-to-end encrypted, meaning that **no index contents will be stored in plaintext**. For performance reasons, you may wish to use a "fast" backing store option for `index_location`, such as Redis.
+Bear in mind that all contents stored in the backing stores are encrypted — **no index contents are stored in plaintext**. For performance reasons, you may wish to use a "fast" backing store option for `index_location`, such as Redis.
 
 ## Creating the Client with Item Storage
 
