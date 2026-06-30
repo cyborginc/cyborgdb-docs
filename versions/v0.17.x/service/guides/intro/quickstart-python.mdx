@@ -12,10 +12,8 @@ mode: "wide"
 The Python service is ideal for developers who prefer managing Python environments directly, need custom dependency management, or want to integrate CyborgDB service into existing Python applications. It provides the same REST API functionality as the Docker version.
 
 <Steps>
-    <Step title="Get an API Key">
-        To use CyborgDB, you need an API key. You can get one from the [CyborgDB Admin Dashboard](https://cyborgdb.co/).
-
-        For quick evaluation, you can generate a temporary demo key using any of the SDKs:
+    <Step title="Get an API Key (Optional)">
+        The service runs without an API key — leave `CYBORGDB_API_KEY` unset and the core engine starts in free-tier mode, capped at 1,000,000 items per index. Set it to lift that cap. Get a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co/), or generate a temporary demo key with any of the SDKs:
 
         <CodeGroup>
         ```python Python
@@ -32,9 +30,11 @@ The Python service is ideal for developers who prefer managing Python environmen
         ```
         </CodeGroup>
 
-        Then use the printed key as your `CYBORGDB_API_KEY` when starting the service, and as the `api_key` when connecting with an SDK client.
+        Pass the key as `CYBORGDB_API_KEY` when starting the service. This is the core license key, not a service-authentication credential — it does not gate access to the REST API.
 
-        Make sure to keep your API key secure and do not share it publicly.
+        <Note>
+        Service authentication is separate and controlled by `CYBORGDB_SERVICE_ROOT_KEY`. Leave it unset (the default) and the service accepts all requests. Set it to require callers to send the root key — or a `cdbk_` user token minted under it — in the `X-API-Key` header. See [Managing Keys](../advanced/managing-keys).
+        </Note>
     </Step>
 
     <Step title="Check Prerequisites">
@@ -104,16 +104,18 @@ The Python service is ideal for developers who prefer managing Python environmen
 
         <Tabs>
             <Tab title="Disk (default)">
+                No environment variables are required — disk is the default and data goes to `~/.cyborgdb/data`. Set these only to override the defaults:
+
                 <CodeGroup>
                 ```bash Linux/macOS
-                # Minimal — disk is the default; data goes to ~/.cyborgdb/data
-                export CYBORGDB_API_KEY=cyborg_your_api_key_here
+                # Optional: lift the free-tier 1M-items-per-index cap
+                # export CYBORGDB_API_KEY=cyborg_your_api_key_here
                 # Optional: pin the data directory
                 # export CYBORGDB_DISK_PATH=/var/lib/cyborgdb
                 ```
 
                 ```bash .env File
-                CYBORGDB_API_KEY=cyborg_your_api_key_here
+                # CYBORGDB_API_KEY=cyborg_your_api_key_here
                 # CYBORGDB_DISK_PATH=/var/lib/cyborgdb
                 ```
                 </CodeGroup>
@@ -122,13 +124,14 @@ The Python service is ideal for developers who prefer managing Python environmen
             <Tab title="Memory">
                 <CodeGroup>
                 ```bash Linux/macOS
-                export CYBORGDB_API_KEY=cyborg_your_api_key_here
                 export CYBORGDB_DB_TYPE=memory
+                # Optional: lift the free-tier 1M-items-per-index cap
+                # export CYBORGDB_API_KEY=cyborg_your_api_key_here
                 ```
 
                 ```bash .env File
-                CYBORGDB_API_KEY=cyborg_your_api_key_here
                 CYBORGDB_DB_TYPE=memory
+                # CYBORGDB_API_KEY=cyborg_your_api_key_here
                 ```
                 </CodeGroup>
 
@@ -138,19 +141,20 @@ The Python service is ideal for developers who prefer managing Python environmen
             <Tab title="S3 (AWS)">
                 <CodeGroup>
                 ```bash Linux/macOS
-                export CYBORGDB_API_KEY=cyborg_your_api_key_here
                 export CYBORGDB_DB_TYPE=s3
                 export CYBORGDB_S3_BUCKET=my-bucket
                 export CYBORGDB_S3_REGION=us-east-1
+                # Optional: lift the free-tier 1M-items-per-index cap
+                # export CYBORGDB_API_KEY=cyborg_your_api_key_here
                 # On EC2/ECS/EKS the instance role is picked up automatically.
                 # Off AWS, set AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY instead.
                 ```
 
                 ```bash .env File
-                CYBORGDB_API_KEY=cyborg_your_api_key_here
                 CYBORGDB_DB_TYPE=s3
                 CYBORGDB_S3_BUCKET=my-bucket
                 CYBORGDB_S3_REGION=us-east-1
+                # CYBORGDB_API_KEY=cyborg_your_api_key_here
                 ```
                 </CodeGroup>
             </Tab>
@@ -158,21 +162,22 @@ The Python service is ideal for developers who prefer managing Python environmen
             <Tab title="S3 (MinIO / R2)">
                 <CodeGroup>
                 ```bash Linux/macOS
-                export CYBORGDB_API_KEY=cyborg_your_api_key_here
                 export CYBORGDB_DB_TYPE=s3
                 export CYBORGDB_S3_BUCKET=my-bucket
                 export CYBORGDB_S3_ENDPOINT=https://minio.internal:9000
                 export CYBORGDB_S3_ACCESS_KEY=minioadmin
                 export CYBORGDB_S3_SECRET_KEY=minioadmin
+                # Optional: lift the free-tier 1M-items-per-index cap
+                # export CYBORGDB_API_KEY=cyborg_your_api_key_here
                 ```
 
                 ```bash .env File
-                CYBORGDB_API_KEY=cyborg_your_api_key_here
                 CYBORGDB_DB_TYPE=s3
                 CYBORGDB_S3_BUCKET=my-bucket
                 CYBORGDB_S3_ENDPOINT=https://minio.internal:9000
                 CYBORGDB_S3_ACCESS_KEY=minioadmin
                 CYBORGDB_S3_SECRET_KEY=minioadmin
+                # CYBORGDB_API_KEY=cyborg_your_api_key_here
                 ```
                 </CodeGroup>
 
@@ -221,7 +226,8 @@ The Python service is ideal for developers who prefer managing Python environmen
             <Tab title="Environment Variables">
                 | Variable | Description | Required | Example |
                 |----------|-------------|----------|---------|
-                | `CYBORGDB_API_KEY` | Your CyborgDB API key | ✅ | `cyborg_abc123...` |
+                | `CYBORGDB_API_KEY` | Core license key. Free tier (1M items/index) when unset | ❌ | `cyborg_abc123...` |
+                | `CYBORGDB_SERVICE_ROOT_KEY` | Service auth root (an operator-chosen secret). Auth disabled (all requests allowed) when unset | ❌ | `a-long-random-secret` |
                 | `CYBORGDB_DB_TYPE` | Storage backend (`memory`, `disk`, `s3`) | ❌ (defaults to `disk`) | `s3` |
                 | `CYBORGDB_DISK_PATH` | Data directory for `disk` storage | ❌ | `/var/lib/cyborgdb` |
                 | `CYBORGDB_S3_BUCKET` | Bucket name for `s3` storage | Required for S3 | `my-bucket` |
@@ -230,7 +236,7 @@ The Python service is ideal for developers who prefer managing Python environmen
                 | `SSL_CERT_PATH` | Path to SSL certificate file | ❌ | `/etc/ssl/certs/server.crt` |
                 | `SSL_KEY_PATH` | Path to SSL private key file | ❌ | `/etc/ssl/private/server.key` |
 
-                <Note>Without `CYBORGDB_DB_TYPE`, the service uses `disk` storage rooted at `~/.cyborgdb/data`. For the full list (including S3 credentials and KMS), see the [Environment Variables](../advanced/env-vars) guide.</Note>
+                <Note>None of these are required — the service starts with no configuration, using `disk` storage rooted at `~/.cyborgdb/data`, free-tier licensing, and authentication disabled. For the full list (including S3 credentials and KMS), see the [Environment Variables](../advanced/env-vars) guide.</Note>
 
             </Tab>
 

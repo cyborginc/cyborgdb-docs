@@ -22,27 +22,27 @@ the new `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `CYBORGDB_API_KEY` | _(Optional)_ Your CyborgDB license key. Doubles as the value clients must send in the `X-API-Key` request header when `REQUIRE_API_KEY=true`. If unset, the service runs in **free tier** mode (per-index cap of 1,000,000 items). Set a paid key for unlimited usage. | `cyborg_abc123...` |
+| `CYBORGDB_API_KEY` | _(Optional)_ Your CyborgDB license key, forwarded to the core engine. If unset, the service runs in **free tier** mode (per-index cap of 1,000,000 items). Set a paid key for unlimited usage. This is **not** a service-authentication credential — it does not gate access to the REST API. | `cyborg_abc123...` |
 
 <Note>
 **Free tier vs paid.** `CYBORGDB_API_KEY` is the single switch between the two:
 
-- **Unset** → free tier. cyborgdb-core enforces a 1M-item-per-index cap. The startup banner prints `CYBORGDB_API_KEY not set — running in free tier`. For evaluation only.
+- **Unset** → free tier. cyborgdb-core enforces a 1M-item-per-index cap. At startup the service logs `CYBORGDB_API_KEY not set — the service will run in free tier`. For evaluation only.
 - **Set to a paid key** (from the [CyborgDB dashboard](https://cyborgdb.co/)) → unlimited items, full feature set.
-- **Set to a demo key** (from `cyborgdb.get_demo_api_key()` / `getDemoApiKey()` / `cyborgdb.GetDemoAPIKey(...)`) → also free tier, time-limited. Useful for getting a real-looking key into `X-API-Key` without dashboard signup.
+- **Set to a demo key** (from `cyborgdb.get_demo_api_key()` / `getDemoApiKey()` / `cyborgdb.GetDemoAPIKey(...)`) → also free tier, time-limited. Useful for evaluating without dashboard signup.
 
-In every case, the same value is what clients pass in the `X-API-Key` header (assuming `REQUIRE_API_KEY=true`, the default).
+This key controls licensing only. Request authentication is a separate concern, gated by `CYBORGDB_SERVICE_ROOT_KEY` (see [RBAC / Multi-Tenancy](#rbac-multi-tenancy)).
 </Note>
 
 <Warning>Storage configuration is optional — `disk` is used by default.</Warning>
 
 ## RBAC / Multi-Tenancy
 
-CyborgDB Service can run in single-key mode (default) or with role-based access control enabled. RBAC is opt-in: setting `CYBORGDB_SERVICE_ROOT_KEY` switches the service into RBAC mode, after which the legacy single key is no longer accepted on index routes — only the root key or a minted per-user `cdbk_…` key.
+`CYBORGDB_SERVICE_ROOT_KEY` is the single source of truth for request authentication. Leave it unset (the default) and authentication is disabled — every request is accepted, and the service logs a startup warning to that effect. Set it and authentication turns on: routes then accept only the root key or a per-user `cdbk_…` token minted under it, sent in the `X-API-Key` header.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `CYBORGDB_SERVICE_ROOT_KEY` | When set, enables RBAC. The holder of this key has full admin access and can mint per-user API keys via `POST /v1/indexes/{index_name}/users`. Per-user keys are scoped to one index with `read` / `write` permissions enforced cryptographically. | unset (RBAC off) |
+| `CYBORGDB_SERVICE_ROOT_KEY` | When set, enables authentication and RBAC. The holder of this key has full admin access and can mint per-user API keys via `POST /v1/indexes/{index_name}/users`. Per-user keys are scoped to one index with `read` / `write` permissions enforced cryptographically. When unset, authentication is disabled. | unset (auth off) |
 | `INDEX_KEK_CACHE_TTL_SECONDS` | TTL for plaintext index KEKs in the service-side cache. Shorter = faster KMS revocation propagation; longer = fewer KMS calls. | `60` |
 
 See the [Multi-Tenancy guide](./multi-tenancy) for the full operator playbook (key kinds, provisioning users, KMS-backed constraint, revocation).
@@ -134,9 +134,8 @@ export CYBORGDB_S3_SECRET_KEY=minioadmin
         |----------|-------------|---------|
         | `PORT` | HTTP port for the service | `8000` |
         | `CYBORGDB_SERVICE_LOG_LEVEL` | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
-        | `REQUIRE_API_KEY` | Whether the `X-API-Key` header is required on requests | `true` |
 
-        <Warning>When `REQUIRE_API_KEY=true` (the default), clients must send a bearer credential in `X-API-Key`. That credential is `CYBORGDB_API_KEY` (legacy single-key auth, also the license key — see above) or `CYBORGDB_SERVICE_ROOT_KEY` (RBAC / multi-tenant). If neither is set, every request is rejected with 401 and the service emits a startup warning. To run unauthenticated, set `REQUIRE_API_KEY=false` explicitly — note this is independent of the free-tier / paid-tier distinction, which is gated only by `CYBORGDB_API_KEY`'s value.</Warning>
+        <Warning>Request authentication is controlled solely by `CYBORGDB_SERVICE_ROOT_KEY` (see [RBAC / Multi-Tenancy](#rbac-multi-tenancy)). When it is unset, authentication is disabled and every request is accepted — the service logs a startup warning. When it is set, clients must send the root key or a `cdbk_` user token in the `X-API-Key` header, or the request is rejected with 401. This is independent of the free-tier / paid-tier distinction, which is gated only by `CYBORGDB_API_KEY`.</Warning>
     </Accordion>
     <Accordion title="TLS / HTTPS">
         | Variable | Description | Default |
