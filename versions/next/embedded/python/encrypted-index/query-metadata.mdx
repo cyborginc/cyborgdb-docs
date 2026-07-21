@@ -1,0 +1,87 @@
+---
+title: "Query Metadata"
+mode: "wide"
+noindex: true
+---
+
+Runs a metadata-only query — no query vector required. `query_metadata()` evaluates a filter expression entirely against the encrypted metadata index and returns the IDs of matching items.
+
+```python
+def query_metadata(self,
+                   filters: Dict[str, Any] = None,
+                   top_k: int = None,
+                   order_by: Union[str, Dict[str, int]] = None,
+                   ascending: bool = True,
+                   *,
+                   index_key: bytes = None,
+                   user_id: bytes = None) -> List[str]
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, using a subset of the [MongoDB Query and Projection Operators](https://www.mongodb.com/docs/manual/reference/operator/query/). |
+| `top_k` | `int` | `None` | _(Optional)_ Maximum number of matching IDs to return. When `None`, **all** matches are returned. Applied **after** sorting when `order_by` is set. |
+| `order_by` | `str` or `Dict[str, int]` | `None` | _(Optional)_ Sort the matches by a metadata field before `top_k` is applied. Accepts a field name (direction controlled by `ascending`) or a MongoDB-style single-field dict, e.g. `{"views": -1}` for descending. |
+| `ascending` | `bool` | `True` | _(Optional)_ Sort direction when `order_by` is a field name. Ignored when `order_by` is a dict (the dict's `1` / `-1` value controls direction). |
+| `index_key` | `bytes` | `None` | _(Optional, keyword-only)_ Override the per-operation index key, as in [`query()`](./query#per-operation-key-override). |
+| `user_id` | `bytes` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. |
+
+<Note>
+- Without `order_by`, the result is an **unordered** subset of matching IDs.
+- Items missing the `order_by` field (or holding a non-scalar value) sort last.
+- Metadata-only queries work on **untrained** indexes.
+- `$regex`, `$type`, and nested dot-path fields are not supported yet.
+</Note>
+
+### Returns
+
+`List[str]`: IDs of the items whose metadata matches `filters`.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if `order_by` is a dict with more than one field.
+        - Throws if `order_by` is neither a field name (`str`) nor a single-field dict.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the query could not be executed.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+_Filter only (all matches, unordered)_:
+
+```python
+ids = index.query_metadata(filters={"label": "dog"})
+# Example output:
+# ["101", "102", "205"]
+```
+
+_Filter with operators and a result cap_:
+
+```python
+ids = index.query_metadata(
+    filters={"$and": [{"label": "cat"}, {"confidence": {"$gte": 0.9}}]},
+    top_k=10,
+)
+```
+
+_Sorted by a metadata field_:
+
+```python
+# Ascending by "views" (field name + ascending flag)
+ids = index.query_metadata(filters={"label": "dog"}, order_by="views")
+
+# Descending by "views" (MongoDB-style dict); top_k applies after the sort
+ids = index.query_metadata(
+    filters={"label": "dog"},
+    order_by={"views": -1},
+    top_k=5,
+)
+```
+
+For metadata syntax and supported operators, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).

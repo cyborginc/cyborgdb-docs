@@ -33,7 +33,7 @@ def query(self,
 | `filters` | `Dict[str, Any]` | `{}` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `include` | `List[str]` | `[]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
-| `rerank_mult` | `int` | `10` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
+| `rerank_mult` | `int` | `50` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
 | `index_key` | `bytes` | `None` | _(Optional, keyword-only)_ Override the per-operation index key. See [Per-operation key override](#per-operation-key-override). |
 | `user_id` | `bytes` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Per-operation key override](#per-operation-key-override). |
 
@@ -159,7 +159,7 @@ def query(self,
 | `filters` | `Dict[str, Any]` | `{}` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `include` | `List[str]` | `[]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
-| `rerank_mult` | `int` | `10` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
+| `rerank_mult` | `int` | `50` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
 | `index_key` | `bytes` | `None` | _(Optional, keyword-only)_ Override the per-operation index key. See [Per-operation key override](#per-operation-key-override). |
 | `user_id` | `bytes` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Per-operation key override](#per-operation-key-override). |
 
