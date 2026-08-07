@@ -1,0 +1,87 @@
+---
+title: "Load Sample Dataset"
+mode: "wide"
+noindex: true
+---
+
+Loads a hosted sample dataset, ready to upsert and query — useful for quickstarts, demos, and tests without generating your own vectors. The dataset is fetched from a public S3 bucket on first use and cached locally for subsequent calls.
+
+```python
+def load_sample_dataset(name: str = "quickstart-75k",
+                        cache_dir: str = None,
+                        force_download: bool = False) -> SampleDataset
+```
+
+`load_sample_dataset` is a module-level function:
+
+```python
+import cyborgdb
+
+dataset = cyborgdb.load_sample_dataset()
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `name` | `str` | `"quickstart-75k"` | _(Optional)_ Name of the dataset to load. `"quickstart-75k"` is currently the only available dataset. |
+| `cache_dir` | `str` | `None` | _(Optional)_ Directory to cache the decompressed dataset in. Defaults to `$XDG_CACHE_HOME/cyborgdb` or `~/.cache/cyborgdb`. |
+| `force_download` | `bool` | `False` | _(Optional)_ Re-download even if a cached copy exists. |
+
+<Note>Each dataset's SHA-256 digest is pinned in the SDK and verified both after download and on every cache read, so a tampered download or cache file is rejected and re-fetched rather than trusted.</Note>
+
+### Returns
+
+`SampleDataset`: A dataclass combining dataset metadata, upsert-ready convenience fields, the raw parallel arrays, and ground-truth fixture data:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `str` | Dataset identifier, e.g. `"quickstart-75k"` |
+| `version` | `int` | Dataset schema version |
+| `description` | `str` | Human-readable description |
+| `dimension` | `int` | Vector dimensionality |
+| `metric` | `str` | Distance metric the vectors were generated for |
+| `count` | `int` | Number of items in the dataset |
+| `items` | `List[Dict]` | Items with `id`, `vector`, and `metadata` keys — pass directly to [`upsert()`](./encrypted-index/upsert) |
+| `sample_queries` | `List[List[float]]` | The first 10 query vectors, for quick similarity-search demos |
+| `example_filters` | `List[Dict]` | Curated, guaranteed-to-match metadata filters, each with `name`, `filter`, and `demonstrates` keys |
+| `ids` / `vectors` / `metadata` | parallel lists | Raw arrays, aligned by index |
+| `queries`, `metadata_queries`, `metadata_query_names`, `untrained_neighbors`, `trained_neighbors`, `untrained_metadata_matches`, `trained_metadata_matches`, `untrained_metadata_neighbors`, `trained_metadata_neighbors`, `untrained_recall`, `trained_recall`, `num_untrained_vectors`, `num_trained_vectors` | ground truth | Fixture data for validating recall / accuracy |
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the dataset name is unknown.
+    </Accordion>
+    <Accordion title="RuntimeError">
+        - Throws if the download fails.
+        - Throws if the downloaded dataset fails its integrity (SHA-256) check.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```python
+import cyborgdb
+
+client = cyborgdb.Client('https://localhost:8000', 'your-service-root-key')
+index_key = client.generate_key()
+index = client.create_index(index_name="demo", index_key=index_key)
+
+# Load the sample dataset (downloads on first use, cached afterwards)
+dataset = cyborgdb.load_sample_dataset()
+
+# Populate the index
+index.upsert(dataset.items)
+
+# Run a similarity search with a bundled query vector
+results = index.query(query_vectors=dataset.sample_queries[0], top_k=5)
+
+# Try a curated metadata filter
+example = dataset.example_filters[0]
+results = index.query(
+    query_vectors=dataset.sample_queries[0],
+    filters=example["filter"],
+)
+```
