@@ -1,0 +1,136 @@
+---
+title: "Create Index"
+mode: "wide"
+noindex: true
+---
+
+Creates and returns a new encrypted index. CyborgDB v0.17 uses a single **DiskIVF** index type, so there is no longer an `index_config` parameter to choose between index variants.
+
+```python
+def create_index(self,
+                 index_name: str,
+                 index_key: bytes,
+                 *,
+                 dimension: int | None = None,
+                 storage_precision = None,
+                 embedding_model: str | None = None,
+                 metric: str | None = None,
+                 metadata_schema: dict | None = None,
+                 logger: Logger | None = None) -> EncryptedIndex
+```
+
+<Note>All parameters after `index_key` are keyword-only.</Note>
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|---------------|--------------------|---------|----------------------------------------------------------------------------------------|
+| `index_name` | `str` | - | Name of the index to create. Must be unique. |
+| `index_key` | `bytes` | - | 32-byte encryption key (KEK) for the index, used to secure the index data. |
+| `dimension` | `int` \| `None` | `None` | _(Optional, keyword-only)_ Dimensionality of vector embeddings. When `None`, auto-detected from the first upsert (or derived from `embedding_model`). |
+| `storage_precision` | `np.float32` \| `np.float16` | `np.float32` | _(Optional, keyword-only)_ On-disk dtype for the rerank vectors. `np.float16` (or `"float16"`) halves the disk footprint with a slight precision loss. See [storage precision](../types#storage-precision). |
+| `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of the SentenceTransformer model to use for automatic text embeddings. |
+| `metric` | `str` \| `None` | `"euclidean"` | _(Optional, keyword-only)_ Distance metric to use: `"euclidean"`, `"cosine"`, or `"squared_euclidean"`. See [`DistanceMetric`](../types#distancemetric). |
+| `metadata_schema` | `dict` \| `None` | `None` | _(Optional, keyword-only)_ Per-field metadata indexing policy, keyed by field name (dot-paths for nested fields). Fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
+| `logger` | [`Logger`](./logger) | `None` | _(Optional, keyword-only)_ Logger instance for capturing operation logs. |
+
+<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>
+
+### Metadata Schema
+
+`metadata_schema` sets the per-field indexing policy. Metadata stays schemaless — this controls how each field is indexed, not what may be stored. Fields left out inherit the default (indexed and filterable).
+
+```python
+metadata_schema = {
+    "title":         {"filterable": True, "pattern": True},   # regex-searchable
+    "internal_blob": {"filterable": False},                    # stored, not index-filterable
+}
+```
+
+Two knobs per field:
+
+- `filterable` (default `True`) — build inverted-index postings so filters on the field resolve from the index (pre-filter path, and the only path [`query_metadata()`](../encrypted-index/query-metadata) uses). Setting `False` still stores the field, but a filter referencing it forces the dense post-filter path on [`query()`](../encrypted-index/query#filters) — cheaper writes, slower filtered queries.
+- `pattern` (default `False`) — additionally build the field's regex dictionary, which is what makes `$regex` / `$contains` index-resolvable. Requires `filterable=True`.
+
+On `query()` these are a performance hint: filters that miss the index just fall back to a post-filter over the decrypted metadata, same rows either way. On `query_metadata()` they are enforced — `$regex` / `$contains` on a non-`pattern` field, or any filter on a `filterable=False` field, raises `ValueError`.
+
+### Returns
+
+`EncryptedIndex`: An instance of the newly created encrypted index.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if the index name is not unique.
+        - Throws if the index configuration is invalid.
+        - Throws if `metadata_schema` sets `pattern=True` without `filterable=True`.
+        - Throws if the index could not be created.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+#### Automatic Setup
+
+```python
+import cyborgdb_core as cyborgdb
+import secrets
+
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+
+index_name = "my_index"
+index_key = secrets.token_bytes(32)  # 32-byte index KEK — store securely
+
+# Dimension auto-detected from the first upsert
+index = client.create_index(index_name, index_key)
+```
+
+#### Explicit Setup
+
+```python
+import cyborgdb_core as cyborgdb
+import numpy as np
+import secrets
+
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+
+index_name = "my_index"
+index_key = secrets.token_bytes(32)  # 32-byte index KEK — store securely
+
+# Optional: Set up logging
+logger = cyborgdb.Logger.instance()
+logger.configure(level="info", to_file=True, file_path="index_creation.log")
+
+index = client.create_index(
+    index_name,
+    index_key,
+    dimension=128,
+    storage_precision=np.float16,  # halve on-disk rerank-vector footprint
+    metric="cosine",
+    logger=logger,
+)
+```
+
+#### With Per-Field Metadata Policy
+
+```python
+# Opt `title` into the regex dictionary; keep `internal_blob` out of the
+# inverted index (still stored, still filterable via post-filter on query()).
+index = client.create_index(
+    "docs_index",
+    index_key,
+    dimension=384,
+    metadata_schema={
+        "title":         {"filterable": True, "pattern": True},
+        "internal_blob": {"filterable": False},
+    },
+)
+
+# $regex now resolves from the index on query_metadata() and query() alike.
+ids = index.query_metadata(filters={"title": {"$regex": "^intro"}})
+```

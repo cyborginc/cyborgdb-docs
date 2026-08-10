@@ -1,0 +1,150 @@
+---
+title: "Query by Metadata"
+mode: "wide"
+api: "POST /v1/vectors/query_metadata"
+playground: "simple"
+noindex: true
+---
+
+Find items by metadata alone — no query vector, no distances. The filter is resolved entirely against the encrypted metadata index and the matching item IDs are returned. Works on untrained indexes.
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+
+## Request Body
+
+```json
+{
+  "index_name": "my_index",
+  "index_key": "64_character_hex_string_representing_32_bytes",
+  "filters": {"label": "dog"},
+  "top_k": 10,
+  "order_by": "views",
+  "ascending": false
+}
+```
+
+<Expandable title="parameters">
+  <ParamField body="index_name" type="string" required="true">
+    Name of the target index
+  </ParamField>
+  <ParamField body="index_key" type="string">
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key via the stored KMSBlob).
+  </ParamField>
+  <ParamField body="filters" type="object" default={{}}>
+    Metadata filters as a JSON object; empty matches everything. Same operators as `/v1/vectors/query` except `$type`. See [Filter constraints](#filter-constraints) below.
+  </ParamField>
+  <ParamField body="top_k" type="integer">
+    Cap on the number of IDs returned; omit for all matches. Applied **after** `order_by`, so it yields the first N of the sorted result.
+  </ParamField>
+  <ParamField body="order_by" type="string">
+    Metadata field to sort matches by, applied post-filter. Unordered when omitted. Items missing the field, or holding a non-scalar, sort last.
+  </ParamField>
+  <ParamField body="ascending" type="boolean" default={true}>
+    Sort direction when `order_by` is set. Ignored when `order_by` is omitted.
+  </ParamField>
+</Expandable>
+
+## Filter constraints
+
+Unlike `/v1/vectors/query`, which falls back to a post-filter over the decrypted metadata when a filter cannot be answered from the index, `/v1/vectors/query_metadata` has no fallback stage — every filter leaf must be resolvable from the encrypted metadata index. That makes the index's [`metadata_schema`](../client/create-index#metadata-schema) enforcement instead of a performance hint:
+
+- `$regex` / `$contains` require the field to have been declared `pattern: true` at index create time.
+- A field declared `filterable: false` cannot be filtered on here at all.
+- `$type` is not supported on this endpoint.
+
+Any of these come back as 400 with the reason; use `/v1/vectors/query` with a vector for filters that need the post-filter path. Nested dot-paths (`loc.city`) are supported.
+
+**Supported operators:** `$and`, `$or`, `$nor`, `$not`, `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$nin`, `$exists`, `$regex` (pattern fields only), `$contains` (pattern fields only).
+
+## Response
+
+```json
+{
+  "ids": ["item_1", "item_3", "item_7"],
+  "count": 3
+}
+```
+
+<Expandable title="response fields">
+  <ParamField body="ids" type="array[string]">
+    Matching item IDs, ordered by `order_by` when set, otherwise an unordered subset.
+  </ParamField>
+  <ParamField body="count" type="integer">
+    Number of IDs returned.
+  </ParamField>
+</Expandable>
+
+## Exceptions
+
+- `400`: Filter references a field the metadata index cannot resolve — a `$regex`/`$contains` on a non-`pattern` field, a `filterable: false` field, or an unsupported operator
+- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
+- `404`: Index not found
+- `422`: Invalid request parameters
+- `500`: Internal server error
+
+## Example Usage
+
+**Filter only (all matches, unordered):**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/query_metadata" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "filters": {"label": "dog"}
+     }'
+```
+
+**Combined operators with a result cap:**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/query_metadata" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "filters": {
+         "$and": [
+           {"label": "cat"},
+           {"confidence": {"$gte": 0.9}}
+         ]
+       },
+       "top_k": 10
+     }'
+```
+
+**Sorted descending by a metadata field (top_k applies after the sort):**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/query_metadata" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "filters": {"label": "dog"},
+       "order_by": "views",
+       "ascending": false,
+       "top_k": 5
+     }'
+```
+
+**Regex match (field must have been created with `pattern: true`):**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/query_metadata" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "docs_index",
+       "index_key": "your_64_character_hex_key_here",
+       "filters": {"title": {"$regex": "^intro"}}
+     }'
+```

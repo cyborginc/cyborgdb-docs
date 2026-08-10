@@ -1,0 +1,105 @@
+---
+title: "Query Metadata"
+mode: "wide"
+noindex: true
+---
+
+Runs a metadata-only query — no query vector required. `queryMetadata()` resolves the filter entirely against the encrypted metadata index and returns the matching item IDs. Works on untrained indexes.
+
+```typescript
+async queryMetadata({
+    filters?: FilterExpression,
+    topK?: number,
+    orderBy?: string | { [field: string]: number },
+    ascending?: boolean,  // default true
+}): Promise<{ ids: string[]; count: number }>
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `filters` | `FilterExpression` | `{}` | _(Optional)_ Metadata filters; omitted or empty matches everything. Same operators as [`query()`](./query) except `$type`. See [Filter constraints](#filter-constraints) below. |
+| `topK` | `number` | `undefined` | _(Optional)_ Cap on IDs returned; omit for all matches. Applied **after** `orderBy`, so it yields the first N of the sorted result. |
+| `orderBy` | `string \| { [field: string]: number }` | `undefined` | _(Optional)_ Sort matches by a metadata field, post-filter. Accepts a field name (direction controlled by `ascending`) or a MongoDB-style single-field object, e.g. `{ views: -1 }` for descending. |
+| `ascending` | `boolean` | `true` | _(Optional)_ Sort direction when `orderBy` is a plain field name. Ignored when `orderBy` is an object (the `1` / `-1` value controls direction). |
+
+<Note>
+- Without `orderBy`, the returned IDs are an **unordered** subset of matches.
+- Items missing the `orderBy` field (or holding a non-scalar value) sort last.
+</Note>
+
+### Filter constraints
+
+Unlike [`query()`](./query), which falls back to a post-filter over the decrypted metadata when a filter cannot be answered from the index, `queryMetadata()` has no fallback stage — every filter leaf must be resolvable from the encrypted metadata index. That makes the index's [`metadataSchema`](../client/create-index#metadata-schema) enforcement instead of a performance hint:
+
+- `$regex` / `$contains` require the field to have been declared `pattern: true` at index create time.
+- A field declared `filterable: false` cannot be filtered on here at all.
+- `$type` is not supported on this endpoint.
+
+Any of these come back as 400 with the reason; use [`query()`](./query) with a vector for filters that need the post-filter path. Nested dot-paths (`loc.city`) are supported.
+
+### Metadata Schema
+
+`metadataSchema()` returns the per-field indexing policy recorded when the index was created:
+
+```typescript
+async metadataSchema(): Promise<{ [field: string]: MetadataFieldPolicy }>
+```
+
+Empty object when the index uses the default index-everything posture, or when the service predates the feature — callers never have to distinguish those from a missing field.
+
+### Returns
+
+`Promise<{ ids: string[]; count: number }>`: Matching item IDs — ordered by `orderBy` when set, otherwise an unordered subset — and their count.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="Error">
+        - Throws if `orderBy` is an object with anything other than exactly one field.
+        - Throws if `orderBy` is an object whose value is not a number.
+        - Throws if the server rejects the filter (400) — a `$regex`/`$contains` on a non-`pattern` field, a `filterable: false` field, or an unsupported operator.
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Throws if the CyborgDB service is unavailable, unreachable, or returns 5xx.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+```typescript
+import { Client } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
+const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey });
+
+// Filter only (all matches, unordered)
+const dogs = await index.queryMetadata({ filters: { label: 'dog' } });
+// { ids: ["101", "102", "205"], count: 3 }
+
+// Combined operators + result cap
+const highConf = await index.queryMetadata({
+    filters: { $and: [{ label: 'cat' }, { confidence: { $gte: 0.9 } }] },
+    topK: 10,
+});
+
+// Sorted by "views", descending, cap 5 (top_k applies after the sort)
+const top5 = await index.queryMetadata({
+    filters: { label: 'dog' },
+    orderBy: { views: -1 },
+    topK: 5,
+});
+
+// Regex match — `title` must have been created with `pattern: true`
+const intros = await index.queryMetadata({
+    filters: { title: { $regex: '^intro' } },
+});
+
+// Inspect the index's metadata policy
+const schema = await index.metadataSchema();
+// { title: { filterable: true, pattern: true }, ... }
+```
+
+For metadata syntax and supported operators, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).
