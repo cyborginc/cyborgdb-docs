@@ -12,11 +12,9 @@ To delete an existing encrypted index, you can [load it](./load-index) and then 
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
 
-# Get your API key
-api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
-# Create a client (use the same backing store the index was created with)
-client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+# Create a client (use the same backing store the index was created with).
+# No API key needed — the client runs in free-tier mode.
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 # Provide the SAME 32-byte key used when the index was created.
 # Retrieve it from your KMS/secret store — a fresh random key here would fail the load.
@@ -25,8 +23,8 @@ index_key = bytes.fromhex("...")  # the 64-char hex of your existing 32-byte ind
 # Load the encrypted index
 index = client.load_index("my_index", index_key)
 
-# Delete the index
-index.delete_index()
+# Delete the index (index_key is required)
+index.delete_index(index_key=index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -34,11 +32,9 @@ index.delete_index()
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>
 
-// Get your API key
-std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
-
-// Create a client (use the same backing store the index was created with)
-cyborg::Client client(api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
+// Create a client (use the same backing store the index was created with).
+// Pass "" for api_key to run in free-tier mode.
+cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 
 // Provide the index key used when creating the index
 // Example key (32 bytes)

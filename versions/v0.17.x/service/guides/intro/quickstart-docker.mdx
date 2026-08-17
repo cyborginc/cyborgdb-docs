@@ -278,6 +278,56 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
         You should see a response indicating the service is healthy and ready to accept requests.
     </Step>
 
+    <Step title="Run Your First Query">
+        With the service running, install the Python client and complete a full connect → index → upsert → query loop:
+
+        ```bash
+        pip install cyborgdb
+        ```
+
+        ```python Python icon="python"
+        import cyborgdb
+        import secrets
+
+        # Connect to the running service.
+        client = cyborgdb.Client(base_url="http://localhost:8000")
+
+        # Generate an encryption key for the index.
+        # WARNING: store this key securely — data encrypted with a lost key is unrecoverable.
+        index_key = secrets.token_bytes(32)
+
+        # Create an encrypted index.
+        index = client.create_index(index_name="my_index", index_key=index_key)
+
+        # Upsert some items (index_key is required on every data operation).
+        items = [
+            {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "contents": "Hello!"},
+            {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8], "contents": "Bonjour!"},
+            {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "contents": "Hola!"},
+        ]
+        index.upsert(items, index_key=index_key)
+
+        # Query — include distance + metadata, then chain get() for contents.
+        results = index.query(
+            query_vectors=[0.1, 0.2, 0.3, 0.4],
+            top_k=2,
+            include=["distance", "metadata"],
+            index_key=index_key,
+        )
+        top_items = index.get([r["id"] for r in results], index_key=index_key)
+        for r, item in zip(results, top_items):
+            print(f"ID: {r['id']}  Distance: {r['distance']:.4f}  Contents: {item['contents'].decode()}")
+        ```
+
+        <Warning>
+        **Store `index_key` before you upsert any data.** CyborgDB has no key-recovery path — data encrypted with a lost key is unrecoverable. For anything past evaluation, keep the key in AWS Secrets Manager, Vault, or your KMS. See [Managing Keys](../advanced/managing-keys).
+        </Warning>
+
+        <Note>
+        `index_key` is a 32-byte per-index encryption key you generate and hold. It's separate from `CYBORGDB_API_KEY` (the core license key) and `CYBORGDB_SERVICE_ROOT_KEY` (service authentication).
+        </Note>
+    </Step>
+
         <Step title="Advanced Configuration">
         For production deployments, consider these additional configurations:
 
@@ -346,19 +396,13 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
     </Step>
 
     <Step title="Next Steps">
-        Now that your CyborgDB service is running, you can interact with it using client SDKs:
+        The Python client above is the fastest way to reach a first query. To integrate from another language, install the equivalent client SDK:
 
-        **Install Client SDKs:**
-        
         <CodeGroup>
-        ```bash Python icon="python"
-        pip install cyborgdb
-        ```
-
         ```bash JavaScript icon="js"
         npm install cyborgdb
         ```
-        
+
         ```bash TypeScript icon="code"
         npm install cyborgdb
         ```

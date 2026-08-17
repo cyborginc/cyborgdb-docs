@@ -7,7 +7,7 @@ mode: "wide"
 
 ## Constructor
 
-```python
+```text
 Client(api_key: str = "",
        storage_config: StorageConfig,
        cpu_threads: int = 0,
@@ -52,11 +52,11 @@ client1 = cyborgdb.Client(
     cpu_threads=4
 )
 
-# Example 2: With an API key for unlimited usage, GPU on upsert and train
-api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+# Example 2: With an API key for unlimited usage, GPU on upsert and train.
+# Get an API key from https://cyborgdb.co — see ../../../intro/get-api-key.
 gpu_config = cyborgdb.GPUConfig(upsert=True, train=True)
 client2 = cyborgdb.Client(
-    api_key=api_key,
+    api_key="cyborg_...",
     storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"),
     cpu_threads=4,
     gpu_config=gpu_config
@@ -76,7 +76,7 @@ client2 = cyborgdb.Client(
 Returns the number of CPU threads configured for this client.
 
 ```python
-def get_cpu_threads(self) -> int
+def get_cpu_threads(self) -> int: ...
 ```
 
 #### Returns
@@ -97,7 +97,7 @@ print(f"Using {threads} CPU threads")
 Checks if GPU acceleration is enabled for this client.
 
 ```python
-def is_gpu_enabled(self) -> bool
+def is_gpu_enabled(self) -> bool: ...
 ```
 
 #### Returns
@@ -118,7 +118,7 @@ print(f"GPU acceleration is {'enabled' if gpu_enabled else 'disabled'}")
 Returns the GPU operations configuration for this client.
 
 ```python
-def get_gpu_config(self) -> GPUConfig
+def get_gpu_config(self) -> GPUConfig: ...
 ```
 
 #### Returns

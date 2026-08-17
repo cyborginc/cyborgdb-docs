@@ -13,8 +13,8 @@ In Python, results are returned as a `list[dict]` with string keys — access fi
 query_vectors = [0.5, 0.9, 0.2, 0.7]
 top_k = 10
 
-# Perform query (returns a list of dicts)
-results = index.query(query_vectors=query_vectors, top_k=top_k)
+# Perform query (index_key is required on every data operation)
+results = index.query(query_vectors=query_vectors, top_k=top_k, index_key=index_key)
 
 print(results)
 # Example results (list[dict] with string keys)
@@ -68,7 +68,8 @@ results = index.query(
     n_probes=n_probes,
     filters=filters,
     include=include,
-    rerank_mult=10
+    rerank_mult=10,
+    index_key=index_key,
 )
 
 print(results)
@@ -112,7 +113,7 @@ query_vectors = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]]
 top_k = 10
 
 # Perform batch query
-results = index.query(query_vectors=query_vectors, top_k=top_k)
+results = index.query(query_vectors=query_vectors, top_k=top_k, index_key=index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -161,8 +162,9 @@ top_k = 10
 
 # Perform query
 results = index.query(
-    query_contents=query_contents, 
-    top_k=top_k
+    query_contents=query_contents,
+    top_k=top_k,
+    index_key=index_key,
 )
 ```
 

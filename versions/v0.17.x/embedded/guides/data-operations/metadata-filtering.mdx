@@ -27,8 +27,8 @@ data = [
     {"id": "item_2", "vector": [0.2, 0.2, 0.2, 0.2], "metadata": {"category": "cat"}}
 ]
 
-# Upsert data with metadata
-index.upsert(data)
+# Upsert data with metadata (index_key is required on every data operation)
+index.upsert(data, index_key=index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -64,7 +64,7 @@ filters = {
 }
 
 # Perform query
-results = index.query(query_vectors=query_vectors, top_k=top_k, filters=filters)
+results = index.query(query_vectors=query_vectors, top_k=top_k, filters=filters, index_key=index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"

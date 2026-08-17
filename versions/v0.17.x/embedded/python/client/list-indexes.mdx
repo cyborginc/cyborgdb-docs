@@ -26,9 +26,8 @@ def list_indexes(self) -> list[str]
 ```python
 import cyborgdb_core as cyborgdb
 
-api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
-client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+# No API key needed — the client runs in free-tier mode.
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 print(client.list_indexes())
 # Example output:
