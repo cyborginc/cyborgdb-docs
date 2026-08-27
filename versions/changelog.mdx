@@ -6,6 +6,58 @@ mode: wide
 
 CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
 
+<Update label="v0.17.0" description="2026-06-25">
+## CyborgDB v0.17.0
+
+### Deployment Model
+
+- Embedded Library (Python & C++)
+- REST API (Microservice via Python or Docker)
+- Client SDK (Python, JavaScript, TypeScript & Go)
+
+### Breaking Changes
+
+- **Single index type.** CyborgDB now ships one **DiskIVF** index type. The polymorphic `index_config` object is gone, along with the IVFFlat / IVFPQ / IVFSQ distinction
+  - Configuration parameters (`dimension`, `metric`, `embedding_model`, `storage_precision`) are now top-level fields on `create_index`
+  - `dimension` is optional — the server auto-detects it from the first upsert, or infers it from `embedding_model`
+  - In the embedded SDKs, all parameters after `index_key` are keyword-only
+- **Storage refactor.** The backing store surface is now just `memory`, `disk` (embedded RocksDB), or `s3`
+  - The `standalone`, `postgres`, and `redis` backends have been removed
+  - `CYBORGDB_CONNECTION_STRING` is replaced by `CYBORGDB_DISK_PATH` and the `CYBORGDB_S3_*` variables — switch `standalone` → `disk` when upgrading
+  - In the embedded SDKs, a single `StorageConfig` (`StorageConfig.memory()` / `.disk(path)` / `.s3(bucket)`) replaces the `index_location` / `config_location` / `items_location` trio of `DBConfig` objects
+- **Authentication overhaul.** `CYBORGDB_API_KEY` is now a *license* key only and no longer gates access to the REST API
+  - Request authentication is controlled by `CYBORGDB_SERVICE_ROOT_KEY`. Leave it unset and authentication is disabled; set it and routes accept only the root key or a per-user `cdbk_…` token in the `X-API-Key` header
+  - The legacy `cyborgdb-api-key` header and the `REQUIRE_API_KEY` flag have been removed
+- A wrong `index_key` now returns `401` instead of `500`
+
+### New Features
+
+- **Access control (RBAC)** on encrypted indexes, in both the embedded libraries and the service
+  - The holder of the root index KEK can mint per-user keys scoped to `read` and/or `write` — the set of key wraps a user holds *is* their permission set, enforced by the encrypted-index engine on every request
+  - Embedded: `create_user_keys` (Python) / `CreateUserKeys` (C++), plus `index_key=` / `user_id=` per-operation overrides for stateless deployments
+  - Service: `POST`/`GET`/`DELETE` on `/v1/indexes/{name}/users`, surfaced as `users` in the Python, JavaScript/TypeScript, and Go SDKs
+- **Per-index KMS & BYOK.** Each index can be wrapped by its own operator-managed key, optionally living in a customer's own AWS account
+  - Providers: `aws-kms` (AWS KMS `Encrypt`/`Decrypt`), `aws` (Secrets Manager), and `none`
+  - Pass `kms_name` to `create_index` instead of `index_key`; the service resolves the KEK server-side from the stored `KMSBlob` envelope, so the SDK never holds a long-term key
+  - Cross-account BYOK via `role_arn` + `external_id`; KMS credentials are kept separate from `CYBORGDB_S3_*` storage credentials
+- **Free tier.** `CYBORGDB_API_KEY` is now optional — without it, CyborgDB runs free-tier with a 1,000,000-item-per-index cap. Demo keys are available via `get_demo_api_key()` / `getDemoApiKey()` / `GetDemoAPIKey()`
+- **YAML configuration.** The service can be configured entirely by `cyborgdb.yaml` (resolved from `CYBORGDB_CONFIG_FILE`, the working directory, or `/etc/cyborgdb/`), with `${VAR}` / `${VAR:-default}` env-var substitution. Environment variables override the file
+- `storage_precision` lets you store rerank vectors as `float16` instead of `float32`, halving the on-disk footprint at a small recall cost
+- `rerank_mult` on `query` tunes stage 1 retrieval depth (`top_k * rerank_mult` candidates before reranking), and `include=["vector"]` returns the stored rerank vector
+- Opt-in per-keystore RAM caches via `CACHE_POLICY_VECTORS`, `CACHE_POLICY_METADATA`, and `CACHE_POLICY_IDS`
+- Binary upsert and query endpoints are now documented for the Python client SDK
+
+### Improvements
+
+- `n_lists` is now selected automatically by the core engine
+- `train()` defaults to an automatically selected batch size instead of a fixed 2048
+- LRU cache for index handles in the service, reducing repeated index-load cost
+- Multi-instance deployments can share state through the `s3` backend
+- GPU offload for index operations via `GPU_OPERATIONS=upsert,train` (or `all`) on CUDA hosts
+- Ingest and API-contract test coverage expanded, including concurrency tests and RBAC/non-RBAC E2E passes across all SDKs
+
+</Update>
+
 <Update label="v0.16.1" description="2026-04-13">
 ## CyborgDB v0.16.1
 
