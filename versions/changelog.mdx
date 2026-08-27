@@ -15,21 +15,6 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 - REST API (Microservice via Python or Docker)
 - Client SDK (Python, JavaScript, TypeScript & Go)
 
-### Breaking Changes
-
-- **Single index type.** CyborgDB now ships one **DiskIVF** index type. The polymorphic `index_config` object is gone, along with the IVFFlat / IVFPQ / IVFSQ distinction
-  - Configuration parameters (`dimension`, `metric`, `embedding_model`, `storage_precision`) are now top-level fields on `create_index`
-  - `dimension` is optional — the server auto-detects it from the first upsert, or infers it from `embedding_model`
-  - In the embedded SDKs, all parameters after `index_key` are keyword-only
-- **Storage refactor.** The backing store surface is now just `memory`, `disk` (embedded RocksDB), or `s3`
-  - The `standalone`, `postgres`, and `redis` backends have been removed
-  - `CYBORGDB_CONNECTION_STRING` is replaced by `CYBORGDB_DISK_PATH` and the `CYBORGDB_S3_*` variables — switch `standalone` → `disk` when upgrading
-  - In the embedded SDKs, a single `StorageConfig` (`StorageConfig.memory()` / `.disk(path)` / `.s3(bucket)`) replaces the `index_location` / `config_location` / `items_location` trio of `DBConfig` objects
-- **Authentication overhaul.** `CYBORGDB_API_KEY` is now a *license* key only and no longer gates access to the REST API
-  - Request authentication is controlled by `CYBORGDB_SERVICE_ROOT_KEY`. Leave it unset and authentication is disabled; set it and routes accept only the root key or a per-user `cdbk_…` token in the `X-API-Key` header
-  - The legacy `cyborgdb-api-key` header and the `REQUIRE_API_KEY` flag have been removed
-- A wrong `index_key` now returns `401` instead of `500`
-
 ### New Features
 
 - **Access control (RBAC)** on encrypted indexes, in both the embedded libraries and the service
@@ -44,17 +29,25 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 - **YAML configuration.** The service can be configured entirely by `cyborgdb.yaml` (resolved from `CYBORGDB_CONFIG_FILE`, the working directory, or `/etc/cyborgdb/`), with `${VAR}` / `${VAR:-default}` env-var substitution. Environment variables override the file
 - `storage_precision` lets you store rerank vectors as `float16` instead of `float32`, halving the on-disk footprint at a small recall cost
 - `rerank_mult` on `query` tunes stage 1 retrieval depth (`top_k * rerank_mult` candidates before reranking), and `include=["vector"]` returns the stored rerank vector
-- Opt-in per-keystore RAM caches via `CACHE_POLICY_VECTORS`, `CACHE_POLICY_METADATA`, and `CACHE_POLICY_IDS`
-- Binary upsert and query endpoints are now documented for the Python client SDK
 
 ### Improvements
 
 - `n_lists` is now selected automatically by the core engine
-- `train()` defaults to an automatically selected batch size instead of a fixed 2048
-- LRU cache for index handles in the service, reducing repeated index-load cost
-- Multi-instance deployments can share state through the `s3` backend
-- GPU offload for index operations via `GPU_OPERATIONS=upsert,train` (or `all`) on CUDA hosts
-- Ingest and API-contract test coverage expanded, including concurrency tests and RBAC/non-RBAC E2E passes across all SDKs
+
+### Breaking Changes
+
+- **Single index type.** CyborgDB now ships one **DiskIVF** index type. The polymorphic `index_config` object is gone, along with the IVFFlat / IVFPQ / IVFSQ distinction
+  - Configuration parameters (`dimension`, `metric`, `embedding_model`, `storage_precision`) are now top-level fields on `create_index`
+  - `dimension` is optional — the server auto-detects it from the first upsert, or infers it from `embedding_model`
+  - In the embedded SDKs, all parameters after `index_key` are keyword-only
+- **Storage refactor.** The backing store surface is now just `memory`, `disk` (embedded RocksDB), or `s3`
+  - The `standalone`, `postgres`, and `redis` backends have been removed
+  - `CYBORGDB_CONNECTION_STRING` is replaced by `CYBORGDB_DISK_PATH` and the `CYBORGDB_S3_*` variables — switch `standalone` → `disk` when upgrading
+  - In the embedded SDKs, a single `StorageConfig` (`StorageConfig.memory()` / `.disk(path)` / `.s3(bucket)`) replaces the `index_location` / `config_location` / `items_location` trio of `DBConfig` objects
+- **Authentication overhaul.** `CYBORGDB_API_KEY` is now a *license* key only and no longer gates access to the REST API
+  - Request authentication is controlled by `CYBORGDB_SERVICE_ROOT_KEY`. Leave it unset and authentication is disabled; set it and routes accept only the root key or a per-user `cdbk_…` token in the `X-API-Key` header
+  - The legacy `cyborgdb-api-key` header and the `REQUIRE_API_KEY` flag have been removed
+- A wrong `index_key` now returns `401` instead of `500`
 
 </Update>
 
