@@ -1,0 +1,206 @@
+---
+title: "Full-text and Hybrid Search"
+mode: "wide"
+noindex: true
+---
+
+CyborgDB supports **BM25 full-text search** on designated metadata fields, alongside vector search. This unlocks two new query paths on top of the existing vector query:
+
+| Query | Method | Ranks by |
+|---|---|---|
+| Full text (no vector) | `query_metadata(text=...)` | BM25 score |
+| Hybrid (BM25 + vector) | `query(query_vectors=..., text=...)` | weighted RRF of BM25 rank + vector rank |
+
+Terms are stored as encrypted, unlinkable postings — the backing store never sees a readable term, a document's vocabulary, or a posting-list length.
+
+## How it works
+
+- **BM25 is enabled by designating fields, not by a flag.** An index with at least one `full_text` field supports text search. An index with none writes no BM25 config and pays nothing.
+- **Text is sourced from metadata field values**, not from `contents`. `contents` stays arbitrary binary and is never analyzed.
+- **English only in v1**: lowercase → split on non-alphanumeric → stopword filter → Porter2 stem.
+- **Designations are fixed for the index's lifetime.** There is no post-creation change in v1.
+- **Fusion is by rank, not score.** BM25 relevance and vector distance have no common unit, so hybrid queries fuse *positions*: `score(d) = Σ w_leg / (k + rank_leg(d))`. `alpha` sets the leg weights, `rrf_k` damps how much a single leg's top hit dominates, and `window_mult` sets how deep each leg retrieves before fusing.
+
+## Designating fields
+
+At index creation, mark fields as `full_text` in `metadata_schema` — or use the `text_fields` shorthand:
+
+```python
+import cyborgdb_core as cyborgdb
+import secrets
+
+client = cyborgdb.Client(
+    api_key="",
+    storage_config=cyborgdb.StorageConfig.disk("./my_index"),
+)
+index_key = secrets.token_bytes(32)
+
+# Shorthand: text_fields=[...] desugars to full_text: true in metadata_schema.
+index = client.create_index(
+    "articles",
+    index_key,
+    dimension=128,
+    text_fields=["title", "body"],
+)
+```
+
+The longhand is equivalent, and is what you need when a field wants other policy too:
+
+```python
+index = client.create_index(
+    "articles",
+    index_key,
+    dimension=128,
+    metadata_schema={
+        "title":  {"full_text": True},   # analyzed for BM25
+        "body":   {"full_text": True},
+        "author": {"filterable": True},  # ordinary exact-match / filterable field
+    },
+    bm25_k1=1.2,   # term-frequency saturation (default 1.2)
+    bm25_b=0.75,   # length-normalization strength (default 0.75)
+)
+```
+
+<Note>`full_text=True` requires `filterable=False`, and is incompatible with `pattern=True`. In Python, `{"full_text": True}` alone implies `filterable: False` — only writing `filterable: True` yourself is a contradiction. If a field needs to be both searchable and exact-match filterable, store it twice under two names.</Note>
+
+## Ingest
+
+Nothing special is needed at upsert — text comes from the designated fields' metadata values:
+
+```python
+import numpy as np
+
+rng = np.random.default_rng(0)
+index.upsert([
+    {
+        "id": "a1",
+        "vector": rng.random(128, dtype=np.float32),
+        "metadata": {
+            "title": "Encrypted vector search",
+            "body": "Searching over encrypted embeddings without decrypting them.",
+            "author": "ann",
+        },
+    },
+    {
+        "id": "a2",
+        "vector": rng.random(128, dtype=np.float32),
+        "metadata": {
+            "title": "Index tuning",
+            "body": "Choosing n_lists and probe counts for recall.",
+            "author": "bob",
+        },
+    },
+], index_key=index_key)
+```
+
+A `full_text` field that is missing or whose value is not a JSON string is skipped for that item (logged by id only, never value bytes) and excluded from that field's document count. An empty or all-stopword value is legal and simply contributes no terms.
+
+## Full-text query — no vector
+
+```python
+results = index.query_metadata(
+    text="encrypted search",
+    top_k=10,
+    index_key=index_key,
+)
+# [{"id": "a1", "score": 2.63}, {"id": "a2", "score": 1.15}, ...]
+
+for r in results:
+    print(r["id"], r["score"])
+```
+
+Rows come back descending by BM25 score (ties by id). `score` is present only when there is one — a filter-only `query_metadata()` call has nothing to score, so the key is absent rather than `None`.
+
+### Narrowing the searched fields, weighting, and AND
+
+```python
+# Search only some of the designated fields
+index.query_metadata(text="encrypted", text_fields=["title"], index_key=index_key)
+
+# Weight the fields (parallel to the searched fields — name them explicitly)
+index.query_metadata(
+    text="encrypted search",
+    text_fields=["title", "body"],
+    text_field_weights=[2.0, 1.0],
+    index_key=index_key,
+)
+
+# Require every term (AND) instead of any (OR, the default)
+index.query_metadata(text="encrypted search", require_all_terms=True, index_key=index_key)
+```
+
+### Composing with a filter
+
+A filter combines with text as a **pre-filter** — it resolves first, then only its survivors are scored. Document frequency and per-field corpus stats stay corpus-global, so a document's score never depends on the filter:
+
+```python
+index.query_metadata(
+    text="encrypted",
+    filters={"author": "ann"},
+    index_key=index_key,
+)
+```
+
+`order_by` is not supported together with `text` — text results rank by score.
+
+## Hybrid query — BM25 + vector
+
+Set `text=...` on `query()` to fuse BM25 with vector similarity:
+
+```python
+query_vector = rng.random(128, dtype=np.float32)
+
+results = index.query(
+    query_vectors=query_vector,
+    text="encrypted search",   # <- this is what makes it hybrid
+    top_k=10,
+    alpha=0.5,                 # 0 = pure BM25, 1 = pure vector; default 0.5
+    include=["metadata"],
+    index_key=index_key,
+)
+# [{"id": "a1", "score": 0.0161, "metadata": {...}}, ...]
+```
+
+Hybrid results carry `score` (fused relevance, larger = better) and **never** `distance` — a document matched by text alone has no vector distance to report.
+
+A query vector is required even at `alpha=0` — it fixes the batch shape. For text search with no vector, use `query_metadata(text=...)`.
+
+<Note>Hybrid queries narrow which filters are accepted. `$regex` on a non-`pattern` field, and any predicate on an explicitly non-`filterable` field, work in a pure `query()` but are rejected once `text` is set — the BM25 leg has no post-verify stage, so an inexact survivor set would silently leave it unfiltered.</Note>
+
+## Tuning
+
+| Knob | Raise it to | Lower it to |
+|---|---|---|
+| `bm25_k1` (1.2) | let repeated terms keep adding score | saturate sooner; 0 = presence/absence only |
+| `bm25_b` (0.75) | punish long documents harder; 1 = full normalization | ignore length; 0 = no normalization |
+| `alpha` (0.5) | favor vector similarity | favor keyword relevance |
+| `rrf_k` (60) | reward cross-leg agreement further down each list | trust each leg's top hits more |
+| `window_mult` (3) | let documents deep in both legs still win on fusion | retrieve less per leg |
+
+Two non-obvious properties worth knowing before tuning:
+
+- **No positive `rrf_k` lets one leg's rank-1 outrank two legs' rank-2.** Solving `1/(k+1) = 2/(k+2)` gives `k = 0`. If you want a single leg to dominate, use `alpha`, not `rrf_k`.
+- **`rrf_k` is only meaningful as deep as the legs actually retrieved.** At `window_mult = 3` and `top_k = 10` each leg is 30 deep, and every value of `k` above ~28 makes the same decision — so sweeping `rrf_k` alone at a shallow window will look like the knob does nothing. Sweep the two together.
+
+## Constraints and gotchas
+
+- **`full_text` + `filterable=True` (explicit) is an error**, and **`full_text` + `pattern=True` is an error always** — the regex dictionary stores field values, and prose there is junk postings plus a vocabulary-shaped leak. If you need a field both searchable and exact-match filterable, store it twice under two names.
+- **Designations are fixed for the index's lifetime.** No post-creation change in v1.
+- **`order_by` cannot be combined with `text`.** Text results rank by score.
+- **Not in v1:** phrase queries, `NOT`/exclusion, nested boolean expressions, non-English analysis, and dual-indexing a field as both analyzed and exact-match.
+- **The analyzer is versioned.** The pipeline version, stopword-list hash, and stemmer identity are stamped into the index at creation. Opening an index with a build whose analyzer differs is a loud error, not silent recall loss — every existing posting was written by the old analyzer.
+- **Multi-tenant guidance:** use index-per-tenant. Corpus statistics are per index, so co-mingling tenants behind a `tenant_id` filter gives every tenant blended term rarity — BM25 statistics are deliberately global and never scoped to a filtered subset.
+
+## Common errors
+
+| Error | Cause | Fix |
+|---|---|---|
+| `text query requires an index with at least one full_text field` | No field designated | Designate at creation; it cannot be added later |
+| `text query names 'x', which is not a full_text field` | `text_fields` naming an undesignated field | Use a designated field, or drop the argument to search all |
+| `text_fields / text_field_weights / require_all_terms require non-empty query text` | Text knob set without `text` | Pass `text`, or drop the knob |
+| `full_text=True requires filterable=False` | Both written explicitly | Drop `filterable`, or use two fields |
+| `bm25_k1/bm25_b … require at least one full_text field` | Tuning an index with no text | Designate a field, or drop the parameters |
+| `order_by is not supported together with query text` | Two ordering authorities | Drop `order_by` |
+| `rrf_k must be > 0` / `window_mult must be >= 1` | Explicit `0` passed | Pass `None` for the default |
+| `hybrid query cannot filter on a non-indexed metadata field` | Filter on a non-`filterable` / non-`pattern` field with `text` set | Move the filter to a `filterable` / `pattern` field, or drop `text` |
+| Empty result, no error | Text analyzed to no terms (empty, punctuation, all stopwords), or no term matched | Expected: degenerate input is defined-empty |
