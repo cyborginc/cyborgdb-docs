@@ -39,11 +39,11 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
     <Step title="Choose Your Storage Backend (Optional)">
         The container ships with three storage backends. Skip this
-        step and you get **disk** (embedded RocksDB) by default —
+        step and you get **disk** by default —
         persisted in `/app/cyborgdb_data` inside the container, which
         you'll typically bind to a host volume.
 
-        - **Disk** (default) — embedded RocksDB. Persistent, no
+        - **Disk** (default) — persistent local disk, no
           external dependencies.
         - **S3** — AWS S3 or any S3-compatible store (MinIO,
           Cloudflare R2, …). Best for cloud-native and multi-replica
@@ -52,8 +52,6 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
           restarts. For tests and ephemeral indexes.
 
         For full details, see the [Backing Stores guide](../../../intro/backing-stores).
-
-        <Note>v0.17 collapsed the storage surface. The previous `standalone`, `postgres`, and `redis` backends and the catch-all `CYBORGDB_CONNECTION_STRING` are gone — switch `standalone` → `disk` and use the new `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.</Note>
     </Step>
 
     <Step title="Pull the Docker Image">
@@ -315,8 +313,10 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
             index_key=index_key,
         )
         top_items = index.get([r["id"] for r in results], index_key=index_key)
-        for r, item in zip(results, top_items):
-            print(f"ID: {r['id']}  Distance: {r['distance']:.4f}  Contents: {item['contents'].decode()}")
+        by_id = {item["id"]: item for item in top_items}
+        for r in results:
+            contents = by_id[r["id"]]["contents"].decode()
+            print(f"ID: {r['id']}  Distance: {r['distance']:.4f}  Contents: {contents}")
         ```
 
         <Warning>

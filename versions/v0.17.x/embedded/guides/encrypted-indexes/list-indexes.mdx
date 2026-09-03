@@ -10,7 +10,6 @@ To see which existing encrypted indexes are available to your CyborgDB client, y
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
 
-# No API key needed — the client runs in free-tier mode.
 client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 indexes = client.list_indexes()
@@ -23,7 +22,6 @@ print(indexes)
 ```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 
-// Pass "" for api_key to run in free-tier mode.
 cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 
 auto indexes = client.ListIndexes();

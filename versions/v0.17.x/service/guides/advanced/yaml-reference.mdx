@@ -118,7 +118,7 @@ kms:
 | Backend | Persistence | Required keys (beyond `cyborgdb_db_type`) | Credential source |
 |---|---|---|---|
 | `memory` | In-process only | — | n/a |
-| `disk` (default) | Embedded RocksDB on local disk | `cyborgdb_disk_path` (optional) | n/a |
+| `disk` (default) | Persistent store on local disk | `cyborgdb_disk_path` (optional) | n/a |
 | `s3` (AWS, instance role) | AWS S3 | `cyborgdb_s3_bucket` | AWS default credential provider chain (instance/task role, env, profile) |
 | `s3` (AWS, explicit keys) | AWS S3 | `cyborgdb_s3_bucket` + `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` env vars | AWS default chain |
 | `s3` (S3-compatible: MinIO, R2, …) | MinIO/R2 etc. | `cyborgdb_s3_bucket`, `cyborgdb_s3_endpoint`, `cyborgdb_s3_access_key`, `cyborgdb_s3_secret_key` | Explicit `CYBORGDB_S3_*` only — AWS chain bypassed |

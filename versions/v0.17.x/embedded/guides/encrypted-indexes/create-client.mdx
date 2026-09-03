@@ -36,13 +36,13 @@ Bear in mind that all contents stored in the backing store are end-to-end encryp
 
 ## Persistent Backing Stores
 
-For persistence, use a disk-backed or S3 backing store instead of memory. `StorageConfig` exposes three static factories: `memory()`, `disk(path)` (local, RocksDB-backed), and `s3(bucket)` (AWS S3 or S3-compatible).
+For persistence, use a disk-backed or S3 backing store instead of memory. `StorageConfig` exposes three static factories: `memory()`, `disk(path)` (local disk), and `s3(bucket)` (AWS S3 or S3-compatible).
 
 <CodeGroup>
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
 
-# Local, RocksDB-backed persistent storage
+# Local persistent storage on disk
 client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 # Or AWS S3 / S3-compatible (MinIO, etc.)
@@ -56,7 +56,7 @@ client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.s3(
 ```cpp C++ icon="brackets-curly"
 #include "cyborgdb_core/client.hpp"
 
-// Local, RocksDB-backed persistent storage (pass "" for api_key to run in free-tier mode)
+// Local persistent storage on disk (pass "" for api_key to run in free-tier mode)
 cyborg::Client disk_client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 
 // Or AWS S3 / S3-compatible (MinIO, etc.)

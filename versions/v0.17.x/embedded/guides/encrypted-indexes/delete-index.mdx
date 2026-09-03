@@ -12,8 +12,7 @@ To delete an existing encrypted index, you can [load it](./load-index) and then 
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
 
-# Create a client (use the same backing store the index was created with).
-# No API key needed — the client runs in free-tier mode.
+# Create a client (use the same backing store the index was created with)
 client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 # Provide the SAME 32-byte key used when the index was created.
@@ -32,8 +31,7 @@ index.delete_index(index_key=index_key)
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>
 
-// Create a client (use the same backing store the index was created with).
-// Pass "" for api_key to run in free-tier mode.
+// Create a client (use the same backing store the index was created with)
 cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 
 // Provide the index key used when creating the index

@@ -62,8 +62,8 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
             index_key=index_key,
             api_key="your-api-key",
             embedding=OpenAIEmbeddings(),
-            index_location=DBConfig("rocksdb"),
-            config_location=DBConfig("rocksdb"),
+            index_location=DBConfig("disk"),
+            config_location=DBConfig("disk"),
             index_type="ivfsq",
             metric="cosine"
         )

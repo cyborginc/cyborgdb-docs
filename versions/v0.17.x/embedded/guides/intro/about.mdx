@@ -50,7 +50,7 @@ flowchart TB
     Library("CyborgDB Library (Python/C++)")
   end
 
-  Library --> Disk("Disk (local, RocksDB-backed)")
+  Library --> Disk("Disk (local)")
   Library --> S3("S3 (AWS or S3-compatible)")
   Library --> Memory("Memory (for development)")
 ```

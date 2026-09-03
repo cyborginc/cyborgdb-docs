@@ -19,7 +19,7 @@ StorageConfig.disk(path: str,
                    cache_vectors: bool = False,
                    cache_metadata: bool = False,
                    cache_ids: bool = False)
-# Local, RocksDB-backed persistent storage.
+# Local persistent storage on disk.
 
 StorageConfig.s3(bucket: str,
                  *,
@@ -33,7 +33,7 @@ StorageConfig.s3(bucket: str,
 | Factory | Description |
 |---------|-------------|
 | `memory()` | Ephemeral in-memory store with no persistence. Use for tests and benchmarking. |
-| `disk(path, ...)` | Local persistent store backed by RocksDB. Optional `cache_*` flags keep vectors / metadata / IDs in memory for faster reads. |
+| `disk(path, ...)` | Local persistent store on disk. Optional `cache_*` flags keep vectors / metadata / IDs in memory for faster reads. |
 | `s3(bucket, ...)` | S3 or S3-compatible object store. Set `endpoint` for non-AWS providers (path-style addressing is auto-selected). Omit `credentials` to use the AWS default credential provider chain. |
 
 ### Example Usage
@@ -44,7 +44,7 @@ import cyborgdb_core as cyborgdb
 # In-memory (ephemeral)
 memory_store = cyborgdb.StorageConfig.memory()
 
-# Local disk (RocksDB-backed), caching vectors in memory
+# Local disk, caching vectors in memory
 disk_store = cyborgdb.StorageConfig.disk("/tmp/cyborgdb", cache_vectors=True)
 
 # AWS S3 with explicit credentials

@@ -44,8 +44,10 @@ results = index.query(
 
 # Contents live in separately encrypted item records — retrieve them with get().
 top_items = index.get([r["id"] for r in results], index_key=index_key)
-for r, item in zip(results, top_items):
-    print(f"ID: {r['id']}  Distance: {r['distance']:.4f}  Contents: {item['contents'].decode()}")
+by_id = {item["id"]: item for item in top_items}
+for r in results:
+    contents = by_id[r["id"]]["contents"].decode()
+    print(f"ID: {r['id']}  Distance: {r['distance']:.4f}  Contents: {contents}")
 ```
 
 <Warning>
@@ -118,7 +120,7 @@ Already on Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Bring your workload 
   </Card>
 
   <Card title="Choose a Backing Store" href="./backing-stores" icon="database">
-    Memory, disk (RocksDB, default), or S3 — pick per environment.
+    Memory, disk (default), or S3 — pick per environment.
   </Card>
 
   <Card title="Deployment Models" href="./deployment-models" icon="server">

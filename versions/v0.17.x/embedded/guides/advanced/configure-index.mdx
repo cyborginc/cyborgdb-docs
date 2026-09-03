@@ -22,7 +22,6 @@ The most common path is to let CyborgDB choose sensible defaults. You only need 
 import cyborgdb_core as cyborgdb
 import secrets
 
-# No API key needed — the client runs in free-tier mode (1M items/index).
 client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
 index_key = secrets.token_bytes(32)  # 32-byte index KEK
@@ -37,7 +36,6 @@ index = client.create_index("test_index", index_key)
 #include <array>
 #include <openssl/rand.h>
 
-// Pass "" for api_key to run in free-tier mode.
 cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
 
 std::array<uint8_t, 32> index_key;

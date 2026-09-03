@@ -10,7 +10,7 @@ mode: "wide"
   <div style={{margin: "0 auto", maxWidth: "580px", fontSize: "16px", lineHeight: 1.6, color: "#8ba8b5"}}>Similarity search directly on encrypted embeddings — self-hosted in your VPC or on-prem. AES-256-GCM with your KMS key, per-operation key derivation, keys zeroized after use.</div>
 </div>
 
-**CyborgDB** is an encrypted vector database — similarity search directly on encrypted embeddings, with per-operation key derivation via your KMS and keys zeroized after use. Only the final candidates are decrypted. It's a self-hosted, standalone vector database — persist to embedded RocksDB (default) or S3 — exposes a familiar API that slots into existing AI pipelines, and can be [GPU-accelerated with NVIDIA cuVS](https://developer.nvidia.com/blog/bringing-confidentiality-to-vector-search-with-cyborg-and-nvidia-cuvs/).
+**CyborgDB** is an encrypted vector database — similarity search directly on encrypted embeddings, with per-operation key derivation via your KMS and keys zeroized after use. Only the final candidates are decrypted. It runs self-hosted and standalone — persisting to local disk (default) or S3 — exposes a familiar API that slots into existing AI pipelines, and can be [GPU-accelerated with NVIDIA cuVS](https://developer.nvidia.com/blog/bringing-confidentiality-to-vector-search-with-cyborg-and-nvidia-cuvs/).
 
 <div style={{display: "grid", gridTemplateColumns: "repeat(3, 1fr)", margin: "24px 0 32px", borderRadius: "12px", border: "1px solid rgba(16,163,174,0.25)", overflow: "hidden"}}>
   <div style={{padding: "20px 16px", textAlign: "center", borderRight: "1px solid rgba(16,163,174,0.25)"}}>

@@ -7,7 +7,7 @@ CyborgDB transforms traditional databases into Confidential Vector Databases by 
 <img src="/images/cyborgdb-search-overview.png" alt="CyborgDB RAG Overview" />
 
 <Note>
-**v0.17 storage surface.** CyborgDB now supports `memory`, `disk` (RocksDB), and `s3` (AWS S3 or any S3-compatible store) across both deployment models. The previous PostgreSQL and Redis backends have been removed.
+**Storage surface.** CyborgDB supports `memory`, `disk`, and `s3` (AWS S3 or any S3-compatible store) across both deployment models.
 </Note>
 
 ## Amazon S3
@@ -33,15 +33,15 @@ Works with AWS S3, MinIO, Cloudflare R2, and any other S3-compatible object stor
 
 ---
 
-## Disk (RocksDB)
+## Disk
 
 *Available in: Service · Embedded*
 
-<Note>The embedded libraries refer to this backend as "RocksDB". CyborgDB Service v0.17 selects it via `CYBORGDB_DB_TYPE=disk` (and it is the default).</Note>
+<Note>The embedded libraries and LangChain integration select this backend with the literal value `disk`. CyborgDB Service selects it via `CYBORGDB_DB_TYPE=disk` (and it is the default).</Note>
 
 **Persistent local storage for single-node deployments**
 
-The disk backend provides persistent key-value storage directly on local disk via embedded RocksDB, with no network dependency. This makes it the recommended backing store for single-node CyborgDB deployments where simplicity and reliability are priorities.
+The disk backend provides persistent key-value storage directly on local disk, with no network dependency. This makes it the recommended backing store for single-node CyborgDB deployments where simplicity and reliability are priorities.
 
 ### Key Benefits
 
@@ -109,7 +109,7 @@ CyborgDB works seamlessly with managed object storage services, reducing operati
 ## Choosing the Right Backing Store
 
 <Tabs>
-  <Tab title="Use Disk / RocksDB">
+  <Tab title="Use Disk">
     - **Single-node deployment** — You want persistent local storage with no external dependencies
     - **Edge devices** — Running on hardware without network access to databases
     - **Simplicity** — You want a single-binary deployment with built-in storage
@@ -139,11 +139,11 @@ CyborgDB works seamlessly with managed object storage services, reducing operati
 
 ### Embedded library
 
-```python RocksDB
+```python Disk
 from cyborgdb_core import DBConfig
 
-# Local RocksDB (default path: ~/.cyborgdb/data)
-db_config = DBConfig("rocksdb")
+# Local disk (default path: ~/.cyborgdb/data)
+db_config = DBConfig("disk")
 ```
 
 ```python S3
@@ -189,7 +189,7 @@ export CYBORGDB_DB_TYPE=memory
 | Backing Store | Latency | Throughput | Durability | Consistency |
 |---------------|:-------:|:----------:|:----------:|:-----------:|
 | **Memory** / **ThreadSafeMemory** | ~1µs | Very High | None | Single Process / Thread-Safe |
-| **RocksDB (disk)** | ~10µs | High | Local Disk | Single Process |
+| **Disk** | ~10µs | High | Local Disk | Single Process |
 | **S3** | ~10ms | Medium | Full (11 nines) | Eventual |
 
 Choose based on your application's specific requirements for speed, durability, and consistency.

@@ -11,9 +11,8 @@ To create an encrypted index, you need to specify an index name (must be unique)
 import cyborgdb_core as cyborgdb
 import secrets
 
-# Create a client (in-memory backing store for this example).
-# No API key needed — the client runs in free-tier mode (1M items/index).
-client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+# Create a client (use the same backing store you'll load the index with)
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 # Generate an encryption key for the index
 index_key = secrets.token_bytes(32)
@@ -28,9 +27,8 @@ index = client.create_index("my_index", index_key)
 #include <openssl/rand.h>
 #include <array>
 
-// Create a client (in-memory backing store for this example).
-// Pass "" for api_key to run in free-tier mode.
-cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+// Create a client (use the same backing store you'll load the index with)
+cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 
 // Generate a 32-byte secure encryption key using OpenSSL
 std::array<uint8_t, 32> index_key;
@@ -61,8 +59,8 @@ In the Python version of CyborgDB, you can enable automatic embedding generation
 import cyborgdb_core as cyborgdb
 import secrets
 
-# Create a client (in-memory backing store for this example)
-client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+# Create a client (use the same backing store you'll load the index with)
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 # Generate an encryption key for the index
 index_key = secrets.token_bytes(32)

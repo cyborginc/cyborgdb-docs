@@ -52,8 +52,8 @@ client1 = cyborgdb.Client(
     cpu_threads=4
 )
 
-# Example 2: With an API key for unlimited usage, GPU on upsert and train.
-# Get an API key from https://cyborgdb.co — see ../../../intro/get-api-key.
+# Example 2: With an API key for unlimited usage, GPU on upsert and train
+# Get an API key from https://cyborgdb.co
 gpu_config = cyborgdb.GPUConfig(upsert=True, train=True)
 client2 = cyborgdb.Client(
     api_key="cyborg_...",

@@ -14,25 +14,24 @@ mode: "wide"
 
         | Parameter | Type | Default | Description |
         |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
-        | `location` | `string` | - | DB location (`rocksdb`, `s3`, `memory`, `threadsafememory`) |
+        | `location` | `string` | - | DB location (`disk`, `s3`, `memory`) |
         | `connection_string` | `string` | None | _(Optional)_ Connection string or path for the chosen location. |
 
         The supported `location` options are:
 
-        - `"rocksdb"`: Use for persistent, on-disk key-value storage (recommended for embedded/local deployments).
+        - `"disk"`: Use for persistent, on-disk key-value storage (recommended for embedded/local deployments).
         - `"s3"`: Use for AWS S3 or any S3-compatible object store (MinIO, Cloudflare R2). Connection string carries the URI and credentials.
         - `"memory"`: Use for temporary in-memory storage (for benchmarking and evaluation purposes).
-        - `"threadsafememory"`: Use for thread-safe in-memory storage (for multi-threaded benchmarking).
 
         ### Example Usage
 
         ```python
         from cyborgdb_core import DBConfig
 
-        # RocksDB (persistent local storage)
-        rocksdb_location = DBConfig(
-            location="rocksdb",
-            connection_string="/path/to/rocksdb"
+        # Local disk (persistent local storage)
+        disk_location = DBConfig(
+            location="disk",
+            connection_string="/path/to/data"
         )
 
         # S3 (cloud-native)

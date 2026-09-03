@@ -55,7 +55,6 @@ def create_index(self,
 import cyborgdb_core as cyborgdb
 import secrets
 
-# No API key needed — the client runs in free-tier mode (1M items/index).
 client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
 index_name = "my_index"
@@ -72,7 +71,6 @@ import cyborgdb_core as cyborgdb
 import numpy as np
 import secrets
 
-# No API key needed — the client runs in free-tier mode.
 client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 index_name = "my_index"

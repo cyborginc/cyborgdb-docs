@@ -19,7 +19,6 @@ The root holder calls `create_user_keys` (Python) / `CreateUserKeys` (C++), supp
 import cyborgdb_core as cyborgdb
 import secrets
 
-# No API key needed — the client runs in free-tier mode.
 client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
 # Root index KEK — the admin gate for user management
@@ -42,7 +41,6 @@ index.create_user_keys(writer_id, writer_kek, permissions=["read", "write"], ind
 #include <array>
 #include <openssl/rand.h>
 
-// Pass "" for api_key to run in free-tier mode.
 cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
 
 // Root index KEK — the admin gate for user management

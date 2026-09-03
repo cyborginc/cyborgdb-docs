@@ -134,7 +134,6 @@ A user loads the index by passing their own `user_kek` as the `index_key` and th
 ```python
 import cyborgdb_core as cyborgdb
 
-# No API key needed — the client runs in free-tier mode.
 client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
 # user_id and user_kek were issued by the root KEK holder via create_user_keys()

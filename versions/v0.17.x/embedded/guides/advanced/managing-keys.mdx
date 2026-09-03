@@ -61,7 +61,6 @@ The `index_key` must be **exactly 32 raw bytes**. The simplest way to generate o
     ```python Python icon="python"
     import cyborgdb_core as cyborgdb
 
-    # No API key needed — the client runs in free-tier mode.
     # Backing store: in-memory (use .disk("/path") or .s3("bucket") for persistence)
     client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
@@ -77,7 +76,6 @@ The `index_key` must be **exactly 32 raw bytes**. The simplest way to generate o
     #include "cyborgdb_core/client.hpp"
     #include "cyborgdb_core/encrypted_index.hpp"
 
-    // Pass "" for api_key to run in free-tier mode.
     // In-memory backing store (use StorageConfig::Disk(path) or ::S3(bucket) to persist)
     cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
 
@@ -192,7 +190,6 @@ CyborgDB can integrate with popular KMS providers, such as:
     import base64
     import cyborgdb_core as cyborgdb
 
-    # No API key needed — the client runs in free-tier mode.
     # Backing store: in-memory (use .disk("/path") or .s3("bucket") for persistence)
     client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
