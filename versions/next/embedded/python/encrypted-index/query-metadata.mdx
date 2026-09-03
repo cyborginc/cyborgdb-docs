@@ -32,7 +32,7 @@ def query_metadata(self,
 - Without `order_by`, the result is an **unordered** subset of matching IDs.
 - Items missing the `order_by` field (or holding a non-scalar value) sort last.
 - Metadata-only queries work on **untrained** indexes.
-- `$regex`, `$type`, and nested dot-path fields are not supported yet.
+- `$type` is not supported on this endpoint. `$regex` / `$contains` require the field to have been declared `pattern: true` in the index's [`metadata_schema`](../client/create-index#metadata_schema); a field declared `filterable: false` cannot be filtered on here at all. Both raise `ValueError` — run the same filter through [`query()`](./query) with a vector if you need to bypass the schema constraint. Nested dot-paths (`owner.name`) are supported.
 </Note>
 
 ### Returns

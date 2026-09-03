@@ -1,0 +1,97 @@
+---
+title: "Query Metadata"
+mode: "wide"
+noindex: true
+---
+
+Runs a metadata-only query — no query vector required. `query_metadata()` resolves the filter entirely against the encrypted metadata index and returns the IDs of matching items. Works on untrained indexes.
+
+```python
+def query_metadata(self,
+                   filters: Dict[str, Any] = None,
+                   top_k: int = None,
+                   order_by: Union[str, Dict[str, int]] = None,
+                   ascending: bool = True) -> List[str]
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `filters` | `Dict[str, Any]` | `None` | _(Optional)_ Metadata filters as a JSON-like dictionary; `None`/empty matches everything. Same operators as [`query()`](./query) except `$type`. See [Filter constraints](#filter-constraints) below. |
+| `top_k` | `int` | `None` | _(Optional)_ Cap on the number of IDs returned; `None` returns every match. Applied **after** `order_by`, so it yields the first N of the sorted result. |
+| `order_by` | `str` or `Dict[str, int]` | `None` | _(Optional)_ Sort matches by a metadata field, applied post-filter. Accepts a field name (direction controlled by `ascending`) or a MongoDB-style single-field dict, e.g. `{"views": -1}` for descending. |
+| `ascending` | `bool` | `True` | _(Optional)_ Sort direction when `order_by` is a field name. Ignored when `order_by` is a dict (the dict's `1` / `-1` value controls direction). |
+
+<Note>
+- Without `order_by`, the result is an **unordered** subset of matching IDs.
+- Items missing the `order_by` field (or holding a non-scalar value) sort last.
+</Note>
+
+### Filter constraints
+
+Unlike [`query()`](./query), which falls back to a post-filter over the decrypted metadata when a filter cannot be answered from the index, `query_metadata()` has no fallback stage — every filter leaf must be resolvable from the encrypted metadata index. That makes the index's [`metadata_schema`](../client/create-index#metadata-schema) enforcement instead of a performance hint:
+
+- `$regex` / `$contains` require the field to have been declared `pattern: true` at index create time.
+- A field declared `filterable: false` cannot be filtered on here at all.
+- `$type` is not supported on this endpoint.
+
+Any of these come back as 400 with the reason; use [`query()`](./query) with a vector for filters that need the post-filter path. Nested dot-paths (`loc.city`) are supported.
+
+### Returns
+
+`List[str]`: IDs of items whose metadata matches `filters` — ordered by `order_by` when set, otherwise unordered.
+
+### Exceptions
+
+<AccordionGroup>
+    <Accordion title="ValueError">
+        - Throws if `order_by` is a dict with more than one field.
+        - Throws if `order_by` is neither a field name (`str`) nor a single-field dict.
+        - Throws if the server rejects the filter (400) — a `$regex`/`$contains` on a non-`pattern` field, a `filterable: false` field, or an unsupported operator.
+    </Accordion>
+    <Accordion title="Service Errors">
+        - Raised if the CyborgDB service is unavailable, unreachable, or returns 5xx.
+    </Accordion>
+</AccordionGroup>
+
+### Example Usage
+
+_Filter only (all matches, unordered)_:
+
+```python
+ids = index.query_metadata(filters={"label": "dog"})
+# Example output:
+# ["101", "102", "205"]
+```
+
+_Filter with operators and a result cap_:
+
+```python
+ids = index.query_metadata(
+    filters={"$and": [{"label": "cat"}, {"confidence": {"$gte": 0.9}}]},
+    top_k=10,
+)
+```
+
+_Sorted by a metadata field_:
+
+```python
+# Ascending by "views" (field name + ascending flag)
+ids = index.query_metadata(filters={"label": "dog"}, order_by="views")
+
+# Descending by "views" (MongoDB-style dict); top_k applies after the sort
+ids = index.query_metadata(
+    filters={"label": "dog"},
+    order_by={"views": -1},
+    top_k=5,
+)
+```
+
+_Regex match (field must have been created with `pattern: True`)_:
+
+```python
+ids = index.query_metadata(filters={"title": {"$regex": "^intro"}})
+```
+
+For metadata syntax and supported operators, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).
