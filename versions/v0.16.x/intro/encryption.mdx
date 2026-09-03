@@ -1,5 +1,6 @@
 ---
 title: "Encryption"
+canonical: https://docs.cyborg.co/versions/latest/intro/encryption
 ---
 
 CyborgDB encrypts **all sensitive data** — including embeddings, document IDs, contents, and metadata — ensuring that nothing is stored in plaintext. Only the final candidates are decrypted. Keys are derived per-operation from your KMS and zeroized after use. This section details the cryptographic design, the indexing scheme, and how forward privacy is achieved.

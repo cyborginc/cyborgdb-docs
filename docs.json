@@ -121,6 +121,7 @@
     "versions": [
       {
         "version": "v0.17.x",
+        "tag": "Latest",
         "tabs": [
           {
             "tab": "Introduction",
