@@ -22,71 +22,71 @@
   "redirects": [
     {
       "source": "/about",
-      "destination": "versions/v0.16.x/intro/about"
+      "destination": "/versions/latest/intro/about"
     },
     {
       "source": "/threat-model",
-      "destination": "/versions/v0.16.x/intro/threat-model"
+      "destination": "/versions/latest/intro/threat-model"
     },
     {
       "source": "/rest-api",
-      "destination": "/versions/v0.16.x/service/rest-api/introduction"
+      "destination": "/versions/latest/service/rest-api/introduction"
     },
     {
       "source": "/python-embedded",
-      "destination": "/versions/v0.16.x/embedded/python/introduction"
+      "destination": "/versions/latest/embedded/python/introduction"
     },
     {
       "source": "/cpp-embedded",
-      "destination": "/versions/v0.16.x/embedded/cpp/introduction"
+      "destination": "/versions/latest/embedded/cpp/introduction"
     },
     {
       "source": "/python-sdk",
-      "destination": "/versions/v0.16.x/service/python-sdk/introduction"
+      "destination": "/versions/latest/service/python-sdk/introduction"
     },
     {
       "source": "/py",
-      "destination": "/versions/v0.16.x/service/python-sdk/introduction"
+      "destination": "/versions/latest/service/python-sdk/introduction"
     },
     {
       "source": "/js-sdk",
-      "destination": "/versions/v0.16.x/service/js-ts-sdk/introduction"
+      "destination": "/versions/latest/service/js-ts-sdk/introduction"
     },
     {
       "source": "/js",
-      "destination": "/versions/v0.16.x/service/js-ts-sdk/introduction"
+      "destination": "/versions/latest/service/js-ts-sdk/introduction"
     },
     {
       "source": "/go-sdk",
-      "destination": "/versions/v0.16.x/service/go-sdk/introduction"
+      "destination": "/versions/latest/service/go-sdk/introduction"
     },
     {
       "source": "/go",
-      "destination": "/versions/v0.16.x/service/go-sdk/introduction"
+      "destination": "/versions/latest/service/go-sdk/introduction"
     },
     {
       "source": "/quickstart",
-      "destination": "/versions/v0.16.x/intro/quickstart"
+      "destination": "/versions/latest/intro/quickstart"
     },
     {
-      "source": "/changelog",
-      "destination": "/versions/changelog"
+      "source": "/versions/changelog",
+      "destination": "/changelog"
     },
     {
       "source": "/encryption",
-      "destination": "versions/v0.16.x/intro/encryption"
+      "destination": "/versions/latest/intro/encryption"
     },
     {
       "source": "/service",
-      "destination": "/versions/v0.16.x/service/guides/intro/about"
+      "destination": "/versions/latest/service/guides/intro/about"
     },
     {
       "source": "/embedded",
-      "destination": "/versions/v0.16.x/embedded/guides/intro/about"
+      "destination": "/versions/latest/embedded/guides/intro/about"
     },
     {
       "source": "/security",
-      "destination": "/versions/v0.16.x/intro/security-overview"
+      "destination": "/versions/latest/intro/security-overview"
     },
     {
       "source": "/versions/v0.13.x/:slug*",
@@ -156,7 +156,7 @@
               {
                 "group": "Resources",
                 "pages": [
-                  "versions/changelog",
+                  "changelog",
                   "versions/latest/intro/open-source"
                 ]
               }
@@ -624,7 +624,7 @@
               {
                 "group": "Resources",
                 "pages": [
-                  "versions/changelog",
+                  "changelog",
                   "versions/v0.16.x/intro/open-source"
                 ]
               }
@@ -1063,7 +1063,7 @@
               {
                 "group": "Resources",
                 "pages": [
-                  "versions/changelog",
+                  "changelog",
                   "versions/v0.15.x/intro/open-source"
                 ]
               }
@@ -1502,7 +1502,7 @@
               {
                 "group": "Resources",
                 "pages": [
-                  "versions/changelog",
+                  "changelog",
                   "versions/v0.14.x/intro/open-source"
                 ]
               }
