@@ -61,10 +61,8 @@ The `index_key` must be **exactly 32 raw bytes**. The simplest way to generate o
     ```python Python icon="python"
     import cyborgdb_core as cyborgdb
 
-    api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
     # Backing store: in-memory (use .disk("/path") or .s3("bucket") for persistence)
-    client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+    client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
     # Load the raw 32-byte key (or use the one generated above)
     with open("index_key.bin", "rb") as key_file:
@@ -78,10 +76,8 @@ The `index_key` must be **exactly 32 raw bytes**. The simplest way to generate o
     #include "cyborgdb_core/client.hpp"
     #include "cyborgdb_core/encrypted_index.hpp"
 
-    std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
-
     // In-memory backing store (use StorageConfig::Disk(path) or ::S3(bucket) to persist)
-    cyborg::Client client(api_key, cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+    cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
 
     // index_key holds the 32 raw bytes generated above
     auto index = client.CreateIndex("test_index", index_key);
@@ -194,10 +190,8 @@ CyborgDB can integrate with popular KMS providers, such as:
     import base64
     import cyborgdb_core as cyborgdb
 
-    api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
     # Backing store: in-memory (use .disk("/path") or .s3("bucket") for persistence)
-    client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+    client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
     # Initialize AWS KMS client
     kms_client = boto3.client('kms')

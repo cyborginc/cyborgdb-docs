@@ -14,8 +14,8 @@ If you have added items to the index with the `contents` field, you can retrieve
 ids = ["item_20", "item_11"]
 include = ["contents", "metadata"]
 
-# Retrieve items from the encrypted index
-items = index.get(ids, include)
+# Retrieve items from the encrypted index (index_key is required on every data operation)
+items = index.get(ids, include=include, index_key=index_key)
 
 print(items)
 # Example item (contents returned as bytes)

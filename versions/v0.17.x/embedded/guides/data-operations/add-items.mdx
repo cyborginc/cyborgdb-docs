@@ -15,8 +15,8 @@ items = [
     {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12]}
 ]
 
-# Add items to the encrypted index
-index.upsert(items)
+# Add items to the encrypted index (index_key is required on every data operation)
+index.upsert(items, index_key=index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -31,7 +31,7 @@ index->Upsert(ids, vectors, /*contents=*/{}, /*metadata=*/{}, index_key);
 
 For more info on `Array2D` in C++, see the [API Reference](../../cpp/types#array2d).
 
-<Note>In Python, the common path reuses the key supplied at `create_index`/`load_index`, so `upsert()` takes no key. In C++ every key-bearing method takes a trailing `KeyContext`, which constructs implicitly from a bare 32-byte KEK — so `index->Upsert(..., index_key)` is the common path. You can also pass `index_key=` (and `user_id=` for an RBAC user) per operation to override the key, which is required in stateless/service deployments that reload the index per request.</Note>
+<Note>In Python, every data operation takes `index_key` as a keyword argument — the client does not cache the key across calls. In C++ every key-bearing method takes a trailing `KeyContext`, which constructs implicitly from a bare 32-byte KEK — so `index->Upsert(..., index_key)` is the common path. You can also pass `user_id=` (Python) / a scoped `KeyContext` (C++) for an RBAC user.</Note>
 
 ## Adding Items with Contents
 
@@ -49,7 +49,7 @@ items = [
 ]
 
 # Add items to the encrypted index
-index.upsert(items)
+index.upsert(items, index_key=index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -83,7 +83,7 @@ items = [
 ]
 
 # Add items to the encrypted index
-index.upsert(items)
+index.upsert(items, index_key=index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -125,7 +125,7 @@ items = [
 ]
 
 # Add items to the encrypted index
-index.upsert(items)
+index.upsert(items, index_key=index_key)
 ```
 
 In this example, the `embedding_model` will automatically generate embeddings for the `contents` field. Note that `contents` must be a string. It will also be converted to `bytes` for encrypted item storage.

@@ -9,13 +9,10 @@ below is settable in both places; environment variables override the
 file on conflict.
 
 <Note>
-**v0.17 storage refactor.** The service now exposes a single, flat
-storage surface: `memory`, `disk` (embedded RocksDB), or `s3` (AWS S3
-or any S3-compatible store). The previous `standalone`, `postgres`,
-and `redis` backends — and the catch-all `CYBORGDB_CONNECTION_STRING`
-— are gone. If you are upgrading from v0.16: switch
-`standalone` → `disk` and replace `CYBORGDB_CONNECTION_STRING` with
-the new `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.
+**Storage surface.** The service exposes a single, flat storage
+surface: `memory`, `disk`, or `s3` (AWS S3 or any S3-compatible
+store). Configure it with `CYBORGDB_DB_TYPE` plus the matching
+`CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.
 </Note>
 
 ## API Key and Tiers
@@ -58,12 +55,11 @@ the service defaults to `disk`.
 
 ### Disk (default)
 
-Embedded RocksDB. Persistent local key-value storage with no external
-dependency.
+Persistent local key-value storage with no external dependency.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `CYBORGDB_DISK_PATH` | Data directory for the RocksDB store | `~/.cyborgdb/data` (local) / `/app/cyborgdb_data` (Docker) |
+| `CYBORGDB_DISK_PATH` | Data directory for the disk store | `~/.cyborgdb/data` (local) / `/app/cyborgdb_data` (Docker) |
 
 ```bash
 export CYBORGDB_DB_TYPE=disk
@@ -305,10 +301,9 @@ docker run -p 8000:8000 --env-file .env cyborginc/cyborgdb-service:latest
         `cyborg_`.
     </Accordion>
     <Accordion title="`Invalid CYBORGDB_DB_TYPE`">
-        v0.17 only accepts `memory`, `disk`, or `s3`. The legacy
-        `standalone`, `postgres`, and `redis` values are gone. If
-        you were on `standalone`, switch to `disk` and set
-        `CYBORGDB_DISK_PATH` if you used a custom directory.
+        CyborgDB accepts `memory`, `disk`, or `s3`. Set
+        `CYBORGDB_DISK_PATH` if you use a custom directory for the
+        disk store.
     </Accordion>
     <Accordion title="S3 startup fails with missing credentials">
         With `CYBORGDB_S3_ENDPOINT` set, the AWS default credential

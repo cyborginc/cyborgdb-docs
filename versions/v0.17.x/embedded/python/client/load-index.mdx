@@ -45,9 +45,7 @@ def load_index(self,
 ```python
 import cyborgdb_core as cyborgdb
 
-api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
-client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 index_name = "my_index"
 index_key = my_index_key  # Same 32-byte KEK used during index creation

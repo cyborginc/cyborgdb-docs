@@ -1,150 +1,129 @@
 ---
-title: "Quickstart Guide"
+title: "Quickstart"
 sidebarTitle: "Quickstart"
 mode: "wide"
 ---
 
-Get started with CyborgDB in minutes! This guide will help you choose the right deployment model and get your first confidential vector search running quickly.
+## Try CyborgDB in 5 minutes
 
-## Choose Your Deployment Path
+Run this end-to-end — install, create an encrypted index, upsert, and query — with no server and no config:
 
-CyborgDB offers two main deployment approaches - both **self-hosted** on your infrastructure:
+```bash
+pip install cyborgdb-core
+```
+
+```python Python icon="python"
+import cyborgdb_core as cyborgdb
+import secrets
+
+# Ephemeral in-memory backing store — no server, no config.
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+
+# Generate an encryption key for the index.
+# WARNING: store this key securely — data encrypted with a lost key is unrecoverable.
+index_key = secrets.token_bytes(32)
+
+# Create an encrypted index.
+index = client.create_index(index_name="my_index", index_key=index_key)
+
+# Upsert some items (index_key is required on every data operation).
+items = [
+    {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "contents": "Hello!"},
+    {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8], "contents": "Bonjour!"},
+    {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "contents": "Hola!"},
+]
+index.upsert(items, index_key=index_key)
+
+# Query the encrypted index — request distance and metadata.
+results = index.query(
+    query_vectors=[0.1, 0.2, 0.3, 0.4],
+    top_k=2,
+    include=["distance", "metadata"],
+    index_key=index_key,
+)
+
+# Contents live in separately encrypted item records — retrieve them with get().
+top_items = index.get([r["id"] for r in results], index_key=index_key)
+by_id = {item["id"]: item for item in top_items}
+for r in results:
+    contents = by_id[r["id"]]["contents"].decode()
+    print(f"ID: {r['id']}  Distance: {r['distance']:.4f}  Contents: {contents}")
+```
+
+<Warning>
+**Store `index_key` before you upsert any data.** CyborgDB has no key-recovery path — losing the key means losing the data. For anything past evaluation, keep the key in AWS Secrets Manager, Vault, or your KMS. See [Managing Keys](../embedded/guides/advanced/managing-keys).
+</Warning>
+
+<Note>
+Without an API key the client runs in free-tier mode, capped at 1,000,000 items per index. Pass a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co) as the first argument (`cyborgdb.Client(api_key, storage_config=...)`) to lift the cap. See [Get an API Key](./get-api-key).
+</Note>
+
+---
+
+## Deploying for real? Use the Service.
+
+Embedded is the fastest path to a first query; the Service is what you deploy. It's a self-hosted REST API with client SDKs for Python, JavaScript, Go, and REST.
 
 <CardGroup cols={2}>
-  <Card title="CyborgDB Service" href="../service/guides/intro/quickstart-docker" icon="cloud">
-    *Self-deployed REST API service*
-    
-    Deploy as a microservice with REST API and client SDKs. Best for:
-    - Multi-language team environments
-    - Independent scaling capabilities
-    - Operational simplicity with centralized management
-    - Microservice architecture patterns
+  <Card title="Service Quickstart (Docker)" href="../service/guides/intro/quickstart-docker" icon="docker">
+    Spin up the REST service in one `docker run` and reach a first query.
   </Card>
-  
-  <Card title="CyborgDB Embedded" href="../embedded/guides/intro/quickstart" icon="code">
-    *Direct library integration*
-    
-    Embed directly in your applications using Python/C++ libraries. Best for:
-    - Maximum performance and control
-    - Custom integrations and workflows
-    - Single-application deployments
-    - Sub-millisecond latency requirements
+  <Card title="Service Quickstart (Python)" href="../service/guides/intro/quickstart-python" icon="python">
+    Same REST service via `pip install cyborgdb-service`.
   </Card>
 </CardGroup>
 
 ---
 
-## Migrating from Another Database
+## Migrating from another vector database
 
-Already have vectors in Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Use **CyborgDB Migrate** to bring them over:
+Already on Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Bring your workload over with **CyborgDB Migrate** — an interactive TUI wizard (or headless TOML config) that resumes on interrupt and preserves IDs and metadata.
 
 <Card title="CyborgDB Migrate" href="./migrate" icon="arrow-right-arrow-left">
-  *Migrate embeddings from other vector databases*
-
-  Interactive TUI wizard or headless TOML config. Supports Pinecone, Qdrant, Weaviate, ChromaDB, and Milvus.
-
   ```bash
-  pip install "cyborgdb-migrate[pinecone]"
+  pip install "cyborgdb-migrate[pinecone]"   # or [qdrant], [weaviate], [chromadb], [milvus]
   cyborgdb-migrate
   ```
 </Card>
 
 ---
 
-## Framework Integrations
-
-Already using AI frameworks? Get started even faster with our native integrations:
+## Framework integrations
 
 <CardGroup cols={2}>
   <Card title="LangChain Integration" href="../integrations/langchain/introduction" icon="link">
-    *Drop-in replacement for existing vector stores*
-    
-    Replace your current vector store with CyborgDB's encrypted alternative:
+    Drop-in replacement for existing vector stores:
     ```python
     from cyborgdb_core.integrations.langchain import CyborgVectorStore
-    
+
     store = CyborgVectorStore.from_texts(
         texts=["hello world", "goodbye world"],
         embedding="all-MiniLM-L6-v2",
         index_key=CyborgVectorStore.generate_key(save=True),
-        # ... other config
     )
     ```
   </Card>
-  
+
   <Card title="More Integrations Coming" href="../integrations/about" icon="plus">
-    *Expanding framework support*
-    
-    We're actively building integrations for:
-    - LlamaIndex
-    - Haystack  
-    - Semantic Kernel
-    - Custom frameworks
-    
+    LlamaIndex, Haystack, Semantic Kernel, and custom frameworks.
     [Request an integration →](https://www.cyborg.co/contact)
   </Card>
 </CardGroup>
 
 ---
 
-## Quick Decision Guide
-
-<Tabs>
-  <Tab title="I want to get started quickly">
-    **Fastest path to working confidential vector search**
-    
-    → Run [**CyborgDB Service**](../service/guides/intro/quickstart-docker) with Docker
-    
-    Spin up the service in one `docker run`, then connect via the Python SDK. Minimal setup required.
-  </Tab>
-  
-  <Tab title="I have a LangChain application">
-    **Drop-in replacement for existing vector stores**
-    
-    → Use the [**LangChain Integration**](../integrations/langchain/introduction) guide
-    
-    Replace your existing vector store with just a few lines of code changes.
-  </Tab>
-  
-  <Tab title="I need maximum performance">
-    **Sub-millisecond latency requirements**
-    
-    → Use [**CyborgDB Embedded**](../embedded/guides/intro/quickstart) libraries
-    
-    Direct integration eliminates network overhead for ultimate performance.
-  </Tab>
-  
-  <Tab title="I'm building a distributed application">
-    **Multi-language team or microservice architecture**
-    
-    → Use [**CyborgDB Service**](../service/guides/intro/quickstart-docker) deployment
-    
-    One service supports Python, JavaScript, Go, and C++ client SDKs.
-  </Tab>
-</Tabs>
-
----
-
-## Next Steps After Quickstart
+## Next steps
 
 <CardGroup cols={3}>
   <Card title="Learn the Concepts" href="./about" icon="book">
-    *Understand the architecture*
-    
-    Dive deeper into how CyborgDB enables confidential vector search
+    How CyborgDB enables confidential vector search.
   </Card>
-  
-  <Card title="Choose Your Database" href="./backing-stores" icon="database">
-    *PostgreSQL, Redis, S3, or Memory*
-    
-    Understand database options and performance characteristics
+
+  <Card title="Choose a Backing Store" href="./backing-stores" icon="database">
+    Memory, disk (default), or S3 — pick per environment.
   </Card>
-  
-  <Card title="Production Planning" href="./deployment-models" icon="server">
-    *Service vs Embedded comparison*
-    
-    Review deployment models and choose the right approach for production
+
+  <Card title="Deployment Models" href="./deployment-models" icon="server">
+    Embedded vs. Service, and when to pick each for production.
   </Card>
 </CardGroup>
-
-Ready to get started? Choose your deployment path above and follow the step-by-step guide!

@@ -134,17 +134,16 @@ A user loads the index by passing their own `user_kek` as the `index_key` and th
 ```python
 import cyborgdb_core as cyborgdb
 
-api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
 # user_id and user_kek were issued by the root KEK holder via create_user_keys()
 index = client.load_index("my_index", user_kek, user_id=user_id)
 
 # Permitted: this user has the "read" wrap
-results = index.query(query_vectors=[0.1, 0.2, 0.3], top_k=5)
+results = index.query(query_vectors=[0.1, 0.2, 0.3], top_k=5, index_key=user_kek, user_id=user_id)
 
 # Denied: a read-only user cannot write — this raises
-index.upsert([{"id": "item_1", "vector": [0.1, 0.2, 0.3]}])
+index.upsert([{"id": "item_1", "vector": [0.1, 0.2, 0.3]}], index_key=user_kek, user_id=user_id)
 ```
 
 The permission gate is enforced per operation: a read-only user can `query` / `get` / `list_ids`, but `upsert`, `delete`, and `train` are rejected. Admin operations (`create_user_keys`, `delete_user_keys`, `list_user_keys`, [`delete_index()`](./delete-index)) always require the **root** KEK and reject per-user contexts.

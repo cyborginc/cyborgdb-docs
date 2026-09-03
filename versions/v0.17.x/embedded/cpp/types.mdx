@@ -6,7 +6,7 @@ title: "Types"
 
 `StorageConfig` defines the backing store for an index and all of its per-index keystores. It is immutable and has no public default constructor — instances are created via the static factory methods below. A single `StorageConfig` is shared across the client and all indexes it manages.
 
-CyborgDB supports three backing stores: in-memory (ephemeral), local disk (RocksDB-backed), and S3 (or any S3-compatible store such as MinIO).
+CyborgDB supports three backing stores: in-memory (ephemeral), local disk, and S3 (or any S3-compatible store such as MinIO).
 
 ### Static Factories
 
@@ -20,7 +20,7 @@ static StorageConfig S3(std::string bucket, S3Options opts = {});
 | Factory | Description |
 |---------|-------------|
 | `Memory()` | Ephemeral in-memory storage with no persistence. Useful for tests and short-lived workloads. |
-| `Disk(path, cache_policy)` | Local persistent storage backed by RocksDB at `path`. Pass a [`CachePolicy`](#cachepolicy) to keep hot data in memory. |
+| `Disk(path, cache_policy)` | Local persistent storage on disk at `path`. Pass a [`CachePolicy`](#cachepolicy) to keep hot data in memory. |
 | `S3(bucket, opts)` | AWS S3 or any S3-compatible object store. Configure region, endpoint, prefix, and credentials via [`S3Options`](#s3options). |
 
 ### Example Usage

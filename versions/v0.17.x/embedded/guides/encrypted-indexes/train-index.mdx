@@ -11,17 +11,18 @@ In the embedded library version of CyborgDB, this training must be explicitly ca
 
 <CodeGroup>
 ```python Python icon="python"
-# Train the encrypted index
-index.train()
+# Train the encrypted index (index_key is required on every data operation)
+index.train(index_key=index_key)
 
 # Train the index with a specific number of clusters
-index.train(n_lists=1024)
+index.train(n_lists=1024, index_key=index_key)
 
 # Train the index with specific configuration
 index.train(
-    n_lists=1024, 
-    batch_size=64, 
-    max_iters=100
+    n_lists=1024,
+    batch_size=64,
+    max_iters=100,
+    index_key=index_key,
 )
 ```
 

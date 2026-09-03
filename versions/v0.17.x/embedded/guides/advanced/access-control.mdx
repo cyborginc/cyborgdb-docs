@@ -19,9 +19,7 @@ The root holder calls `create_user_keys` (Python) / `CreateUserKeys` (C++), supp
 import cyborgdb_core as cyborgdb
 import secrets
 
-api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
-client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
 # Root index KEK — the admin gate for user management
 index_key = secrets.token_bytes(32)
@@ -43,9 +41,7 @@ index.create_user_keys(writer_id, writer_kek, permissions=["read", "write"], ind
 #include <array>
 #include <openssl/rand.h>
 
-std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
-
-cyborg::Client client(api_key, cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
 
 // Root index KEK — the admin gate for user management
 std::array<uint8_t, 32> index_key;
@@ -79,11 +75,16 @@ A user loads the index with their own KEK as the `index_key` and passes their `u
 # The read-only user loads the index with their own key
 user_index = client.load_index("shared_index", reader_kek, user_id=reader_id)
 
-# Reads are allowed
-results = user_index.query(query_vectors=[0.1, 0.2, 0.3, 0.4], top_k=5)
+# Reads are allowed (user's KEK + user_id gate every data op)
+results = user_index.query(
+    query_vectors=[0.1, 0.2, 0.3, 0.4],
+    top_k=5,
+    index_key=reader_kek,
+    user_id=reader_id,
+)
 
 # Writes are rejected for a read-only user
-# user_index.upsert([...])  # raises RuntimeError — no write wrap
+# user_index.upsert([...], index_key=reader_kek, user_id=reader_id)  # raises RuntimeError — no write wrap
 ```
 
 ```cpp C++ icon="brackets-curly"

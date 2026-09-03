@@ -10,7 +10,7 @@ mode: "wide"
   <div style={{margin: "0 auto", maxWidth: "580px", fontSize: "16px", lineHeight: 1.6, color: "#8ba8b5"}}>Similarity search directly on encrypted embeddings — self-hosted in your VPC or on-prem. AES-256-GCM with your KMS key, per-operation key derivation, keys zeroized after use.</div>
 </div>
 
-**CyborgDB** is an encrypted vector database — similarity search directly on encrypted embeddings, with per-operation key derivation via your KMS and keys zeroized after use. Only the final candidates are decrypted. It runs as a proxy layer over Postgres or Redis, exposes a familiar API that slots into existing AI pipelines, and can be [GPU-accelerated with NVIDIA cuVS](https://developer.nvidia.com/blog/bringing-confidentiality-to-vector-search-with-cyborg-and-nvidia-cuvs/).
+**CyborgDB** is an encrypted vector database — similarity search directly on encrypted embeddings, with per-operation key derivation via your KMS and keys zeroized after use. Only the final candidates are decrypted. It runs self-hosted and standalone — persisting to local disk (default) or S3 — exposes a familiar API that slots into existing AI pipelines, and can be [GPU-accelerated with NVIDIA cuVS](https://developer.nvidia.com/blog/bringing-confidentiality-to-vector-search-with-cyborg-and-nvidia-cuvs/).
 
 <div style={{display: "grid", gridTemplateColumns: "repeat(3, 1fr)", margin: "24px 0 32px", borderRadius: "12px", border: "1px solid rgba(16,163,174,0.25)", overflow: "hidden"}}>
   <div style={{padding: "20px 16px", textAlign: "center", borderRight: "1px solid rgba(16,163,174,0.25)"}}>
@@ -30,13 +30,13 @@ mode: "wide"
 ### Choose Your Path
 
 <CardGroup cols={3}>
-    <Card title="Learn the Fundamentals" href="versions/v0.16.x/intro/about" icon="book-open-cover">
+    <Card title="Learn the Fundamentals" href="versions/v0.17.x/intro/about" icon="book-open-cover">
         Understand the architecture and principles behind encrypted vector search
     </Card>
-    <Card title="Start Building" href="versions/v0.16.x/intro/quickstart" icon="rocket-launch">
+    <Card title="Start Building" href="versions/v0.17.x/intro/quickstart" icon="rocket-launch">
         Get hands-on with CyborgDB in minutes using our quickstart guide
     </Card>
-    <Card title="Explore Deployment Options" href="versions/v0.16.x/intro/deployment-models" icon="server">
+    <Card title="Explore Deployment Options" href="versions/v0.17.x/intro/deployment-models" icon="server">
         Discover embedded libraries, managed service, and custom deployment options
     </Card>
 </CardGroup>
@@ -44,22 +44,22 @@ mode: "wide"
 ### Documentation Structure
 
 <CardGroup cols={3}>
-    <Card title="Introduction" href="versions/v0.16.x/intro/about" icon="graduation-cap">
+    <Card title="Introduction" href="versions/v0.17.x/intro/about" icon="graduation-cap">
         Core concepts, deployment models, and getting started guides
     </Card>
-    <Card title="CyborgDB Service" href="versions/v0.16.x/service/guides/intro/about" icon="cloud">
+    <Card title="CyborgDB Service" href="versions/v0.17.x/service/guides/intro/about" icon="cloud">
         CyborgDB self-hosted with REST API and client SDKs
     </Card>
-    <Card title="CyborgDB Embedded" href="versions/v0.16.x/embedded/guides/intro/about" icon="code">
+    <Card title="CyborgDB Embedded" href="versions/v0.17.x/embedded/guides/intro/about" icon="code">
         Self-hosted, embedded deployments with Python and C++ bindings
     </Card>
 </CardGroup>
 
 <CardGroup cols={2}>
-    <Card title="Integrations" href="versions/v0.16.x/integrations/about" icon="plug">
+    <Card title="Integrations" href="versions/v0.17.x/integrations/about" icon="plug">
         LangChain and other framework integrations for seamless adoption
     </Card>
-    <Card title="How to Use These Docs" href="versions/v0.16.x/intro/using-docs" icon="map">
+    <Card title="How to Use These Docs" href="versions/v0.17.x/intro/using-docs" icon="map">
         Navigation tips and conventions used throughout these docs
     </Card>
 </CardGroup>

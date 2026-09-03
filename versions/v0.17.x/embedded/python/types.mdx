@@ -10,7 +10,7 @@ CyborgDB supports three backing stores: **memory**, **disk**, and **s3**.
 
 ### Factories
 
-```python
+```text
 StorageConfig.memory()
 # Ephemeral, no persistence (tests / benchmarking).
 
@@ -19,7 +19,7 @@ StorageConfig.disk(path: str,
                    cache_vectors: bool = False,
                    cache_metadata: bool = False,
                    cache_ids: bool = False)
-# Local, RocksDB-backed persistent storage.
+# Local persistent storage on disk.
 
 StorageConfig.s3(bucket: str,
                  *,
@@ -33,7 +33,7 @@ StorageConfig.s3(bucket: str,
 | Factory | Description |
 |---------|-------------|
 | `memory()` | Ephemeral in-memory store with no persistence. Use for tests and benchmarking. |
-| `disk(path, ...)` | Local persistent store backed by RocksDB. Optional `cache_*` flags keep vectors / metadata / IDs in memory for faster reads. |
+| `disk(path, ...)` | Local persistent store on disk. Optional `cache_*` flags keep vectors / metadata / IDs in memory for faster reads. |
 | `s3(bucket, ...)` | S3 or S3-compatible object store. Set `endpoint` for non-AWS providers (path-style addressing is auto-selected). Omit `credentials` to use the AWS default credential provider chain. |
 
 ### Example Usage
@@ -44,7 +44,7 @@ import cyborgdb_core as cyborgdb
 # In-memory (ephemeral)
 memory_store = cyborgdb.StorageConfig.memory()
 
-# Local disk (RocksDB-backed), caching vectors in memory
+# Local disk, caching vectors in memory
 disk_store = cyborgdb.StorageConfig.disk("/tmp/cyborgdb", cache_vectors=True)
 
 # AWS S3 with explicit credentials
@@ -69,7 +69,7 @@ For more info, you can read about supported backing stores [here](../../intro/ba
 
 Explicit credentials for the `StorageConfig.s3(...)` factory. Omit `credentials=` on `.s3()` to use the AWS default credential provider chain (environment variables, `~/.aws/credentials`, EC2 instance profile, EKS IRSA).
 
-```python
+```text
 S3Credentials(access_key: str,
               secret_key: str,
               session_token: str | None = None)
@@ -173,7 +173,7 @@ if gpu_config2.train:
 
 `KMSBlob` describes a per-index envelope recording how the index KEK is wrapped by an external KMS. It is used with the module-level KMS functions (`create_index_kms`, `push_index_kms`, `get_index_kms`, `delete_index_kms`). This is an advanced, optional surface primarily for the service layer; embedded SDK users supplying their own KEK can ignore it or use `provider="none"`.
 
-```python
+```text
 KMSBlob(kms_name: str = "",
         provider: str = "",
         key_id: str = "",

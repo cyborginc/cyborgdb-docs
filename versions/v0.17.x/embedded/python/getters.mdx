@@ -7,7 +7,7 @@ title: "Getter Functions"
 Returns `True` only when training is **complete**, enabling efficient approximate nearest neighbor search. An untrained index defaults to exhaustive search.
 
 ```python
-def is_trained(self) -> bool
+def is_trained(self) -> bool: ...
 ```
 
 ### Returns
@@ -33,7 +33,7 @@ else:
 Returns `True` while a (re)train rebuild is in progress. While this is `True`, [`is_trained()`](#is_trained) returns `False` and queries fall back to exhaustive search.
 
 ```python
-def is_training(self) -> bool
+def is_training(self) -> bool: ...
 ```
 
 ### Returns
@@ -54,7 +54,7 @@ if index.is_training():
 Returns the current training state of the index as a string.
 
 ```python
-def training_state(self) -> str
+def training_state(self) -> str: ...
 ```
 
 ### Returns
@@ -75,7 +75,7 @@ print(f"Training state: {state}")  # "untrained" | "training" | "trained"
 Retrieves the name of the current index.
 
 ```python
-def index_name(self) -> str
+def index_name(self) -> str: ...
 ```
 
 ### Returns
@@ -96,7 +96,7 @@ print("Current index name:", index.index_name())
 Returns the type of the current index. CyborgDB indexes are DiskIVF indexes, so this returns `"disk_ivf"`.
 
 ```python
-def index_type(self) -> str
+def index_type(self) -> str: ...
 ```
 
 ### Returns
@@ -118,7 +118,7 @@ print("Index type:", index.index_type())
 Retrieves the configuration details of the current index.
 
 ```python
-def index_config(self) -> dict
+def index_config(self) -> dict: ...
 ```
 
 ### Returns
@@ -147,7 +147,7 @@ Returns the number of inverted lists in the index. This property is set during t
 
 ```python
 @property
-def n_lists(self) -> int
+def n_lists(self) -> int: ...
 ```
 
 ### Returns
@@ -170,7 +170,7 @@ Returns the dimensionality of the vectors in the index.
 
 ```python
 @property
-def dimension(self) -> int
+def dimension(self) -> int: ...
 ```
 
 ### Returns
@@ -193,7 +193,7 @@ Returns the distance metric used by the index.
 
 ```python
 @property
-def metric(self) -> str
+def metric(self) -> str: ...
 ```
 
 ### Returns
@@ -218,7 +218,7 @@ Returns the number of vectors currently stored in the index.
 def get_num_vectors(self,
                     *,
                     index_key: bytes = None,
-                    user_id: bytes = None) -> int
+                    user_id: bytes = None) -> int: ...
 ```
 
 ### Returns
@@ -245,7 +245,7 @@ Lists all item IDs currently stored in the index.
 def list_ids(self,
              *,
              index_key: bytes = None,
-             user_id: bytes = None) -> List[str]
+             user_id: bytes = None) -> List[str]: ...
 ```
 
 ### Returns
