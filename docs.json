@@ -89,6 +89,10 @@
       "destination": "/versions/latest/intro/security-overview"
     },
     {
+      "source": "/versions/v0.17.x/:slug*",
+      "destination": "/versions/latest/:slug*"
+    },
+    {
       "source": "/versions/v0.13.x/:slug*",
       "destination": "/versions/latest/:slug*"
     },
