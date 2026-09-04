@@ -1,0 +1,62 @@
+---
+title: "CyborgDB REST API Reference"
+sidebarTitle: "REST API Introduction"
+mode: "wide"
+noindex: true
+---
+
+The CyborgDB REST API provides HTTP/HTTPS endpoints for all encrypted vector database operations using standard RESTful principles and JSON responses.
+
+## Base URL
+
+**Development:** `http://localhost:8000/v1`  
+**Production:** `https://your-domain.com:8000/v1`
+
+## Authentication
+
+Authentication is controlled by the service's `CYBORGDB_SERVICE_ROOT_KEY`. When it is **unset** (the default), authentication is disabled — every endpoint is open and no header is required. When it is **set**, all endpoints except `/v1/health` require a credential in the `X-API-Key` header:
+
+```http
+X-API-Key: your-root-key-or-cdbk-token
+```
+
+The accepted credential is either the root key itself or a per-user `cdbk_` token minted under it (see [Managing Keys](../guides/advanced/managing-keys)).
+
+<Note>
+This `X-API-Key` credential is **not** the same as `CYBORGDB_API_KEY`. `CYBORGDB_API_KEY` is the core *license* key — it sets the usage tier (unset → free tier with a 1M-item-per-index cap; a paid key from the [CyborgDB Admin Dashboard](https://cyborgdb.co) → unlimited) and is never sent by clients. Service request authentication is gated only by `CYBORGDB_SERVICE_ROOT_KEY`.
+</Note>
+
+## Response Format
+
+**Success:**
+```json
+{
+  "status": "success",
+  "message": "Operation completed successfully"
+}
+```
+
+**Error:**
+```json
+{
+  "status_code": 400,
+  "detail": "Error description"
+}
+```
+
+## Error model: API keys, index keys, and KMS
+
+A small amount of nuance applies to error codes on index-scoped routes (anything under `/v1/indexes/{index_name}/…` and `/v1/indexes/{upsert,query,query-binary,train,delete,…}`):
+
+| Status | Meaning |
+|---|---|
+| `400 Bad Request` | The request is malformed for this index's key path. The most common case is supplying `index_key` (header or body) for a **KMS-backed** index — the service resolves the KEK itself and rejects user-supplied keys with: _"index is KMS-backed; do not supply index_key. Omit index_key from the request."_ |
+| `401 Unauthorized` | Either (a) the `X-API-Key` header is missing/invalid, **or** (b) for SDK-supplied indexes, the `index_key` was supplied but does not match the key the index was created with (_"Invalid encryption key for index"_). Inspect the `detail` field to disambiguate. |
+| `403 Forbidden` | RBAC routes (user create/list/delete) called without the root API key, or when RBAC is not enabled on the service. |
+| `404 Not Found` | The named index does not exist. |
+
+<Note>Wrong-`index_key` returns **401** in v0.17 (previously some paths returned 500). KMS-backed indexes that receive an unexpected `index_key` return **400** rather than silently ignoring it — this surfaces SDK-versus-KMS confusion early.</Note>
+
+## Interactive Documentation
+
+Explore the complete API at: [http://localhost:8000/docs](http://localhost:8000/docs) after starting the service.

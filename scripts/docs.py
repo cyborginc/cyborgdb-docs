@@ -53,8 +53,17 @@ def git_show(ref, path):
 
 
 def changed_files(base, pathspec):
+    """Files touched vs `base`, including uncommitted work.
+
+    Without the working-tree half, running sync-next then sync-next --check
+    locally reports drift for the files just written, because they are not
+    committed yet. CI sees a clean tree, so this only helps humans.
+    """
     out = git("diff", "--name-only", f"{base}...HEAD", "--", pathspec, check=False)
-    return {l for l in out.splitlines() if l.strip()}
+    files = {l for l in out.splitlines() if l.strip()}
+    out = git("status", "--porcelain", "--untracked-files=all", "--", pathspec, check=False)
+    files |= {l[3:].strip() for l in out.splitlines() if l.strip()}
+    return files
 
 
 def default_base():
