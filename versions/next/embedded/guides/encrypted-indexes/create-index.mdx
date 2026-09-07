@@ -48,7 +48,7 @@ auto index = client.CreateIndex("my_index", index_key);
 ```
 </CodeGroup>
 
-This creates a new DiskIVF encrypted index. The vector dimension is auto-detected from the first upsert (or derived from an `embedding_model`); you can also set it explicitly with the keyword-only `dimension` parameter. Other optional parameters include `metric` (`"euclidean"` default, `"cosine"`, or `"squared_euclidean"`) and `storage_precision` (`float32` default, or `float16` to halve the on-disk rerank-vector footprint).
+This creates a new DiskIVF encrypted index. The vector dimension is auto-detected from the first upsert (or derived from an `embedding_model`); you can also set it explicitly with the keyword-only `dimension` parameter. Other optional parameters include `metric` (`"euclidean"` default, `"cosine"`, or `"squared_euclidean"`) and `storage_precision`. `storage_precision` picks the on-disk format for the rerank vectors: `"float32"` (default) or `"float16"` to halve the footprint at a slight precision cost, or one of the TurboQuant tiers `"tq12"` / `"tq8"` / `"tq6"` / `"tq4"` (12/8/6/4 bits per dimension) to trade storage for a small recall/latency cost — `"tq4"` is the most aggressive (~8x smaller than `float32`, ~94% recall@100 on wiki-all-768). All tiers work with every metric; the choice is fixed at create time.
 
 <Note>Vector dimension is capped at **65535** (`0xFFFF`). Passing `dimension=0` still means auto-detect. Explicit values outside `[0, 65535]` — including negatives, which the Python API catches before they wrap on the C++ binding — raise `ValueError` at `create_index()` time.</Note>
 
