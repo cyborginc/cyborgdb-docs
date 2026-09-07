@@ -28,7 +28,7 @@ def create_index(self,
 | `index_name` | `str` | - | Name of the index to create. Must be unique. |
 | `index_key` | `bytes` | - | 32-byte encryption key (KEK) for the index, used to secure the index data. |
 | `dimension` | `int` \| `None` | `None` | _(Optional, keyword-only)_ Dimensionality of vector embeddings. When `None`, auto-detected from the first upsert (or derived from `embedding_model`). |
-| `storage_precision` | `np.float32` \| `np.float16` | `np.float32` | _(Optional, keyword-only)_ On-disk dtype for the rerank vectors. `np.float16` (or `"float16"`) halves the disk footprint with a slight precision loss. See [storage precision](../types#storage-precision). |
+| `storage_precision` | [`StoragePrecision`](../types#storage-precision) \| `str` \| `np.float32` \| `np.float16` | `StoragePrecision.FLOAT32` | _(Optional, keyword-only)_ On-disk format for the rerank vectors, fixed at create time. One of `StoragePrecision.FLOAT32` (default), `FLOAT16`, `TQ12`, `TQ8`, `TQ6`, or `TQ4`. `FLOAT16` halves the disk footprint with a slight precision loss; the TurboQuant tiers `TQ12`/`TQ8`/`TQ6`/`TQ4` hold that many bits per dimension and trade storage for a small recall/latency cost, with `TQ4` the most aggressive (~8x smaller than `FLOAT32`, ~94% recall@100 on wiki-all-768). All tiers work with every metric. The enum members are `str`-valued, so the raw strings (`"float32"`, `"float16"`, `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`) and `np.float32` / `np.float16` are also accepted. See [storage precision](../types#storage-precision). |
 | `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of the SentenceTransformer model to use for automatic text embeddings. |
 | `metric` | `str` \| `None` | `"euclidean"` | _(Optional, keyword-only)_ Distance metric to use: `"euclidean"`, `"cosine"`, or `"squared_euclidean"`. See [`DistanceMetric`](../types#distancemetric). |
 | `metadata_schema` | `dict` \| `None` | `None` | _(Optional, keyword-only)_ Per-field metadata indexing policy, keyed by field name (dot-paths for nested fields). Fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
@@ -113,6 +113,27 @@ index = client.create_index(
     storage_precision=np.float16,  # halve on-disk rerank-vector footprint
     metric="cosine",
     logger=logger,
+)
+```
+
+#### With TurboQuant Storage Precision
+
+```python
+import cyborgdb_core as cyborgdb
+from cyborgdb_core import StoragePrecision
+import secrets
+
+client = cyborgdb.Client("your_api_key_here", cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+
+# TQ8 → 8 bits per dimension. On 768-dim vectors that's ~4x smaller than float32
+# rerank vectors, with a small recall/latency cost paid at query time when the
+# stage-2 rerank decodes the stored vectors back to float32.
+index = client.create_index(
+    "compact_index",
+    secrets.token_bytes(32),
+    dimension=768,
+    storage_precision=StoragePrecision.TQ8,  # or the string "tq8"
+    metric="cosine",
 )
 ```
 
