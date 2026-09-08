@@ -22,77 +22,110 @@
   "redirects": [
     {
       "source": "/about",
-      "destination": "versions/v0.16.x/intro/about"
+      "destination": "/versions/latest/intro/about"
     },
     {
       "source": "/threat-model",
-      "destination": "/versions/v0.16.x/intro/threat-model"
+      "destination": "/versions/latest/intro/threat-model"
     },
     {
       "source": "/rest-api",
-      "destination": "/versions/v0.16.x/service/rest-api/introduction"
+      "destination": "/versions/latest/service/rest-api/introduction"
     },
     {
       "source": "/python-embedded",
-      "destination": "/versions/v0.16.x/embedded/python/introduction"
+      "destination": "/versions/latest/embedded/python/introduction"
     },
     {
       "source": "/cpp-embedded",
-      "destination": "/versions/v0.16.x/embedded/cpp/introduction"
+      "destination": "/versions/latest/embedded/cpp/introduction"
     },
     {
       "source": "/python-sdk",
-      "destination": "/versions/v0.16.x/service/python-sdk/introduction"
+      "destination": "/versions/latest/service/python-sdk/introduction"
     },
     {
       "source": "/py",
-      "destination": "/versions/v0.16.x/service/python-sdk/introduction"
+      "destination": "/versions/latest/service/python-sdk/introduction"
     },
     {
       "source": "/js-sdk",
-      "destination": "/versions/v0.16.x/service/js-ts-sdk/introduction"
+      "destination": "/versions/latest/service/js-ts-sdk/introduction"
     },
     {
       "source": "/js",
-      "destination": "/versions/v0.16.x/service/js-ts-sdk/introduction"
+      "destination": "/versions/latest/service/js-ts-sdk/introduction"
     },
     {
       "source": "/go-sdk",
-      "destination": "/versions/v0.16.x/service/go-sdk/introduction"
+      "destination": "/versions/latest/service/go-sdk/introduction"
     },
     {
       "source": "/go",
-      "destination": "/versions/v0.16.x/service/go-sdk/introduction"
+      "destination": "/versions/latest/service/go-sdk/introduction"
     },
     {
       "source": "/quickstart",
-      "destination": "/versions/v0.16.x/intro/quickstart"
+      "destination": "/versions/latest/intro/quickstart"
     },
     {
-      "source": "/changelog",
-      "destination": "/versions/changelog"
+      "source": "/versions/changelog",
+      "destination": "/changelog"
     },
     {
       "source": "/encryption",
-      "destination": "versions/v0.16.x/intro/encryption"
+      "destination": "/versions/latest/intro/encryption"
     },
     {
       "source": "/service",
-      "destination": "/versions/v0.16.x/service/guides/intro/about"
+      "destination": "/versions/latest/service/guides/intro/about"
     },
     {
       "source": "/embedded",
-      "destination": "/versions/v0.16.x/embedded/guides/intro/about"
+      "destination": "/versions/latest/embedded/guides/intro/about"
     },
     {
       "source": "/security",
-      "destination": "/versions/v0.16.x/intro/security-overview"
+      "destination": "/versions/latest/intro/security-overview"
+    },
+    {
+      "source": "/versions/v0.17.x/:slug*",
+      "destination": "/versions/latest/:slug*"
+    },
+    {
+      "source": "/versions/v0.13.x/:slug*",
+      "destination": "/versions/latest/:slug*"
+    },
+    {
+      "source": "/versions/v0.12.x/:slug*",
+      "destination": "/versions/latest/:slug*"
+    },
+    {
+      "source": "/versions/v0.11.x/:slug*",
+      "destination": "/versions/latest/:slug*"
+    },
+    {
+      "source": "/versions/v0.10.x/:slug*",
+      "destination": "/versions/latest/intro/quickstart"
+    },
+    {
+      "source": "/versions/v0.9.x/:slug*",
+      "destination": "/versions/latest/intro/quickstart"
+    },
+    {
+      "source": "/versions/v0.8.x/:slug*",
+      "destination": "/versions/latest/intro/quickstart"
+    },
+    {
+      "source": "/versions/next/:slug*",
+      "destination": "/versions/latest/:slug*"
     }
   ],
   "navigation": {
     "versions": [
       {
         "version": "v0.17.x",
+        "tag": "Latest",
         "tabs": [
           {
             "tab": "Introduction",
@@ -101,34 +134,34 @@
                 "group": "CyborgDB Docs",
                 "pages": [
                   "index",
-                  "versions/v0.17.x/intro/about",
-                  "versions/v0.17.x/intro/deployment-models",
-                  "versions/v0.17.x/intro/backing-stores"
+                  "versions/latest/intro/about",
+                  "versions/latest/intro/deployment-models",
+                  "versions/latest/intro/backing-stores"
                 ]
               },
               {
                 "group": "Getting Started",
                 "pages": [
-                  "versions/v0.17.x/intro/quickstart",
-                  "versions/v0.17.x/intro/get-api-key",
-                  "versions/v0.17.x/intro/using-docs",
-                  "versions/v0.17.x/intro/migrate"
+                  "versions/latest/intro/quickstart",
+                  "versions/latest/intro/get-api-key",
+                  "versions/latest/intro/using-docs",
+                  "versions/latest/intro/migrate"
                 ]
               },
               {
                 "group": "Security",
                 "pages": [
-                  "versions/v0.17.x/intro/security-overview",
-                  "versions/v0.17.x/intro/threat-model",
-                  "versions/v0.17.x/intro/embedding-inversion",
-                  "versions/v0.17.x/intro/encryption"
+                  "versions/latest/intro/security-overview",
+                  "versions/latest/intro/threat-model",
+                  "versions/latest/intro/embedding-inversion",
+                  "versions/latest/intro/encryption"
                 ]
               },
               {
                 "group": "Resources",
                 "pages": [
-                  "versions/changelog",
-                  "versions/v0.17.x/intro/open-source"
+                  "changelog",
+                  "versions/latest/intro/open-source"
                 ]
               }
             ]
@@ -143,43 +176,43 @@
                   {
                     "group": "CyborgDB Service",
                     "pages": [
-                      "versions/v0.17.x/service/guides/intro/about",
-                      "versions/v0.17.x/service/guides/intro/quickstart-docker",
-                      "versions/v0.17.x/service/guides/intro/quickstart-python"
+                      "versions/latest/service/guides/intro/about",
+                      "versions/latest/service/guides/intro/quickstart-docker",
+                      "versions/latest/service/guides/intro/quickstart-python"
                     ]
                   },
                   {
                     "group": "Encrypted Indexes",
                     "pages": [
-                      "versions/v0.17.x/service/guides/encrypted-indexes/introduction",
-                      "versions/v0.17.x/service/guides/encrypted-indexes/create-client",
-                      "versions/v0.17.x/service/guides/encrypted-indexes/create-index",
-                      "versions/v0.17.x/service/guides/encrypted-indexes/load-index",
-                      "versions/v0.17.x/service/guides/encrypted-indexes/list-indexes",
-                      "versions/v0.17.x/service/guides/encrypted-indexes/delete-index"
+                      "versions/latest/service/guides/encrypted-indexes/introduction",
+                      "versions/latest/service/guides/encrypted-indexes/create-client",
+                      "versions/latest/service/guides/encrypted-indexes/create-index",
+                      "versions/latest/service/guides/encrypted-indexes/load-index",
+                      "versions/latest/service/guides/encrypted-indexes/list-indexes",
+                      "versions/latest/service/guides/encrypted-indexes/delete-index"
                     ]
                   },
                   {
                     "group": "Data Operations",
                     "pages": [
-                      "versions/v0.17.x/service/guides/data-operations/add-items",
-                      "versions/v0.17.x/service/guides/data-operations/query",
-                      "versions/v0.17.x/service/guides/data-operations/metadata-filtering",
-                      "versions/v0.17.x/service/guides/data-operations/get-items",
-                      "versions/v0.17.x/service/guides/data-operations/delete-items"
+                      "versions/latest/service/guides/data-operations/add-items",
+                      "versions/latest/service/guides/data-operations/query",
+                      "versions/latest/service/guides/data-operations/metadata-filtering",
+                      "versions/latest/service/guides/data-operations/get-items",
+                      "versions/latest/service/guides/data-operations/delete-items"
                     ]
                   },
                   {
                     "group": "Advanced",
                     "pages": [
-                      "versions/v0.17.x/service/guides/advanced/managing-keys",
-                      "versions/v0.17.x/service/guides/advanced/kms-byok",
-                      "versions/v0.17.x/service/guides/advanced/multi-tenancy",
-                      "versions/v0.17.x/service/guides/advanced/env-vars",
-                      "versions/v0.17.x/service/guides/advanced/yaml-reference",
-                      "versions/v0.17.x/service/guides/advanced/configure-index",
-                      "versions/v0.17.x/service/guides/advanced/train-index",
-                      "versions/v0.17.x/service/guides/advanced/usage-telemetry"
+                      "versions/latest/service/guides/advanced/managing-keys",
+                      "versions/latest/service/guides/advanced/kms-byok",
+                      "versions/latest/service/guides/advanced/multi-tenancy",
+                      "versions/latest/service/guides/advanced/env-vars",
+                      "versions/latest/service/guides/advanced/yaml-reference",
+                      "versions/latest/service/guides/advanced/configure-index",
+                      "versions/latest/service/guides/advanced/train-index",
+                      "versions/latest/service/guides/advanced/usage-telemetry"
                     ]
                   }
                 ]
@@ -191,45 +224,45 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "versions/v0.17.x/service/rest-api/introduction"
+                      "versions/latest/service/rest-api/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "versions/v0.17.x/service/rest-api/client/get-health",
-                      "versions/v0.17.x/service/rest-api/client/create-index",
-                      "versions/v0.17.x/service/rest-api/client/list-indexes",
-                      "versions/v0.17.x/service/rest-api/client/training-status"
+                      "versions/latest/service/rest-api/client/get-health",
+                      "versions/latest/service/rest-api/client/create-index",
+                      "versions/latest/service/rest-api/client/list-indexes",
+                      "versions/latest/service/rest-api/client/training-status"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "versions/v0.17.x/service/rest-api/encrypted-index/upsert",
-                      "versions/v0.17.x/service/rest-api/encrypted-index/upsert-binary",
-                      "versions/v0.17.x/service/rest-api/encrypted-index/query",
-                      "versions/v0.17.x/service/rest-api/encrypted-index/query-binary",
-                      "versions/v0.17.x/service/rest-api/encrypted-index/train",
-                      "versions/v0.17.x/service/rest-api/encrypted-index/get",
-                      "versions/v0.17.x/service/rest-api/encrypted-index/list-ids",
-                      "versions/v0.17.x/service/rest-api/encrypted-index/delete",
-                      "versions/v0.17.x/service/rest-api/encrypted-index/delete-index"
+                      "versions/latest/service/rest-api/encrypted-index/upsert",
+                      "versions/latest/service/rest-api/encrypted-index/upsert-binary",
+                      "versions/latest/service/rest-api/encrypted-index/query",
+                      "versions/latest/service/rest-api/encrypted-index/query-binary",
+                      "versions/latest/service/rest-api/encrypted-index/train",
+                      "versions/latest/service/rest-api/encrypted-index/get",
+                      "versions/latest/service/rest-api/encrypted-index/list-ids",
+                      "versions/latest/service/rest-api/encrypted-index/delete",
+                      "versions/latest/service/rest-api/encrypted-index/delete-index"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
-                      "versions/v0.17.x/service/rest-api/getters/describe-index",
-                      "versions/v0.17.x/service/rest-api/getters/get-vector-count"
+                      "versions/latest/service/rest-api/getters/describe-index",
+                      "versions/latest/service/rest-api/getters/get-vector-count"
                     ]
                   },
                   {
                     "group": "Users (RBAC)",
                     "pages": [
-                      "versions/v0.17.x/service/rest-api/users/create-user",
-                      "versions/v0.17.x/service/rest-api/users/list-users",
-                      "versions/v0.17.x/service/rest-api/users/delete-user"
+                      "versions/latest/service/rest-api/users/create-user",
+                      "versions/latest/service/rest-api/users/list-users",
+                      "versions/latest/service/rest-api/users/delete-user"
                     ]
                   }
                 ]
@@ -241,40 +274,40 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "versions/v0.17.x/service/python-sdk/introduction"
+                      "versions/latest/service/python-sdk/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "versions/v0.17.x/service/python-sdk/client/client",
-                      "versions/v0.17.x/service/python-sdk/client/get-health",
-                      "versions/v0.17.x/service/python-sdk/client/create-index",
-                      "versions/v0.17.x/service/python-sdk/client/load-index",
-                      "versions/v0.17.x/service/python-sdk/client/list-indexes",
-                      "versions/v0.17.x/service/python-sdk/client/generate-key"
+                      "versions/latest/service/python-sdk/client/client",
+                      "versions/latest/service/python-sdk/client/get-health",
+                      "versions/latest/service/python-sdk/client/create-index",
+                      "versions/latest/service/python-sdk/client/load-index",
+                      "versions/latest/service/python-sdk/client/list-indexes",
+                      "versions/latest/service/python-sdk/client/generate-key"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/upsert",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/upsert-binary",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/query",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/query-binary",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/train",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/get",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/list-ids",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/delete",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/delete-index",
-                      "versions/v0.17.x/service/python-sdk/encrypted-index/users"
+                      "versions/latest/service/python-sdk/encrypted-index/upsert",
+                      "versions/latest/service/python-sdk/encrypted-index/upsert-binary",
+                      "versions/latest/service/python-sdk/encrypted-index/query",
+                      "versions/latest/service/python-sdk/encrypted-index/query-binary",
+                      "versions/latest/service/python-sdk/encrypted-index/train",
+                      "versions/latest/service/python-sdk/encrypted-index/get",
+                      "versions/latest/service/python-sdk/encrypted-index/list-ids",
+                      "versions/latest/service/python-sdk/encrypted-index/delete",
+                      "versions/latest/service/python-sdk/encrypted-index/delete-index",
+                      "versions/latest/service/python-sdk/encrypted-index/users"
                     ]
                   },
                   {
                     "group": "Types & Helpers",
                     "pages": [
-                      "versions/v0.17.x/service/python-sdk/getters",
-                      "versions/v0.17.x/service/python-sdk/types"
+                      "versions/latest/service/python-sdk/getters",
+                      "versions/latest/service/python-sdk/types"
                     ]
                   }
                 ]
@@ -286,38 +319,38 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "versions/v0.17.x/service/js-ts-sdk/introduction"
+                      "versions/latest/service/js-ts-sdk/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "versions/v0.17.x/service/js-ts-sdk/client/client",
-                      "versions/v0.17.x/service/js-ts-sdk/client/get-health",
-                      "versions/v0.17.x/service/js-ts-sdk/client/create-index",
-                      "versions/v0.17.x/service/js-ts-sdk/client/load-index",
-                      "versions/v0.17.x/service/js-ts-sdk/client/list-indexes",
-                      "versions/v0.17.x/service/js-ts-sdk/client/generate-key"
+                      "versions/latest/service/js-ts-sdk/client/client",
+                      "versions/latest/service/js-ts-sdk/client/get-health",
+                      "versions/latest/service/js-ts-sdk/client/create-index",
+                      "versions/latest/service/js-ts-sdk/client/load-index",
+                      "versions/latest/service/js-ts-sdk/client/list-indexes",
+                      "versions/latest/service/js-ts-sdk/client/generate-key"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/upsert",
-                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/query",
-                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/train",
-                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/get",
-                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/list-ids",
-                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/delete",
-                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/delete-index",
-                      "versions/v0.17.x/service/js-ts-sdk/encrypted-index/users"
+                      "versions/latest/service/js-ts-sdk/encrypted-index/upsert",
+                      "versions/latest/service/js-ts-sdk/encrypted-index/query",
+                      "versions/latest/service/js-ts-sdk/encrypted-index/train",
+                      "versions/latest/service/js-ts-sdk/encrypted-index/get",
+                      "versions/latest/service/js-ts-sdk/encrypted-index/list-ids",
+                      "versions/latest/service/js-ts-sdk/encrypted-index/delete",
+                      "versions/latest/service/js-ts-sdk/encrypted-index/delete-index",
+                      "versions/latest/service/js-ts-sdk/encrypted-index/users"
                     ]
                   },
                   {
                     "group": "Types & Helpers",
                     "pages": [
-                      "versions/v0.17.x/service/js-ts-sdk/getters",
-                      "versions/v0.17.x/service/js-ts-sdk/types"
+                      "versions/latest/service/js-ts-sdk/getters",
+                      "versions/latest/service/js-ts-sdk/types"
                     ]
                   }
                 ]
@@ -329,38 +362,38 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "versions/v0.17.x/service/go-sdk/introduction"
+                      "versions/latest/service/go-sdk/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "versions/v0.17.x/service/go-sdk/client/client",
-                      "versions/v0.17.x/service/go-sdk/client/get-health",
-                      "versions/v0.17.x/service/go-sdk/client/create-index",
-                      "versions/v0.17.x/service/go-sdk/client/load-index",
-                      "versions/v0.17.x/service/go-sdk/client/list-indexes",
-                      "versions/v0.17.x/service/go-sdk/client/generate-key"
+                      "versions/latest/service/go-sdk/client/client",
+                      "versions/latest/service/go-sdk/client/get-health",
+                      "versions/latest/service/go-sdk/client/create-index",
+                      "versions/latest/service/go-sdk/client/load-index",
+                      "versions/latest/service/go-sdk/client/list-indexes",
+                      "versions/latest/service/go-sdk/client/generate-key"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "versions/v0.17.x/service/go-sdk/encrypted-index/upsert",
-                      "versions/v0.17.x/service/go-sdk/encrypted-index/query",
-                      "versions/v0.17.x/service/go-sdk/encrypted-index/train",
-                      "versions/v0.17.x/service/go-sdk/encrypted-index/get",
-                      "versions/v0.17.x/service/go-sdk/encrypted-index/list-ids",
-                      "versions/v0.17.x/service/go-sdk/encrypted-index/delete",
-                      "versions/v0.17.x/service/go-sdk/encrypted-index/delete-index",
-                      "versions/v0.17.x/service/go-sdk/encrypted-index/users"
+                      "versions/latest/service/go-sdk/encrypted-index/upsert",
+                      "versions/latest/service/go-sdk/encrypted-index/query",
+                      "versions/latest/service/go-sdk/encrypted-index/train",
+                      "versions/latest/service/go-sdk/encrypted-index/get",
+                      "versions/latest/service/go-sdk/encrypted-index/list-ids",
+                      "versions/latest/service/go-sdk/encrypted-index/delete",
+                      "versions/latest/service/go-sdk/encrypted-index/delete-index",
+                      "versions/latest/service/go-sdk/encrypted-index/users"
                     ]
                   },
                   {
                     "group": "Types & Helpers",
                     "pages": [
-                      "versions/v0.17.x/service/go-sdk/getters",
-                      "versions/v0.17.x/service/go-sdk/types"
+                      "versions/latest/service/go-sdk/getters",
+                      "versions/latest/service/go-sdk/types"
                     ]
                   }
                 ]
@@ -377,40 +410,40 @@
                   {
                     "group": "Intro",
                     "pages": [
-                      "versions/v0.17.x/embedded/guides/intro/about",
-                      "versions/v0.17.x/embedded/guides/intro/quickstart"
+                      "versions/latest/embedded/guides/intro/about",
+                      "versions/latest/embedded/guides/intro/quickstart"
                     ]
                   },
                   {
                     "group": "Encrypted Indexes",
                     "pages": [
-                      "versions/v0.17.x/embedded/guides/encrypted-indexes/introduction",
-                      "versions/v0.17.x/embedded/guides/encrypted-indexes/create-client",
-                      "versions/v0.17.x/embedded/guides/encrypted-indexes/create-index",
-                      "versions/v0.17.x/embedded/guides/encrypted-indexes/load-index",
-                      "versions/v0.17.x/embedded/guides/encrypted-indexes/list-indexes",
-                      "versions/v0.17.x/embedded/guides/encrypted-indexes/train-index",
-                      "versions/v0.17.x/embedded/guides/encrypted-indexes/delete-index"
+                      "versions/latest/embedded/guides/encrypted-indexes/introduction",
+                      "versions/latest/embedded/guides/encrypted-indexes/create-client",
+                      "versions/latest/embedded/guides/encrypted-indexes/create-index",
+                      "versions/latest/embedded/guides/encrypted-indexes/load-index",
+                      "versions/latest/embedded/guides/encrypted-indexes/list-indexes",
+                      "versions/latest/embedded/guides/encrypted-indexes/train-index",
+                      "versions/latest/embedded/guides/encrypted-indexes/delete-index"
                     ]
                   },
                   {
                     "group": "Data Operations",
                     "pages": [
-                      "versions/v0.17.x/embedded/guides/data-operations/add-items",
-                      "versions/v0.17.x/embedded/guides/data-operations/query",
-                      "versions/v0.17.x/embedded/guides/data-operations/metadata-filtering",
-                      "versions/v0.17.x/embedded/guides/data-operations/get-items",
-                      "versions/v0.17.x/embedded/guides/data-operations/delete-items"
+                      "versions/latest/embedded/guides/data-operations/add-items",
+                      "versions/latest/embedded/guides/data-operations/query",
+                      "versions/latest/embedded/guides/data-operations/metadata-filtering",
+                      "versions/latest/embedded/guides/data-operations/get-items",
+                      "versions/latest/embedded/guides/data-operations/delete-items"
                     ]
                   },
                   {
                     "group": "Advanced",
                     "pages": [
-                      "versions/v0.17.x/embedded/guides/advanced/managing-keys",
-                      "versions/v0.17.x/embedded/guides/advanced/access-control",
-                      "versions/v0.17.x/embedded/guides/advanced/kms",
-                      "versions/v0.17.x/embedded/guides/advanced/configure-index",
-                      "versions/v0.17.x/embedded/guides/advanced/usage-telemetry"
+                      "versions/latest/embedded/guides/advanced/managing-keys",
+                      "versions/latest/embedded/guides/advanced/access-control",
+                      "versions/latest/embedded/guides/advanced/kms",
+                      "versions/latest/embedded/guides/advanced/configure-index",
+                      "versions/latest/embedded/guides/advanced/usage-telemetry"
                     ]
                   }
                 ]
@@ -422,37 +455,37 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "versions/v0.17.x/embedded/python/introduction"
+                      "versions/latest/embedded/python/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "versions/v0.17.x/embedded/python/client/client",
-                      "versions/v0.17.x/embedded/python/client/create-index",
-                      "versions/v0.17.x/embedded/python/client/load-index",
-                      "versions/v0.17.x/embedded/python/client/list-indexes",
-                      "versions/v0.17.x/embedded/python/client/logger"
+                      "versions/latest/embedded/python/client/client",
+                      "versions/latest/embedded/python/client/create-index",
+                      "versions/latest/embedded/python/client/load-index",
+                      "versions/latest/embedded/python/client/list-indexes",
+                      "versions/latest/embedded/python/client/logger"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "versions/v0.17.x/embedded/python/encrypted-index/upsert",
-                      "versions/v0.17.x/embedded/python/encrypted-index/query",
-                      "versions/v0.17.x/embedded/python/encrypted-index/train",
-                      "versions/v0.17.x/embedded/python/encrypted-index/get",
-                      "versions/v0.17.x/embedded/python/encrypted-index/delete",
-                      "versions/v0.17.x/embedded/python/encrypted-index/delete-index",
-                      "versions/v0.17.x/embedded/python/encrypted-index/manage-users"
+                      "versions/latest/embedded/python/encrypted-index/upsert",
+                      "versions/latest/embedded/python/encrypted-index/query",
+                      "versions/latest/embedded/python/encrypted-index/train",
+                      "versions/latest/embedded/python/encrypted-index/get",
+                      "versions/latest/embedded/python/encrypted-index/delete",
+                      "versions/latest/embedded/python/encrypted-index/delete-index",
+                      "versions/latest/embedded/python/encrypted-index/manage-users"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
-                      "versions/v0.17.x/embedded/python/getters",
-                      "versions/v0.17.x/embedded/python/types",
-                      "versions/v0.17.x/embedded/python/kms"
+                      "versions/latest/embedded/python/getters",
+                      "versions/latest/embedded/python/types",
+                      "versions/latest/embedded/python/kms"
                     ]
                   }
                 ]
@@ -464,37 +497,38 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "versions/v0.17.x/embedded/cpp/introduction"
+                      "versions/latest/embedded/cpp/introduction"
                     ]
                   },
                   {
                     "group": "Client",
                     "pages": [
-                      "versions/v0.17.x/embedded/cpp/client/client",
-                      "versions/v0.17.x/embedded/cpp/client/create-index",
-                      "versions/v0.17.x/embedded/cpp/client/load-index",
-                      "versions/v0.17.x/embedded/cpp/client/list-indexes",
-                      "versions/v0.17.x/embedded/cpp/client/logger"
+                      "versions/latest/embedded/cpp/client/client",
+                      "versions/latest/embedded/cpp/client/create-index",
+                      "versions/latest/embedded/cpp/client/load-index",
+                      "versions/latest/embedded/cpp/client/list-indexes",
+                      "versions/latest/embedded/cpp/client/logger"
                     ]
                   },
                   {
                     "group": "Encrypted Index",
                     "pages": [
-                      "versions/v0.17.x/embedded/cpp/encrypted-index/upsert",
-                      "versions/v0.17.x/embedded/cpp/encrypted-index/query",
-                      "versions/v0.17.x/embedded/cpp/encrypted-index/train",
-                      "versions/v0.17.x/embedded/cpp/encrypted-index/get",
-                      "versions/v0.17.x/embedded/cpp/encrypted-index/delete",
-                      "versions/v0.17.x/embedded/cpp/encrypted-index/delete-index",
-                      "versions/v0.17.x/embedded/cpp/encrypted-index/manage-users"
+                      "versions/latest/embedded/cpp/encrypted-index/upsert",
+                      "versions/latest/embedded/cpp/encrypted-index/query",
+                      "versions/latest/embedded/cpp/encrypted-index/train",
+                      "versions/latest/embedded/cpp/encrypted-index/get",
+                      "versions/latest/embedded/cpp/encrypted-index/list-ids",
+                      "versions/latest/embedded/cpp/encrypted-index/delete",
+                      "versions/latest/embedded/cpp/encrypted-index/delete-index",
+                      "versions/latest/embedded/cpp/encrypted-index/manage-users"
                     ]
                   },
                   {
                     "group": "Types & Getters",
                     "pages": [
-                      "versions/v0.17.x/embedded/cpp/getters",
-                      "versions/v0.17.x/embedded/cpp/types",
-                      "versions/v0.17.x/embedded/cpp/kms"
+                      "versions/latest/embedded/cpp/getters",
+                      "versions/latest/embedded/cpp/types",
+                      "versions/latest/embedded/cpp/kms"
                     ]
                   }
                 ]
@@ -511,7 +545,7 @@
                   {
                     "group": "Overview",
                     "pages": [
-                      "versions/v0.17.x/integrations/about"
+                      "versions/latest/integrations/about"
                     ]
                   }
                 ]
@@ -523,33 +557,33 @@
                   {
                     "group": "Introduction",
                     "pages": [
-                      "versions/v0.17.x/integrations/langchain/introduction"
+                      "versions/latest/integrations/langchain/introduction"
                     ]
                   },
                   {
                     "group": "CyborgVectorStore",
                     "pages": [
-                      "versions/v0.17.x/integrations/langchain/client/init",
-                      "versions/v0.17.x/integrations/langchain/client/add_texts",
-                      "versions/v0.17.x/integrations/langchain/client/add_documents",
-                      "versions/v0.17.x/integrations/langchain/client/get",
-                      "versions/v0.17.x/integrations/langchain/client/list_ids",
-                      "versions/v0.17.x/integrations/langchain/client/delete",
-                      "versions/v0.17.x/integrations/langchain/client/similarity_search",
-                      "versions/v0.17.x/integrations/langchain/client/similarity_search_with_score",
-                      "versions/v0.17.x/integrations/langchain/client/similarity_search_by_vector",
-                      "versions/v0.17.x/integrations/langchain/client/max_marginal_relevance_search",
-                      "versions/v0.17.x/integrations/langchain/client/from_texts",
-                      "versions/v0.17.x/integrations/langchain/client/from_documents",
-                      "versions/v0.17.x/integrations/langchain/client/as_retriever",
-                      "versions/v0.17.x/integrations/langchain/client/generate_key",
-                      "versions/v0.17.x/integrations/langchain/client/get_embeddings"
+                      "versions/latest/integrations/langchain/client/init",
+                      "versions/latest/integrations/langchain/client/add_texts",
+                      "versions/latest/integrations/langchain/client/add_documents",
+                      "versions/latest/integrations/langchain/client/get",
+                      "versions/latest/integrations/langchain/client/list_ids",
+                      "versions/latest/integrations/langchain/client/delete",
+                      "versions/latest/integrations/langchain/client/similarity_search",
+                      "versions/latest/integrations/langchain/client/similarity_search_with_score",
+                      "versions/latest/integrations/langchain/client/similarity_search_by_vector",
+                      "versions/latest/integrations/langchain/client/max_marginal_relevance_search",
+                      "versions/latest/integrations/langchain/client/from_texts",
+                      "versions/latest/integrations/langchain/client/from_documents",
+                      "versions/latest/integrations/langchain/client/as_retriever",
+                      "versions/latest/integrations/langchain/client/generate_key",
+                      "versions/latest/integrations/langchain/client/get_embeddings"
                     ]
                   },
                   {
                     "group": "Types",
                     "pages": [
-                      "versions/v0.17.x/integrations/langchain/types"
+                      "versions/latest/integrations/langchain/types"
                     ]
                   }
                 ]
@@ -594,7 +628,7 @@
               {
                 "group": "Resources",
                 "pages": [
-                  "versions/changelog",
+                  "changelog",
                   "versions/v0.16.x/intro/open-source"
                 ]
               }
@@ -1033,7 +1067,7 @@
               {
                 "group": "Resources",
                 "pages": [
-                  "versions/changelog",
+                  "changelog",
                   "versions/v0.15.x/intro/open-source"
                 ]
               }
@@ -1472,7 +1506,7 @@
               {
                 "group": "Resources",
                 "pages": [
-                  "versions/changelog",
+                  "changelog",
                   "versions/v0.14.x/intro/open-source"
                 ]
               }
@@ -1868,1662 +1902,6 @@
                     "group": "Types",
                     "pages": [
                       "versions/v0.14.x/integrations/langchain/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "version": "v0.13.x",
-        "tabs": [
-          {
-            "tab": "Introduction",
-            "groups": [
-              {
-                "group": "CyborgDB Docs",
-                "pages": [
-                  "index",
-                  "versions/v0.13.x/intro/about",
-                  "versions/v0.13.x/intro/deployment-models",
-                  "versions/v0.13.x/intro/backing-stores"
-                ]
-              },
-              {
-                "group": "Getting Started",
-                "pages": [
-                  "versions/v0.13.x/intro/quickstart",
-                  "versions/v0.13.x/intro/get-api-key",
-                  "versions/v0.13.x/intro/using-docs"
-                ]
-              },
-              {
-                "group": "Security",
-                "pages": [
-                  "versions/v0.13.x/intro/security-overview",
-                  "versions/v0.13.x/intro/threat-model",
-                  "versions/v0.13.x/intro/encryption"
-                ]
-              },
-              {
-                "group": "Resources",
-                "pages": [
-                  "versions/changelog",
-                  "versions/v0.13.x/intro/open-source"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "CyborgDB Service",
-            "dropdowns": [
-              {
-                "dropdown": "Guides",
-                "icon": "book",
-                "groups": [
-                  {
-                    "group": "CyborgDB Service",
-                    "pages": [
-                      "versions/v0.13.x/service/guides/intro/about",
-                      "versions/v0.13.x/service/guides/intro/quickstart-python",
-                      "versions/v0.13.x/service/guides/intro/quickstart-docker"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Indexes",
-                    "pages": [
-                      "versions/v0.13.x/service/guides/encrypted-indexes/introduction",
-                      "versions/v0.13.x/service/guides/encrypted-indexes/create-client",
-                      "versions/v0.13.x/service/guides/encrypted-indexes/create-index",
-                      "versions/v0.13.x/service/guides/encrypted-indexes/load-index",
-                      "versions/v0.13.x/service/guides/encrypted-indexes/list-indexes",
-                      "versions/v0.13.x/service/guides/encrypted-indexes/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Data Operations",
-                    "pages": [
-                      "versions/v0.13.x/service/guides/data-operations/add-items",
-                      "versions/v0.13.x/service/guides/data-operations/query",
-                      "versions/v0.13.x/service/guides/data-operations/metadata-filtering",
-                      "versions/v0.13.x/service/guides/data-operations/get-items",
-                      "versions/v0.13.x/service/guides/data-operations/delete-items"
-                    ]
-                  },
-                  {
-                    "group": "Advanced",
-                    "pages": [
-                      "versions/v0.13.x/service/guides/advanced/managing-keys",
-                      "versions/v0.13.x/service/guides/advanced/env-vars",
-                      "versions/v0.13.x/service/guides/advanced/configure-index",
-                      "versions/v0.13.x/service/guides/advanced/train-index",
-                      "versions/v0.13.x/service/guides/advanced/usage-telemetry"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "REST API Reference",
-                "icon": "rectangle-terminal",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.13.x/service/rest-api/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.13.x/service/rest-api/client/get-health",
-                      "versions/v0.13.x/service/rest-api/client/create-index",
-                      "versions/v0.13.x/service/rest-api/client/list-indexes"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.13.x/service/rest-api/encrypted-index/upsert",
-                      "versions/v0.13.x/service/rest-api/encrypted-index/query",
-                      "versions/v0.13.x/service/rest-api/encrypted-index/train",
-                      "versions/v0.13.x/service/rest-api/encrypted-index/get",
-                      "versions/v0.13.x/service/rest-api/encrypted-index/delete",
-                      "versions/v0.13.x/service/rest-api/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.13.x/service/rest-api/getters/describe-index",
-                      "versions/v0.13.x/service/rest-api/getters/get-vector-count"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Python SDK Reference",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.13.x/service/python-sdk/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.13.x/service/python-sdk/client/client",
-                      "versions/v0.13.x/service/python-sdk/client/get-health",
-                      "versions/v0.13.x/service/python-sdk/client/create-index",
-                      "versions/v0.13.x/service/python-sdk/client/load-index",
-                      "versions/v0.13.x/service/python-sdk/client/list-indexes",
-                      "versions/v0.13.x/service/python-sdk/client/generate-key"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.13.x/service/python-sdk/encrypted-index/upsert",
-                      "versions/v0.13.x/service/python-sdk/encrypted-index/query",
-                      "versions/v0.13.x/service/python-sdk/encrypted-index/train",
-                      "versions/v0.13.x/service/python-sdk/encrypted-index/get",
-                      "versions/v0.13.x/service/python-sdk/encrypted-index/list-ids",
-                      "versions/v0.13.x/service/python-sdk/encrypted-index/delete",
-                      "versions/v0.13.x/service/python-sdk/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Helpers",
-                    "pages": [
-                      "versions/v0.13.x/service/python-sdk/getters",
-                      "versions/v0.13.x/service/python-sdk/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "JS/TS SDK Reference",
-                "icon": "js",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.13.x/service/js-ts-sdk/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.13.x/service/js-ts-sdk/client/client",
-                      "versions/v0.13.x/service/js-ts-sdk/client/get-health",
-                      "versions/v0.13.x/service/js-ts-sdk/client/create-index",
-                      "versions/v0.13.x/service/js-ts-sdk/client/load-index",
-                      "versions/v0.13.x/service/js-ts-sdk/client/list-indexes",
-                      "versions/v0.13.x/service/js-ts-sdk/client/generate-key"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.13.x/service/js-ts-sdk/encrypted-index/upsert",
-                      "versions/v0.13.x/service/js-ts-sdk/encrypted-index/query",
-                      "versions/v0.13.x/service/js-ts-sdk/encrypted-index/train",
-                      "versions/v0.13.x/service/js-ts-sdk/encrypted-index/get",
-                      "versions/v0.13.x/service/js-ts-sdk/encrypted-index/list-ids",
-                      "versions/v0.13.x/service/js-ts-sdk/encrypted-index/delete",
-                      "versions/v0.13.x/service/js-ts-sdk/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Helpers",
-                    "pages": [
-                      "versions/v0.13.x/service/js-ts-sdk/getters",
-                      "versions/v0.13.x/service/js-ts-sdk/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Go SDK Reference",
-                "icon": "golang",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.13.x/service/go-sdk/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.13.x/service/go-sdk/client/client",
-                      "versions/v0.13.x/service/go-sdk/client/get-health",
-                      "versions/v0.13.x/service/go-sdk/client/create-index",
-                      "versions/v0.13.x/service/go-sdk/client/load-index",
-                      "versions/v0.13.x/service/go-sdk/client/list-indexes",
-                      "versions/v0.13.x/service/go-sdk/client/generate-key"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.13.x/service/go-sdk/encrypted-index/upsert",
-                      "versions/v0.13.x/service/go-sdk/encrypted-index/query",
-                      "versions/v0.13.x/service/go-sdk/encrypted-index/train",
-                      "versions/v0.13.x/service/go-sdk/encrypted-index/get",
-                      "versions/v0.13.x/service/go-sdk/encrypted-index/list-ids",
-                      "versions/v0.13.x/service/go-sdk/encrypted-index/delete",
-                      "versions/v0.13.x/service/go-sdk/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Helpers",
-                    "pages": [
-                      "versions/v0.13.x/service/go-sdk/getters",
-                      "versions/v0.13.x/service/go-sdk/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "CyborgDB Embedded",
-            "dropdowns": [
-              {
-                "dropdown": "Guides",
-                "icon": "book",
-                "groups": [
-                  {
-                    "group": "Intro",
-                    "pages": [
-                      "versions/v0.13.x/embedded/guides/intro/about",
-                      "versions/v0.13.x/embedded/guides/intro/quickstart"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Indexes",
-                    "pages": [
-                      "versions/v0.13.x/embedded/guides/encrypted-indexes/introduction",
-                      "versions/v0.13.x/embedded/guides/encrypted-indexes/create-client",
-                      "versions/v0.13.x/embedded/guides/encrypted-indexes/create-index",
-                      "versions/v0.13.x/embedded/guides/encrypted-indexes/load-index",
-                      "versions/v0.13.x/embedded/guides/encrypted-indexes/list-indexes",
-                      "versions/v0.13.x/embedded/guides/encrypted-indexes/train-index",
-                      "versions/v0.13.x/embedded/guides/encrypted-indexes/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Data Operations",
-                    "pages": [
-                      "versions/v0.13.x/embedded/guides/data-operations/add-items",
-                      "versions/v0.13.x/embedded/guides/data-operations/query",
-                      "versions/v0.13.x/embedded/guides/data-operations/metadata-filtering",
-                      "versions/v0.13.x/embedded/guides/data-operations/get-items",
-                      "versions/v0.13.x/embedded/guides/data-operations/delete-items"
-                    ]
-                  },
-                  {
-                    "group": "Advanced",
-                    "pages": [
-                      "versions/v0.13.x/embedded/guides/advanced/managing-keys",
-                      "versions/v0.13.x/embedded/guides/advanced/configure-index",
-                      "versions/v0.13.x/embedded/guides/advanced/usage-telemetry"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Python API Reference",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.13.x/embedded/python/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.13.x/embedded/python/client/client",
-                      "versions/v0.13.x/embedded/python/client/create-index",
-                      "versions/v0.13.x/embedded/python/client/load-index",
-                      "versions/v0.13.x/embedded/python/client/list-indexes",
-                      "versions/v0.13.x/embedded/python/client/logger"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.13.x/embedded/python/encrypted-index/upsert",
-                      "versions/v0.13.x/embedded/python/encrypted-index/query",
-                      "versions/v0.13.x/embedded/python/encrypted-index/train",
-                      "versions/v0.13.x/embedded/python/encrypted-index/get",
-                      "versions/v0.13.x/embedded/python/encrypted-index/delete",
-                      "versions/v0.13.x/embedded/python/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.13.x/embedded/python/getters",
-                      "versions/v0.13.x/embedded/python/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "C++ API Reference",
-                "icon": "brackets-curly",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.13.x/embedded/cpp/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.13.x/embedded/cpp/client/client",
-                      "versions/v0.13.x/embedded/cpp/client/create-index",
-                      "versions/v0.13.x/embedded/cpp/client/load-index",
-                      "versions/v0.13.x/embedded/cpp/client/list-indexes",
-                      "versions/v0.13.x/embedded/cpp/client/logger"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.13.x/embedded/cpp/encrypted-index/upsert",
-                      "versions/v0.13.x/embedded/cpp/encrypted-index/query",
-                      "versions/v0.13.x/embedded/cpp/encrypted-index/train",
-                      "versions/v0.13.x/embedded/cpp/encrypted-index/get",
-                      "versions/v0.13.x/embedded/cpp/encrypted-index/delete",
-                      "versions/v0.13.x/embedded/cpp/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.13.x/embedded/cpp/getters",
-                      "versions/v0.13.x/embedded/cpp/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "Integrations",
-            "dropdowns": [
-              {
-                "dropdown": "Integrations",
-                "icon": "book",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.13.x/integrations/about"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Langchain (Python)",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.13.x/integrations/langchain/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.13.x/integrations/langchain/client/init",
-                      "versions/v0.13.x/integrations/langchain/client/get_embeddings",
-                      "versions/v0.13.x/integrations/langchain/client/add_texts",
-                      "versions/v0.13.x/integrations/langchain/client/add_documents",
-                      "versions/v0.13.x/integrations/langchain/client/delete",
-                      "versions/v0.13.x/integrations/langchain/client/similarity_search",
-                      "versions/v0.13.x/integrations/langchain/client/similarity_search_by_vector",
-                      "versions/v0.13.x/integrations/langchain/client/similarity_search_with_score",
-                      "versions/v0.13.x/integrations/langchain/client/_similarity_search_with_relevance_scores",
-                      "versions/v0.13.x/integrations/langchain/client/max_marginal_relevance_search",
-                      "versions/v0.13.x/integrations/langchain/client/max_marginal_relevance_search_by_vector",
-                      "versions/v0.13.x/integrations/langchain/client/from_texts",
-                      "versions/v0.13.x/integrations/langchain/client/from_documents",
-                      "versions/v0.13.x/integrations/langchain/client/generate_key"
-                    ]
-                  },
-                  {
-                    "group": "Types",
-                    "pages": [
-                      "versions/v0.13.x/integrations/langchain/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "version": "v0.12.x",
-        "tabs": [
-          {
-            "tab": "Introduction",
-            "groups": [
-              {
-                "group": "CyborgDB Docs",
-                "pages": [
-                  "index",
-                  "versions/v0.12.x/intro/about",
-                  "versions/v0.12.x/intro/deployment-models",
-                  "versions/v0.12.x/intro/backing-stores"
-                ]
-              },
-              {
-                "group": "Getting Started",
-                "pages": [
-                  "versions/v0.12.x/intro/quickstart",
-                  "versions/v0.12.x/intro/get-api-key",
-                  "versions/v0.12.x/intro/using-docs"
-                ]
-              },
-              {
-                "group": "Security",
-                "pages": [
-                  "versions/v0.12.x/intro/security-overview",
-                  "versions/v0.12.x/intro/threat-model",
-                  "versions/v0.12.x/intro/encryption"
-                ]
-              },
-              {
-                "group": "Resources",
-                "pages": [
-                  "versions/changelog",
-                  "versions/v0.12.x/intro/open-source"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "CyborgDB Service",
-            "dropdowns": [
-              {
-                "dropdown": "Guides",
-                "icon": "book",
-                "groups": [
-                  {
-                    "group": "CyborgDB Service",
-                    "pages": [
-                      "versions/v0.12.x/service/guides/intro/about",
-                      "versions/v0.12.x/service/guides/intro/quickstart-python",
-                      "versions/v0.12.x/service/guides/intro/quickstart-docker"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Indexes",
-                    "pages": [
-                      "versions/v0.12.x/service/guides/encrypted-indexes/introduction",
-                      "versions/v0.12.x/service/guides/encrypted-indexes/create-client",
-                      "versions/v0.12.x/service/guides/encrypted-indexes/create-index",
-                      "versions/v0.12.x/service/guides/encrypted-indexes/load-index",
-                      "versions/v0.12.x/service/guides/encrypted-indexes/list-indexes",
-                      "versions/v0.12.x/service/guides/encrypted-indexes/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Data Operations",
-                    "pages": [
-                      "versions/v0.12.x/service/guides/data-operations/add-items",
-                      "versions/v0.12.x/service/guides/data-operations/query",
-                      "versions/v0.12.x/service/guides/data-operations/metadata-filtering",
-                      "versions/v0.12.x/service/guides/data-operations/get-items",
-                      "versions/v0.12.x/service/guides/data-operations/delete-items"
-                    ]
-                  },
-                  {
-                    "group": "Advanced",
-                    "pages": [
-                      "versions/v0.12.x/service/guides/advanced/managing-keys",
-                      "versions/v0.12.x/service/guides/advanced/env-vars",
-                      "versions/v0.12.x/service/guides/advanced/configure-index",
-                      "versions/v0.12.x/service/guides/advanced/train-index",
-                      "versions/v0.12.x/service/guides/advanced/usage-telemetry"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "REST API Reference",
-                "icon": "rectangle-terminal",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.12.x/service/rest-api/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.12.x/service/rest-api/client/get-health",
-                      "versions/v0.12.x/service/rest-api/client/create-index",
-                      "versions/v0.12.x/service/rest-api/client/list-indexes"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.12.x/service/rest-api/encrypted-index/upsert",
-                      "versions/v0.12.x/service/rest-api/encrypted-index/query",
-                      "versions/v0.12.x/service/rest-api/encrypted-index/train",
-                      "versions/v0.12.x/service/rest-api/encrypted-index/get",
-                      "versions/v0.12.x/service/rest-api/encrypted-index/delete",
-                      "versions/v0.12.x/service/rest-api/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.12.x/service/rest-api/getters/describe-index",
-                      "versions/v0.12.x/service/rest-api/getters/get-vector-count"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Python SDK Reference",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.12.x/service/python-sdk/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.12.x/service/python-sdk/client/client",
-                      "versions/v0.12.x/service/python-sdk/client/get-health",
-                      "versions/v0.12.x/service/python-sdk/client/create-index",
-                      "versions/v0.12.x/service/python-sdk/client/load-index",
-                      "versions/v0.12.x/service/python-sdk/client/list-indexes",
-                      "versions/v0.12.x/service/python-sdk/client/generate-key"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/upsert",
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/query",
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/train",
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/get",
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/list-ids",
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/delete",
-                      "versions/v0.12.x/service/python-sdk/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Helpers",
-                    "pages": [
-                      "versions/v0.12.x/service/python-sdk/getters",
-                      "versions/v0.12.x/service/python-sdk/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "JS/TS SDK Reference",
-                "icon": "js",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.12.x/service/js-ts-sdk/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.12.x/service/js-ts-sdk/client/client",
-                      "versions/v0.12.x/service/js-ts-sdk/client/get-health",
-                      "versions/v0.12.x/service/js-ts-sdk/client/create-index",
-                      "versions/v0.12.x/service/js-ts-sdk/client/load-index",
-                      "versions/v0.12.x/service/js-ts-sdk/client/list-indexes",
-                      "versions/v0.12.x/service/js-ts-sdk/client/generate-key"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.12.x/service/js-ts-sdk/encrypted-index/upsert",
-                      "versions/v0.12.x/service/js-ts-sdk/encrypted-index/query",
-                      "versions/v0.12.x/service/js-ts-sdk/encrypted-index/train",
-                      "versions/v0.12.x/service/js-ts-sdk/encrypted-index/get",
-                      "versions/v0.12.x/service/js-ts-sdk/encrypted-index/list-ids",
-                      "versions/v0.12.x/service/js-ts-sdk/encrypted-index/delete",
-                      "versions/v0.12.x/service/js-ts-sdk/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Helpers",
-                    "pages": [
-                      "versions/v0.12.x/service/js-ts-sdk/getters",
-                      "versions/v0.12.x/service/js-ts-sdk/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Go SDK Reference",
-                "icon": "golang",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.12.x/service/go-sdk/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.12.x/service/go-sdk/client/client",
-                      "versions/v0.12.x/service/go-sdk/client/get-health",
-                      "versions/v0.12.x/service/go-sdk/client/create-index",
-                      "versions/v0.12.x/service/go-sdk/client/load-index",
-                      "versions/v0.12.x/service/go-sdk/client/list-indexes",
-                      "versions/v0.12.x/service/go-sdk/client/generate-key"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.12.x/service/go-sdk/encrypted-index/upsert",
-                      "versions/v0.12.x/service/go-sdk/encrypted-index/query",
-                      "versions/v0.12.x/service/go-sdk/encrypted-index/train",
-                      "versions/v0.12.x/service/go-sdk/encrypted-index/get",
-                      "versions/v0.12.x/service/go-sdk/encrypted-index/list-ids",
-                      "versions/v0.12.x/service/go-sdk/encrypted-index/delete",
-                      "versions/v0.12.x/service/go-sdk/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Helpers",
-                    "pages": [
-                      "versions/v0.12.x/service/go-sdk/getters",
-                      "versions/v0.12.x/service/go-sdk/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "CyborgDB Embedded",
-            "dropdowns": [
-              {
-                "dropdown": "Guides",
-                "icon": "book",
-                "groups": [
-                  {
-                    "group": "Intro",
-                    "pages": [
-                      "versions/v0.12.x/embedded/guides/intro/about",
-                      "versions/v0.12.x/embedded/guides/intro/quickstart"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Indexes",
-                    "pages": [
-                      "versions/v0.12.x/embedded/guides/encrypted-indexes/introduction",
-                      "versions/v0.12.x/embedded/guides/encrypted-indexes/create-client",
-                      "versions/v0.12.x/embedded/guides/encrypted-indexes/create-index",
-                      "versions/v0.12.x/embedded/guides/encrypted-indexes/load-index",
-                      "versions/v0.12.x/embedded/guides/encrypted-indexes/list-indexes",
-                      "versions/v0.12.x/embedded/guides/encrypted-indexes/train-index",
-                      "versions/v0.12.x/embedded/guides/encrypted-indexes/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Data Operations",
-                    "pages": [
-                      "versions/v0.12.x/embedded/guides/data-operations/add-items",
-                      "versions/v0.12.x/embedded/guides/data-operations/query",
-                      "versions/v0.12.x/embedded/guides/data-operations/metadata-filtering",
-                      "versions/v0.12.x/embedded/guides/data-operations/get-items",
-                      "versions/v0.12.x/embedded/guides/data-operations/delete-items"
-                    ]
-                  },
-                  {
-                    "group": "Advanced",
-                    "pages": [
-                      "versions/v0.12.x/embedded/guides/advanced/managing-keys",
-                      "versions/v0.12.x/embedded/guides/advanced/configure-index",
-                      "versions/v0.12.x/embedded/guides/advanced/usage-telemetry"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Python API Reference",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.12.x/embedded/python/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.12.x/embedded/python/client/client",
-                      "versions/v0.12.x/embedded/python/client/create-index",
-                      "versions/v0.12.x/embedded/python/client/load-index",
-                      "versions/v0.12.x/embedded/python/client/list-indexes",
-                      "versions/v0.12.x/embedded/python/client/logger"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.12.x/embedded/python/encrypted-index/upsert",
-                      "versions/v0.12.x/embedded/python/encrypted-index/query",
-                      "versions/v0.12.x/embedded/python/encrypted-index/train",
-                      "versions/v0.12.x/embedded/python/encrypted-index/get",
-                      "versions/v0.12.x/embedded/python/encrypted-index/delete",
-                      "versions/v0.12.x/embedded/python/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.12.x/embedded/python/getters",
-                      "versions/v0.12.x/embedded/python/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "C++ API Reference",
-                "icon": "brackets-curly",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.12.x/embedded/cpp/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.12.x/embedded/cpp/client/client",
-                      "versions/v0.12.x/embedded/cpp/client/create-index",
-                      "versions/v0.12.x/embedded/cpp/client/load-index",
-                      "versions/v0.12.x/embedded/cpp/client/list-indexes",
-                      "versions/v0.12.x/embedded/cpp/client/logger"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.12.x/embedded/cpp/encrypted-index/upsert",
-                      "versions/v0.12.x/embedded/cpp/encrypted-index/query",
-                      "versions/v0.12.x/embedded/cpp/encrypted-index/train",
-                      "versions/v0.12.x/embedded/cpp/encrypted-index/get",
-                      "versions/v0.12.x/embedded/cpp/encrypted-index/delete",
-                      "versions/v0.12.x/embedded/cpp/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.12.x/embedded/cpp/getters",
-                      "versions/v0.12.x/embedded/cpp/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "Integrations",
-            "dropdowns": [
-              {
-                "dropdown": "Integrations",
-                "icon": "book",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.12.x/integrations/about"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Langchain (Python)",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.12.x/integrations/langchain/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.12.x/integrations/langchain/client/init",
-                      "versions/v0.12.x/integrations/langchain/client/get_embeddings",
-                      "versions/v0.12.x/integrations/langchain/client/add_texts",
-                      "versions/v0.12.x/integrations/langchain/client/add_documents",
-                      "versions/v0.12.x/integrations/langchain/client/delete",
-                      "versions/v0.12.x/integrations/langchain/client/similarity_search",
-                      "versions/v0.12.x/integrations/langchain/client/similarity_search_by_vector",
-                      "versions/v0.12.x/integrations/langchain/client/similarity_search_with_score",
-                      "versions/v0.12.x/integrations/langchain/client/_similarity_search_with_relevance_scores",
-                      "versions/v0.12.x/integrations/langchain/client/max_marginal_relevance_search",
-                      "versions/v0.12.x/integrations/langchain/client/max_marginal_relevance_search_by_vector",
-                      "versions/v0.12.x/integrations/langchain/client/from_texts",
-                      "versions/v0.12.x/integrations/langchain/client/from_documents",
-                      "versions/v0.12.x/integrations/langchain/client/generate_key"
-                    ]
-                  },
-                  {
-                    "group": "Types",
-                    "pages": [
-                      "versions/v0.12.x/integrations/langchain/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "version": "v0.11.x",
-        "tabs": [
-          {
-            "tab": "Introduction",
-            "groups": [
-              {
-                "group": "CyborgDB Docs",
-                "pages": [
-                  "index",
-                  "versions/v0.11.x/intro/about",
-                  "versions/v0.11.x/intro/deployment-models",
-                  "versions/v0.11.x/intro/backing-stores"
-                ]
-              },
-              {
-                "group": "Getting Started",
-                "pages": [
-                  "versions/v0.11.x/intro/quickstart",
-                  "versions/v0.11.x/intro/get-api-key",
-                  "versions/v0.11.x/intro/using-docs"
-                ]
-              },
-              {
-                "group": "Security",
-                "pages": [
-                  "versions/v0.11.x/intro/security-overview",
-                  "versions/v0.11.x/intro/threat-model",
-                  "versions/v0.11.x/intro/encryption"
-                ]
-              },
-              {
-                "group": "Changelog",
-                "pages": [
-                  "versions/changelog"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "CyborgDB Service",
-            "dropdowns": [
-              {
-                "dropdown": "Guides",
-                "icon": "book",
-                "groups": [
-                  {
-                    "group": "CyborgDB Service",
-                    "pages": [
-                      "versions/v0.11.x/service/guides/intro/about",
-                      "versions/v0.11.x/service/guides/intro/quickstart-python",
-                      "versions/v0.11.x/service/guides/intro/quickstart-docker"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Indexes",
-                    "pages": [
-                      "versions/v0.11.x/service/guides/encrypted-indexes/introduction",
-                      "versions/v0.11.x/service/guides/encrypted-indexes/create-client",
-                      "versions/v0.11.x/service/guides/encrypted-indexes/create-index",
-                      "versions/v0.11.x/service/guides/encrypted-indexes/configure-index",
-                      "versions/v0.11.x/service/guides/encrypted-indexes/load-index",
-                      "versions/v0.11.x/service/guides/encrypted-indexes/list-indexes",
-                      "versions/v0.11.x/service/guides/encrypted-indexes/train-index",
-                      "versions/v0.11.x/service/guides/encrypted-indexes/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Data Operations",
-                    "pages": [
-                      "versions/v0.11.x/service/guides/data-operations/add-items",
-                      "versions/v0.11.x/service/guides/data-operations/query",
-                      "versions/v0.11.x/service/guides/data-operations/metadata-filtering",
-                      "versions/v0.11.x/service/guides/data-operations/get-items",
-                      "versions/v0.11.x/service/guides/data-operations/delete-items"
-                    ]
-                  },
-                  {
-                    "group": "Advanced",
-                    "pages": [
-                      "versions/v0.11.x/service/guides/advanced/managing-keys",
-                      "versions/v0.11.x/service/guides/advanced/env-vars",
-                      "versions/v0.11.x/service/guides/advanced/usage-telemetry"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "REST API Reference",
-                "icon": "rectangle-terminal",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.11.x/service/rest-api/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.11.x/service/rest-api/client/get-health",
-                      "versions/v0.11.x/service/rest-api/client/create-index",
-                      "versions/v0.11.x/service/rest-api/client/list-indexes"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.11.x/service/rest-api/encrypted-index/upsert",
-                      "versions/v0.11.x/service/rest-api/encrypted-index/query",
-                      "versions/v0.11.x/service/rest-api/encrypted-index/train",
-                      "versions/v0.11.x/service/rest-api/encrypted-index/get",
-                      "versions/v0.11.x/service/rest-api/encrypted-index/delete",
-                      "versions/v0.11.x/service/rest-api/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.11.x/service/rest-api/getters/describe-index",
-                      "versions/v0.11.x/service/rest-api/getters/get-index-name",
-                      "versions/v0.11.x/service/rest-api/getters/get-index-type",
-                      "versions/v0.11.x/service/rest-api/getters/get-index-config",
-                      "versions/v0.11.x/service/rest-api/getters/get-vector-count"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Python SDK Reference",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.11.x/service/python-sdk/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.11.x/service/python-sdk/client/client",
-                      "versions/v0.11.x/service/python-sdk/client/get-health",
-                      "versions/v0.11.x/service/python-sdk/client/create-index",
-                      "versions/v0.11.x/service/python-sdk/client/load-index",
-                      "versions/v0.11.x/service/python-sdk/client/list-indexes"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.11.x/service/python-sdk/encrypted-index/upsert",
-                      "versions/v0.11.x/service/python-sdk/encrypted-index/query",
-                      "versions/v0.11.x/service/python-sdk/encrypted-index/train",
-                      "versions/v0.11.x/service/python-sdk/encrypted-index/get",
-                      "versions/v0.11.x/service/python-sdk/encrypted-index/delete",
-                      "versions/v0.11.x/service/python-sdk/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Index Configuration",
-                    "pages": [
-                      "versions/v0.11.x/service/python-sdk/getters",
-                      "versions/v0.11.x/service/python-sdk/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "JS/TS SDK Reference",
-                "icon": "js",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.11.x/service/js-ts-sdk/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.11.x/service/js-ts-sdk/client/client",
-                      "versions/v0.11.x/service/js-ts-sdk/client/get-health",
-                      "versions/v0.11.x/service/js-ts-sdk/client/create-index",
-                      "versions/v0.11.x/service/js-ts-sdk/client/load-index",
-                      "versions/v0.11.x/service/js-ts-sdk/client/list-indexes"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.11.x/service/js-ts-sdk/encrypted-index/upsert",
-                      "versions/v0.11.x/service/js-ts-sdk/encrypted-index/query",
-                      "versions/v0.11.x/service/js-ts-sdk/encrypted-index/train",
-                      "versions/v0.11.x/service/js-ts-sdk/encrypted-index/get",
-                      "versions/v0.11.x/service/js-ts-sdk/encrypted-index/delete",
-                      "versions/v0.11.x/service/js-ts-sdk/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.11.x/service/js-ts-sdk/getters",
-                      "versions/v0.11.x/service/js-ts-sdk/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "CyborgDB Embedded",
-            "dropdowns": [
-              {
-                "dropdown": "Guides",
-                "icon": "book",
-                "groups": [
-                  {
-                    "group": "Intro",
-                    "pages": [
-                      "versions/v0.11.x/embedded/guides/intro/about",
-                      "versions/v0.11.x/embedded/guides/intro/quickstart"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Indexes",
-                    "pages": [
-                      "versions/v0.11.x/embedded/guides/encrypted-indexes/introduction",
-                      "versions/v0.11.x/embedded/guides/encrypted-indexes/create-client",
-                      "versions/v0.11.x/embedded/guides/encrypted-indexes/create-index",
-                      "versions/v0.11.x/embedded/guides/encrypted-indexes/configure-index",
-                      "versions/v0.11.x/embedded/guides/encrypted-indexes/load-index",
-                      "versions/v0.11.x/embedded/guides/encrypted-indexes/list-indexes",
-                      "versions/v0.11.x/embedded/guides/encrypted-indexes/train-index",
-                      "versions/v0.11.x/embedded/guides/encrypted-indexes/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Data Operations",
-                    "pages": [
-                      "versions/v0.11.x/embedded/guides/data-operations/add-items",
-                      "versions/v0.11.x/embedded/guides/data-operations/query",
-                      "versions/v0.11.x/embedded/guides/data-operations/metadata-filtering",
-                      "versions/v0.11.x/embedded/guides/data-operations/get-items",
-                      "versions/v0.11.x/embedded/guides/data-operations/delete-items"
-                    ]
-                  },
-                  {
-                    "group": "Advanced",
-                    "pages": [
-                      "versions/v0.11.x/embedded/guides/advanced/managing-keys",
-                      "versions/v0.11.x/embedded/guides/advanced/usage-telemetry"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Python API Reference",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.11.x/embedded/python/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.11.x/embedded/python/client/client",
-                      "versions/v0.11.x/embedded/python/client/create-index",
-                      "versions/v0.11.x/embedded/python/client/load-index",
-                      "versions/v0.11.x/embedded/python/client/list-indexes",
-                      "versions/v0.11.x/embedded/python/client/logger"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.11.x/embedded/python/encrypted-index/upsert",
-                      "versions/v0.11.x/embedded/python/encrypted-index/query",
-                      "versions/v0.11.x/embedded/python/encrypted-index/train",
-                      "versions/v0.11.x/embedded/python/encrypted-index/get",
-                      "versions/v0.11.x/embedded/python/encrypted-index/delete",
-                      "versions/v0.11.x/embedded/python/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.11.x/embedded/python/getters",
-                      "versions/v0.11.x/embedded/python/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "C++ API Reference",
-                "icon": "brackets-curly",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.11.x/embedded/cpp/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.11.x/embedded/cpp/client/client",
-                      "versions/v0.11.x/embedded/cpp/client/create-index",
-                      "versions/v0.11.x/embedded/cpp/client/load-index",
-                      "versions/v0.11.x/embedded/cpp/client/list-indexes",
-                      "versions/v0.11.x/embedded/cpp/client/logger"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.11.x/embedded/cpp/encrypted-index/upsert",
-                      "versions/v0.11.x/embedded/cpp/encrypted-index/query",
-                      "versions/v0.11.x/embedded/cpp/encrypted-index/train",
-                      "versions/v0.11.x/embedded/cpp/encrypted-index/get",
-                      "versions/v0.11.x/embedded/cpp/encrypted-index/delete",
-                      "versions/v0.11.x/embedded/cpp/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.11.x/embedded/cpp/getters",
-                      "versions/v0.11.x/embedded/cpp/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "Integrations",
-            "dropdowns": [
-              {
-                "dropdown": "Integrations",
-                "icon": "book",
-                "pages": [
-                  "versions/v0.11.x/integrations/about"
-                ]
-              },
-              {
-                "dropdown": "Langchain (Python)",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.11.x/integrations/langchain/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.11.x/integrations/langchain/client/init",
-                      "versions/v0.11.x/integrations/langchain/client/get_embeddings",
-                      "versions/v0.11.x/integrations/langchain/client/add_texts",
-                      "versions/v0.11.x/integrations/langchain/client/add_documents",
-                      "versions/v0.11.x/integrations/langchain/client/delete",
-                      "versions/v0.11.x/integrations/langchain/client/similarity_search",
-                      "versions/v0.11.x/integrations/langchain/client/similarity_search_by_vector",
-                      "versions/v0.11.x/integrations/langchain/client/similarity_search_with_score",
-                      "versions/v0.11.x/integrations/langchain/client/_similarity_search_with_relevance_scores",
-                      "versions/v0.11.x/integrations/langchain/client/max_marginal_relevance_search",
-                      "versions/v0.11.x/integrations/langchain/client/max_marginal_relevance_search_by_vector",
-                      "versions/v0.11.x/integrations/langchain/client/from_texts",
-                      "versions/v0.11.x/integrations/langchain/client/from_documents",
-                      "versions/v0.11.x/integrations/langchain/client/generate_key"
-                    ]
-                  },
-                  {
-                    "group": "Types",
-                    "pages": [
-                      "versions/v0.11.x/integrations/langchain/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "version": "v0.10.x",
-        "tabs": [
-          {
-            "tab": "Guides",
-            "groups": [
-              {
-                "group": "Get Started",
-                "pages": [
-                  "versions/v0.10.x/guides/get-started/introduction",
-                  "versions/v0.10.x/guides/get-started/quickstart",
-                  "versions/v0.10.x/guides/get-started/about",
-                  "versions/changelog"
-                ]
-              },
-              {
-                "group": "Encrypted Indexes",
-                "pages": [
-                  "versions/v0.10.x/guides/encrypted-indexes/introduction",
-                  "versions/v0.10.x/guides/encrypted-indexes/create-client",
-                  "versions/v0.10.x/guides/encrypted-indexes/create-index",
-                  "versions/v0.10.x/guides/encrypted-indexes/configure-index",
-                  "versions/v0.10.x/guides/encrypted-indexes/load-index",
-                  "versions/v0.10.x/guides/encrypted-indexes/list-indexes",
-                  "versions/v0.10.x/guides/encrypted-indexes/delete-index"
-                ]
-              },
-              {
-                "group": "Data Operations",
-                "pages": [
-                  "versions/v0.10.x/guides/data-operations/add-items",
-                  "versions/v0.10.x/guides/data-operations/query",
-                  "versions/v0.10.x/guides/data-operations/metadata-filtering",
-                  "versions/v0.10.x/guides/data-operations/train-index",
-                  "versions/v0.10.x/guides/data-operations/get-items",
-                  "versions/v0.10.x/guides/data-operations/delete-items"
-                ]
-              },
-              {
-                "group": "Integrations",
-                "pages": [
-                  "versions/v0.10.x/guides/integrations/langchain"
-                ]
-              },
-              {
-                "group": "Advanced",
-                "pages": [
-                  "versions/v0.10.x/guides/advanced/managing-keys"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "API Reference",
-            "dropdowns": [
-              {
-                "dropdown": "Python",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/python/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/python/client/client",
-                      "versions/v0.10.x/api-reference/python/client/create-index",
-                      "versions/v0.10.x/api-reference/python/client/load-index",
-                      "versions/v0.10.x/api-reference/python/client/list-indexes",
-                      "versions/v0.10.x/api-reference/python/client/logger"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/python/encrypted-index/upsert",
-                      "versions/v0.10.x/api-reference/python/encrypted-index/query",
-                      "versions/v0.10.x/api-reference/python/encrypted-index/train",
-                      "versions/v0.10.x/api-reference/python/encrypted-index/get",
-                      "versions/v0.10.x/api-reference/python/encrypted-index/delete",
-                      "versions/v0.10.x/api-reference/python/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/python/getters",
-                      "versions/v0.10.x/api-reference/python/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "C++",
-                "icon": "brackets-curly",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/cpp/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/cpp/client/client",
-                      "versions/v0.10.x/api-reference/cpp/client/create-index",
-                      "versions/v0.10.x/api-reference/cpp/client/load-index",
-                      "versions/v0.10.x/api-reference/cpp/client/list-indexes",
-                      "versions/v0.10.x/api-reference/cpp/client/logger"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/cpp/encrypted-index/upsert",
-                      "versions/v0.10.x/api-reference/cpp/encrypted-index/query",
-                      "versions/v0.10.x/api-reference/cpp/encrypted-index/train",
-                      "versions/v0.10.x/api-reference/cpp/encrypted-index/get",
-                      "versions/v0.10.x/api-reference/cpp/encrypted-index/delete",
-                      "versions/v0.10.x/api-reference/cpp/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.10.x/api-reference/cpp/getters",
-                      "versions/v0.10.x/api-reference/cpp/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "version": "v0.9.x",
-        "tabs": [
-          {
-            "tab": "Guides",
-            "groups": [
-              {
-                "group": "Get Started",
-                "pages": [
-                  "versions/v0.9.x/guides/get-started/introduction",
-                  "versions/v0.9.x/guides/get-started/quickstart",
-                  "versions/v0.9.x/guides/get-started/about",
-                  "versions/changelog"
-                ]
-              },
-              {
-                "group": "Encrypted Indexes",
-                "pages": [
-                  "versions/v0.9.x/guides/encrypted-indexes/introduction",
-                  "versions/v0.9.x/guides/encrypted-indexes/create-client",
-                  "versions/v0.9.x/guides/encrypted-indexes/create-index",
-                  "versions/v0.9.x/guides/encrypted-indexes/configure-index",
-                  "versions/v0.9.x/guides/encrypted-indexes/load-index",
-                  "versions/v0.9.x/guides/encrypted-indexes/list-indexes",
-                  "versions/v0.9.x/guides/encrypted-indexes/delete-index"
-                ]
-              },
-              {
-                "group": "Data Operations",
-                "pages": [
-                  "versions/v0.9.x/guides/data-operations/add-items",
-                  "versions/v0.9.x/guides/data-operations/query",
-                  "versions/v0.9.x/guides/data-operations/metadata-filtering",
-                  "versions/v0.9.x/guides/data-operations/train-index",
-                  "versions/v0.9.x/guides/data-operations/get-items",
-                  "versions/v0.9.x/guides/data-operations/delete-items"
-                ]
-              },
-              {
-                "group": "Advanced",
-                "pages": [
-                  "versions/v0.9.x/guides/advanced/managing-keys"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "API Reference",
-            "dropdowns": [
-              {
-                "dropdown": "Python",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.9.x/api-reference/python/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.9.x/api-reference/python/client/client",
-                      "versions/v0.9.x/api-reference/python/client/create-index",
-                      "versions/v0.9.x/api-reference/python/client/load-index",
-                      "versions/v0.9.x/api-reference/python/client/list-indexes"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.9.x/api-reference/python/encrypted-index/upsert",
-                      "versions/v0.9.x/api-reference/python/encrypted-index/query",
-                      "versions/v0.9.x/api-reference/python/encrypted-index/train",
-                      "versions/v0.9.x/api-reference/python/encrypted-index/get",
-                      "versions/v0.9.x/api-reference/python/encrypted-index/delete",
-                      "versions/v0.9.x/api-reference/python/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.9.x/api-reference/python/getters",
-                      "versions/v0.9.x/api-reference/python/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "C++",
-                "icon": "brackets-curly",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.9.x/api-reference/cpp/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.9.x/api-reference/cpp/client/client",
-                      "versions/v0.9.x/api-reference/cpp/client/create-index",
-                      "versions/v0.9.x/api-reference/cpp/client/load-index",
-                      "versions/v0.9.x/api-reference/cpp/client/list-indexes"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.9.x/api-reference/cpp/encrypted-index/upsert",
-                      "versions/v0.9.x/api-reference/cpp/encrypted-index/query",
-                      "versions/v0.9.x/api-reference/cpp/encrypted-index/train",
-                      "versions/v0.9.x/api-reference/cpp/encrypted-index/get",
-                      "versions/v0.9.x/api-reference/cpp/encrypted-index/delete",
-                      "versions/v0.9.x/api-reference/cpp/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.9.x/api-reference/cpp/getters",
-                      "versions/v0.9.x/api-reference/cpp/types"
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "version": "v0.8.x",
-        "tabs": [
-          {
-            "tab": "Guides",
-            "groups": [
-              {
-                "group": "Get Started",
-                "pages": [
-                  "versions/v0.8.x/guides/get-started/introduction",
-                  "versions/v0.8.x/guides/get-started/quickstart",
-                  "versions/v0.8.x/guides/get-started/about",
-                  "versions/changelog"
-                ]
-              },
-              {
-                "group": "Encrypted Indexes",
-                "pages": [
-                  "versions/v0.8.x/guides/encrypted-indexes/introduction",
-                  "versions/v0.8.x/guides/encrypted-indexes/create-client",
-                  "versions/v0.8.x/guides/encrypted-indexes/create-index",
-                  "versions/v0.8.x/guides/encrypted-indexes/configure-index",
-                  "versions/v0.8.x/guides/encrypted-indexes/load-index",
-                  "versions/v0.8.x/guides/encrypted-indexes/list-indexes",
-                  "versions/v0.8.x/guides/encrypted-indexes/delete-index"
-                ]
-              },
-              {
-                "group": "Data Operations",
-                "pages": [
-                  "versions/v0.8.x/guides/data-operations/add-items",
-                  "versions/v0.8.x/guides/data-operations/query",
-                  "versions/v0.8.x/guides/data-operations/train-index",
-                  "versions/v0.8.x/guides/data-operations/get-items"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "API Reference",
-            "dropdowns": [
-              {
-                "dropdown": "Python",
-                "icon": "python",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.8.x/api-reference/python/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.8.x/api-reference/python/client/client",
-                      "versions/v0.8.x/api-reference/python/client/create-index",
-                      "versions/v0.8.x/api-reference/python/client/load-index",
-                      "versions/v0.8.x/api-reference/python/client/list-indexes"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.8.x/api-reference/python/encrypted-index/upsert",
-                      "versions/v0.8.x/api-reference/python/encrypted-index/query",
-                      "versions/v0.8.x/api-reference/python/encrypted-index/train",
-                      "versions/v0.8.x/api-reference/python/encrypted-index/get",
-                      "versions/v0.8.x/api-reference/python/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.8.x/api-reference/python/getters",
-                      "versions/v0.8.x/api-reference/python/types"
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "C++",
-                "icon": "brackets-curly",
-                "groups": [
-                  {
-                    "group": "Introduction",
-                    "pages": [
-                      "versions/v0.8.x/api-reference/cpp/introduction"
-                    ]
-                  },
-                  {
-                    "group": "Client",
-                    "pages": [
-                      "versions/v0.8.x/api-reference/cpp/client/client",
-                      "versions/v0.8.x/api-reference/cpp/client/create-index",
-                      "versions/v0.8.x/api-reference/cpp/client/load-index",
-                      "versions/v0.8.x/api-reference/cpp/client/list-indexes"
-                    ]
-                  },
-                  {
-                    "group": "Encrypted Index",
-                    "pages": [
-                      "versions/v0.8.x/api-reference/cpp/encrypted-index/upsert",
-                      "versions/v0.8.x/api-reference/cpp/encrypted-index/query",
-                      "versions/v0.8.x/api-reference/cpp/encrypted-index/train",
-                      "versions/v0.8.x/api-reference/cpp/encrypted-index/get",
-                      "versions/v0.8.x/api-reference/cpp/encrypted-index/delete-index"
-                    ]
-                  },
-                  {
-                    "group": "Types & Getters",
-                    "pages": [
-                      "versions/v0.8.x/api-reference/cpp/getters",
-                      "versions/v0.8.x/api-reference/cpp/types"
                     ]
                   }
                 ]

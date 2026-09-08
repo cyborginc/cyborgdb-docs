@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Searches for nearest neighbors in the encrypted index using vector similarity search. Supports single vector queries, batch queries, semantic search with text content, and — when `text` is passed alongside a query vector — **hybrid** search that fuses BM25 full-text ranking with the vector ranking (see [Full-text and hybrid search](../../guides/data-operations/bm25-search)).
+Searches for nearest neighbors in the encrypted index using vector similarity search. Supports single vector queries, batch queries, semantic search with text content, and — when `text` is passed alongside a query vector — **hybrid** search that fuses BM25 full-text ranking with the vector ranking (see [Full-text and hybrid search](../../../embedded/guides/data-operations/bm25-search)).
 
 ```python
 # Single vector query
@@ -159,7 +159,7 @@ for result in results:
 
 #### Hybrid Query (BM25 + Vector)
 
-Requires an index created with at least one `full_text` field (see [Full-text and hybrid search](../../guides/data-operations/bm25-search)).
+Requires an index created with at least one `full_text` field (see [Full-text and hybrid search](../../../embedded/guides/data-operations/bm25-search)).
 
 ```python
 # text=... makes the query hybrid. A query vector is still required.

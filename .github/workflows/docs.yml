@@ -1,0 +1,29 @@
+name: docs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [main]
+
+jobs:
+  invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # sync-next needs history for its 3-way merge base
+
+      - name: Nav parity, internal links, redirects
+        run: python3 scripts/docs.py check
+
+      - name: Canonical / noindex invariant
+        run: python3 scripts/docs.py seo --check
+
+      - name: next/ mirror in sync with latest/
+        if: >-
+          github.event_name == 'pull_request' &&
+          !contains(github.event.pull_request.labels.*.name, 'no-next-sync')
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          python3 scripts/docs.py sync-next --check --base "origin/${{ github.base_ref }}"

@@ -1,0 +1,122 @@
+---
+title: "CyborgDB Embedded Quickstart"
+sidebarTitle: "Quickstart"
+mode: "wide"
+noindex: true
+---
+
+Get started with CyborgDB in minutes.
+
+<Steps>
+    <Step title="Install CyborgDB">
+        Install CyborgDB on your machine:
+
+        ```bash Python
+        # Install CyborgDB:
+        pip install cyborgdb-core
+
+        # For automatic embedding generation, install with:
+        pip install cyborgdb-core[embeddings]
+
+        # For LangChain integration, install with:
+        pip install cyborgdb-core[langchain]
+
+        # Or with all extras:
+        pip install cyborgdb-core[all]
+        ```
+    </Step>
+    <Step title="Create a Client">
+        Create a CyborgDB client:
+
+        ```python Python icon="python"
+        import cyborgdb_core as cyborgdb
+        import secrets
+
+        # Backing store: local disk, for simple persistent storage.
+        # Use .memory() for ephemeral storage or .s3("bucket") for cloud persistence.
+        client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+        ```
+
+        <Note>
+        Without an API key the client runs in free-tier mode, capped at 1,000,000 items per index. Pass a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co) as the first argument (`cyborgdb.Client(api_key, storage_config=...)`) for unlimited usage. See [Get an API Key](../../../intro/get-api-key).
+        </Note>
+
+        For more info, refer to [Create a Client](../encrypted-indexes/create-client).
+    </Step>
+    <Step title="Create an Encrypted Index">
+        Create an encrypted index with CyborgDB:
+
+        ```python Python icon="python"
+        # ... Continuing from the previous step
+        
+        # Generate an encryption key for the index
+        index_key = secrets.token_bytes(32)
+
+        # Create an encrypted index
+        index = client.create_index(
+            index_name="my_index", 
+            index_key=index_key
+        )
+        ```
+
+        <Warning>
+        **Store `index_key` before you upsert any data.** CyborgDB has no key-recovery path — data encrypted with a lost key is unrecoverable. For anything past evaluation, keep the key in AWS Secrets Manager, Vault, or your KMS. See [Managing Keys](../advanced/managing-keys).
+        </Warning>
+
+        For more info, refer to [Create an Encrypted Index](../encrypted-indexes/create-index).
+    </Step>
+    <Step title="Add Items to Encrypted Index">
+        Add data to the encrypted index via Upsert:
+
+        ```python Python icon="python"
+        # ... Continuing from the previous step
+
+        # Add items to the encrypted index
+        items = [
+            {"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4], "contents": "Hello!"},
+            {"id": "item_2", "vector": [0.5, 0.6, 0.7, 0.8], "contents": "Bonjour!"},
+            {"id": "item_3", "vector": [0.9, 0.10, 0.11, 0.12], "contents": "Hola!"}
+        ]
+
+        # index_key must be supplied on every data operation
+        index.upsert(items, index_key=index_key)
+        ```
+
+        For more info, refer to [Add Items](../data-operations/add-items).
+    </Step>
+    <Step title="Query Encrypted Index">
+        Query the encrypted index for similar vectors and chain `get()` for contents. CyborgDB's encrypted search index stores only embeddings — contents live in separately encrypted item records retrieved via `get()`, so a real result reads with a two-step pattern:
+
+        ```python Python icon="python"
+        # ... Continuing from the previous step
+
+        # Query the encrypted index — include distance and metadata on results.
+        results = index.query(
+            query_vectors=[0.1, 0.2, 0.3, 0.4],
+            top_k=2,
+            include=["distance", "metadata"],
+            index_key=index_key,
+        )
+
+        # Retrieve contents for the top matches (contents come back as bytes).
+        top_items = index.get([r["id"] for r in results], index_key=index_key)
+        by_id = {item["id"]: item for item in top_items}
+        for r in results:
+            contents = by_id[r["id"]]["contents"].decode()
+            print(f"ID: {r['id']}  Distance: {r['distance']:.4f}  Contents: {contents}")
+        ```
+
+        <Note>
+        `include=["contents"]` is not a valid query option — contents are only retrievable via `get()`. See [Query an Encrypted Index](../data-operations/query) and [Get Items](../data-operations/get-items) for the full API.
+        </Note>
+    </Step>
+    <Step title="Next Steps">
+        Learn more about CyborgDB:
+
+        <CardGroup>
+            <Card title="Python API Reference" href="../../python/introduction" icon="python">
+                Explore the Python API reference to learn how to use CyborgDB in your applications.
+            </Card>
+        </CardGroup>
+    </Step>
+</Steps>
