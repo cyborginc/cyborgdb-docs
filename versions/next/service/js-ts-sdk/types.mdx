@@ -83,7 +83,7 @@ The `CreateIndexRequest` interface defines the parameters for creating a new enc
 | `dimension` | `number \| null` | No | Vector dimensionality (auto-detected from the first upsert if omitted) |
 | `metric` | `string \| null` | No | Distance metric (`'euclidean'`, `'squared_euclidean'`, or `'cosine'`). If omitted, the server's default (`'euclidean'`) is used. |
 | `embeddingModel` | `string \| null` | No | Optional embedding model name for automatic vector generation |
-| `storagePrecision` | `'float32' \| 'float16' \| null` | No | On-disk rerank-vector dtype. Defaults to `'float32'`. |
+| `storagePrecision` | `'float32' \| 'float16' \| 'tq12' \| 'tq8' \| 'tq6' \| 'tq4' \| null` | No | On-disk rerank-vector format, chosen at create time and immutable. Defaults to `'float32'`. `'float16'` halves storage at a small precision cost; the TurboQuant tiers (12/8/6/4 bits per dimension) trade storage for a small recall/latency cost, with `'tq4'` the most aggressive (~8× smaller than `float32`, ~94% recall@100). All tiers work with every metric. |
 
 ### Example Usage
 
@@ -331,7 +331,7 @@ const vectorItem: VectorItem = {
 | `dimension` | `number` | auto-detect | Vector dimensionality. Inferred from the first upsert or from `embeddingModel` when omitted. |
 | `metric` | `string` | server default (`'euclidean'`) | `'euclidean'`, `'squared_euclidean'`, or `'cosine'`. |
 | `embeddingModel` | `string` | — | Optional sentence-transformers model name for automatic embedding generation. |
-| `storagePrecision` | `'float32' \| 'float16'` | `'float32'` | On-disk rerank-vector dtype. |
+| `storagePrecision` | `'float32' \| 'float16' \| 'tq12' \| 'tq8' \| 'tq6' \| 'tq4'` | `'float32'` | On-disk rerank-vector format, chosen at create time and immutable. The TurboQuant tiers (12/8/6/4 bits per dimension) trade storage for a small recall/latency cost; `'tq4'` is the most aggressive (~8× smaller than `float32`, ~94% recall@100). All tiers work with every metric. |
 
 ### Key Management
 
