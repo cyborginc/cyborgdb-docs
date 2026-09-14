@@ -31,7 +31,7 @@ client.create_index(
 | `dimension` | `int` | `None` | _(Optional)_ Vector dimensionality. If omitted, the server auto-detects from the first upsert. |
 | `embedding_model` | `str` | `None` | _(Optional)_ sentence-transformers model name for automatic embedding generation. When set, `dimension` is inferred from the model. |
 | `metric` | `str` | `None` | _(Optional)_ Distance metric (`"euclidean"`, `"squared_euclidean"`, or `"cosine"`). When `None`, the server applies its default. |
-| `storage_precision` | `str` | `None` | _(Optional)_ On-disk rerank-vector dtype: `"float32"` (default) or `"float16"`. |
+| `storage_precision` | `str` | `None` | _(Optional)_ On-disk rerank-vector format, chosen at create time and immutable. One of `"float32"` (default), `"float16"`, or the TurboQuant tiers `"tq12"` / `"tq8"` / `"tq6"` / `"tq4"`. `"float16"` halves storage at a small precision cost; the TurboQuant tiers (12/8/6/4 bits per dimension) trade storage for a small recall/latency cost, with `"tq4"` the most aggressive (~8× smaller than `float32`, ~94% recall@100). All tiers work with every metric. |
 | `metadata_schema` | `Dict[str, Dict[str, bool]]` | `None` | _(Optional)_ Per-field metadata indexing policy, fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
 
 ### Key Management Modes

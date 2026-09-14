@@ -12,7 +12,7 @@ noindex: true
 | `dimension` | `int` | `None` (auto-detect) | Vector dimensionality. Inferred from the first upsert or from `embedding_model` when omitted. |
 | `metric` | `str` | server default (`"euclidean"`) | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
 | `embedding_model` | `str` | `None` | Optional sentence-transformers model name for automatic embedding generation. |
-| `storage_precision` | `str` | `"float32"` | On-disk rerank-vector dtype: `"float32"` or `"float16"`. |
+| `storage_precision` | `str` | `"float32"` | On-disk rerank-vector format, chosen at create time and immutable. One of `"float32"`, `"float16"`, or the TurboQuant tiers `"tq12"` / `"tq8"` / `"tq6"` / `"tq4"` (12/8/6/4 bits per dimension). TurboQuant trades storage for a small recall/latency cost; `"tq4"` is the most aggressive (~8× smaller than `float32`, ~94% recall@100). All tiers work with every metric. |
 
 ## Key Management
 
