@@ -35,3 +35,47 @@ docker run -p 8000:8000 cyborginc/cyborgdb-service
 ```
 
 For detailed service setup instructions, see our quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).
+
+## Error Handling
+
+The SDK returns typed errors defined in the `cyborgdb` package. Every typed error satisfies the `cyborgdb.Error` interface, so a single `errors.As` handles any CyborgDB failure the SDK translates:
+
+```go
+import (
+    "errors"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+```
+
+| Type | Returned when |
+|------|---------------|
+| `cyborgdb.ValidationError` | HTTP `400` / `422`, and arguments this SDK rejects before sending the request. The package's client-side sentinels (`ErrInvalidURL`, `ErrEmptyIDs`, `ErrInconsistentDimension`, …) are wrapped inside it, so `errors.Is` keeps working alongside `errors.As`. |
+| `cyborgdb.AuthenticationError` | HTTP `401` / `403` — check the API key and its permissions. Inspect `StatusCode` to tell the two apart. |
+| `cyborgdb.NotFoundError` | HTTP `404` — the collection or item does not exist. |
+| `cyborgdb.ConflictError` | HTTP `409` — a state conflict, such as requesting training while training is already in progress. Poll for the terminal state; a backoff loop must not retry a 409. |
+| `cyborgdb.RateLimitError` | HTTP `429`. Honor `RetryAfter` when it is set. The service does not rate-limit yet — this type is defined so callers can write the handler once. |
+| `cyborgdb.ServiceError` | Any 5xx. Not "ServiceUnavailable": a 500 is a server bug, not unavailability. |
+| `cyborgdb.TransportError` | No HTTP response reached the client — DNS failure, connection refused, TLS failure, or timeout. `StatusCode` is `0`. |
+
+Every typed error exposes the same context through the `cyborgdb.Error` interface: `StatusCode() int`, `RequestID() string`, `Detail() string` (the service's own message), `RetryAfter() float64` (seconds, when the service sends the header), and `Retryable() bool` — fixed per type so retry loops branch on it rather than re-deriving a status table. `Unwrap()` exposes the originating error, so `errors.Is` and `errors.As` reach the generated client's types and the package's sentinel errors.
+
+```go
+_, err := client.ListIndexes(ctx)
+if err != nil {
+    var (
+        authErr *cyborgdb.AuthenticationError
+        cerr    cyborgdb.Error
+    )
+    switch {
+    case errors.As(err, &authErr):
+        log.Printf("auth failure (HTTP %d): %v", authErr.StatusCode(), err)
+    case errors.As(err, &cerr) && cerr.Retryable():
+        // back off and retry — TransportError, RateLimitError, ServiceError
+    case errors.Is(err, cyborgdb.ErrInvalidURL):
+        // matches the pre-flight sentinel wrapped inside ValidationError
+    default:
+        return err
+    }
+}
+```
