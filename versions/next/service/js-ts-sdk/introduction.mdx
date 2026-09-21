@@ -37,3 +37,50 @@ docker run -p 8000:8000 cyborginc/cyborgdb-service
 ```
 
 For detailed service setup instructions, see our quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).
+
+## Error Handling
+
+The SDK throws typed error classes from `cyborgdb`. All are subclasses of `CyborgDBError`, so a single `catch (err)` and `if (err instanceof CyborgDBError)` handles every failure the SDK translates:
+
+```ts
+import {
+    CyborgDBError,
+    CyborgDBValidationError,
+    CyborgDBAuthenticationError,
+    CyborgDBNotFoundError,
+    CyborgDBConflictError,
+    CyborgDBRateLimitError,
+    CyborgDBServiceError,
+    CyborgDBTransportError,
+} from "cyborgdb";
+```
+
+| Exception | Thrown when |
+|-----------|-------------|
+| `CyborgDBValidationError` | HTTP `400` / `422`, and arguments the SDK rejects before sending the request (including an unusable `baseUrl`). `statusCode` is `null` when caught pre-flight. |
+| `CyborgDBAuthenticationError` | HTTP `401` / `403` — the service rejects the API key or the caller lacks permission. Inspect `statusCode` to tell the two apart. |
+| `CyborgDBNotFoundError` | HTTP `404` — the collection or item does not exist. |
+| `CyborgDBConflictError` | HTTP `409` — a state conflict, such as training while training is already in progress. Poll for the terminal state; a backoff loop must not retry a 409. |
+| `CyborgDBRateLimitError` | HTTP `429`. Honor `retryAfter` when it is set. The service does not rate-limit yet — this type exists so callers can write the handler once. |
+| `CyborgDBServiceError` | Any 5xx. Not "ServiceUnavailable": a 500 is a server bug, not unavailability. |
+| `CyborgDBTransportError` | No HTTP response reached the client — DNS failure, connection refused, TLS failure, or timeout. `statusCode` is `null`. |
+
+Every typed error carries the same context: `statusCode`, `requestId`, `detail` (the service's own message), `retryAfter` (seconds, when the service sends the header), `indexName` (when the call site knows it), and a `retryable` boolean that is fixed per type — retry loops branch on it rather than re-deriving a status table. The originating error stays reachable via the standard `cause` property.
+
+```ts
+import { CyborgDBError, CyborgDBAuthenticationError } from "cyborgdb";
+
+try {
+    await client.listIndexes();
+} catch (err) {
+    if (err instanceof CyborgDBAuthenticationError) {
+        console.error(`auth failure (HTTP ${err.statusCode}): ${err.message}`);
+    } else if (err instanceof CyborgDBError && err.retryable) {
+        // back off and retry — TransportError, RateLimitError, ServiceError
+    } else if (err instanceof CyborgDBError) {
+        // typed CyborgDB failure that is not worth retrying
+    } else {
+        throw err;
+    }
+}
+```
