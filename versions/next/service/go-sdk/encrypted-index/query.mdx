@@ -4,141 +4,202 @@ mode: "wide"
 noindex: true
 ---
 
-Searches for nearest neighbors in the encrypted index using vector similarity search. Supports single vector queries, batch queries, and semantic search with text content.
+Finds the nearest neighbors of one or more query vectors. With `QueryContents`, the service embeds the text first (the index needs an `EmbeddingModel`). With `Text`, the query becomes **hybrid**: BM25 full-text ranking is fused with the vector ranking.
 
 ```go
 func (e *EncryptedIndex) Query(ctx context.Context, input QueryInput) (*QueryResponse, error)
 ```
 
-### Parameters
+`input` is either `QueryParams` (sent as JSON) or `BinaryQueryParams` (vectors sent as binary, faster for large batches).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ctx` | `context.Context` | Context for cancellation and timeouts |
-| `input` | [`QueryInput`](../types#queryinput-interface) | Either `QueryParams` or `BinaryQueryParams` |
+### Parameters
 
 #### QueryParams
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `QueryVector` | `[]float32` | _(Optional)_ Single query vector for similarity search |
-| `BatchQueryVectors` | `[][]float32` | _(Optional)_ Multiple query vectors for batch search |
-| `QueryContents` | `*string` | _(Optional)_ Text content for semantic search |
-| `TopK` | `int32` | _(Optional)_ Number of nearest neighbors to return (default: 100) |
-| `NProbes` | `*int32` | _(Optional)_ Number of clusters to probe for search |
-| `Filters` | `map[string]interface{}` | _(Optional)_ Metadata filters to apply |
-| `Include` | `[]string` | _(Optional)_ Fields to include in results: `"metadata"`, `"distance"`, `"vector"`. Defaults to `[]` (only `id` is returned). `QueryResultItem` has no `Contents` field — to retrieve contents, use [`Get`](./get) with the matching IDs after querying. |
-| `Greedy` | `*bool` | _(Optional)_ Use greedy search algorithm |
-| `RerankMult` | `*int32` | _(Optional)_ Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `TopK * RerankMult` candidates before reranking narrows to `TopK`. Server default: `10`. Ignored by indexes that do not rerank. |
+Optional scalar fields are pointers: leave them `nil` to use the service default.
 
-<Note>`Include` defaults differ between endpoints: `Query` returns `[]` (only `Id`) by default, while [`Get`](./get) returns `["vector", "contents", "metadata"]`.</Note>
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `QueryVector` | `[]float32` | `nil` | One query vector. |
+| `BatchQueryVectors` | `[][]float32` | `nil` | A batch of query vectors. Takes precedence over `QueryVector`. |
+| `QueryContents` | `*string` | `nil` | Text for the service to embed and search with. Requires an index created with `EmbeddingModel`. |
+| `TopK` | `int32` | `0` (service default: `100`) | Results to return per query. `0` means the service default. |
+| `NProbes` | `*int32` | `nil` (service default: auto) | Clusters to probe. Higher values improve recall and add latency. |
+| `Filters` | `map[string]interface{}` | `nil` | Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
+| `Include` | `[]string` | `nil` (service default: `[]`) | Extra fields per result: `"distance"` and `"metadata"`. `Id` is always returned. See [Result fields](#result-fields). |
+| `Greedy` | `*bool` | `nil` (service default: `false`) | Use greedy search. |
+| `RerankMult` | `*int32` | `nil` (service default: `10`) | Stage 1 returns `TopK * RerankMult` candidates before reranking narrows them to `TopK`. |
+| `Text` | `*string` | `nil` | Query text for a BM25 leg, which makes the query hybrid. Requires an index with at least one full-text field. A query vector is still required. |
+| `TextFields` | `[]string` | `nil` (all full-text fields) | Full-text fields the BM25 leg searches. |
+| `TextFieldWeights` | `[]float32` | `nil` (`1.0` each) | Weight per searched field, in the same order as `TextFields`. |
+| `RequireAllTerms` | `*bool` | `nil` (service default: `false`) | Match only items containing every query term (AND) instead of any term (OR). |
+| `Alpha` | `*float64` | `nil` (service default: `0.5`) | Blend of the two legs, in `[0, 1]`: `0` is pure BM25, `1` is pure vector. |
+| `RrfK` | `*float64` | `nil` (service default: `60`) | Reciprocal rank fusion smoothing constant. Must be `> 0`. |
+| `WindowMult` | `*int32` | `nil` (service default: `3`) | Candidates retrieved per leg, as a multiple of `TopK`. Must be `>= 1`. |
+
+#### BinaryQueryParams
+
+The same fields as `QueryParams`, except:
+
+- `QueryVectors [][]float32` replaces `QueryVector` and `BatchQueryVectors`. It always returns batch results, even for one vector.
+- There is no `QueryContents` and no `RerankMult`.
+
+<Note>`Include` defaults differ between methods: `Query` returns only `Id` by default, while [`Get`](./get) returns `vector`, `contents`, and `metadata`.</Note>
 
 ### Returns
 
-- `*QueryResponse`: Search results containing vectors, distances, and requested fields
-- `error`: Any error encountered during the search operation
+`*QueryResponse`, whose `Results` holds exactly one of:
 
-### Error Handling
+- `Results.ArrayOfQueryResultItem` (`*[]QueryResultItem`): a `QueryParams` with `QueryVector`.
+- `Results.ArrayOfArrayOfQueryResultItem` (`*[][]QueryResultItem`): `BatchQueryVectors`, or any `BinaryQueryParams`.
 
-<AccordionGroup>
-    <Accordion title="API Errors">
-        - Returns error if the API request fails due to network connectivity issues
-        - Returns error if authentication fails (invalid API key)
-        - Returns error if the encryption key is invalid for the specified index
-        - Returns error if there are internal server errors during the search
-    </Accordion>
-    <Accordion title="Validation Errors">
-        - Returns error if none of QueryVector, BatchQueryVectors, or QueryContents is provided
-        - Returns error if vector dimensions don't match the index configuration
-        - Returns error if parameter values are out of valid ranges
-        - Returns error if the Include parameter contains invalid field names
-    </Accordion>
-</AccordionGroup>
+#### Result fields
+
+| Field / method | Description |
+|----------------|-------------|
+| `Id string` | Always set. |
+| `GetDistance()`, `HasDistance()` | Vector queries, when `"distance"` is in `Include`. Lower is closer. |
+| `GetScore()`, `HasScore()` | Hybrid queries only, instead of distance. Higher is more relevant. |
+| `Metadata map[string]interface{}` | When `"metadata"` is in `Include`. |
+
+`Query` never returns vectors or contents, even when they're listed in `Include`. To read them, pass the result IDs to [`Get`](./get).
+
+### Errors
+
+| Error | Returned when |
+|-------|---------------|
+| `*ValidationError` wrapping `ErrEmptyQueryVectors`, `ErrInconsistentDimension`, or `ErrUnsupportedQueryType` | A `BinaryQueryParams` has no vectors or vectors of different lengths, or `input` is another type. Returned before any request is sent. |
+| `*ValidationError` | The service rejects the query (HTTP `400`/`422`): no query input, wrong vector dimension, `Text` on an index without full-text fields, or an out-of-range parameter. |
+| `*AuthenticationError` | The `apiKey` is invalid (HTTP `401`). |
+| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
+
+See [Errors](../errors).
 
 ### Example Usage
 
-#### Single Vector Query
+#### Single vector
 
 ```go
-// Basic similarity search
-queryVector := []float32{0.1, 0.2, 0.3, 0.4}
-params := cyborgdb.QueryParams{
-    QueryVector: queryVector,
-    TopK:        5,
+resp, err := index.Query(ctx, cyborgdb.QueryParams{
+    QueryVector: []float32{0.1, 0.2, 0.3, 0.4},
+    TopK:        2,
     Include:     []string{"distance", "metadata"},
-}
-
-results, err := index.Query(context.Background(), params)
+})
 if err != nil {
-    log.Fatalf("Query failed: %v", err)
+    log.Fatal(err)
 }
 
-// QueryResponse.Results is a oneOf wrapper — single-vector queries populate
-// ArrayOfQueryResultItem; batch queries populate ArrayOfArrayOfQueryResultItem.
-if results.Results.ArrayOfQueryResultItem != nil {
-    for i, result := range *results.Results.ArrayOfQueryResultItem {
-        fmt.Printf("%d. ID: %s, Distance: %.4f\n", i+1, result.Id, result.GetDistance())
-    }
+for _, r := range *resp.Results.ArrayOfQueryResultItem {
+    fmt.Printf("%s %.4f %v\n", r.Id, r.GetDistance(), r.Metadata)
 }
+// Output:
+// doc1 0.0000 map[category:news]
+// doc2 0.8000 map[category:research]
 ```
 
-#### Batch Vector Query
+#### Batch of vectors
 
 ```go
-// Query multiple vectors at once
-queryVectors := [][]float32{
-    {0.1, 0.2, 0.3, 0.4},
-    {0.5, 0.6, 0.7, 0.8},
-    {0.9, 1.0, 1.1, 1.2},
-}
-
-params := cyborgdb.QueryParams{
-    BatchQueryVectors: queryVectors,
-    TopK:              3,
-    Include:           []string{"metadata"},
-}
-
-batchResults, err := index.Query(context.Background(), params)
+resp, err := index.Query(ctx, cyborgdb.QueryParams{
+    BatchQueryVectors: [][]float32{
+        {0.1, 0.2, 0.3, 0.4},
+        {0.5, 0.6, 0.7, 0.8},
+    },
+    TopK: 1,
+})
 if err != nil {
-    log.Fatalf("Batch query failed: %v", err)
+    log.Fatal(err)
 }
 
-// Batch queries populate ArrayOfArrayOfQueryResultItem ([][]QueryResultItem).
-if batchResults.Results.ArrayOfArrayOfQueryResultItem != nil {
-    resultSets := *batchResults.Results.ArrayOfArrayOfQueryResultItem
-    fmt.Printf("Batch query returned %d result sets\n", len(resultSets))
-    for i, set := range resultSets {
-        fmt.Printf("Query %d: %d results\n", i+1, len(set))
-    }
+for i, results := range *resp.Results.ArrayOfArrayOfQueryResultItem {
+    fmt.Println(i, results[0].Id)
 }
+// Output:
+// 0 doc1
+// 1 doc2
 ```
 
-#### Semantic Search with Text
+#### BinaryQueryParams
 
 ```go
-// Search using text content (requires embedding model configured on index)
-textQuery := "machine learning healthcare applications"
-params := cyborgdb.QueryParams{
-    QueryContents: &textQuery,
-    TopK:          10,
-    Include:       []string{"metadata", "distance"},
-}
-
-results, err := index.Query(context.Background(), params)
+resp, err := index.Query(ctx, cyborgdb.BinaryQueryParams{
+    QueryVectors: [][]float32{
+        {0.1, 0.2, 0.3, 0.4},
+        {0.5, 0.6, 0.7, 0.8},
+    },
+    TopK: 1,
+})
 if err != nil {
-    log.Fatalf("Content search failed: %v", err)
+    log.Fatal(err)
 }
+fmt.Println(len(*resp.Results.ArrayOfArrayOfQueryResultItem))
+// Output: 2
+```
 
-if results.Results.ArrayOfQueryResultItem != nil {
-    for i, result := range *results.Results.ArrayOfQueryResultItem {
-        fmt.Printf("%d. ID: %s, Distance: %.4f\n", i+1, result.Id, result.GetDistance())
-        if result.Metadata != nil {
-            fmt.Printf("   Metadata: %v\n", result.Metadata)
-        }
-    }
+#### Text, embedded by the service
+
+```go
+// The index must have been created with EmbeddingModel
+text := "machine learning in healthcare"
+
+resp, err := index.Query(ctx, cyborgdb.QueryParams{QueryContents: &text, TopK: 3})
+if err != nil {
+    log.Fatal(err)
+}
+for _, r := range *resp.Results.ArrayOfQueryResultItem {
+    fmt.Println(r.Id)
 }
 ```
 
-<Tip>`BinaryQueryParams` is available as an alternative to `QueryParams` that uses binary transfer for large batch queries. This can significantly improve performance when querying with many vectors at once.</Tip>
+#### Hybrid (BM25 + vector)
 
-<Note>`BinaryQueryParams` does **not** accept `RerankMult` — it is supported only on `QueryParams`. Use `QueryParams` if you need to tune the stage-1 candidate multiplier on a reranking index.</Note>
+The index needs at least one full-text field, set with `TextFields` or `FullText` in [`CreateIndex`](../client/create-index#metadata-schema).
+
+```go
+text := "encrypted search"
+alpha := 0.5
+
+resp, err := index.Query(ctx, cyborgdb.QueryParams{
+    QueryVector: []float32{0.1, 0.2, 0.3, 0.4},
+    Text:        &text,
+    Alpha:       &alpha,
+    TopK:        2,
+    Include:     []string{"metadata"},
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+for _, r := range *resp.Results.ArrayOfQueryResultItem {
+    fmt.Printf("%s %.4f\n", r.Id, r.GetScore())
+}
+// Output:
+// doc1 0.0164
+// doc2 0.0161
+```
+
+#### Filters and search options
+
+```go
+nProbes := int32(5)
+rerankMult := int32(20)
+greedy := true
+
+resp, err := index.Query(ctx, cyborgdb.QueryParams{
+    QueryVector: []float32{0.1, 0.2, 0.3, 0.4},
+    TopK:        20,
+    NProbes:     &nProbes,
+    RerankMult:  &rerankMult,
+    Greedy:      &greedy,
+    Filters:     map[string]interface{}{"category": "news"},
+    Include:     []string{"distance", "metadata"},
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+for _, r := range *resp.Results.ArrayOfQueryResultItem {
+    fmt.Println(r.Id, r.Metadata["category"])
+}
+// Output: doc1 news
+```

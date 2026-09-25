@@ -4,37 +4,30 @@ mode: "wide"
 noindex: true
 ---
 
-Checks the health status of the CyborgDB service. Useful for readiness/liveness checks and connectivity diagnostics.
+Returns the health status of the CyborgDB service, to check that it is reachable and running.
 
 ```go
 func (c *Client) GetHealth(ctx context.Context) (map[string]string, error)
 ```
 
-### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ctx` | `context.Context` | Context for cancellation/timeouts |
-
 ### Returns
 
-| Type | Description |
-|------|-------------|
-| `map[string]string` | Health status information from the server |
-| `error` | Any error encountered during the health check |
+A `map[string]string` with these keys:
 
-### Exceptions
+| Key | Description |
+|-----|-------------|
+| `status` | Service health, `"healthy"` when the service is up. |
+| `api_version` | REST API version, e.g. `"v1"`. |
+| `version` | CyborgDB service version. |
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the health check request fails due to network connectivity issues.
-        - Throws if the server is unreachable or times out.
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unavailable or unreachable.
-        - Throws if there are internal server errors on the CyborgDB service.
-    </Accordion>
-</AccordionGroup>
+### Errors
+
+| Error | Returned when |
+|-------|---------------|
+| `*TransportError` | The service can't be reached. |
+| `*ServiceError` | The service returns `5xx`. |
+
+See [Errors](../errors).
 
 ### Example Usage
 
@@ -45,35 +38,21 @@ import (
     "context"
     "fmt"
     "log"
-    
+
     "github.com/cyborginc/cyborgdb-go"
 )
 
 func main() {
-    // Create client
     client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
     if err != nil {
         log.Fatal(err)
     }
-    
-    // Check service health
-    ctx := context.Background()
-    health, err := client.GetHealth(ctx)
+
+    health, err := client.GetHealth(context.Background())
     if err != nil {
-        log.Fatal("Health check failed:", err)
+        log.Fatal(err)
     }
-    
-    fmt.Println("Service Health Status:")
-    for key, value := range health {
-        fmt.Printf("  %s: %s\n", key, value)
-    }
+    fmt.Println(health)
+    // Output: map[api_version:v1 status:healthy version:0.18.0]
 }
 ```
-
-### Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | `string` | Current health status of the service (typically "healthy") |
-| `api_version` | `string` | Version of the API interface (e.g., "v1") |
-| `version` | `string` | Version of the CyborgDB application/service |

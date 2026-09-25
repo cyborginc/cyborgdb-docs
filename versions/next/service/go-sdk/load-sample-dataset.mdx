@@ -4,54 +4,54 @@ mode: "wide"
 noindex: true
 ---
 
-Loads a hosted sample dataset, ready to upsert and query — useful for quickstarts, demos, and tests without generating your own vectors. The dataset is fetched from a public S3 bucket on first use and cached locally for subsequent calls.
+Loads a hosted sample dataset, ready to upsert and query, for quickstarts, demos, and tests without generating your own vectors. The dataset is downloaded from a public S3 bucket on first use and cached on disk for later calls.
 
 ```go
 // Load a dataset by name; "" loads the default ("quickstart-75k")
 func LoadSampleDataset(name string) (*SampleDataset, error)
 
-// Same, with explicit cache control
+// The same, with explicit cache control
 func LoadSampleDatasetWithOptions(name string, opts LoadSampleDatasetOptions) (*SampleDataset, error)
 ```
 
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `string` | Name of the dataset to load. An empty string loads `DefaultSampleDataset` (`"quickstart-75k"`, currently the only available dataset). |
-| `opts.CacheDir` | `string` | _(Optional)_ Directory to cache the decompressed dataset in. If empty, defaults to a `cyborgdb` subdirectory of the OS user cache directory. |
-| `opts.ForceDownload` | `bool` | _(Optional)_ Re-download even if a cached copy exists. |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `name` | `string` | `""` (`"quickstart-75k"`) | Dataset to load. `"quickstart-75k"` is currently the only one. |
+| `opts.CacheDir` | `string` | `""` (`os.UserCacheDir()/cyborgdb`) | Directory for the cached dataset. |
+| `opts.ForceDownload` | `bool` | `false` | Download again even if a cached copy exists. |
 
-<Note>Each dataset's SHA-256 digest is pinned in the SDK and verified both after download and on every cache read, so a tampered download or cache file is rejected and re-fetched rather than trusted.</Note>
+The functions take no `context.Context`. The download has a fixed 120-second timeout, and the decompressed dataset is capped at 512 MiB. Each dataset's SHA-256 digest is pinned in the SDK and checked after download and on every cache read, so a tampered file is rejected and downloaded again.
 
 ### Returns
 
-`*SampleDataset`: A struct combining dataset metadata, upsert-ready convenience fields, the raw parallel arrays, and ground-truth fixture data:
+`*SampleDataset`:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `Name` | `string` | Dataset identifier, e.g. `"quickstart-75k"` |
-| `Version` | `int` | Dataset schema version |
-| `Description` | `string` | Human-readable description |
-| `Dimension` | `int` | Vector dimensionality |
-| `Metric` | `string` | Distance metric the vectors were generated for |
-| `Count` | `int` | Number of items in the dataset |
-| `Items` | `VectorItems` | Items with explicit IDs, vectors, and metadata — pass directly to [`Upsert`](./encrypted-index/upsert) |
-| `SampleQueries` | `[][]float32` | The first 10 query vectors, for quick similarity-search demos |
-| `ExampleFilters` | `[]SampleFilter` | Curated, guaranteed-to-match metadata filters; each has `Name`, `Filter`, and `Demonstrates` |
-| `Ids` / `Vectors` / `Metadata` | parallel slices | Raw arrays, aligned by index |
-| `Queries`, `MetadataQueries`, `MetadataQueryNames`, `UntrainedNeighbors`, `TrainedNeighbors`, `UntrainedMetadataMatches`, `TrainedMetadataMatches`, `UntrainedMetadataNeighbors`, `TrainedMetadataNeighbors`, `UntrainedRecall`, `TrainedRecall`, `NumUntrainedVectors`, `NumTrainedVectors` | ground truth | Fixture data for validating recall / accuracy |
+| `Name` | `string` | Dataset identifier, e.g. `"quickstart-75k"`. |
+| `Version` | `int` | Dataset schema version. |
+| `Description` | `string` | Human-readable description. |
+| `Dimension` | `int` | Vector dimensionality. |
+| `Metric` | `string` | Distance metric the vectors were generated for. |
+| `Count` | `int` | Number of items. |
+| `Items` | `VectorItems` | Items with `Id`, `Vector`, and `Metadata`, ready for [`Upsert`](./encrypted-index/upsert). |
+| `SampleQueries` | `[][]float32` | The first 10 query vectors. |
+| `ExampleFilters` | `[]SampleFilter` | Metadata filters guaranteed to match, each with `Name`, `Filter`, and `Demonstrates`. |
+| `Ids` / `Vectors` / `Metadata` | parallel slices | Raw data, aligned by position. |
+| `Queries`, `MetadataQueries`, `MetadataQueryNames`, `UntrainedNeighbors`, `TrainedNeighbors`, `UntrainedMetadataMatches`, `TrainedMetadataMatches`, `UntrainedMetadataNeighbors`, `TrainedMetadataNeighbors`, `UntrainedRecall`, `TrainedRecall`, `NumUntrainedVectors`, `NumTrainedVectors` | ground truth | Fixture data for checking recall. |
 
 ### Errors
 
-Returned errors wrap the following sentinel values, so they can be matched with `errors.Is`:
+| Error | Returned when |
+|-------|---------------|
+| `ErrUnknownSampleDataset` | The dataset name is unknown. |
+| `ErrSampleDatasetDownload` | The download fails or times out. |
+| `ErrSampleDatasetIntegrity` | The file fails its SHA-256 check. |
+| `ErrSampleDatasetTooLarge` | The decompressed dataset exceeds 512 MiB. |
 
-| Error | Meaning |
-|-------|---------|
-| `ErrUnknownSampleDataset` | The dataset name is not recognized |
-| `ErrSampleDatasetDownload` | The dataset download failed |
-| `ErrSampleDatasetTooLarge` | The dataset exceeds the maximum decompressed size |
-| `ErrSampleDatasetIntegrity` | The dataset failed its integrity (SHA-256) check |
+These are wrapped with extra context; match them with `errors.Is`.
 
 ### Example Usage
 
@@ -60,56 +60,61 @@ package main
 
 import (
     "context"
+    "fmt"
     "log"
 
-    cyborgdb "github.com/cyborginc/cyborgdb-go"
+    "github.com/cyborginc/cyborgdb-go"
 )
 
 func main() {
-    client, err := cyborgdb.NewClient("https://localhost:8000", "your-api-key")
+    ctx := context.Background()
+
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
     if err != nil {
         log.Fatal(err)
     }
-
     key, err := cyborgdb.GenerateKey()
     if err != nil {
         log.Fatal(err)
     }
 
-    ctx := context.Background()
-    index, err := client.CreateIndex(ctx, &cyborgdb.CreateIndexParams{
-        IndexName: "demo",
-        IndexKey:  key,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Load the sample dataset (downloads on first use, cached afterwards)
+    // Downloads on first use; cached afterwards
     dataset, err := cyborgdb.LoadSampleDataset("")
     if err != nil {
         log.Fatal(err)
     }
+    fmt.Println(dataset.Name, dataset.Count, dataset.Dimension, dataset.Metric)
+    // Output: quickstart-75k 75000 128 euclidean
 
-    // Populate the index
-    if err := index.Upsert(ctx, dataset.Items); err != nil {
-        log.Fatal(err)
-    }
-
-    // Run a similarity search with a bundled query vector
-    results, err := index.Query(ctx, cyborgdb.QueryParams{
-        QueryVector: dataset.SampleQueries[0],
-        TopK:        5,
+    dim := int32(dataset.Dimension)
+    index, err := client.CreateIndex(ctx, &cyborgdb.CreateIndexParams{
+        IndexName: "demo",
+        IndexKey:  key,
+        Dimension: &dim,
+        Metric:    &dataset.Metric,
     })
     if err != nil {
         log.Fatal(err)
     }
 
-    // Single-vector queries populate ArrayOfQueryResultItem
-    if results.Results.ArrayOfQueryResultItem != nil {
-        for i, result := range *results.Results.ArrayOfQueryResultItem {
-            log.Printf("%d. ID: %s", i+1, result.Id)
-        }
+    if err := index.Upsert(ctx, dataset.Items); err != nil {
+        log.Fatal(err)
+    }
+
+    // Similarity search with a bundled query vector
+    resp, err := index.Query(ctx, cyborgdb.QueryParams{QueryVector: dataset.SampleQueries[0], TopK: 5})
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println(len(*resp.Results.ArrayOfQueryResultItem))
+    // Output: 5
+
+    // A curated metadata filter
+    example := dataset.ExampleFilters[0]
+    fmt.Println(example.Name, example.Filter)
+    // Output: Equality filter (string field) map[string:string_0]
+    if _, err := index.Query(ctx, cyborgdb.QueryParams{QueryVector: dataset.SampleQueries[0], Filters: example.Filter}); err != nil {
+        log.Fatal(err)
     }
 }
 ```

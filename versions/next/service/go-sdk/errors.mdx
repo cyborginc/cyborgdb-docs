@@ -1,0 +1,134 @@
+---
+title: "Errors"
+mode: "wide"
+noindex: true
+---
+
+Failed requests to the service return an error that wraps one of seven typed errors, chosen from the HTTP status code. Match them with `errors.As`, or match the shared `cyborgdb.Error` interface.
+
+```go
+package main
+
+import (
+    "context"
+    "errors"
+    "fmt"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    key, err := cyborgdb.GenerateKey()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    _, err = client.LoadIndex(context.Background(), "missing-index", key)
+
+    var notFound *cyborgdb.NotFoundError
+    if errors.As(err, &notFound) {
+        fmt.Println(notFound.StatusCode(), notFound.Detail())
+    }
+    // Output: 404 No KMS envelope for index 'missing-index'
+}
+```
+
+## Error types
+
+| Type | Returned for | `Retryable()` |
+|------|--------------|---------------|
+| `*ValidationError` | HTTP `400` or `422`, and every argument check the SDK runs before sending (see [below](#errors-returned-before-a-request-is-sent)). | `false` |
+| `*AuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, or a non-root key used for a root-only operation. | `false` |
+| `*NotFoundError` | HTTP `404`: the index or resource does not exist, or the `indexKey` doesn't match the index. | `false` |
+| `*ConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `false` |
+| `*RateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `true` |
+| `*ServiceError` | Any HTTP `5xx` response. | `true` |
+| `*TransportError` | No response arrived: DNS failure, refused connection, TLS failure, or timeout. | `true` |
+
+All seven implement `cyborgdb.Error`. Methods such as `CreateIndex` add context to the message (for example `failed to create index: ...`), so always match with `errors.As` or `errors.Is`, never by comparing the error directly.
+
+## The Error interface
+
+| Method | Returns |
+|--------|---------|
+| `StatusCode() int` | HTTP status code. `0` for a `*TransportError` or an argument check. |
+| `Detail() string` | The service's error message, from the response body's `detail` field. |
+| `RequestID() string` | Value of the `X-Request-Id` response header, when the service sends one. Include it when reporting a problem. |
+| `RetryAfter() float64` | Seconds from a numeric `Retry-After` header, or `0`. |
+| `Retryable() bool` | Fixed per type; see the table above. |
+| `Unwrap() error` | The underlying error. |
+
+`Unwrap` makes standard checks work through the chain, for example `errors.Is(err, context.DeadlineExceeded)` on a `*TransportError` caused by a context deadline.
+
+```go
+_, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
+    Filters: map[string]interface{}{"category": map[string]interface{}{"$regex": "^re"}},
+})
+
+var ve *cyborgdb.ValidationError
+if errors.As(err, &ve) {
+    fmt.Println(ve.StatusCode())
+    fmt.Println(ve.Detail())
+}
+// Output:
+// 400
+// Failed to query metadata: Invalid input: $regex on 'category' requires a regex-indexed (pattern) field
+```
+
+## Retries
+
+The SDK does not retry requests, and its HTTP client has no timeout: set deadlines on `ctx`. `Retryable()` marks the errors that are safe to retry; the retry loop is up to the caller:
+
+```go
+var resp *cyborgdb.QueryResponse
+var err error
+for attempt := 0; attempt < 3; attempt++ {
+    resp, err = index.Query(ctx, cyborgdb.QueryParams{QueryVector: []float32{0.1, 0.2, 0.3, 0.4}, TopK: 5})
+
+    var ce cyborgdb.Error
+    if err == nil || !errors.As(err, &ce) || !ce.Retryable() {
+        break
+    }
+    wait := time.Duration(ce.RetryAfter() * float64(time.Second))
+    if wait == 0 {
+        wait = time.Duration(1<<attempt) * time.Second
+    }
+    time.Sleep(wait)
+}
+_ = resp
+```
+
+## Errors returned before a request is sent
+
+Argument checks that run in the SDK return a `*ValidationError` (with `StatusCode()` `0`) wrapping a sentinel error, so both `errors.As` and `errors.Is` work:
+
+| Sentinel | Returned when |
+|----------|---------------|
+| `ErrInvalidURL` | `NewClient` gets a URL without an `http` or `https` scheme or a host. |
+| `ErrInvalidKeyLength` | An index key isn't 32 bytes. |
+| `ErrMissingKeyOrKMS` | `CreateIndex` gets neither `IndexKey` nor `KmsName`. |
+| `ErrEmptyIDs`, `ErrEmptyVectors`, `ErrEmptyQueryVectors` | A `BinaryUpsertParams` or `BinaryQueryParams` field is empty. |
+| `ErrIDsVectorsLengthMismatch`, `ErrMetadataLengthMismatch`, `ErrContentsLengthMismatch` | `BinaryUpsertParams` slices differ in length. |
+| `ErrInconsistentDimension` | Vectors in one binary upsert or query have different lengths. |
+| `ErrUnsupportedUpsertType`, `ErrUnsupportedQueryType` | `Upsert` or `Query` gets an input type it doesn't accept. |
+
+```go
+_, err := cyborgdb.NewClient("localhost:8000", "")
+fmt.Println(errors.Is(err, cyborgdb.ErrInvalidURL))
+// Output: true
+```
+
+Other sentinels are returned without a typed wrapper: `ErrKeyGeneration` from `GenerateKey`, the `ErrUnknownSampleDataset` / `ErrSampleDatasetDownload` / `ErrSampleDatasetTooLarge` / `ErrSampleDatasetIntegrity` errors from `LoadSampleDataset`, and `ErrDemoAPIKeyNotFound` / `ErrDemoAPIKeyGeneration` from `GetDemoAPIKey`.
+
+<Note>The package also declares `ErrQueryVectorsInvalidType`, `ErrMissingQueryInput`, and `ErrUnexpectedTrainingStatus`, but no function returns them. A query with no input is rejected by the service instead, as a `*ValidationError` with status `400`.</Note>
+
+## Known gaps
+
+- **`DeleteUser`** returns the raw generated-client error on failure, not a typed error.
+- **HTTP statuses outside the mapping above** (for example `405` or `413`) are returned as the generated client's error type, which lives in an `internal` package and can't be matched by name. Check `err.Error()` for these.

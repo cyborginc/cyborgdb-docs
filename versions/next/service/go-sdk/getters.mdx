@@ -3,144 +3,142 @@ title: "Getters"
 noindex: true
 ---
 
-<Note>v0.17 removes the `GetIndexType` and `GetIndexConfig` methods — there is now a single DiskIVF index type. The Go SDK exposes `GetIndexName`, `IsTrained`, `IsTraining`, and the three describe-backed accessors `Dimension`, `Metric`, and `NLists`.</Note>
+`*EncryptedIndex` exposes index settings and training status as methods. Every getter except `GetIndexName` takes a `context.Context` and calls the service's describe or training-status endpoint. Nothing is cached, so each call returns the current value.
 
 ## GetIndexName
-
-Returns the unique name of the index. Known at construction — no API call.
 
 ```go
 func (e *EncryptedIndex) GetIndexName() string
 ```
 
-**Returns**: `string` - The index name as specified during creation
+The index's name. Read locally, with no network call.
 
-**Example**:
 ```go
-indexName := index.GetIndexName()
-fmt.Printf("Working with index: %s\n", indexName)
+fmt.Println(index.GetIndexName())
+// Output: my-vectors
 ```
 
 ---
 
 ## Dimension
 
-Returns the vector dimensionality of the index.
-
-- Returns the real dimension when `CreateIndex` was called with an explicit `Dimension`, or after the first upsert (auto-detect).
-- Returns `0` when the index was created with auto-detect AND no upsert has happened yet.
-
-Each call queries the describe endpoint for live state.
-
 ```go
 func (e *EncryptedIndex) Dimension(ctx context.Context) (int32, error)
 ```
 
-**Parameters**:
-- `ctx`: `context.Context` — context for cancellation and timeouts
+Vector dimensionality. Returns `0` if the index was created without a `Dimension` and nothing has been upserted yet.
 
-**Returns**:
-- `int32` — vector dimension
-- `error` — any error encountered during the lookup
-
-**Example**:
 ```go
-dim, err := index.Dimension(context.Background())
+dim, err := index.Dimension(ctx)
 if err != nil {
     log.Fatal(err)
 }
-fmt.Printf("Dimension: %d\n", dim)
+fmt.Println(dim)
+// Output: 384
 ```
 
 ---
 
 ## Metric
 
-Returns the distance metric used by this index: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`.
-
 ```go
 func (e *EncryptedIndex) Metric(ctx context.Context) (string, error)
 ```
 
-**Parameters**:
-- `ctx`: `context.Context` — context for cancellation and timeouts
+Distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`.
 
-**Returns**:
-- `string` — the distance metric
-- `error` — any error encountered during the lookup
-
-**Example**:
 ```go
-metric, err := index.Metric(context.Background())
+metric, err := index.Metric(ctx)
 if err != nil {
     log.Fatal(err)
 }
-fmt.Printf("Metric: %s\n", metric)
+fmt.Println(metric)
+// Output: euclidean
 ```
 
 ---
 
 ## NLists
 
-Returns the number of inverted lists in the IVF index.
-
-- Returns `1` for untrained indexes.
-- Returns the trained cluster count after `Train` completes.
-
-Each call queries the describe endpoint so post-training callers see the updated value.
-
 ```go
 func (e *EncryptedIndex) NLists(ctx context.Context) (int32, error)
 ```
 
-**Parameters**:
-- `ctx`: `context.Context` — context for cancellation and timeouts
+Number of IVF lists. `1` for an untrained index; the trained list count after [`Train`](./encrypted-index/train).
 
-**Returns**:
-- `int32` — number of inverted lists
-- `error` — any error encountered during the lookup
-
-**Example**:
 ```go
-n, err := index.NLists(context.Background())
+nLists, err := index.NLists(ctx)
 if err != nil {
     log.Fatal(err)
 }
-fmt.Printf("Lists: %d\n", n)
+fmt.Println(nLists)
+// Output: 1
+```
+
+---
+
+## MetadataSchema
+
+```go
+func (e *EncryptedIndex) MetadataSchema(ctx context.Context) (map[string]MetadataFieldPolicy, error)
+```
+
+The per-field indexing policy set with `MetadataSchema` or `TextFields` in [`CreateIndex`](./client/create-index#metadata-schema). Never `nil`: an empty map when the index uses the default policy. The `MetadataFieldPolicy` fields are `*bool`; read them with `GetFilterable()`, `GetPattern()`, and `GetFullText()`.
+
+```go
+schema, err := index.MetadataSchema(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+for field, p := range schema {
+    fmt.Println(field, p.GetFilterable(), p.GetPattern(), p.GetFullText())
+}
+// Output: body false false true
+```
+
+---
+
+## BM25
+
+```go
+func (e *EncryptedIndex) BM25(ctx context.Context) (*BM25Config, error)
+```
+
+The index's BM25 settings, or `nil` (with a `nil` error) when it has no full-text fields.
+
+| Field / method | Type | Description |
+|----------------|------|-------------|
+| `K1` | `float32` | Term-frequency saturation. |
+| `B` | `float32` | Length normalization. |
+| `GetAnalyzerVersion()` | `string` | Text analyzer the index was built with. |
+
+```go
+bm25, err := index.BM25(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(bm25.K1, bm25.B, bm25.GetAnalyzerVersion())
+// Output: 1.2 0.75 en/1;sw=2de831ef7be676b6;snowball-english-utf8-3.0.1
 ```
 
 ---
 
 ## IsTrained
 
-Checks whether the index has been optimized through training. Makes an API call to get the current training status from the server.
-
 ```go
 func (e *EncryptedIndex) IsTrained(ctx context.Context) (bool, error)
 ```
 
-**Parameters**:
-- `ctx`: `context.Context` — context for cancellation and timeouts
+`true` if the index has been trained.
 
-**Returns**:
-- `bool` — `true` if the index has been trained, `false` otherwise
-- `error` — any error encountered during the status check
-
-**Example**:
 ```go
-ctx := context.Background()
 trained, err := index.IsTrained(ctx)
 if err != nil {
-    log.Printf("Failed to check training status: %v", err)
-    return
+    log.Fatal(err)
 }
-
-if trained {
-    fmt.Println("Index is trained and optimized")
-} else {
-    fmt.Println("Index may benefit from training")
+if !trained {
     if err := index.Train(ctx, cyborgdb.TrainParams{}); err != nil {
-        log.Printf("Training failed: %v", err)
+        log.Fatal(err)
     }
 }
 ```
@@ -149,37 +147,21 @@ if trained {
 
 ## IsTraining
 
-Queries the server to check if the index is currently being trained (either actively training or queued).
-
 ```go
 func (e *EncryptedIndex) IsTraining(ctx context.Context) (bool, error)
 ```
 
-**Parameters**:
-- `ctx`: `context.Context` — context for cancellation and timeouts
+`true` while the service is training this index. An index that is queued for training but hasn't started yet returns `false`.
 
-**Returns**:
-- `bool` — `true` if the index is currently being trained or queued, `false` otherwise
-- `error` — any error encountered during the status check
-
-**Example**:
 ```go
-isTraining, err := index.IsTraining(context.Background())
-if err != nil {
-    log.Printf("Failed to check training status: %v", err)
-    return
-}
-
-if isTraining {
-    fmt.Println("Index is currently being trained")
-    for isTraining {
-        time.Sleep(10 * time.Second)
-        isTraining, err = index.IsTraining(context.Background())
-        if err != nil {
-            log.Printf("Error checking training status: %v", err)
-            break
-        }
+for {
+    training, err := index.IsTraining(ctx)
+    if err != nil {
+        log.Fatal(err)
     }
-    fmt.Println("Training completed!")
+    if !training {
+        break
+    }
+    time.Sleep(5 * time.Second)
 }
 ```

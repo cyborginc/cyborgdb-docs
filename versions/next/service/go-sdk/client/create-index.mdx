@@ -4,84 +4,91 @@ mode: "wide"
 noindex: true
 ---
 
-Creates a new encrypted DiskIVF vector index. The new index is empty and ready for vector operations.
-
-<Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` helpers and the `IndexConfig` field have been removed — configuration is now expressed as flat fields on `CreateIndexParams` (`Dimension`, `Metric`, `StoragePrecision`).</Note>
+Creates a new encrypted DiskIVF index on the service and returns an `*EncryptedIndex` bound to it.
 
 ```go
 func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*EncryptedIndex, error)
 ```
 
+<Note>Since v0.17 there is one index type, DiskIVF, configured with flat fields. The v0.16 `IndexIVFFlat`, `IndexIVFPQ`, and `IndexIVFSQ` helpers and the `IndexConfig` field no longer exist.</Note>
+
 ### Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ctx` | `context.Context` | Context for cancellation/timeouts |
-| `params` | [`*CreateIndexParams`](#createindexparams) | Configuration for the new index |
+| `ctx` | `context.Context` | Context for cancellation and deadlines. |
+| `params` | `*CreateIndexParams` | Index settings. Must not be `nil`: a `nil` pointer panics. |
 
 #### CreateIndexParams
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `IndexName` | `string` | Yes | Unique identifier for the index |
-| `IndexKey` | `[]byte` | Conditional | 32-byte encryption key. Required when `KmsName` is nil; mutually exclusive with `KmsName` against a real-KMS slot. |
-| `KmsName` | `*string` | Conditional | Name of a `kms.registry` entry in the service YAML. Required when `IndexKey` is nil. |
-| `Dimension` | `*int32` | No | Vector dimensionality. Auto-detected from the first upsert if nil. |
-| `Metric` | `*string` | No | Distance metric (`"euclidean"`, `"squared_euclidean"`, `"cosine"`). Defaults to the server's default (`"euclidean"`). |
-| `EmbeddingModel` | `*string` | No | Optional sentence-transformers model name for automatic embedding generation. |
-| `StoragePrecision` | `*string` | No | On-disk rerank-vector dtype: `"float32"` (default) or `"float16"`. |
-| `MetadataSchema` | `map[string]MetadataFieldPolicy` | No | Per-field metadata indexing policy, fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
+Optional scalar fields are pointers: leave them `nil` to use the service default.
 
-### Key Management Modes
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `IndexName` | `string` | - | Unique name for the index. |
+| `IndexKey` | `[]byte` | `nil` | 32-byte encryption key (SDK-supplied KEK). Set either `IndexKey` or `KmsName`, never both. |
+| `KmsName` | `*string` | `nil` | Name of a `kms.registry` entry in the service YAML. The service generates the KEK and wraps it with that provider; the SDK never sees the plaintext key. |
+| `Dimension` | `*int32` | `nil` | Vector dimensionality. When `nil`, the service detects it from the first upsert. |
+| `Metric` | `*string` | `nil` (service default: `"euclidean"`) | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
+| `EmbeddingModel` | `*string` | `nil` | sentence-transformers model name for automatic embedding generation. When set, `Dimension` is taken from the model. |
+| `StoragePrecision` | `*string` | `nil` (service default: `"float32"`) | Storage format for rerank vectors. See [Storage precision](#storage-precision). |
+| `MetadataSchema` | `map[string]MetadataFieldPolicy` | `nil` | Per-field metadata indexing policy. Fixed at creation and cannot be changed later. See [Metadata schema](#metadata-schema). |
+| `TextFields` | `[]string` | `nil` | Metadata fields to index for BM25 full-text search. Shorthand for `FullText: true` in `MetadataSchema`. Enables `Text` on [`Query`](../encrypted-index/query) and [`QueryMetadata`](../encrypted-index/query-metadata). |
+| `Bm25K1` | `*float64` | `nil` (service default: `1.2`) | BM25 term-frequency saturation, `>= 0`. Requires at least one full-text field. |
+| `Bm25B` | `*float64` | `nil` (service default: `0.75`) | BM25 length-normalization strength, in `[0, 1]`. Requires at least one full-text field. |
 
-At least one of `IndexKey` / `KmsName` must be supplied; supplying both against a real-KMS slot is rejected by the server:
+### Key management
 
-- **SDK-supplied KEK** — set `IndexKey`, leave `KmsName` nil. The server records the index with `provider: none`; you must re-supply the same key on every subsequent call.
-- **KMS-backed** — set `KmsName`, leave `IndexKey` nil. The server generates the DEK, wraps it under the named registry slot, and persists the envelope. Subsequent calls omit `IndexKey` entirely.
+Set exactly one of `IndexKey` or `KmsName`. The service rejects both together with a `*ValidationError` (HTTP `400`), whatever the KMS provider.
 
-### Metadata Schema
+- **SDK-supplied KEK:** set `IndexKey`. Pass the same key again on every [`LoadIndex`](./load-index).
+- **KMS-backed:** set `KmsName`. The service generates the key, wraps it with the named provider, and stores the wrapped key. Later calls pass a `nil` key.
 
-`MetadataSchema` sets the per-field indexing policy. Metadata itself stays schemaless — this controls how each field is indexed, not what may be stored. Fields left out inherit the default (indexed and filterable).
+### Storage precision
 
-```go
-metadataSchema := map[string]cyborgdb.MetadataFieldPolicy{
-    "title":         {Filterable: ptr(true), Pattern: ptr(true)}, // regex-searchable
-    "internal_blob": {Filterable: ptr(false)},                     // stored, not index-filterable
-}
-```
+`StoragePrecision` sets how the full-precision rerank vectors are stored. Every value works with every metric.
 
-`MetadataFieldPolicy` has two `*bool` fields:
+| Constant | Value | Bits per dimension | Notes |
+|----------|-------|--------------------|-------|
+| `StoragePrecisionFloat32` | `"float32"` | 32 | Default. |
+| `StoragePrecisionFloat16` | `"float16"` | 16 | Half the storage of `float32`, with a small precision cost. |
+| `StoragePrecisionTQ12` | `"tq12"` | 12 | TurboQuant. |
+| `StoragePrecisionTQ8` | `"tq8"` | 8 | TurboQuant. |
+| `StoragePrecisionTQ6` | `"tq6"` | 6 | TurboQuant. |
+| `StoragePrecisionTQ4` | `"tq4"` | 4 | TurboQuant. About 8x smaller than `float32`, at about 94% recall@100. |
 
-- `Filterable` (nil ≡ `true`) — build inverted-index postings so filters on the field resolve from the index (pre-filter path, and the only path [`QueryMetadata`](../encrypted-index/query-metadata) uses). Setting `false` still stores the field but forces the dense post-filter path when [`Query`](../encrypted-index/query) filters reference it — cheaper writes, slower filtered queries.
-- `Pattern` (nil ≡ `false`) — additionally build the field's regex dictionary, which is what makes `$regex` / `$contains` index-resolvable. Requires `Filterable=true`.
+Lower TurboQuant tiers use less storage in exchange for a small recall and latency cost.
 
-On `Query` the schema is a performance hint: filters that miss the index fall back to a post-filter on the decrypted metadata. On `QueryMetadata` it is enforced — `$regex` / `$contains` on a non-`Pattern` field, or any filter on a `Filterable=false` field, comes back as an error from the server.
+### Metadata schema
 
-The recorded policy is available on the index handle via [`MetadataSchema(ctx)`](../encrypted-index/query-metadata#metadata-schema) (empty map when the index uses the default posture).
+`MetadataSchema` sets how each metadata field is indexed. Metadata itself stays schemaless: this controls indexing, not what may be stored. Fields left out get the default policy (indexed and filterable). Nested fields use dot-paths such as `"loc.city"`.
+
+`MetadataFieldPolicy` has three `*bool` fields; `nil` means the default:
+
+| Field | Default | Effect |
+|-------|---------|--------|
+| `Filterable` | `true` | Builds inverted-index postings, so filters on the field resolve from the index. `false` still stores the field, but [`Query`](../encrypted-index/query) filters on it fall back to a slower post-filter, and [`QueryMetadata`](../encrypted-index/query-metadata) rejects them. |
+| `Pattern` | `false` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `Filterable` `true`. |
+| `FullText` | `false` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `Filterable` `false`, and can't be combined with `Pattern` `true`. |
+
+On `Query` the schema is a performance hint: filters the index can't answer fall back to a post-filter on the decrypted metadata. On `QueryMetadata` it is enforced, and unsupported filters return a `*ValidationError`.
+
+The stored policy is returned by the [`MetadataSchema`](../getters#metadataschema) getter.
 
 ### Returns
 
-| Type | Description |
-|------|-------------|
-| `*EncryptedIndex` | Handle for performing vector operations on the new index |
-| `error` | Any error encountered during index creation |
+The `*EncryptedIndex` bound to the new index. For KMS-backed indexes it holds no plaintext key.
 
 ### Errors
 
-<AccordionGroup>
-    <Accordion title="Common errors">
-        - `ErrMissingKeyOrKMS` — Returned when neither `IndexKey` nor `KmsName` is provided.
-        - Returns error if `IndexKey` is provided but is not exactly 32 bytes.
-        - Returns error if the index name already exists on the server.
-        - Returns error if both `IndexKey` and `KmsName` are provided against a real-KMS slot (server-side 400).
-        - Returns error if `MetadataSchema` sets `Pattern=true` without `Filterable=true`, or names an empty field (server 422).
-        - Returns error if the embedding model is unsupported.
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Returns error if the CyborgDB service is unavailable or unreachable.
-        - Returns error on 5xx responses, including KMS-wrap failures (502).
-    </Accordion>
-</AccordionGroup>
+| Error | Returned when |
+|-------|---------------|
+| `*ValidationError` wrapping `ErrMissingKeyOrKMS` or `ErrInvalidKeyLength` | Neither `IndexKey` nor `KmsName` is set, or `IndexKey` isn't 32 bytes. Returned before any request is sent. |
+| `*ValidationError` | The service rejects the request (HTTP `400`/`422`): the index name already exists, both `IndexKey` and `KmsName` are set, the `KmsName` slot is unknown, `StoragePrecision` isn't one of the six values, or `MetadataSchema` combines settings that aren't allowed. |
+| `*ServiceError` | The service returns `5xx`, including KMS wrap failures (`502`). |
+| `*TransportError` | The service can't be reached. |
+
+See [Errors](../errors).
 
 ### Example Usage
 
@@ -92,134 +99,169 @@ package main
 
 import (
     "context"
+    "fmt"
     "log"
 
     "github.com/cyborginc/cyborgdb-go"
 )
 
 func main() {
-    // Create client
     client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
     if err != nil {
         log.Fatal(err)
     }
 
-    // Generate encryption key
     key, err := cyborgdb.GenerateKey()
     if err != nil {
         log.Fatal(err)
     }
 
-    // Create basic index
-    dimension := int32(384)
-    params := &cyborgdb.CreateIndexParams{
-        IndexName: "my-documents",
+    // The dimension is detected from the first upsert
+    index, err := client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
+        IndexName: "documents",
         IndexKey:  key,
-        Dimension: &dimension,
-    }
-
-    ctx := context.Background()
-    index, err := client.CreateIndex(ctx, params)
+    })
     if err != nil {
         log.Fatal(err)
     }
-
-    log.Printf("Created index: %s", index.GetIndexName())
+    fmt.Println(index.GetIndexName())
+    // Output: documents
 }
 ```
 
-<Note>For more info on `GenerateKey`, refer to [Generate Key](./generate-key).</Note>
+<Note>Store the key securely: it is needed to load the index again. See [Generate Key](./generate-key).</Note>
+
+#### Explicit dimension and metric
+
+```go
+dimension := int32(384)
+metric := "cosine"
+
+index, err := client.CreateIndex(ctx, &cyborgdb.CreateIndexParams{
+    IndexName: "documents-384",
+    IndexKey:  key,
+    Dimension: &dimension,
+    Metric:    &metric,
+})
+if err != nil {
+    log.Fatal(err)
+}
+_ = index
+```
 
 #### KMS-backed index
 
 ```go
-// The service generates the KEK, wraps it via the 'prod-aws' registry slot,
-// and persists the envelope. The SDK never sees the plaintext key.
+// The service generates the key and wraps it with the "prod-aws" registry slot.
 kmsName := "prod-aws"
 dimension := int32(384)
 
-params := &cyborgdb.CreateIndexParams{
+index, err := client.CreateIndex(ctx, &cyborgdb.CreateIndexParams{
     IndexName: "kms-documents",
     KmsName:   &kmsName,
     Dimension: &dimension,
-}
-
-index, err := client.CreateIndex(context.Background(), params)
+})
 if err != nil {
     log.Fatal(err)
 }
-// Subsequent calls — including LoadIndex — pass a nil key.
+_ = index
+// Later calls, including LoadIndex, pass a nil key.
 ```
 
-#### Auto-embedding with cosine metric
+#### Automatic embeddings
 
 ```go
-// Initialize client and key (omitted for brevity)
-client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-key, _ := cyborgdb.GenerateKey()
+// The dimension is taken from the embedding model
+model := "all-MiniLM-L6-v2"
 
-// Create an index with automatic embedding generation
-metric := "cosine"
-embeddingModel := "all-MiniLM-L6-v2"
-
-params := &cyborgdb.CreateIndexParams{
-    IndexName:      "large-dataset",
+index, err := client.CreateIndex(ctx, &cyborgdb.CreateIndexParams{
+    IndexName:      "semantic-docs",
     IndexKey:       key,
-    Metric:         &metric,
-    EmbeddingModel: &embeddingModel,
-}
-
-ctx := context.Background()
-index, err := client.CreateIndex(ctx, params)
+    EmbeddingModel: &model,
+})
 if err != nil {
     log.Fatal(err)
 }
+_ = index
 ```
 
-#### Float16 storage for reduced footprint
+See [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).
+
+#### Reduced storage with TurboQuant
 
 ```go
-// Create a compact index using float16 on-disk rerank vectors
 dimension := int32(768)
-storage := cyborgdb.StoragePrecisionFloat16
+precision := cyborgdb.StoragePrecisionTQ8
 
-params := &cyborgdb.CreateIndexParams{
-    IndexName:        "compact-index",
+index, err := client.CreateIndex(ctx, &cyborgdb.CreateIndexParams{
+    IndexName:        "compact-docs",
     IndexKey:         key,
     Dimension:        &dimension,
-    StoragePrecision: &storage,
+    StoragePrecision: &precision,
+})
+if err != nil {
+    log.Fatal(err)
 }
+_ = index
 ```
 
-#### With per-field metadata policy
+#### Per-field metadata policy
 
 ```go
-// Small helper: MetadataFieldPolicy takes *bool so nil means "server default".
-ptr := func(b bool) *bool { return &b }
+dimension := int32(4)
+yes, no := true, false
 
-dimension := int32(384)
-params := &cyborgdb.CreateIndexParams{
+index, err := client.CreateIndex(ctx, &cyborgdb.CreateIndexParams{
     IndexName: "docs-index",
     IndexKey:  key,
     Dimension: &dimension,
     MetadataSchema: map[string]cyborgdb.MetadataFieldPolicy{
-        // Opt `title` into the regex dictionary.
-        "title": {Filterable: ptr(true), Pattern: ptr(true)},
-        // Keep `internal_blob` out of the inverted index — still stored, still
-        // filterable on Query via the post-filter path.
-        "internal_blob": {Filterable: ptr(false)},
+        "title":         {Filterable: &yes, Pattern: &yes},
+        "internal_blob": {Filterable: &no},
     },
-}
-
-index, err := client.CreateIndex(context.Background(), params)
+})
 if err != nil {
     log.Fatal(err)
 }
 
-// $regex now resolves from the index on QueryMetadata and Query alike.
-res, _ := index.QueryMetadata(context.Background(), cyborgdb.QueryMetadataParams{
+err = index.Upsert(ctx, cyborgdb.VectorItems{
+    {Id: "doc1", Vector: []float32{0.1, 0.2, 0.3, 0.4}, Metadata: map[string]interface{}{"title": "intro to encryption"}},
+    {Id: "doc2", Vector: []float32{0.5, 0.6, 0.7, 0.8}, Metadata: map[string]interface{}{"title": "advanced setup"}},
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+// $regex resolves from the index because "title" has Pattern set
+res, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
     Filters: map[string]interface{}{"title": map[string]interface{}{"$regex": "^intro"}},
 })
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(res.Ids)
+// Output: [doc1]
 ```
 
-<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>
+#### Full-text search fields
+
+```go
+dimension := int32(4)
+
+index, err := client.CreateIndex(ctx, &cyborgdb.CreateIndexParams{
+    IndexName:  "articles",
+    IndexKey:   key,
+    Dimension:  &dimension,
+    TextFields: []string{"body"},
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+bm25, err := index.BM25(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(bm25.K1, bm25.B, bm25.GetAnalyzerVersion())
+// Output: 1.2 0.75 en/1;sw=2de831ef7be676b6;snowball-english-utf8-3.0.1
+```

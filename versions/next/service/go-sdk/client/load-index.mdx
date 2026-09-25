@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Loads an existing encrypted index by name. `indexKey` is optional in v0.17: SDK-supplied indexes (`provider: none`) must pass the exact 32-byte key used at creation, while KMS-backed indexes omit it — the service resolves the KEK via the stored `KMSBlob`.
+Loads an existing encrypted index and returns an `*EncryptedIndex` bound to it.
 
 ```go
 func (c *Client) LoadIndex(ctx context.Context, indexName string, indexKey []byte) (*EncryptedIndex, error)
@@ -14,40 +14,31 @@ func (c *Client) LoadIndex(ctx context.Context, indexName string, indexKey []byt
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ctx` | `context.Context` | Context for cancellation/timeouts |
-| `indexName` | `string` | Name of the existing index to load |
-| `indexKey` | `[]byte` | _(Optional)_ 32-byte encryption key used during index creation. Required for indexes created with the SDK-supplied KEK path (`provider: none`); pass `nil` or a zero-length slice for KMS-backed indexes. |
+| `ctx` | `context.Context` | Context for cancellation and deadlines. |
+| `indexName` | `string` | Name of an existing index. |
+| `indexKey` | `[]byte` | The 32-byte key the index was created with. Required for SDK-supplied-key indexes; pass `nil` for KMS-backed indexes (created with `KmsName`). |
 
-<Note>In v0.17 `indexKey` is optional. KMS-backed indexes (created with `KmsName`) omit it — the server resolves the DEK via the persisted `KMSBlob`. SDK-supplied indexes must re-supply the same 32-byte key here.</Note>
-
-<Warning>
-For SDK-supplied indexes, the encryption key must exactly match the key used during index creation. KMS-backed indexes are tied to their `KmsName` slot in the service YAML — load fails if that slot is missing or unreachable.
-</Warning>
+<Warning>For SDK-supplied-key indexes, `indexKey` must be the exact key passed to `CreateIndex`. A KMS-backed index fails to load if its `KmsName` slot is missing from the service YAML or its provider is unreachable.</Warning>
 
 ### Returns
 
-| Type | Description |
-|------|-------------|
-| `*EncryptedIndex` | Handle for performing vector operations on the loaded index |
-| `error` | Any error encountered during index loading |
+The `*EncryptedIndex` bound to the loaded index. `LoadIndex` calls the service's describe endpoint before returning, so a missing index or a wrong key fails here, not on the first query.
 
-### Exceptions
+### Errors
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Returns error if the index doesn't exist on the server
-        - Returns error if the encryption key is incorrect or invalid
-        - Returns error from the server if a KMS-backed index's slot is unavailable
-        - Returns error if the server returns an HTTP error status
-        - Returns error if authentication fails (invalid API key)
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unavailable or unreachable.
-        - Throws if there are internal server errors on the CyborgDB service.
-    </Accordion>
-</AccordionGroup>
+| Error | Returned when |
+|-------|---------------|
+| `*ValidationError` wrapping `ErrInvalidKeyLength` | `indexKey` is non-empty but not 32 bytes. Returned before any request is sent. |
+| `*NotFoundError` | No index named `indexName` exists, or `indexKey` doesn't match it (HTTP `404`). |
+| `*AuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`). |
+| `*ServiceError` | The service returns `5xx`, for example when a KMS-backed index's provider is unavailable. |
+| `*TransportError` | The service can't be reached. |
+
+See [Errors](../errors).
 
 ### Example Usage
+
+#### SDK-supplied-key index
 
 ```go
 package main
@@ -55,48 +46,40 @@ package main
 import (
     "context"
     "encoding/hex"
+    "fmt"
     "log"
-    
+
     "github.com/cyborginc/cyborgdb-go"
 )
 
 func main() {
-    // Create client
     client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
     if err != nil {
         log.Fatal(err)
     }
-    
-    // 32-byte encryption key encoded as 64 hex chars
-    indexKeyHex := "your-64-character-hex-key-here"
-    key, err := hex.DecodeString(indexKeyHex)
+
+    // The same 32 bytes that were passed to CreateIndex, e.g. stored as hex
+    key, err := hex.DecodeString("your-64-character-hex-key")
     if err != nil {
         log.Fatal(err)
     }
 
-    // Load existing SDK-supplied index
-    ctx := context.Background()
-    index, err := client.LoadIndex(ctx, "my-documents", key)
+    index, err := client.LoadIndex(context.Background(), "my-index", key)
     if err != nil {
-        log.Fatal("Failed to load index:", err)
+        log.Fatal(err)
     }
-
-    log.Printf("Loaded index: %s", index.GetIndexName())
-
-    dim, _ := index.Dimension(ctx)
-    log.Printf("Dimension: %d", dim)
-
-    trained, err := index.IsTrained(ctx)
-    if err != nil {
-        log.Fatal("Failed to check training status:", err)
-    }
-    log.Printf("Is trained: %t", trained)
-
-    // Load a KMS-backed index — no key required
-    kmsIndex, err := client.LoadIndex(ctx, "kms-documents", nil)
-    if err != nil {
-        log.Fatal("Failed to load KMS index:", err)
-    }
-    _ = kmsIndex
+    fmt.Println(index.GetIndexName())
+    // Output: my-index
 }
+```
+
+#### KMS-backed index
+
+```go
+// No key needed: the service unwraps it with the index's KMS provider.
+index, err := client.LoadIndex(ctx, "kms-index", nil)
+if err != nil {
+    log.Fatal(err)
+}
+_ = index
 ```

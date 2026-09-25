@@ -4,164 +4,146 @@ mode: "wide"
 noindex: true
 ---
 
-Adds new vectors to the index or updates existing ones. Vector data is encrypted end-to-end before being stored.
+Adds vectors to the index, or replaces existing vectors with the same ID. `Upsert` takes either `VectorItems` (sent as JSON) or `BinaryUpsertParams` (sent as binary); `UpsertVectors` is a shortcut for the binary form.
 
 ```go
-// Upsert accepts either VectorItems or BinaryUpsertParams
 func (e *EncryptedIndex) Upsert(ctx context.Context, input UpsertInput) error
-
-// Binary format upsert (convenience method)
 func (e *EncryptedIndex) UpsertVectors(ctx context.Context, ids []string, vectors [][]float32, metadata []map[string]interface{}) error
 ```
 
-### Parameters (Upsert)
+### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ctx` | `context.Context` | Context for cancellation/timeouts |
-| `input` | [`UpsertInput`](../types#upsertinput-interface) | Either `VectorItems` or `BinaryUpsertParams` |
+#### VectorItems
 
-### Parameters (UpsertVectors)
+`VectorItems` is a `[]VectorItem`:
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ctx` | `context.Context` | Context for cancellation/timeouts |
-| `ids` | `[]string` | Slice of unique identifiers, one per vector |
-| `vectors` | `[][]float32` | Slice of vector embeddings |
-| `metadata` | `[]map[string]interface{}` | Optional slice of metadata maps (can be nil) |
+| Field | Type | Description |
+|-------|------|-------------|
+| `Id` | `string` | Unique identifier. Required. |
+| `Vector` | `[]float32` | Vector data. May be empty if the index has an embedding model and the item has contents. |
+| `Metadata` | `map[string]interface{}` | _(Optional)_ Key-value pairs for filtering. |
+| `Contents` | `NullableContents` | _(Optional)_ Text to store with the item, and to embed on an index with an embedding model. Set it as shown in [Set contents on a VectorItem](#set-contents-on-a-vectoritem). |
 
-<Tip>`UpsertVectors` automatically uses an optimized binary transfer format for better performance with large batches.</Tip>
+<Note>`VectorItem.Contents` uses a type from the SDK's `internal` package, which Go doesn't let other modules name. Read it with `GetContents()`, set its `String` field, and store it back with `SetContents()`, as in the example below. `BinaryUpsertParams.Contents` is a plain `[]string`, but it also requires vectors.</Note>
 
-#### VectorItem
+#### BinaryUpsertParams
 
-```go
-type VectorItem struct {
-    Id       string                 `json:"id"`                 // Unique identifier
-    Vector   []float32              `json:"vector,omitempty"`   // Vector data
-    Contents internal.NullableContents `json:"contents,omitempty"` // Optional payload (see types reference)
-    Metadata map[string]interface{} `json:"metadata,omitempty"` // Optional metadata
-}
-```
+Vectors are sent as base64-encoded little-endian `float32`, which is faster for large batches.
 
-<Note>`Contents` is a generated nullable wrapper and is not directly constructible from the public package. See the [Types reference](../types#vectoritem) for the helper-based setter pattern; most Go code leaves it zero-valued.</Note>
+| Field | Type | Description |
+|-------|------|-------------|
+| `IDs` | `[]string` | Unique identifier for each vector. |
+| `Vectors` | `[][]float32` | Vector data, one slice per ID. All vectors must have the same length. |
+| `Metadata` | `[]map[string]interface{}` | _(Optional)_ Metadata per vector, same length as `IDs`. |
+| `Contents` | `[]string` | _(Optional)_ Contents per vector, same length as `IDs`. An empty string means no contents. |
+
+`UpsertVectors(ctx, ids, vectors, metadata)` is the same as `Upsert` with a `BinaryUpsertParams` that has no contents.
+
+<Tip>Store dates in `Metadata` as epoch milliseconds (`t.UnixMilli()`) so range filters work on them. See [Dates](../types#dates).</Tip>
 
 ### Returns
 
-| Type | Description |
-|------|-------------|
-| `error` | Any error encountered during the upsert operation |
+`error` only; `nil` on success.
 
-### Exceptions
+### Errors
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the API request fails due to network connectivity issues.
-        - Throws if authentication fails (invalid API key).
-        - Throws if the encryption key is invalid for the specified index.
-        - Throws if there are internal server errors preventing the upsert.
-    </Accordion>
-    <Accordion title="Validation Errors">
-        - Throws detailed validation errors for invalid VectorItem objects.
-        - Throws if vector dimensions don't match the index configuration.
-        - Throws if required fields are missing from vector items.
-        - Throws if array lengths don't match in parallel array format.
-        - Throws if vector elements are not finite numbers.
-    </Accordion>
-</AccordionGroup>
+| Error | Returned when |
+|-------|---------------|
+| `*ValidationError` wrapping a sentinel | A `BinaryUpsertParams` field is empty, slices differ in length (`ErrIDsVectorsLengthMismatch`, `ErrMetadataLengthMismatch`, `ErrContentsLengthMismatch`), or vectors differ in length (`ErrInconsistentDimension`). Returned before any request is sent. `VectorItems` aren't checked in the SDK. |
+| `*ValidationError` | The service rejects the items (HTTP `400`), for example a vector with the wrong dimension. |
+| `*AuthenticationError` | The `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`). |
+| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
+
+See [Errors](../errors).
 
 ### Example Usage
 
+#### VectorItems
+
 ```go
-package main
-
-import (
-    "context"
-    "encoding/hex"
-    "log"
-    
-    "github.com/cyborginc/cyborgdb-go"
-)
-
-func main() {
-    // Load existing index
-    client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-    indexKeyHex := "your-64-character-hex-key-here" // 32-byte key encoded as 64 hex chars
-    key, err := hex.DecodeString(indexKeyHex)
-    if err != nil {
-        log.Fatal(err)
-    }
-    index, _ := client.LoadIndex(context.Background(), "my-documents", key)
-    
-    // Create vector items
-    items := cyborgdb.VectorItems{
-        {
-            Id:     "doc1",
-            Vector: []float32{0.1, 0.2, 0.3, 0.4, 0.5},
-        },
-        {
-            Id:     "doc2",
-            Vector: []float32{0.6, 0.7, 0.8, 0.9, 1.0},
-        },
-    }
-    
-    // Upsert vectors
-    ctx := context.Background()
-    err := index.Upsert(ctx, items)
-    if err != nil {
-        log.Fatal("Upsert failed:", err)
-    }
-    
-    log.Printf("Successfully upserted %d vectors", len(items))
+err := index.Upsert(ctx, cyborgdb.VectorItems{
+    {Id: "doc1", Vector: []float32{0.1, 0.2, 0.3, 0.4}},
+    {Id: "doc2", Vector: []float32{0.5, 0.6, 0.7, 0.8}, Metadata: map[string]interface{}{"category": "news"}},
+})
+if err != nil {
+    log.Fatal(err)
 }
 ```
 
-#### Upsert with Metadata
+#### BinaryUpsertParams with metadata and contents
 
 ```go
-func upsertDocuments(index *cyborgdb.EncryptedIndex) error {
-    items := cyborgdb.VectorItems{
-        {
-            Id:     "article_123",
-            Vector: []float32{0.1, 0.2, 0.3, 0.4}, // Document embedding
-            Metadata: map[string]interface{}{
-                "title":     "Go Programming Guide",
-                "category":  "programming",
-                "author":    "John Doe",
-                "published": "2024-01-15",
-                "tags":      []string{"golang", "tutorial", "beginner"},
-            },
-        },
-        {
-            Id:     "article_124", 
-            Vector: []float32{0.5, 0.6, 0.7, 0.8},
-            Metadata: map[string]interface{}{
-                "title":     "Advanced Go Patterns",
-                "category":  "programming", 
-                "author":    "Jane Smith",
-                "published": "2024-01-20",
-                "tags":      []string{"golang", "advanced", "patterns"},
-            },
-        },
-    }
-    
-    ctx := context.Background()
-    return index.Upsert(ctx, items)
+err := index.Upsert(ctx, cyborgdb.BinaryUpsertParams{
+    IDs: []string{"vec1", "vec2", "vec3"},
+    Vectors: [][]float32{
+        {0.1, 0.2, 0.3, 0.4},
+        {0.5, 0.6, 0.7, 0.8},
+        {0.9, 1.0, 1.1, 1.2},
+    },
+    Metadata: []map[string]interface{}{{"category": "news"}, {"category": "research"}, nil},
+    Contents: []string{"First body", "Second body", ""},
+})
+if err != nil {
+    log.Fatal(err)
 }
 ```
 
-#### UpsertVectors (Binary Format)
+#### Set contents on a VectorItem
 
 ```go
-// Efficient bulk upsert using binary transfer
-ids := []string{"vec1", "vec2", "vec3"}
+item := cyborgdb.VectorItem{Id: "doc3", Vector: []float32{0.1, 0.2, 0.3, 0.4}}
+
+contents := item.GetContents()
+body := "Third document"
+contents.String = &body
+item.SetContents(contents)
+
+if err := index.Upsert(ctx, cyborgdb.VectorItems{item}); err != nil {
+    log.Fatal(err)
+}
+
+res, err := index.Get(ctx, []string{"doc3"}, []string{"contents"})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(res.Results[0].GetContents())
+// Output: Third document
+```
+
+On an index with an embedding model, leave `Vector` empty and the service embeds the contents.
+
+#### UpsertVectors
+
+```go
+ids := []string{"vec4", "vec5"}
 vectors := [][]float32{
     {0.1, 0.2, 0.3, 0.4},
     {0.5, 0.6, 0.7, 0.8},
-    {0.9, 1.0, 1.1, 1.2},
 }
 
-err := index.UpsertVectors(context.Background(), ids, vectors, nil)
-if err != nil {
-    log.Fatal("UpsertVectors failed:", err)
+if err := index.UpsertVectors(ctx, ids, vectors, nil); err != nil {
+    log.Fatal(err)
 }
+```
+
+#### Replace an existing item
+
+```go
+items := cyborgdb.VectorItems{{Id: "doc1", Vector: []float32{0.1, 0.2, 0.3, 0.4}, Metadata: map[string]interface{}{"version": 1}}}
+if err := index.Upsert(ctx, items); err != nil {
+    log.Fatal(err)
+}
+
+// Same ID: replaces the vector and metadata
+items = cyborgdb.VectorItems{{Id: "doc1", Vector: []float32{0.2, 0.3, 0.4, 0.5}, Metadata: map[string]interface{}{"version": 2}}}
+if err := index.Upsert(ctx, items); err != nil {
+    log.Fatal(err)
+}
+
+res, err := index.Get(ctx, []string{"doc1"}, []string{"metadata"})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(res.Results[0].Metadata)
+// Output: map[version:2]
 ```

@@ -1,0 +1,59 @@
+---
+title: "Get Demo API Key"
+mode: "wide"
+noindex: true
+---
+
+Requests a temporary CyborgDB license key from the CyborgDB demo service, for evaluating CyborgDB without signing up for the Admin Dashboard.
+
+```go
+func GetDemoAPIKey(description string) (string, error)
+```
+
+The returned key is a **license** key: set it as the service's `CYBORGDB_API_KEY`. It is not the `apiKey` passed to [`NewClient`](./client/client), which authenticates requests to your own service. A demo key runs the service in free-tier mode, capped at 1,000,000 items per index, and expires after a time limit. See [Environment Variables](../guides/advanced/env-vars).
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `description` | `string` | Label recorded with the key. `""` uses `DefaultDemoDescription`. |
+
+The function sends a `POST` request to `DefaultDemoEndpoint` (`https://api.cyborgdb.co/v1/api-key/manage/create-demo-key`) with a 30-second timeout (`DefaultDemoTimeout`). Set the `CYBORGDB_DEMO_ENDPOINT` environment variable to use a different endpoint. It takes no `context.Context`, and it prints the key's expiry time to standard output.
+
+### Returns
+
+The demo license key.
+
+### Errors
+
+| Error | Returned when |
+|-------|---------------|
+| `ErrDemoAPIKeyGeneration` | The request fails or the service returns an error. |
+| `ErrDemoAPIKeyNotFound` | The response has no key. |
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    demoKey, err := cyborgdb.GetDemoAPIKey("my demo app")
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println(demoKey)
+}
+```
+
+Then start the service with it:
+
+```bash
+CYBORGDB_API_KEY=your-demo-key cyborgdb-service
+```

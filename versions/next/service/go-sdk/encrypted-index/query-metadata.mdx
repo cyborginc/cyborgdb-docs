@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Runs a metadata-only query — no query vector required. `QueryMetadata` resolves the filter entirely against the encrypted metadata index and returns the matching item IDs. Works on untrained indexes.
+Finds items by metadata alone, with no query vector. `QueryMetadata` resolves the filter against the encrypted metadata index and returns the matching IDs. With `Text`, it also ranks matches by BM25 relevance. It works on untrained indexes.
 
 ```go
 func (e *EncryptedIndex) QueryMetadata(ctx context.Context, params QueryMetadataParams) (*QueryMetadataResponse, error)
@@ -12,131 +12,142 @@ func (e *EncryptedIndex) QueryMetadata(ctx context.Context, params QueryMetadata
 
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ctx` | `context.Context` | Context for cancellation and timeouts |
-| `params` | [`QueryMetadataParams`](#querymetadataparams) | Filter and optional sort/limit fields |
-
 #### QueryMetadataParams
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `Filters` | `map[string]interface{}` | MongoDB-style filter; `nil` or empty matches everything. Same operators as [`Query`](./query) except `$type`. See [Filter constraints](#filter-constraints) below. |
-| `TopK` | `int32` | Cap on IDs returned, applied **after** `OrderBy`. Zero returns all matches. |
-| `OrderBy` | `string` | Sort matches by a metadata field, post-filter. Empty leaves the result unordered. |
-| `Ascending` | `bool` | Sort direction when `OrderBy` is set. Zero-value is `false`; set `true` for ascending. Ignored when `OrderBy` is empty. |
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `Filters` | `map[string]interface{}` | `nil` | Metadata filter; `nil` or empty matches everything. See [Filter constraints](#filter-constraints). |
+| `TopK` | `int32` | `0` | Maximum results; `0` returns every match. Applied after `OrderBy`. |
+| `OrderBy` | `string` | `""` | Sort by a metadata field. `""` leaves results unordered. Can't be combined with `Text`. |
+| `Ascending` | `bool` | `false` | Sort direction when `OrderBy` is set. Ignored when `OrderBy` is empty. |
+| `Text` | `*string` | `nil` | Query text for BM25 full-text ranking. Requires an index with at least one full-text field. Results then carry a score, sorted by relevance, and `Filters` act as a pre-filter. |
+| `TextFields` | `[]string` | `nil` (all full-text fields) | Full-text fields to search. |
+| `TextFieldWeights` | `[]float32` | `nil` (`1.0` each) | Weight per searched field, in the same order as `TextFields`. |
+| `RequireAllTerms` | `*bool` | `nil` (service default: `false`) | Match only items containing every query term. |
 
-<Note>
-- Without `OrderBy`, the returned IDs are an **unordered** subset of matches.
-- Items missing the `OrderBy` field (or holding a non-scalar value) sort last.
-</Note>
+<Warning>Go sorts **descending** by default. `Ascending` is a plain `bool`, so leaving it unset sends `false`, while the Python and JS SDKs default to ascending. Set `Ascending: true` for ascending order.</Warning>
+
+Without `OrderBy` or `Text`, results come back in no particular order. Items missing the `OrderBy` field, or holding a non-scalar value in it, sort last.
 
 ### Filter constraints
 
-Unlike [`Query`](./query), which falls back to a post-filter over the decrypted metadata when a filter cannot be answered from the index, `QueryMetadata` has no fallback stage — every filter leaf must be resolvable from the encrypted metadata index. That makes the index's [`MetadataSchema`](../client/create-index#metadata-schema) enforcement instead of a performance hint:
+[`Query`](./query) falls back to a post-filter over decrypted metadata when the index can't answer a filter. `QueryMetadata` has no fallback, so every filter must be answerable from the index. The index's [`MetadataSchema`](../client/create-index#metadata-schema) is therefore enforced here:
 
-- `$regex` / `$contains` require the field to have been declared `Pattern: true` at index create time.
-- A field declared `Filterable: false` cannot be filtered on here at all.
-- `$type` is not supported on this endpoint.
+- `$regex` and `$contains` need a field created with `Pattern` `true`.
+- A field created with `Filterable` `false` can't be filtered on.
+- `$type` isn't supported.
 
-Any of these come back as an error from the server; use [`Query`](./query) with a vector for filters that need the post-filter path. Nested dot-paths (`loc.city`) are supported.
-
-### Metadata Schema
-
-`MetadataSchema` returns the per-field indexing policy recorded when the index was created:
-
-```go
-func (e *EncryptedIndex) MetadataSchema(ctx context.Context) (map[string]MetadataFieldPolicy, error)
-```
-
-Never nil. Empty map when the index uses the default index-everything posture, or when the service predates the feature — callers never have to distinguish those from a missing field.
+Any of these returns a `*ValidationError` (HTTP `400`) with the reason. Nested dot-paths such as `"loc.city"` are supported.
 
 ### Returns
 
-| Type | Description |
-|------|-------------|
-| `*QueryMetadataResponse` | `.Ids` — matching item IDs, ordered by `OrderBy` when set. `.Count` — number of IDs returned. |
-| `error` | Any error encountered, including a filter the index cannot resolve |
+`*QueryMetadataResponse`:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `Results` | `[]MetadataResult` | One entry per match, with `Id` and, when `Text` is set, a score (`GetScore()`, `HasScore()`). Higher scores are more relevant. |
+| `Ids` | `[]string` | The same IDs, in the same order. |
+| `Count` | `int32` | Number of matches returned. |
 
 ### Errors
 
-<AccordionGroup>
-    <Accordion title="Common errors">
-        - Returns error if the server rejects the filter — a `$regex`/`$contains` on a non-`Pattern` field, a `Filterable=false` field, or an unsupported operator.
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Returns error if the CyborgDB service is unavailable or unreachable.
-        - Returns error on 5xx responses.
-    </Accordion>
-</AccordionGroup>
+| Error | Returned when |
+|-------|---------------|
+| `*ValidationError` | The service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints). |
+| `*AuthenticationError` | The `apiKey` is invalid (HTTP `401`). |
+| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
+
+See [Errors](../errors).
 
 ### Example Usage
 
+#### Filter only
+
 ```go
-package main
+res, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
+    Filters: map[string]interface{}{"label": "dog"},
+})
+if err != nil {
+    log.Fatal(err)
+}
+ids := res.Ids
+sort.Strings(ids) // unordered without OrderBy
+fmt.Println(res.Count, ids)
+// Output: 2 [101 102]
+```
 
-import (
-    "context"
-    "fmt"
-    "log"
+#### Operators and a result cap
 
-    "github.com/cyborginc/cyborgdb-go"
-)
-
-func main() {
-    client, _ := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
-    key := loadStoredKey() // 32-byte key stored from create/generate
-    index, err := client.LoadIndex(context.Background(), &cyborgdb.LoadIndexParams{
-        IndexName: "my-documents",
-        IndexKey:  key,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    ctx := context.Background()
-
-    // Filter only (all matches, unordered)
-    res, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
-        Filters: map[string]interface{}{"label": "dog"},
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-    fmt.Printf("%d matches: %v\n", res.Count, res.Ids)
-
-    // Combined operators + result cap
-    res, _ = index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
-        Filters: map[string]interface{}{
-            "$and": []interface{}{
-                map[string]interface{}{"label": "cat"},
-                map[string]interface{}{"confidence": map[string]interface{}{"$gte": 0.9}},
-            },
+```go
+res, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
+    Filters: map[string]interface{}{
+        "$and": []interface{}{
+            map[string]interface{}{"label": "cat"},
+            map[string]interface{}{"confidence": map[string]interface{}{"$gte": 0.9}},
         },
-        TopK: 10,
-    })
+    },
+    TopK: 10,
+})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(res.Ids)
+// Output: [201]
+```
 
-    // Sorted by "rank" ascending, top 5
-    res, _ = index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
-        Filters:   map[string]interface{}{"label": "dog"},
-        OrderBy:   "rank",
-        Ascending: true,
-        TopK:      5,
-    })
+#### Sorted by a field
 
-    // Regex match — `title` must have been created with Pattern=true
-    res, _ = index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
-        Filters: map[string]interface{}{
-            "title": map[string]interface{}{"$regex": "^intro"},
-        },
-    })
+```go
+// Ascending by "views": Ascending must be set explicitly
+asc, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
+    Filters:   map[string]interface{}{"label": "dog"},
+    OrderBy:   "views",
+    Ascending: true,
+})
+if err != nil {
+    log.Fatal(err)
+}
 
-    // Inspect the index's metadata policy
-    schema, _ := index.MetadataSchema(ctx)
-    for field, policy := range schema {
-        fmt.Printf("%s: filterable=%v pattern=%v\n", field, policy.Filterable, policy.Pattern)
-    }
+// Descending by "views" (the Go default); TopK applies after the sort
+desc, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
+    Filters: map[string]interface{}{"label": "dog"},
+    OrderBy: "views",
+    TopK:    5,
+})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(asc.Ids, desc.Ids)
+// Output: [101 102] [102 101]
+```
+
+#### Regex match
+
+```go
+// "title" must have been created with Pattern set
+res, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
+    Filters: map[string]interface{}{"title": map[string]interface{}{"$regex": "^intro"}},
+})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(res.Ids)
+// Output: [101]
+```
+
+#### Full-text search
+
+```go
+// The index needs a full-text field, e.g. CreateIndexParams{TextFields: []string{"body"}}
+text := "encrypted search"
+
+res, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{Text: &text, TopK: 5})
+if err != nil {
+    log.Fatal(err)
+}
+for _, r := range res.Results {
+    fmt.Printf("%s %.4f\n", r.Id, r.GetScore())
 }
 ```
 
-For metadata syntax and supported operators, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).
+For filter syntax and operators, see [Metadata filtering](../types#metadata-filtering).

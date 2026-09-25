@@ -78,6 +78,8 @@ for (const u of await index.listUsers()) {
 }
 ```
 
+<Note>Deleting an index doesn't delete its user records. If you create a new index with the same name, `listUsers()` on it still returns the old users. They can't read the new index, because their keys don't unwrap its data key; delete them with `deleteUser()`.</Note>
+
 ---
 
 ## deleteUser

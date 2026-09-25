@@ -1,287 +1,223 @@
 ---
 title: "Types"
-mode: "wide"
 noindex: true
 ---
 
+## Index configuration
+
+These fields of [`CreateIndexParams`](./client/create-index#createindexparams) configure a DiskIVF index. Since v0.17 there is no `IndexConfig` field and no `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` helpers.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `Dimension` | `*int32` | auto-detect | Vector dimensionality. Taken from the first upsert, or from `EmbeddingModel`, when `nil`. |
+| `Metric` | `*string` | `"euclidean"` | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
+| `EmbeddingModel` | `*string` | `nil` | sentence-transformers model name for automatic embedding generation. |
+| `StoragePrecision` | `*string` | `"float32"` | One of the `StoragePrecision*` constants: `Float32`, `Float16`, or TurboQuant `TQ12`, `TQ8`, `TQ6`, `TQ4`. See [Storage precision](./client/create-index#storage-precision). |
+| `MetadataSchema` | `map[string]MetadataFieldPolicy` | `nil` | Per-field indexing policy. See [Metadata schema](./client/create-index#metadata-schema). |
+| `TextFields` | `[]string` | `nil` | Fields to index for BM25 full-text search. |
+| `Bm25K1` | `*float64` | `1.2` | BM25 term-frequency saturation. |
+| `Bm25B` | `*float64` | `0.75` | BM25 length normalization. |
+
+### MetadataFieldPolicy
+
+```go
+type MetadataFieldPolicy struct {
+    Filterable *bool // nil = true
+    Pattern    *bool // nil = false
+    FullText   *bool // nil = false
+}
+```
+
+## Key management
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `IndexKey` | `[]byte` | 32-byte key (`KeySize`) for the SDK-supplied-key path. Pass it again on every `LoadIndex`. The SDK sends it to the service as hex. |
+| `KmsName` | `*string` | Name of a `kms.registry` entry in the service YAML. The service generates and wraps the key; later calls pass a `nil` key. |
+
+Set exactly one of the two in `CreateIndexParams`; setting both returns a `*ValidationError`.
+
 ## VectorItem
 
-Represents a single vector with its associated data.
+The element type of `VectorItems`, the JSON form of [`Upsert`](./encrypted-index/upsert):
 
 ```go
-type VectorItem struct {
-    Id       string                 `json:"id"`                 // Unique identifier
-    Vector   []float32              `json:"vector,omitempty"`   // Vector data
-    Contents internal.NullableContents `json:"contents,omitempty"` // Optional payload (see note)
-    Metadata map[string]interface{} `json:"metadata,omitempty"` // Optional metadata
+item := cyborgdb.VectorItem{
+    Id:     "unique_identifier",
+    Vector: []float32{0.1, 0.2, 0.3, 0.4},
+    Metadata: map[string]interface{}{
+        "category":     "research",
+        "author":       "Dr. Smith",
+        "tags":         []string{"ai", "ml"},
+        "published_ms": int64(1768435200000), // a date, as epoch milliseconds
+    },
+}
+_ = item
+```
+
+`VectorItem.Contents` uses an `internal` type; set it with `GetContents()` / `SetContents()` as shown in [Upsert](./encrypted-index/upsert#set-contents-on-a-vectoritem).
+
+## Query result
+
+[`Query`](./encrypted-index/query) returns a `*QueryResponse`. Its `Results` field is a union with exactly one side set:
+
+| Field | Type | Set for |
+|-------|------|---------|
+| `ArrayOfQueryResultItem` | `*[]QueryResultItem` | `QueryParams` with `QueryVector` |
+| `ArrayOfArrayOfQueryResultItem` | `*[][]QueryResultItem` | `BatchQueryVectors`, or any `BinaryQueryParams` |
+
+`QueryResultItem` has `Id string` and `Metadata map[string]interface{}`, plus `GetDistance()` / `HasDistance()` (vector queries; lower is closer) and `GetScore()` / `HasScore()` (hybrid queries, instead of distance; higher is more relevant).
+
+## QueryMetadataResponse and MetadataResult
+
+[`QueryMetadata`](./encrypted-index/query-metadata) returns:
+
+```go
+type QueryMetadataResponse struct {
+    Results []MetadataResult // Id, plus a score when Text is set
+    Ids     []string
+    Count   int32
+}
+
+type MetadataResult struct {
+    Id    string
+    Score *float32 // read with GetScore() / HasScore()
 }
 ```
 
-### Fields
+## BM25Config
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `Id` | `string` | Unique identifier for the vector (required) |
-| `Vector` | `[]float32` | The vector data as float32 slice |
-| `Contents` | `internal.NullableContents` | Optional payload (string or bytes). See note below. |
-| `Metadata` | `map[string]interface{}` | Optional key-value pairs for filtering and retrieval |
-
-<Note>
-`Contents` is a generated nullable wrapper from the internal OpenAPI models — the type is not re-exported on the public package, so most Go code leaves the field zero-valued and relies on JSON round-tripping. If you need to set it from Go, use the generated helpers on the underlying `internal.VectorItem`: `item.SetContents(internal.Contents{String: &s})` or `item.SetContents(internal.Contents{Bytes: &b})`. Contents read back from `Get` / `Query` responses are accessible via the same nullable accessors.
-</Note>
-
-
----
-
-## CreateIndexParams
-
-Parameters for creating a new encrypted DiskIVF index.
+Returned by the [`BM25`](./getters#bm25) getter:
 
 ```go
-type CreateIndexParams struct {
-    IndexName        string  `json:"index_name"`
-    IndexKey         []byte  `json:"index_key,omitempty"`         // SDK-supplied KEK
-    KmsName          *string `json:"kms_name,omitempty"`           // KMS-backed path
-    Dimension        *int32  `json:"dimension,omitempty"`
-    Metric           *string `json:"metric,omitempty"`
-    EmbeddingModel   *string `json:"embedding_model,omitempty"`
-    StoragePrecision *string `json:"storage_precision,omitempty"` // "float32" | "float16"
+type BM25Config struct {
+    K1              float32
+    B               float32
+    AnalyzerVersion NullableString // read with GetAnalyzerVersion()
 }
 ```
 
-### Fields
+## Field selection
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `IndexName` | `string` | Yes | Unique identifier for the index |
-| `IndexKey` | `[]byte` | Conditional | 32-byte encryption key. Required when `KmsName` is nil; mutually exclusive with `KmsName` against a real-KMS slot. |
-| `KmsName` | `*string` | Conditional | Name of a `kms.registry` entry in the service YAML. Required when `IndexKey` is nil. |
-| `Dimension` | `*int32` | No | Vector dimensionality (auto-detected from first upsert if nil) |
-| `Metric` | `*string` | No | Distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. Defaults to the server's default (`"euclidean"`). |
-| `EmbeddingModel` | `*string` | No | Optional sentence-transformers model name for auto-embedding |
-| `StoragePrecision` | `*string` | No | On-disk rerank-vector dtype: `"float32"` (default) or `"float16"`. Use `cyborgdb.StoragePrecisionFloat32` / `StoragePrecisionFloat16` constants. |
+`Include` picks the fields returned besides the ID:
 
-<Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` constructors and the `IndexModel` interface have been removed.</Note>
+| Field | `Get` | `Query` |
+|-------|-------|---------|
+| `vector` | Yes (default) | Not returned |
+| `contents` | Yes (default) | Not returned |
+| `metadata` | Yes (default) | Yes |
+| `distance` | - | Yes |
 
----
+`Get` with a `nil` include returns `vector`, `contents`, and `metadata`; `Query` with a `nil` `Include` returns only the ID.
 
-## Response Types
+## Metadata filtering
 
-### QueryResponse
+`Filters` on [`Query`](./encrypted-index/query) and [`QueryMetadata`](./encrypted-index/query-metadata) is a `map[string]interface{}` of MongoDB-style operators. Nested fields use dot-paths such as `"loc.city"`.
 
-Response from similarity search operations.
+### Operators
 
-```go
-type QueryResponse = internal.QueryResponse
-```
+| Operator | Meaning | Example |
+|----------|---------|---------|
+| `$eq` | Equal (also the meaning of a bare value) | `{"category": "research"}` |
+| `$ne` | Not equal | `{"status": {"$ne": "draft"}}` |
+| `$gt`, `$gte` | Greater than, or equal | `{"year": {"$gte": 2020}}` |
+| `$lt`, `$lte` | Less than, or equal | `{"price": {"$lt": 100}}` |
+| `$in` | Value is in the list | `{"tag": {"$in": ["ai", "ml"]}}` |
+| `$nin` | Value is not in the list | `{"category": {"$nin": ["spam", "deleted"]}}` |
+| `$exists` | Field is present (`true`) or absent (`false`) | `{"reviewer": {"$exists": true}}` |
+| `$regex` | String matches a regular expression | `{"title": {"$regex": "^intro"}}` |
+| `$contains` | String contains a substring | `{"title": {"$contains": "guide"}}` |
+| `$and` | All sub-filters match | `{"$and": [{"a": 1}, {"b": 2}]}` |
+| `$or` | Any sub-filter matches | `{"$or": [{"x": 1}, {"y": 2}]}` |
+| `$nor` | No sub-filter matches | `{"$nor": [{"status": "draft"}, {"status": "deleted"}]}` |
+| `$not` | The sub-filter doesn't match. Takes one filter object, at the top level. | `{"$not": {"price": {"$gt": 100}}}` |
 
-Contains search results with similar vectors and their metadata.
+The examples are shown as JSON; in Go, each object is a `map[string]interface{}` and each array a `[]interface{}`. `$gt`, `$gte`, `$lt`, and `$lte` require a number; any other value returns a `*ValidationError`. `$not` can't be nested inside a field. `$regex` and `$contains` resolve from the index only on fields created with `Pattern` `true`: `Query` falls back to a slower post-filter otherwise, and `QueryMetadata` rejects the filter.
 
-### QueryResultItem
-
-A single result from a similarity search query.
-
-```go  
-type QueryResultItem = internal.QueryResultItem
-```
-
-Represents one matching vector with its similarity score and metadata.
-
-### GetResponse
-
-Response from Get operations containing retrieved vectors.
+### Example
 
 ```go
-type GetResponse = internal.GetResponseModel
-```
-
-### ListIDsResponse
-
-Response from ListIDs operations.
-
-```go
-type ListIDsResponse = internal.ListIDsResponse
-```
-
-Contains the list of vector IDs in the index.
-
-#### Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `Ids` | `[]string` | List of all vector ID strings in the index |
-| `Count` | `int32` | Total number of IDs in the index |
-
----
-
-## TrainParams
-
-Parameters for training an encrypted vector index.
-
-```go
-type TrainParams struct {
-    BatchSize  *int32   `json:"batch_size,omitempty"`  // Number of vectors per training batch
-    MaxIters   *int32   `json:"max_iters,omitempty"`   // Maximum training iterations  
-    Tolerance  *float64 `json:"tolerance,omitempty"`   // Convergence tolerance
-    MaxMemory  *int32   `json:"max_memory,omitempty"`  // Maximum memory usage in MB
-    NLists     *int32   `json:"n_lists,omitempty"`     // Number of IVF clusters
+filter := map[string]interface{}{
+    "$and": []interface{}{
+        map[string]interface{}{"category": "research"},
+        map[string]interface{}{"confidence": map[string]interface{}{"$gte": 0.9}},
+        map[string]interface{}{"$or": []interface{}{
+            map[string]interface{}{"language": "en"},
+            map[string]interface{}{"translated": true},
+        }},
+    },
 }
+_ = filter
 ```
 
-#### Fields
+### Dates
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `BatchSize` | `*int32` | Number of vectors processed per training batch (default: 2048) |
-| `MaxIters` | `*int32` | Maximum training iterations (default: 100) |
-| `Tolerance` | `*float64` | Convergence tolerance for training (default: 1e-6) |
-| `MaxMemory` | `*int32` | Maximum memory usage in MB, 0 = no limit (default: 0) |
-| `NLists` | `*int32` | Number of IVF clusters, 0 = auto-determine (default: 0) |
-
----
-
-## UpsertInput Interface
-
-Sealed interface implemented by types that can be passed to `Upsert`.
+CyborgDB has no date type. Store dates in metadata as integer milliseconds since the Unix epoch (UTC), so range operators work on them. Don't store `time.Time` values: the SDK sends them as RFC 3339 strings, which only support equality filters.
 
 ```go
-type UpsertInput interface {
-    isUpsertInput()
+published := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+
+err := index.Upsert(ctx, cyborgdb.VectorItems{
+    {Id: "doc1", Vector: []float32{0.1, 0.2, 0.3, 0.4}, Metadata: map[string]interface{}{"published_ms": published.UnixMilli()}},
+})
+if err != nil {
+    log.Fatal(err)
 }
-```
 
-Valid implementations: [`VectorItems`](#vectoritems), [`BinaryUpsertParams`](#binaryupsertparams)
-
----
-
-## QueryInput Interface
-
-Sealed interface implemented by types that can be passed to `Query`.
-
-```go
-type QueryInput interface {
-    isQueryInput()
+// Everything published on or after 2026-01-01
+start := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC).UnixMilli()
+res, err := index.QueryMetadata(ctx, cyborgdb.QueryMetadataParams{
+    Filters: map[string]interface{}{"published_ms": map[string]interface{}{"$gte": start}},
+})
+if err != nil {
+    log.Fatal(err)
 }
+fmt.Println(res.Ids)
+// Output: [doc1]
 ```
 
-Valid implementations: [`QueryParams`](#queryparams), [`BinaryQueryParams`](#binaryqueryparams)
-
----
-
-## VectorItems
-
-A slice of `VectorItem` that implements `UpsertInput` for type-safe upsert operations.
+Values come back as `float64` after JSON decoding. Convert one back to a `time.Time` with:
 
 ```go
-type VectorItems []VectorItem
-```
-
----
-
-## BinaryUpsertParams
-
-Parameters for binary format vector upserts. More efficient than `VectorItems` for large batches.
-
-```go
-type BinaryUpsertParams struct {
-    IDs      []string
-    Vectors  [][]float32
-    Metadata []map[string]interface{}
-    Contents []string
+res, err := index.Get(ctx, []string{"doc1"}, []string{"metadata"})
+if err != nil {
+    log.Fatal(err)
 }
+ms := int64(res.Results[0].Metadata["published_ms"].(float64))
+fmt.Println(time.UnixMilli(ms).UTC())
+// Output: 2026-01-15 00:00:00 +0000 UTC
 ```
 
-### Fields
+## Distance metrics
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `IDs` | `[]string` | Yes | Unique identifiers for each vector |
-| `Vectors` | `[][]float32` | Yes | Vector data, shape [n_vectors][dimension] |
-| `Metadata` | `[]map[string]interface{}` | No | Optional metadata for each vector (length must match IDs if provided) |
-| `Contents` | `[]string` | No | Optional content strings for each vector (length must match IDs if provided) |
+| Metric | Description |
+|--------|-------------|
+| `cosine` | Cosine distance. Suited to normalized embeddings. |
+| `euclidean` | Euclidean (L2) distance. |
+| `squared_euclidean` | Squared Euclidean distance. Same ranking as `euclidean`, without the square root. |
 
----
+## Other types
 
-## BinaryQueryParams
-
-Parameters for binary format similarity search. More efficient than `QueryParams` for large batch queries.
-
-```go
-type BinaryQueryParams struct {
-    QueryVectors [][]float32
-    TopK         int32
-    NProbes      *int32
-    Greedy       *bool
-    Filters      map[string]interface{}
-    Include      []string
-}
-```
-
-### Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `QueryVectors` | `[][]float32` | Yes | Query vectors, shape [n_queries][dimension] |
-| `TopK` | `int32` | No | Number of nearest neighbors to return (default: 100) |
-| `NProbes` | `*int32` | No | Number of IVF lists to probe |
-| `Greedy` | `*bool` | No | Enable greedy search mode |
-| `Filters` | `map[string]interface{}` | No | Metadata filters to apply |
-| `Include` | `[]string` | No | Fields to include in response. Defaults to `[]` (only `id` is returned) |
-
----
-
-## QueryParams
-
-Parameters for similarity search queries. Supports single vector, batch, and content-based queries.
-
-```go
-type QueryParams struct {
-    QueryVector       []float32              `json:"query_vector,omitempty"`
-    BatchQueryVectors [][]float32            `json:"query_vectors,omitempty"`
-    QueryContents     *string                `json:"query_contents,omitempty"`
-    TopK              int32                  `json:"top_k"`
-    NProbes           *int32                 `json:"n_probes,omitempty"`
-    Greedy            *bool                  `json:"greedy,omitempty"`
-    RerankMult        *int32                 `json:"rerank_mult,omitempty"`
-    Filters           map[string]interface{} `json:"filters,omitempty"`
-    Include           []string               `json:"include"`
-}
-```
-
-### Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `QueryVector` | `[]float32` | No | Single query vector for similarity search |
-| `BatchQueryVectors` | `[][]float32` | No | Multiple query vectors for batch search |
-| `QueryContents` | `*string` | No | Text content for semantic search |
-| `TopK` | `int32` | No | Number of nearest neighbors to return |
-| `NProbes` | `*int32` | No | Number of clusters to probe for search |
-| `Greedy` | `*bool` | No | Use greedy search algorithm |
-| `RerankMult` | `*int32` | No | Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `TopK * RerankMult` candidates before reranking. Server default: `10`. Ignored by indexes that do not rerank. |
-| `Filters` | `map[string]interface{}` | No | Metadata filters to apply |
-| `Include` | `[]string` | No | Fields to include in results: `"metadata"`, `"distance"`, `"vector"`. Defaults to `[]` (only `id` is returned). `QueryResultItem` has no `Contents` field — fetch contents via `Get` if needed. |
-
-
----
+| Type | Fields | Used by |
+|------|--------|---------|
+| `UpsertInput` | Interface implemented by `VectorItems` and `BinaryUpsertParams` | [`Upsert`](./encrypted-index/upsert) |
+| `QueryInput` | Interface implemented by `QueryParams` and `BinaryQueryParams` | [`Query`](./encrypted-index/query) |
+| `TrainParams` | `NLists`, `BatchSize`, `MaxIters`, `MaxMemory` (`*int32`), `Tolerance` (`*float64`) | [`Train`](./encrypted-index/train) |
+| `GetResponse` | `Results []GetResultItemModel`: `Id`, `Vector`, `Metadata`, `GetContents()` | [`Get`](./encrypted-index/get) |
+| `ListIDsResponse` | `Ids []string`, `Count int32` | [`ListIDs`](./encrypted-index/list-ids) |
+| `CreatedUser` | `UserID`, `APIKey` (`string`) | [`CreateUser`](./encrypted-index/users) |
+| `UserInfo` | `UserID string`, `Permissions []string` | [`ListUsers`](./encrypted-index/users) |
+| `SampleDataset`, `SampleFilter`, `LoadSampleDatasetOptions` | See [Load Sample Dataset](./load-sample-dataset) | `LoadSampleDataset` |
 
 ## Constants
 
-```go
-const KeySize = 32
-```
+| Constant | Value |
+|----------|-------|
+| `KeySize` | `32` |
+| `StoragePrecisionFloat32`, `StoragePrecisionFloat16`, `StoragePrecisionTQ12`, `StoragePrecisionTQ8`, `StoragePrecisionTQ6`, `StoragePrecisionTQ4` | `"float32"`, `"float16"`, `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"` |
+| `DefaultSampleDataset` | `"quickstart-75k"` |
+| `SampleDatasetsBaseURL` | `"https://cyborgdb-sample-datasets.s3.amazonaws.com"` |
 
-| Constant | Value | Description |
-|----------|-------|-------------|
-| `KeySize` | `32` | Required length, in bytes, of an SDK-supplied index encryption key (AES-256). `Client.GenerateKey()` returns a slice of this length; `LoadIndex` / `CreateIndex` reject any `IndexKey` whose length is not `KeySize`. |
+The package has no pointer helpers, so set pointer fields from a local variable: `dim := int32(384)`, then `Dimension: &dim`.
 
-## Error Variables
-
-The package exports sentinel errors that callers can match against with `errors.Is`:
-
-| Variable | Returned when |
-|----------|---------------|
-| `ErrInvalidKeyLength` | An `IndexKey` is supplied with a length other than `KeySize` bytes. |
-| `ErrKeyGeneration` | `GenerateKey` fails to read from the OS CSPRNG. |
-| `ErrInvalidURL` | `NewClient` is called with a malformed base URL. |
-| `ErrMissingKeyOrKMS` | `CreateIndex` is called with neither `IndexKey` nor `KmsName` set. |
+Error types and sentinel errors are listed in [Errors](./errors).

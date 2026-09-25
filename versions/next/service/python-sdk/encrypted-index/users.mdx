@@ -80,6 +80,8 @@ for u in index.list_users():
 # Output: 99a4a548e6824c45c84ca7c64535fcc9 ['read', 'write']
 ```
 
+<Note>Deleting an index doesn't delete its user records. If you create a new index with the same name, `list_users()` on it still returns the old users. They can't read the new index, because their keys don't unwrap its data key; delete them with `delete_user()`.</Note>
+
 ---
 
 ## delete_user

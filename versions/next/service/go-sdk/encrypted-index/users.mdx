@@ -5,13 +5,13 @@ mode: "wide"
 noindex: true
 ---
 
-When the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set, the Go SDK exposes per-index user provisioning on `*EncryptedIndex`. These calls require the client to be using the root API key.
+When the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set, `*EncryptedIndex` can create, list, and revoke per-index users. These methods require a client created with the root key. They work on both KMS-backed indexes and indexes created with an `IndexKey`.
 
-<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator-side playbook (modes, key kinds, KMS-backed constraint).</Note>
+<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator guide.</Note>
 
 ## CreateUser
 
-Mint a per-user API key scoped to this index.
+Creates a user scoped to this index and returns their API key.
 
 ```go
 func (e *EncryptedIndex) CreateUser(ctx context.Context, permissions []string) (*CreatedUser, error)
@@ -21,43 +21,73 @@ func (e *EncryptedIndex) CreateUser(ctx context.Context, permissions []string) (
 
 | Parameter | Type | Description |
 |---|---|---|
-| `ctx` | `context.Context` | Context for cancellation and timeouts. |
-| `permissions` | `[]string` | Non-empty subset of `{"read", "write"}`. Enforced cryptographically by the service. |
+| `ctx` | `context.Context` | Context for cancellation and deadlines. |
+| `permissions` | `[]string` | Non-empty subset of `{"read", "write"}`. |
 
 ### Returns
 
-| Type | Description |
-|---|---|
-| `*CreatedUser` | `{ UserID string; APIKey string }`. The `APIKey` (`cdbk_…`) is returned **exactly once** and is never stored. |
-| `error` | Any error encountered. |
+`*CreatedUser`:
 
-<Warning>The `APIKey` is shown only in this response and is never persisted by the service. Hand it to the user securely. If lost, revoke and re-mint.</Warning>
+| Field | Type | Description |
+|---|---|---|
+| `UserID` | `string` | Hex identifier for the new user. |
+| `APIKey` | `string` | The user's API key, starting with `cdbk_`. |
+
+<Warning>The service returns `APIKey` only in this response and never stores it. Give it to the user over a secure channel and don't log it. If it's lost, delete the user and create a new one.</Warning>
 
 ### Example
 
 ```go
-admin, _ := cyborgdb.NewClient("http://localhost:8000", rootKey)
-index, _ := admin.LoadIndex(context.Background(), "documents", nil)
+package main
 
-user, err := index.CreateUser(context.Background(), []string{"read", "write"})
-if err != nil {
-    log.Fatal(err)
+import (
+    "context"
+    "encoding/hex"
+    "fmt"
+    "log"
+
+    "github.com/cyborginc/cyborgdb-go"
+)
+
+func main() {
+    ctx := context.Background()
+    rootKey := "your-service-root-key"
+
+    key, err := hex.DecodeString("your-64-character-hex-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    admin, err := cyborgdb.NewClient("http://localhost:8000", rootKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+    index, err := admin.LoadIndex(ctx, "documents", key)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    user, err := index.CreateUser(ctx, []string{"read", "write"})
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println(len(user.UserID), user.APIKey[:5])
+    // Output: 32 cdbk_
+
+    // The user connects with their own key
+    userClient, err := cyborgdb.NewClient("http://localhost:8000", user.APIKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+    _ = userClient
 }
-// Hand user.APIKey to the new user via a secure channel — it is never recoverable.
-// Avoid logging or printing it.
-_ = user.UserID
-_ = user.APIKey
 ```
-
-### Errors
-
-- Returns error if `permissions` is empty/invalid, the client is not using the root key, or RBAC is not enabled.
 
 ---
 
 ## ListUsers
 
-List the users provisioned for this index.
+Lists the users created for this index.
 
 ```go
 func (e *EncryptedIndex) ListUsers(ctx context.Context) ([]UserInfo, error)
@@ -65,29 +95,32 @@ func (e *EncryptedIndex) ListUsers(ctx context.Context) ([]UserInfo, error)
 
 ### Returns
 
-`[]UserInfo` — each contains `UserID` (hex) and `Permissions` (subset of `{"read", "write"}`).
+A `[]UserInfo`, each with `UserID string` and `Permissions []string` (a subset of `{"read", "write"}`).
 
 ### Example
 
 ```go
-users, err := index.ListUsers(context.Background())
+if _, err := index.CreateUser(ctx, []string{"read"}); err != nil {
+    log.Fatal(err)
+}
+
+users, err := index.ListUsers(ctx)
 if err != nil {
     log.Fatal(err)
 }
 for _, u := range users {
-    fmt.Println(u.UserID, u.Permissions)
+    fmt.Println(u.Permissions)
 }
+// Output: [read]
 ```
 
-### Errors
-
-- Returns error if the client is not using the root key, or RBAC is not enabled.
+<Note>Deleting an index doesn't delete its user records. If you create a new index with the same name, `ListUsers` on it still returns the old users. They can't read the new index, because their keys don't unwrap its data key; delete them with `DeleteUser`.</Note>
 
 ---
 
 ## DeleteUser
 
-Revoke a user. Erases their wrapped DEK(s) for this index — even a captured `cdbk_…` token becomes useless on the next request. No propagation lag.
+Revokes a user. Their access keys for this index are erased, so their `cdbk_` key stops working on the next request.
 
 ```go
 func (e *EncryptedIndex) DeleteUser(ctx context.Context, userID string) error
@@ -97,18 +130,39 @@ func (e *EncryptedIndex) DeleteUser(ctx context.Context, userID string) error
 
 | Parameter | Type | Description |
 |---|---|---|
-| `ctx` | `context.Context` | Context for cancellation and timeouts. |
-| `userID` | `string` | Hex `UserID` from `CreateUser` (or `ListUsers`). |
+| `ctx` | `context.Context` | Context for cancellation and deadlines. |
+| `userID` | `string` | `UserID` from `CreateUser` or `ListUsers`. Deleting an ID that doesn't exist succeeds without an error. |
 
 ### Example
 
 ```go
-err := index.DeleteUser(context.Background(), "a1b2c3d4e5f6")
+user, err := index.CreateUser(ctx, []string{"read"})
 if err != nil {
     log.Fatal(err)
 }
+if err := index.DeleteUser(ctx, user.UserID); err != nil {
+    log.Fatal(err)
+}
+
+users, err := index.ListUsers(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(len(users))
+// Output: 0
 ```
 
-### Errors
+---
 
-- Returns error if `userID` is invalid, the client is not using the root key, or RBAC is not enabled.
+## Errors
+
+| Error | Returned when |
+|-------|---------------|
+| `*AuthenticationError` | The client isn't using the root key (HTTP `403`), or its `apiKey` is invalid (HTTP `401`). |
+| `*ValidationError` | `permissions` is empty or contains a value other than `"read"` or `"write"`, or `userID` isn't hex (HTTP `400`). |
+| `*NotFoundError` | The index doesn't exist (HTTP `404`). |
+| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
+
+<Note>`DeleteUser` currently returns the raw generated-client error instead of these typed errors. Check `err.Error()` for its failures.</Note>
+
+See [Errors](../errors).
