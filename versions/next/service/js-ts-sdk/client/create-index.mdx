@@ -4,83 +4,101 @@ mode: "wide"
 noindex: true
 ---
 
-Creates and returns an `EncryptedIndex` instance backed by a new encrypted DiskIVF index on the server.
-
-<Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` types and the `indexConfig` argument have been removed — index configuration is now expressed as flat keyword arguments (`dimension`, `metric`, `storagePrecision`).</Note>
+Creates a new encrypted DiskIVF index on the service and returns an `EncryptedIndex` bound to it.
 
 ```typescript
 async createIndex({
-    indexName: string,                                      // required
-    indexKey?: Uint8Array,                                  // optional (see Key Management)
-    kmsName?: string,                                       // optional (see Key Management)
-    dimension?: number,                                     // optional, auto-detected from first upsert
-    metric?: 'euclidean' | 'squared_euclidean' | 'cosine',  // optional, defaults to server default ('euclidean')
-    embeddingModel?: string,                                // optional
-    storagePrecision?: 'float32' | 'float16',               // optional, defaults to 'float32'
-    metadataSchema?: { [field: string]: MetadataFieldPolicy } // optional, immutable after create
+    indexName: string,
+    indexKey?: Uint8Array,
+    kmsName?: string,
+    dimension?: number,
+    metric?: 'euclidean' | 'squared_euclidean' | 'cosine',
+    embeddingModel?: string,
+    storagePrecision?: 'float32' | 'float16' | 'tq12' | 'tq8' | 'tq6' | 'tq4',
+    metadataSchema?: { [field: string]: MetadataFieldPolicy },
+    textFields?: string[],
+    bm25K1?: number,
+    bm25B?: number,
 }): Promise<EncryptedIndex>
 ```
 
+<Note>Since v0.17 there is one index type, DiskIVF, configured with flat fields. The v0.16 `IndexIVFFlat`, `IndexIVFPQ`, and `IndexIVFSQ` types and the `indexConfig` argument no longer exist.</Note>
+
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `indexName` | `string` | Name of the index to create. Must be unique within the CyborgDB service. |
-| `indexKey` | `Uint8Array` | _(Optional)_ 32-byte encryption key. Required when `kmsName` is omitted. Must be omitted when `kmsName` references a real KMS provider. |
-| `kmsName` | `string` | _(Optional)_ Name of a `kms.registry` entry in the service YAML. When supplied, the server generates the KEK and wraps it via the named provider; the SDK never sees the plaintext key. |
-| `dimension` | `number` | _(Optional)_ Vector dimensionality. If omitted, the server auto-detects from the first upsert. |
-| `metric` | `'euclidean' \| 'squared_euclidean' \| 'cosine'` | _(Optional)_ Distance metric. If omitted, the SDK does not set a value and the server applies its default. |
-| `embeddingModel` | `string` | _(Optional)_ sentence-transformers model name for automatic embedding generation. |
-| `storagePrecision` | `'float32' \| 'float16'` | _(Optional)_ On-disk rerank-vector dtype. Defaults to `'float32'`. |
-| `metadataSchema` | `{ [field: string]: MetadataFieldPolicy }` | _(Optional)_ Per-field metadata indexing policy, fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `indexName` | `string` | - | Unique name for the index. |
+| `indexKey` | `Uint8Array` | `undefined` | _(Optional)_ 32-byte encryption key (SDK-supplied KEK). Pass either `indexKey` or `kmsName`, never both. |
+| `kmsName` | `string` | `undefined` | _(Optional)_ Name of a `kms.registry` entry in the service YAML. The service generates the KEK and wraps it with that provider; the SDK never sees the plaintext key. |
+| `dimension` | `number` | `undefined` | _(Optional)_ Vector dimensionality. When omitted, the service detects it from the first upsert. |
+| `metric` | `string` | `undefined` (service default: `'euclidean'`) | _(Optional)_ `'euclidean'`, `'squared_euclidean'`, or `'cosine'`. |
+| `embeddingModel` | `string` | `undefined` | _(Optional)_ sentence-transformers model name for automatic embedding generation. When set, `dimension` is taken from the model. |
+| `storagePrecision` | `string` | `undefined` (service default: `'float32'`) | _(Optional)_ Storage format for rerank vectors. See [Storage precision](#storage-precision). |
+| `metadataSchema` | `{ [field: string]: MetadataFieldPolicy }` | `undefined` | _(Optional)_ Per-field metadata indexing policy. Fixed at creation and cannot be changed later. See [Metadata schema](#metadata-schema). |
+| `textFields` | `string[]` | `undefined` | _(Optional)_ Metadata fields to index for BM25 full-text search. Shorthand for `{ fullText: true }` in `metadataSchema`. Enables `text` on [`query()`](../encrypted-index/query) and [`queryMetadata()`](../encrypted-index/query-metadata). |
+| `bm25K1` | `number` | `undefined` (service default: `1.2`) | _(Optional)_ BM25 term-frequency saturation, `>= 0`. Requires at least one full-text field. |
+| `bm25B` | `number` | `undefined` (service default: `0.75`) | _(Optional)_ BM25 length-normalization strength, in `[0, 1]`. Requires at least one full-text field. |
 
-### Key Management Modes
+### Key management
 
-At least one of `indexKey` / `kmsName` must be supplied; supplying both against a real-KMS slot is rejected by the server:
+Pass exactly one of `indexKey` or `kmsName`. The service rejects both together with `CyborgDBValidationError` (HTTP `400`), whatever the KMS provider.
 
-- **SDK-supplied KEK** — pass `indexKey`, omit `kmsName`. The server records the index with `provider: none`; you must re-supply the same key on every subsequent call.
-- **KMS-backed** — pass `kmsName`, omit `indexKey`. The server generates the DEK, wraps it under the named registry slot, and persists the envelope. Subsequent calls omit `indexKey` entirely.
+- **SDK-supplied KEK:** pass `indexKey`. Supply the same key again on every [`loadIndex()`](./load-index).
+- **KMS-backed:** pass `kmsName`. The service generates the key, wraps it with the named provider, and stores the wrapped key. Later calls omit `indexKey`.
 
-### Metadata Schema
+### Storage precision
 
-`metadataSchema` sets the per-field indexing policy. Metadata itself stays schemaless — this controls how each field is indexed, not what may be stored. Fields left out inherit the default (indexed and filterable).
+`storagePrecision` sets how the full-precision rerank vectors are stored. Every value works with every metric.
+
+| Value | Bits per dimension | Notes |
+|-------|--------------------|-------|
+| `'float32'` | 32 | Default. |
+| `'float16'` | 16 | Half the storage of `float32`, with a small precision cost. |
+| `'tq12'` | 12 | TurboQuant. |
+| `'tq8'` | 8 | TurboQuant. |
+| `'tq6'` | 6 | TurboQuant. |
+| `'tq4'` | 4 | TurboQuant. About 8x smaller than `float32`, at about 94% recall@100. |
+
+Lower TurboQuant tiers use less storage in exchange for a small recall and latency cost.
+
+### Metadata schema
+
+`metadataSchema` sets how each metadata field is indexed. Metadata itself stays schemaless: this controls indexing, not what may be stored. Fields left out get the default policy (indexed and filterable). Nested fields use dot-paths such as `'loc.city'`.
 
 ```typescript
 const metadataSchema = {
-    title:         { filterable: true, pattern: true },  // regex-searchable
-    internalBlob:  { filterable: false },                // stored, not index-filterable
+    title:        { filterable: true, pattern: true },  // regex-searchable
+    internalBlob: { filterable: false },                // stored, not indexed
+    body:         { fullText: true },                   // BM25 full-text search
 };
 ```
 
-Two knobs per field, mirroring the [`MetadataFieldPolicy`](../types) type:
+Each field takes three settings (the [`MetadataFieldPolicy`](../types#metadatafieldpolicy) type):
 
-- `filterable` (default `true`) — build inverted-index postings so filters on the field resolve from the index (pre-filter path, and the only path [`queryMetadata()`](../encrypted-index/query-metadata) uses). Setting `false` still stores the field but forces the dense post-filter path when [`query()`](../encrypted-index/query) filters reference it — cheaper writes, slower filtered queries.
-- `pattern` (default `false`) — additionally build the field's regex dictionary, which is what makes `$regex` / `$contains` index-resolvable. Requires `filterable: true`.
+| Setting | Default | Effect |
+|---------|---------|--------|
+| `filterable` | `true` | Builds inverted-index postings, so filters on the field resolve from the index. `false` still stores the field, but [`query()`](../encrypted-index/query) filters on it fall back to a slower post-filter, and [`queryMetadata()`](../encrypted-index/query-metadata) rejects them. |
+| `pattern` | `false` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `filterable: true`. |
+| `fullText` | `false` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `filterable: false`, and can't be combined with `pattern: true`. |
 
-On `query()` the schema is a performance hint: filters that miss the index fall back to a post-filter on the decrypted metadata, same rows either way. On `queryMetadata()` it is enforced — `$regex` / `$contains` on a non-`pattern` field, or any filter on a `filterable: false` field, is rejected by the server with 400.
+On `query()` the schema is a performance hint: filters the index can't answer fall back to a post-filter on the decrypted metadata. On `queryMetadata()` it is enforced, and unsupported filters throw `CyborgDBValidationError`.
 
-The recorded policy is available on the index handle via [`metadataSchema()`](../encrypted-index/query-metadata#metadata-schema) (empty object when the index uses the default posture).
+The stored policy is returned by the [`metadataSchema()`](../getters#metadataschema) getter.
 
 ### Returns
 
-`Promise<EncryptedIndex>`: A Promise that resolves to a handle bound to the newly created index.
+`Promise<EncryptedIndex>` bound to the new index. For KMS-backed indexes it holds no plaintext key.
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if neither `indexKey` nor `kmsName` is provided.
-        - Throws if `indexKey` is provided but is not exactly 32 bytes.
-        - Throws if the index name already exists on the server.
-        - Throws if the embedding model is not supported by the server.
-        - Throws if `metadataSchema` sets `pattern: true` without `filterable: true`, or names an empty field (server 422).
-        - Throws if both `indexKey` and `kmsName` are provided against a real-KMS slot (rejected by the server with 400).
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unavailable or unreachable.
-        - Throws on 5xx responses, including KMS-wrap failures (502).
-    </Accordion>
-</AccordionGroup>
+| Exception | Thrown when |
+|-----------|-------------|
+| `Error` | Neither `indexKey` nor `kmsName` is passed, or `indexKey` is not 32 bytes. Thrown before any request is sent. |
+| `CyborgDBValidationError` | The service rejects the request (HTTP `400`/`422`): the index name already exists, both `indexKey` and `kmsName` were passed, the `kmsName` slot is unknown, `storagePrecision` isn't one of the six values, or `metadataSchema` combines settings that aren't allowed. |
+| `CyborgDBServiceError` | The service returns `5xx`, including KMS wrap failures (`502`). |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
@@ -89,75 +107,101 @@ The recorded policy is available on the index handle via [`metadataSchema()`](..
 ```typescript
 import { Client } from 'cyborgdb';
 
-// Initialize client
 const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
-// Generate a secure 32-byte encryption key
-const indexKey: Uint8Array = client.generateKey();
+const indexKey = Client.generateKey();
 
-// Create a basic index
-const index = await client.createIndex({
-    indexName: 'my_vector_index',
-    indexKey,
-    dimension: 384,
-});
+// The dimension is detected from the first upsert
+const index = await client.createIndex({ indexName: 'documents', indexKey });
 ```
 
-<Note>For more info on `generateKey`, refer to [Generate Key](./generate-key).</Note>
+<Note>Store `indexKey` securely: it is needed to load the index again. See [Generate Key](./generate-key).</Note>
+
+#### Explicit dimension and metric
+
+```typescript
+const index = await client.createIndex({
+    indexName: 'documents_384',
+    indexKey,
+    dimension: 384,
+    metric: 'cosine',
+});
+```
 
 #### KMS-backed index
 
 ```typescript
-// The service generates the KEK, wraps it via the 'prod-aws' registry slot,
-// and persists the envelope. The SDK never sees the plaintext key.
+// The service generates the key and wraps it with the 'prod-aws' registry slot.
 const index = await client.createIndex({
-    indexName: 'kms_vector_index',
+    indexName: 'kms_documents',
     kmsName: 'prod-aws',
     dimension: 384,
 });
-// Subsequent calls — including loadIndex — omit indexKey entirely.
+// Later calls, including loadIndex(), omit indexKey.
 ```
 
-#### With embedding model
+#### Automatic embeddings
 
 ```typescript
-// When embeddingModel is set, the server infers `dimension` from the model.
+// The dimension is taken from the embedding model
 const index = await client.createIndex({
-    indexName: 'semantic_search_index',
+    indexName: 'semantic_docs',
     indexKey,
     embeddingModel: 'all-MiniLM-L6-v2',
 });
 ```
 
-#### Float16 storage for reduced footprint
+See [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).
+
+#### Reduced storage with TurboQuant
 
 ```typescript
-// Halves on-disk rerank-vector storage at the cost of small recall
 const index = await client.createIndex({
-    indexName: 'compact_index',
+    indexName: 'compact_docs',
     indexKey,
     dimension: 768,
-    storagePrecision: 'float16',
+    storagePrecision: 'tq8',
 });
 ```
 
-#### With per-field metadata policy
+#### Per-field metadata policy
 
 ```typescript
-// Opt `title` into the regex dictionary; keep `internalBlob` out of the
-// inverted index (still stored, still filterable on query() via post-filter).
 const index = await client.createIndex({
     indexName: 'docs_index',
     indexKey,
-    dimension: 384,
+    dimension: 4,
     metadataSchema: {
         title:        { filterable: true, pattern: true },
         internalBlob: { filterable: false },
     },
 });
+await index.upsert({
+    items: [
+        { id: 'doc1', vector: [0.1, 0.2, 0.3, 0.4], metadata: { title: 'intro to encryption' } },
+        { id: 'doc2', vector: [0.5, 0.6, 0.7, 0.8], metadata: { title: 'advanced setup' } },
+    ],
+});
 
-// $regex now resolves from the index on queryMetadata() and query() alike.
-const result = await index.queryMetadata({ filters: { title: { $regex: '^intro' } } });
+// $regex resolves from the index because 'title' has pattern: true
+console.log(await index.queryMetadata({ filters: { title: { $regex: '^intro' } } }));
+// Output: [ { id: 'doc1' } ]
 ```
 
-<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>
+#### Full-text search fields
+
+```typescript
+const index = await client.createIndex({
+    indexName: 'articles',
+    indexKey,
+    dimension: 4,
+    textFields: ['body'],
+});
+console.log(await index.bm25());
+// Output:
+// {
+//   k1: 1.2,
+//   b: 0.75,
+//   analyzerVersion: 'en/1;sw=2de831ef7be676b6;snowball-english-utf8-3.0.1'
+// }
+```

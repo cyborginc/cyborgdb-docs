@@ -4,88 +4,76 @@ mode: "wide"
 noindex: true
 ---
 
-`Client` is the main class exposed by CyborgDB TypeScript SDK. It provides an interface to interact with the CyborgDB vector database service, exposing functionality to create and list indexes. Operations within encrypted indexes (such as upsert and query) are contained within the `EncryptedIndex` class returned by `createIndex`.
+`Client` is the entry point of the CyborgDB JS/TS SDK. It connects to a running CyborgDB service and creates, loads, and lists encrypted indexes. Operations on an index, such as upsert and query, are methods of the `EncryptedIndex` it returns.
 
 ## Constructor
 
 ```typescript
 new Client({
-    baseUrl: string,        // required
-    apiKey?: string,        // optional
-    verifySsl?: boolean     // optional, default: true
+    baseUrl: string,
+    apiKey?: string,
+    verifySsl?: boolean,
 })
 ```
 
-Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
-
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `baseUrl` | `string` | Base URL of the CyborgDB microservice endpoint |
-| `apiKey` | `string` | _(Optional)_ Service authentication credential, sent as the `X-API-Key` header. Required only when the service has auth enabled |
-| `verifySsl` | `boolean` | _(Optional)_ SSL verification setting. If not provided, auto-detects based on URL |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `baseUrl` | `string` | - | Base URL of the CyborgDB service, e.g. `'http://localhost:8000'`. Must use `http://` or `https://`. |
+| `apiKey` | `string` | `undefined` | _(Optional)_ Service authentication credential, sent as the `X-API-Key` header. Required only when the service has authentication enabled. |
+| `verifySsl` | `boolean` | `undefined` (auto-detect) | _(Optional)_ TLS certificate verification. See [TLS verification](#tls-verification). |
 
-<Note>`apiKey` is the service **authentication** credential — the root key or a per-user `cdbk_` token, sent as `X-API-Key`. It is required only when the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set; against an unauthenticated service (the default), you can omit it. This is distinct from the service's `CYBORGDB_API_KEY` license key. See [Managing Keys](../../guides/advanced/managing-keys).</Note>
+<Note>`apiKey` is the service **authentication** credential: the root key or a per-user `cdbk_` token. It is required only when the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set; against an unauthenticated service (the default), omit it. This is distinct from the service's `CYBORGDB_API_KEY` license key. See [Managing Keys](../../guides/advanced/managing-keys).</Note>
 
-### SSL Verification
-
-The constructor includes intelligent SSL verification handling:
-
-- **Auto-detection**: For `localhost` and `127.0.0.1` URLs, SSL verification is automatically disabled for development convenience
-- **HTTP URLs**: SSL verification is automatically disabled for `http://` URLs
-- **Production Safety**: SSL verification is enabled by default for HTTPS URLs in production
-- **Manual Override**: You can explicitly set `verifySsl` to override the auto-detection behavior
+The constructor throws `CyborgDBValidationError` if `baseUrl` can't be parsed or doesn't use `http://` or `https://`.
 
 ### Example Usage
 
 ```typescript
 import { Client } from 'cyborgdb';
 
-// Create client with API key (SSL auto-detected)
-const client = new Client({ baseUrl: 'https://api.cyborgdb.co', apiKey: 'your-api-key' });
-
-// Create client for local development (SSL auto-disabled)
-const localClient = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
-
-// Override the auto-detection — for example, to point at a local dev service over plain HTTP
-// (auto-detection already disables verification for `http://` and `localhost`, so this is
-// only needed when you need to opt out of TLS verification deliberately, e.g. against a
-// staging host with a self-signed cert). Never set `verifySsl: false` against a public
-// HTTPS host in production.
-const devClient = new Client({ baseUrl: 'http://dev.internal:8000', apiKey: 'dev-api-key', verifySsl: false });
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 ```
 
-## Error Handling
+## TLS verification
 
-The `Client` class includes comprehensive error handling that processes different types of API errors:
+**On Node.js, the SDK can't turn TLS certificate verification off.** Setting `verifySsl: false`, or connecting to `https://localhost`, logs "SSL verification disabled", but Node's built-in `fetch` still verifies the certificate. Against a self-signed certificate, every request fails with a plain `Error`.
 
-- **HTTP Errors**: Status codes and response details are logged and converted to meaningful error messages
-- **Validation Errors**: Field validation failures are formatted with detailed information
-- **Network Errors**: Connection and timeout issues are handled gracefully
+For local development, connect over `http://`, or give the service a certificate your machine trusts. Browsers and Edge runtimes can't disable verification either.
 
-All methods throw standard JavaScript `Error` objects with descriptive messages for easier debugging and error handling in your application.
+The SDK logs these messages with `console.info` / `console.warn`:
 
-## Type Safety
+| `baseUrl` | Message |
+|-----------|---------|
+| `http://…` | "SSL verification is disabled. Not recommended for production." There's no TLS on `http://`; the message can be ignored. |
+| `https://` whose URL contains `localhost` or `127.0.0.1`, with `verifySsl` unset | "SSL verification disabled for localhost (development mode)" |
+| Any `https://` URL with `verifySsl: false` | "SSL verification is disabled. Not recommended for production." |
 
-The TypeScript SDK provides comprehensive type safety with:
+## Errors
 
-- **Strongly typed method parameters and return values**: All methods have explicit return types (e.g., `Promise<HealthResponse>`, `Promise<TrainResponse>`)
-- **JSON type definitions**: Use `JsonValue`, `JsonObject`, `VectorMetadata`, and related types for type-safe metadata handling
-- **Filter expressions**: `FilterExpression` and `FilterOperator` types for MongoDB-style query filtering
-- **Response types**: Dedicated interfaces like `UpsertResponse`, `DeleteResponse`, `TrainResponse`, and `HealthResponse` (training status is exposed via `index.isTraining(): Promise<boolean>`, not a public type)
-- **Utility functions**: Type guards (`isJsonValue`, `isError`) and helpers (`getErrorMessage`) for safer error handling
-- **Configuration objects**: Full type definitions for `CreateIndexRequest`, `IndexOperationRequest`, `UpsertRequest`, `QueryRequest`, `BatchQueryRequest`, `TrainRequest`, `GetRequest`, and `DeleteRequest`
-- **IntelliSense support**: Full autocomplete and inline documentation in compatible IDEs
-- **Compile-time validation**: Catch type errors at compile time rather than runtime
+Failed requests throw a subclass of `CyborgDBError` chosen by HTTP status, such as `CyborgDBNotFoundError` for `404` or `CyborgDBAuthenticationError` for `401`. Arguments rejected inside the SDK, before a request is sent, throw a plain `Error`. See [Errors](../errors) for the full list and the current gaps.
 
-For detailed information on all available types, see the [Types reference](../types).
+```typescript
+import { Client, CyborgDBAuthenticationError } from 'cyborgdb';
 
-## Development Features
+try {
+    await new Client({ baseUrl: 'http://localhost:8000', apiKey: 'wrong-key' }).listIndexes();
+} catch (error) {
+    console.log(error instanceof CyborgDBAuthenticationError);
+}
+// Output: true
+```
 
-The client includes several development-friendly features:
+The SDK does not retry requests or set a request timeout.
 
-- **Automatic SSL detection** for local development environments
-- **Console warnings** when SSL verification is disabled in production-like environments
-- **Node.js specific configurations** for SSL handling in server environments
-- **Standardized headers** with proper Content-Type and Accept headers
+## Supported runtimes
+
+The package has no runtime dependencies and needs only `fetch` and Web Crypto, so it runs on:
+
+| Runtime | Notes |
+|---------|-------|
+| Node.js 18+ | Full functionality, including the on-disk [sample dataset](../load-sample-dataset) cache. |
+| Bun, Deno | Same as Node. |
+| Modern browsers | No sample-dataset cache. |
+| Vercel Edge Runtime, Cloudflare Workers | No sample-dataset cache. |

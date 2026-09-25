@@ -4,50 +4,36 @@ mode: "wide"
 noindex: true
 ---
 
-Generates a cryptographically secure 256-bit (32-byte) encryption key suitable for creating encrypted indexes.
+Generates a random 32-byte (256-bit) key for creating an encrypted index with an SDK-supplied key.
 
 ```typescript
-generateKey(): Uint8Array        // instance method
-static generateKey(): Uint8Array // static method
+static generateKey(): Uint8Array   // Client.generateKey()
+generateKey(): Uint8Array          // client.generateKey()
 ```
 
-Both forms are equivalent — `Client.generateKey()` works without a configured client, while `client.generateKey()` is convenient if you already have an instance in scope.
+The static and instance forms are identical; use the static form when you don't have a client yet.
 
 ### Returns
 
-`Uint8Array`: A 32-byte array containing cryptographically secure random data suitable for index encryption.
+`Uint8Array`: 32 bytes from the runtime's Web Crypto `crypto.getRandomValues()`. This works the same on Node.js, browsers, and Edge runtimes, and throws if the runtime has no Web Crypto implementation.
 
-### Security Notes
+Unlike the Python SDK, there is no option to save the key to a file.
 
-The generated key is cryptographically secure and suitable for production use:
-
-- Uses Node.js `crypto.randomBytes()` which leverages OS entropy sources for maximum security
-- Provides 256 bits of entropy (32 bytes)
-- Compatible with AES-256 encryption used by CyborgDB
-
-<Warning>
-This key must be persisted securely. For more information, see [Managing Encryption Keys](../../guides/advanced/managing-keys).
-</Warning>
+<Warning>An index created with an SDK-supplied key can only be opened with that exact key. If the key is lost, the index's data can't be decrypted. Store it in a secrets manager, or use a KMS-backed index. See [Managing Encryption Keys](../../guides/advanced/managing-keys).</Warning>
 
 ### Example Usage
 
 ```typescript
 import { Client } from 'cyborgdb';
 
-// Static form — useful before you've constructed a client
-const indexKey = Client.generateKey();
-console.log('Generated key length:', indexKey.length); // Output: 32
-
-// Instance form — equivalent, handy if you already have a client
 const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
-const sameKindOfKey = client.generateKey();
 
-const index = await client.createIndex({
-    indexName: 'my-secure-index',
-    indexKey
-});
+const indexKey = Client.generateKey();
+console.log(indexKey.length);
+// Output: 32
 
-// IMPORTANT: Store the key securely for future access
-// const keyHex = Buffer.from(indexKey).toString('hex');
-// console.log('Store this key safely:', keyHex);
+const index = await client.createIndex({ indexName: 'my-secure-index', indexKey });
+
+// Keep the key somewhere safe, e.g. as hex in a secrets manager
+const keyHex = Array.from(indexKey, (b) => b.toString(16).padStart(2, '0')).join('');
 ```

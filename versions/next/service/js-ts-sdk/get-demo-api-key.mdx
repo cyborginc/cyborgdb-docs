@@ -1,0 +1,48 @@
+---
+title: "Get Demo API Key"
+mode: "wide"
+noindex: true
+---
+
+Requests a temporary CyborgDB license key from the CyborgDB demo service, for evaluating CyborgDB without signing up for the Admin Dashboard.
+
+```typescript
+async function getDemoApiKey(description?: string): Promise<string>
+```
+
+The returned key is a **license** key: set it as the service's `CYBORGDB_API_KEY`. It is not the `apiKey` passed to [`Client`](./client/client), which authenticates requests to your own service. A demo key runs the service in free-tier mode, capped at 1,000,000 items per index, and expires after a time limit. See [Environment Variables](../guides/advanced/env-vars).
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `description` | `string` | `'Temporary demo API key'` | _(Optional)_ Label recorded with the key. |
+
+The function sends a `POST` request to `https://api.cyborgdb.co/v1/api-key/manage/create-demo-key`. Set the `CYBORGDB_DEMO_ENDPOINT` environment variable to use a different endpoint.
+
+`getDemoApiKey()` reads `process.env`, so it needs a runtime that defines `process`, such as Node.js. In a browser it throws a `ReferenceError`.
+
+### Returns
+
+`Promise<string>`: the demo license key.
+
+### Exceptions
+
+| Exception | Thrown when |
+|-----------|-------------|
+| `Error` | The request fails, or the response has no key. |
+
+### Example Usage
+
+```typescript
+import { getDemoApiKey } from 'cyborgdb';
+
+const demoKey = await getDemoApiKey();
+console.log(demoKey);
+```
+
+Then start the service with it:
+
+```bash
+CYBORGDB_API_KEY=your-demo-key cyborgdb-service
+```

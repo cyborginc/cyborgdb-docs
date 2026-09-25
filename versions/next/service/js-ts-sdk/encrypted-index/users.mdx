@@ -5,25 +5,25 @@ mode: "wide"
 noindex: true
 ---
 
-When the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set, the JS/TS SDK exposes per-index user provisioning on `EncryptedIndex`. These calls require the client to be using the root API key.
+When the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set, `EncryptedIndex` can create, list, and revoke per-index users. These methods require a client created with the root key.
 
-<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator-side playbook (modes, key kinds, KMS-backed constraint).</Note>
+<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator guide.</Note>
+
+<Warning>`listUsers()` and `deleteUser()` currently work only on **KMS-backed** indexes. On an index created with `indexKey`, both throw `CyborgDBAuthenticationError` (`client_kek required`), because the SDK doesn't send the index key for them. `createUser()` works on both kinds of index.</Warning>
 
 ## createUser
 
-Mint a per-user API key scoped to this index.
+Creates a user scoped to this index and returns their API key.
 
 ```typescript
-async createUser({
-    permissions: string[]
-}): Promise<{ userId: string; apiKey: string }>
+async createUser({ permissions: string[] }): Promise<{ userId: string; apiKey: string }>
 ```
 
 ### Parameters
 
 | Parameter | Type | Description |
 |---|---|---|
-| `permissions` | `string[]` | Non-empty subset of `["read", "write"]`. Enforced cryptographically by the service. |
+| `permissions` | `string[]` | Non-empty subset of `['read', 'write']`. |
 
 ### Returns
 
@@ -31,41 +31,35 @@ async createUser({
 
 | Field | Type | Description |
 |---|---|---|
-| `userId` | `string` | Hex-encoded identifier for the new user. |
-| `apiKey` | `string` | The user's API key (`cdbk_…`). **Returned exactly once and never stored** — capture it now. |
+| `userId` | `string` | Hex identifier for the new user. |
+| `apiKey` | `string` | The user's API key, starting with `cdbk_`. |
 
-<Warning>The `apiKey` is shown only in this response and is never persisted by the service. Hand it to the user securely. If lost, revoke and re-mint.</Warning>
+<Warning>The service returns `apiKey` only in this response and never stores it. Give it to the user over a secure channel and don't log it. If it's lost, delete the user and create a new one.</Warning>
 
 ### Example
 
 ```typescript
 import { Client } from 'cyborgdb';
 
+const ROOT_KEY = 'your-service-root-key';
+const indexKey = new Uint8Array(Buffer.from('your-64-character-hex-key', 'hex'));
+
 const admin = new Client({ baseUrl: 'http://localhost:8000', apiKey: ROOT_KEY });
-const index = await admin.loadIndex({ indexName: 'documents' });  // KMS-backed: no indexKey
+const index = await admin.loadIndex({ indexName: 'documents', indexKey });
 
-const { userId, apiKey } = await index.createUser({ permissions: ['read', 'write'] });
-// capture apiKey once — never recoverable
+const user = await index.createUser({ permissions: ['read', 'write'] });
+console.log(Object.keys(user).sort());
+// Output: [ 'apiKey', 'userId' ]
+
+// The user connects with their own key
+const userClient = new Client({ baseUrl: 'http://localhost:8000', apiKey: user.apiKey });
 ```
-
-<Note>
-**KMS-backed vs SDK-supplied indexes.** `createUser` needs to unwrap the index's root DEK so it can re-wrap it under a fresh user key.
-
-- **KMS-backed** (`kmsName` set): the service unwraps the DEK server-side; the client just calls `createUser` on the loaded index — no `indexKey` is sent or required.
-- **SDK-supplied** (`indexKey` set at `loadIndex`): the SDK transparently forwards the index key to the server so it can perform the unwrap. The root client must have loaded the index with the correct `indexKey`, otherwise the call fails.
-
-The same asymmetry applies to `listUsers` and `deleteUser`.
-</Note>
-
-### Errors
-
-- Throws if `permissions` is empty/invalid, the client is not using the root key, or RBAC is not enabled.
 
 ---
 
 ## listUsers
 
-List the users provisioned for this index.
+Lists the users created for this index. KMS-backed indexes only; see the warning above.
 
 ```typescript
 async listUsers(): Promise<{ userId: string; permissions: string[] }[]>
@@ -73,43 +67,52 @@ async listUsers(): Promise<{ userId: string; permissions: string[] }[]>
 
 ### Returns
 
-Array of `{ userId, permissions }`. Permissions are derived from which wrapped DEKs exist for the user.
+An array of `{ userId, permissions }`, where `permissions` is a subset of `['read', 'write']`.
 
 ### Example
 
 ```typescript
-const users = await index.listUsers();
-for (const u of users) {
+// `index` is a KMS-backed index loaded with the root key
+for (const u of await index.listUsers()) {
     console.log(u.userId, u.permissions);
 }
 ```
-
-### Errors
-
-- Throws if the client is not using the root key, or RBAC is not enabled.
 
 ---
 
 ## deleteUser
 
-Revoke a user. Erases their wrapped DEK(s) for this index — even a captured `cdbk_…` token becomes useless on the next request. No propagation lag.
+Revokes a user. Their access keys for this index are erased, so their `cdbk_` key stops working on the next request. KMS-backed indexes only; see the warning above.
 
 ```typescript
-async deleteUser({ userId }: { userId: string }): Promise<void>
+async deleteUser({ userId: string }): Promise<void>
 ```
 
 ### Parameters
 
 | Parameter | Type | Description |
 |---|---|---|
-| `userId` | `string` | Hex `userId` from `createUser` (or `listUsers`). |
+| `userId` | `string` | `userId` from `createUser()` or `listUsers()`. |
 
 ### Example
 
 ```typescript
-await index.deleteUser({ userId: 'a1b2c3d4e5f6' });
+// `index` is a KMS-backed index loaded with the root key
+const { userId } = await index.createUser({ permissions: ['read'] });
+await index.deleteUser({ userId });
 ```
 
-### Errors
+---
 
-- Throws if `userId` is invalid, the client is not using the root key, or RBAC is not enabled.
+## Exceptions
+
+These apply to all three methods:
+
+| Exception | Thrown when |
+|-----------|-------------|
+| `CyborgDBAuthenticationError` | The client isn't using the root key (HTTP `403`), its `apiKey` is invalid (HTTP `401`), or `listUsers()` / `deleteUser()` is called on an index created with `indexKey` (HTTP `401`). |
+| `CyborgDBValidationError` | `permissions` is empty or contains a value other than `'read'` or `'write'`, or `userId` isn't hex (HTTP `400`). |
+| `CyborgDBNotFoundError` | The index doesn't exist (HTTP `404`). |
+| `CyborgDBServiceError` | The service returns `5xx`. |
+
+See [Errors](../errors) for the full hierarchy.

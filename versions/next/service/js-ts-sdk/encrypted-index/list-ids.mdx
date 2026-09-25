@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Lists all vector IDs currently stored in the encrypted index.
+Returns every item ID in the index.
 
 ```typescript
 async listIds(): Promise<{ ids: string[]; count: number }>
@@ -12,58 +12,29 @@ async listIds(): Promise<{ ids: string[]; count: number }>
 
 ### Returns
 
-`Promise<{ ids: string[]; count: number }>`: A Promise that resolves to an object containing:
-- `ids`: Array of all item ID strings in the index
-- `count`: Total number of items in the index
+`Promise<{ ids, count }>`: all IDs in the index, in no particular order, and how many there are. The full list is returned in one response; there is no pagination.
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the API request fails due to network connectivity issues.
-        - Throws if authentication fails (invalid API key).
-        - Throws if the encryption key is invalid for the specified index.
-        - Throws if there are internal server errors preventing the operation.
-    </Accordion>
-</AccordionGroup>
+| Exception | Thrown when |
+|-----------|-------------|
+| `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid (HTTP `401`). |
+| `CyborgDBServiceError` | The service returns `5xx`. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
 ```typescript
-import { Client } from 'cyborgdb';
+const { ids, count } = await index.listIds();
+console.log(count);
+// Output: 3
 
-const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+console.log(ids.includes('doc1'));
+// Output: true
 
-// Load an existing index
-const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
-const index = await client.loadIndex({ indexName: 'my-vector-index', indexKey });
-
-try {
-    // List all vector IDs in the index
-    const result = await index.listIds();
-    
-    console.log('Total items in index:', result.count);
-    console.log('Item IDs:', result.ids);
-    // Output: { count: 3, ids: ["doc1", "doc2", "doc3"] }
-
-    // Check if a specific ID exists
-    if (result.ids.includes('doc1')) {
-        console.log('✓ Item doc1 exists in index');
-    }
-    
-    // Use for inventory management
-    if (result.count === 0) {
-        console.log('Index is empty');
-    } else {
-        console.log(`Index contains ${result.count} items`);
-        
-        // Process all IDs
-        for (const id of result.ids) {
-            console.log(`Processing item: ${id}`);
-        }
-    }
-    
-} catch (error) {
-    console.error('Failed to list IDs:', error.message);
+// Fetch items in batches of 100
+for (let i = 0; i < ids.length; i += 100) {
+    const items = await index.get({ ids: ids.slice(i, i + 100) });
 }
 ```

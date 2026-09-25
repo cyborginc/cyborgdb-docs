@@ -4,12 +4,12 @@ mode: "wide"
 noindex: true
 ---
 
-Loads a hosted sample dataset, ready to upsert and query — useful for quickstarts, demos, and tests without generating your own vectors. The dataset is fetched from a public S3 bucket on first use and cached locally for subsequent calls.
+Loads a hosted sample dataset, ready to upsert and query, for quickstarts, demos, and tests without generating your own vectors. The dataset is downloaded from a public S3 bucket. On Node.js it's cached on disk after the first call; other runtimes download it on every call.
 
 ```typescript
 async function loadSampleDataset(
-    name?: string,                      // default: "quickstart-75k"
-    options?: LoadSampleDatasetOptions
+    name?: string,                      // default: 'quickstart-75k'
+    options?: LoadSampleDatasetOptions,
 ): Promise<SampleDataset>
 ```
 
@@ -25,67 +25,71 @@ const dataset = await loadSampleDataset();
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `name` | `string` | `"quickstart-75k"` | _(Optional)_ Name of the dataset to load. `"quickstart-75k"` is currently the only available dataset. |
-| `options.cacheDir` | `string` | `$XDG_CACHE_HOME/cyborgdb` or `~/.cache/cyborgdb` | _(Optional)_ Directory to cache the decompressed dataset in. |
-| `options.forceDownload` | `boolean` | `false` | _(Optional)_ Re-download even if a cached copy exists. |
+| `name` | `string` | `'quickstart-75k'` | _(Optional)_ Dataset to load. `'quickstart-75k'` is currently the only one. |
+| `options.cacheDir` | `string` | `$XDG_CACHE_HOME/cyborgdb` or `~/.cache/cyborgdb` | _(Optional)_ Directory for the cached dataset. Node.js only. |
+| `options.forceDownload` | `boolean` | `false` | _(Optional)_ Download again even if a cached copy exists. |
 
-<Note>Each dataset's SHA-256 digest is pinned in the SDK and verified both after download and on every cache read, so a tampered download or cache file is rejected and re-fetched rather than trusted.</Note>
+The download has a 120-second timeout, and the decompressed dataset is capped at 512 MB. Each dataset's SHA-256 digest is pinned in the SDK and checked after download and on every cache read, so a tampered file is rejected and downloaded again. Decompression needs the runtime's `DecompressionStream`.
 
 ### Returns
 
-`Promise<SampleDataset>`: Resolves to an object combining dataset metadata, upsert-ready convenience fields, the raw parallel arrays, and ground-truth fixture data:
+`Promise<SampleDataset>`:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `name` | `string` | Dataset identifier, e.g. `"quickstart-75k"` |
-| `version` | `number` | Dataset schema version |
-| `description` | `string` | Human-readable description |
-| `dimension` | `number` | Vector dimensionality |
-| `metric` | `string` | Distance metric the vectors were generated for |
-| `count` | `number` | Number of items in the dataset |
-| `items` | `VectorItem[]` | Items with explicit IDs, vectors, and metadata — pass directly to [`upsert()`](./encrypted-index/upsert) |
-| `sampleQueries` | `number[][]` | The first 10 query vectors, for quick similarity-search demos |
-| `exampleFilters` | `SampleFilter[]` | Curated, guaranteed-to-match metadata filters; each has `name`, `filter`, and `demonstrates` |
-| `ids` / `vectors` / `metadata` | parallel arrays | Raw arrays, aligned by index |
-| `queries`, `metadata_queries`, `metadata_query_names`, `untrained_neighbors`, `trained_neighbors`, `untrained_metadata_matches`, `trained_metadata_matches`, `untrained_metadata_neighbors`, `trained_metadata_neighbors`, `untrained_recall`, `trained_recall`, `num_untrained_vectors`, `num_trained_vectors` | ground truth | Fixture data for validating recall / accuracy (these keep their original snake_case names) |
+| `name` | `string` | Dataset identifier, e.g. `'quickstart-75k'`. |
+| `version` | `number` | Dataset schema version. |
+| `description` | `string` | Human-readable description. |
+| `dimension` | `number` | Vector dimensionality. |
+| `metric` | `string` | Distance metric the vectors were generated for. |
+| `count` | `number` | Number of items. |
+| `items` | `VectorItem[]` | Items with `id`, `vector`, and `metadata`, ready for [`upsert()`](./encrypted-index/upsert). |
+| `sampleQueries` | `number[][]` | The first 10 query vectors. |
+| `exampleFilters` | `SampleFilter[]` | Metadata filters guaranteed to match, each with `name`, `filter`, and `demonstrates`. |
+| `ids` / `vectors` / `metadata` | parallel arrays | Raw arrays, aligned by position. |
+| `queries`, `metadata_queries`, `metadata_query_names`, `untrained_neighbors`, `trained_neighbors`, `untrained_metadata_matches`, `trained_metadata_matches`, `untrained_metadata_neighbors`, `trained_metadata_neighbors`, `untrained_recall`, `trained_recall`, `num_untrained_vectors`, `num_trained_vectors` | ground truth | Fixture data for checking recall. These keep their snake_case names. |
 
-The SDK also exports the `SampleDataset`, `SampleFilter`, and `LoadSampleDatasetOptions` types, plus the `DEFAULT_SAMPLE_DATASET` and `SAMPLE_DATASETS_BASE_URL` constants.
+The package also exports the `SampleDataset`, `SampleFilter`, and `LoadSampleDatasetOptions` types and the `DEFAULT_SAMPLE_DATASET` and `SAMPLE_DATASETS_BASE_URL` constants.
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the dataset name is unknown.
-        - Throws if the download fails.
-        - Throws if the downloaded dataset fails its integrity (SHA-256) check.
-    </Accordion>
-</AccordionGroup>
+| Exception | Thrown when |
+|-----------|-------------|
+| `Error` | The dataset name is unknown, the download fails or times out, the file fails its SHA-256 check, it exceeds 512 MB, or the runtime has no `DecompressionStream`. |
 
 ### Example Usage
 
 ```typescript
-import { Client, loadSampleDataset } from 'cyborgdb';
+import { Client, loadSampleDataset, type FilterExpression, type QueryResultItem } from 'cyborgdb';
 
-const client = new Client({ baseUrl: 'https://localhost:8000', apiKey: 'your-api-key' });
-const indexKey = client.generateKey();
-const index = await client.createIndex({ indexName: 'demo', indexKey });
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+const indexKey = Client.generateKey();
 
-// Load the sample dataset (downloads on first use, cached afterwards)
+// Downloads on first use; cached afterwards on Node.js
 const dataset = await loadSampleDataset();
+console.log(dataset.name, dataset.count, dataset.dimension, dataset.metric);
+// Output: quickstart-75k 75000 128 euclidean
 
-// Populate the index
-await index.upsert({ items: dataset.items });
-
-// Run a similarity search with a bundled query vector
-const results = await index.query({
-    queryVectors: dataset.sampleQueries[0],
-    topK: 5,
+const index = await client.createIndex({
+    indexName: 'demo',
+    indexKey,
+    dimension: dataset.dimension,
+    metric: dataset.metric as 'euclidean',
 });
 
-// Try a curated metadata filter
+await index.upsert({ items: dataset.items });
+
+// Similarity search with a bundled query vector
+const response = await index.query({ queryVectors: dataset.sampleQueries[0], topK: 5 });
+console.log((response.results as QueryResultItem[]).length);
+// Output: 5
+
+// A curated metadata filter
 const example = dataset.exampleFilters[0];
+console.log(example.name, example.filter);
+// Output: Equality filter (string field) { string: 'string_0' }
 const filtered = await index.query({
     queryVectors: dataset.sampleQueries[0],
-    filters: example.filter,
+    filters: example.filter as FilterExpression,
 });
 ```

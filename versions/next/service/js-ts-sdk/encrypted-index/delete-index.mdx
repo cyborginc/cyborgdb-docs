@@ -4,57 +4,35 @@ mode: "wide"
 noindex: true
 ---
 
-<Warning>This action is irreversible. Proceed with caution.</Warning>
+<Warning>Deleting an index is irreversible.</Warning>
 
-Deletes the current index and all its associated data from the CyborgDB service.
+Deletes the index and all of its data from the CyborgDB service.
 
 ```typescript
-async deleteIndex(): Promise<{ status: string; message: string }>
+async deleteIndex(): Promise<{ status?: string; message: string }>
 ```
 
 ### Returns
 
-`Promise<{ status: string; message: string }>`: A Promise that resolves to a response object containing:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | `string` | Operation status (e.g., `"success"`) |
-| `message` | `string` | Descriptive message about the deletion result |
+`Promise<{ status, message }>`, e.g. `{ status: 'success', message: "Index 'temporary-index' deleted successfully" }`.
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the API request fails due to network connectivity issues.
-        - Throws if authentication fails (invalid API key).
-        - Throws if there are internal server errors preventing the deletion.
-    </Accordion>
-    <Accordion title="Index Errors">
-        - Returns success status if the index was already deleted or doesn't exist.
-        - Throws if the encryption key is invalid for the specified index (unless already deleted).
-    </Accordion>
-</AccordionGroup>
+| Exception | Thrown when |
+|-----------|-------------|
+| `CyborgDBNotFoundError` | The index doesn't exist, for example because it was already deleted (HTTP `404`). |
+| `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid (HTTP `401`). |
+| `CyborgDBServiceError` | The service returns `5xx`. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
 ```typescript
-import { Client } from 'cyborgdb';
+const result = await index.deleteIndex();
+console.log(result.status);
+// Output: success
 
-const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
-
-// Load an existing index
-const indexKey = new Uint8Array(Buffer.from('your-stored-hex-key', 'hex'));
-const index = await client.loadIndex({ indexName: 'temporary-index', indexKey });
-
-// Delete the index when no longer needed
-try {
-    const result = await index.deleteIndex();
-    console.log('Index deletion result:', result);
-    // Possible outputs:
-    // { status: 'success', message: "Index 'temporary-index' deleted successfully" }
-    // { status: 'success', message: "Index 'temporary-index' was already deleted" }
-    
-} catch (error) {
-    console.error('Failed to delete index:', error.message);
-}
+console.log((await client.listIndexes()).includes(await index.getIndexName()));
+// Output: false
 ```

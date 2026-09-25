@@ -1,0 +1,107 @@
+---
+title: "Errors"
+mode: "wide"
+noindex: true
+---
+
+Most failed requests to the service throw a subclass of `CyborgDBError`. The subclass is chosen from the HTTP status code, so callers can catch one class per failure mode.
+
+```typescript
+import { Client, CyborgDBAuthenticationError } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'wrong-key' });
+
+try {
+    await client.listIndexes();
+} catch (error) {
+    if (error instanceof CyborgDBAuthenticationError) {
+        console.log(error.statusCode, error.detail);
+    }
+}
+// Output: 401 Invalid API Key
+```
+
+## Error classes
+
+| Class | Thrown for | `retryable` |
+|-------|------------|-------------|
+| `CyborgDBValidationError` | HTTP `400` or `422`: the service rejected the request's arguments. Also thrown by the `Client` constructor for an invalid `baseUrl`. | `false` |
+| `CyborgDBAuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match the index. | `false` |
+| `CyborgDBNotFoundError` | HTTP `404`: the index or resource does not exist. | `false` |
+| `CyborgDBConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `false` |
+| `CyborgDBRateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `true` |
+| `CyborgDBServiceError` | Any HTTP `5xx` response. | `true` |
+| `CyborgDBTransportError` | No response arrived. See [Known gaps](#known-gaps): network failures currently throw a plain `Error` instead. | `true` |
+
+All seven classes extend `CyborgDBError`, which extends `Error`, so existing `catch` blocks that handle `Error` still catch them. Each sets `name` to its class name.
+
+## Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `statusCode` | `number \| null` | HTTP status code. `null` when no response was received or the error was raised before sending. |
+| `detail` | `string \| null` | The service's error message, from the response body's `detail` field. |
+| `requestId` | `string \| null` | Value of the `X-Request-Id` response header, when the service sends one. Include it when reporting a problem. |
+| `retryAfter` | `number \| null` | Seconds from a numeric `Retry-After` header. |
+| `indexName` | `string \| null` | The index the call targeted. Currently set only by `upsert()`. |
+| `retryable` | `boolean` | Fixed per class; see the table above. |
+| `cause` | `unknown` | The underlying error. |
+
+```typescript
+import { CyborgDBValidationError } from 'cyborgdb';
+
+try {
+    await index.queryMetadata({ filters: { category: { $regex: '^re' } } });
+} catch (error) {
+    if (error instanceof CyborgDBValidationError) {
+        console.log(error.statusCode);
+        console.log(error.detail);
+    }
+}
+// Output:
+// 400
+// Failed to query metadata: Invalid input: $regex on 'category' requires a regex-indexed (pattern) field
+```
+
+## Retries
+
+The SDK does not retry requests or set a request timeout. `retryable` marks the errors that are safe to retry; the retry loop is up to the caller:
+
+```typescript
+import { CyborgDBError } from 'cyborgdb';
+
+for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+        await index.query({ queryVectors: [0.1, 0.2, 0.3, 0.4], topK: 5 });
+        break;
+    } catch (error) {
+        if (!(error instanceof CyborgDBError) || !error.retryable || attempt === 2) {
+            throw error;
+        }
+        const seconds = error.retryAfter ?? 2 ** attempt;
+        await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+    }
+}
+```
+
+## Errors thrown before a request is sent
+
+Argument checks that run in the SDK, before anything is sent to the service, throw a plain `Error` instead of `CyborgDBError`. This covers:
+
+- an `indexKey` that isn't 32 bytes, or neither `indexKey` nor `kmsName` passed to `createIndex()`
+- `query()` with neither `queryVectors` nor `queryContents`, or a `Float32Array` without `dimension`
+- malformed `upsert()` input, such as mismatched array lengths
+- a `queryMetadata()` `orderBy` object with more than one key
+
+HTTP statuses outside the mapping above (for example `405` or `413`) also throw a plain `Error`.
+
+## Known gaps
+
+These calls currently throw a plain `Error` whose `message` starts with `HTTP error Unknown:`, instead of the typed class:
+
+- **Network failures** (refused connection, DNS, TLS), which should be `CyborgDBTransportError`.
+- **Every failure in [`loadIndex()`](./client/load-index)**, including a missing index or a wrong key.
+
+Check `error.message` for these cases until they're fixed.
+
+Set the environment variable `CYBORGDB_DEBUG=1` (or `true`) to print the full error details to stderr.

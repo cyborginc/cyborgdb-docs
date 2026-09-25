@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Retrieves a list of all available indexes from the CyborgDB microservice.
+Returns the names of all indexes on the CyborgDB service.
 
 ```typescript
 async listIndexes(): Promise<string[]>
@@ -12,21 +12,17 @@ async listIndexes(): Promise<string[]>
 
 ### Returns
 
-`Promise<string[]>`: A Promise that resolves to an array of index names currently available on the CyborgDB service.
+`Promise<string[]>`: index names. Empty when the service has no indexes.
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the API request fails due to network connectivity issues.
-        - Throws if the server returns an HTTP error status.
-        - Throws if authentication fails (invalid API key).
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unavailable or unreachable.
-        - Throws if there are internal server errors on the CyborgDB service.
-    </Accordion>
-</AccordionGroup>
+| Exception | Thrown when |
+|-----------|-------------|
+| `CyborgDBAuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`). |
+| `CyborgDBServiceError` | The service returns `5xx`. |
+| `Error` | The service can't be reached. See [Known gaps](../errors#known-gaps). |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
@@ -35,17 +31,7 @@ import { Client } from 'cyborgdb';
 
 const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
-try {
-    const indexes = await client.listIndexes();
-    console.log('Available indexes:', indexes);
-    // Output: ['my_vector_index', 'semantic_search', 'document_embeddings']
-    
-    if (indexes.length === 0) {
-        console.log('No indexes found. Create your first index!');
-    } else {
-        console.log(`Found ${indexes.length} indexes`);
-    }
-} catch (error) {
-    console.error('Failed to list indexes:', error.message);
-}
+const indexes = await client.listIndexes();
+console.log(indexes);
+// Output: [ 'documents', 'embeddings', 'semantic-search' ]
 ```

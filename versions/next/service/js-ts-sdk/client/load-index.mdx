@@ -4,71 +4,59 @@ mode: "wide"
 noindex: true
 ---
 
-Loads and connects to an existing encrypted index by name. `indexKey` is optional in v0.17: SDK-supplied indexes (`provider: none`) must pass the exact 32-byte key used at creation, while KMS-backed indexes omit it — the service resolves the KEK via the stored `KMSBlob`.
+Loads an existing encrypted index and returns an `EncryptedIndex` bound to it.
 
 ```typescript
 async loadIndex({
-    indexName: string,       // required
-    indexKey?: Uint8Array    // optional (see notes)
+    indexName: string,
+    indexKey?: Uint8Array,
 }): Promise<EncryptedIndex>
 ```
 
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `indexName` | `string` | Name of the existing index to load |
-| `indexKey` | `Uint8Array` | _(Optional)_ The exact 32-byte encryption key used when creating the index. Required for indexes created with the SDK-supplied KEK path (`provider: none`); omit for KMS-backed indexes. |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `indexName` | `string` | - | Name of an existing index. |
+| `indexKey` | `Uint8Array` | `undefined` | _(Optional)_ The 32-byte key the index was created with. Required for SDK-supplied-key indexes; omit it for KMS-backed indexes (created with `kmsName`). |
 
-<Note>In v0.17 `indexKey` is optional. KMS-backed indexes (created with `kmsName`) omit it — the server resolves the DEK via the persisted `KMSBlob`. SDK-supplied indexes must re-supply the same 32-byte key here.</Note>
-
-<Warning>
-For SDK-supplied indexes, the encryption key must exactly match the key used during index creation. KMS-backed indexes are tied to their `kmsName` slot in the service YAML — load fails if that slot is missing or unreachable.
-</Warning>
+<Warning>For SDK-supplied-key indexes, `indexKey` must be the exact key passed to `createIndex()`. A KMS-backed index fails to load if its `kmsName` slot is missing from the service YAML or its provider is unreachable.</Warning>
 
 ### Returns
 
-`Promise<EncryptedIndex>`: A Promise that resolves to an `EncryptedIndex` instance ready for vector operations (query, upsert, delete, etc.)
+`Promise<EncryptedIndex>` bound to the loaded index. `loadIndex()` calls the service's describe endpoint before returning, so a missing index or a wrong key fails here, not on the first query.
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the index doesn't exist on the server
-        - Throws if the encryption key is incorrect or invalid
-        - Throws by the server if a KMS-backed index's slot is unavailable.
-        - Throws if the server returns an HTTP error status.
-        - Throws if authentication fails (invalid API key).
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unavailable or unreachable.
-        - Throws if there are internal server errors on the CyborgDB service.
-    </Accordion>
-</AccordionGroup>
+| Exception | Thrown when |
+|-----------|-------------|
+| `Error` | `indexKey` is passed but is not 32 bytes. Thrown before any request is sent. |
+| `Error` | Any failed request: the index doesn't exist, `indexKey` doesn't match it, the `apiKey` is invalid, or the service is unreachable. |
+
+<Note>`loadIndex()` currently throws a plain `Error`, not a [`CyborgDBError`](../errors) subclass, for every failed request. The status code and the service's message are in `error.message`, e.g. `HTTP error Unknown: 404 - No KMS envelope for index 'my-index'`.</Note>
 
 ### Example Usage
+
+#### SDK-supplied-key index
 
 ```typescript
 import { Client } from 'cyborgdb';
 
 const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
 
-// Use the same key that was used to create the index
-const indexKey = new Uint8Array(32); // Your stored 32-byte key
-// Or convert from hex: Buffer.from('your-hex-key', 'hex')
+// The same 32 bytes that were passed to createIndex(), e.g. stored as hex
+const indexKey = new Uint8Array(Buffer.from('your-64-character-hex-key', 'hex'));
 
-// SDK-supplied index (legacy path) — supply the key
-try {
-    const index = await client.loadIndex({ indexName: 'my-existing-index', indexKey });
-    console.log('Index loaded successfully');
+const index = await client.loadIndex({ indexName: 'my_index', indexKey });
+console.log(await index.getIndexName());
+// Output: my_index
+```
 
-    // Now you can perform operations on the loaded index
-    const results = await index.query({ queryVectors: [0.1, 0.2, 0.3], topK: 5 });
-    console.log('Query results:', results);
-} catch (error) {
-    console.error('Failed to load index:', error.message);
-}
+`Buffer` is Node-only; in a browser or Edge runtime, decode the hex string with your own helper.
 
-// KMS-backed index — no key required
-const kmsIndex = await client.loadIndex({ indexName: 'kms-index' });
+#### KMS-backed index
+
+```typescript
+// No key needed: the service unwraps it with the index's KMS provider.
+const index = await client.loadIndex({ indexName: 'kms_index' });
 ```

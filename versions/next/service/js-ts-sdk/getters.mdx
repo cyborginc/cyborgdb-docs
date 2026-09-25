@@ -3,7 +3,7 @@ title: "Getters"
 noindex: true
 ---
 
-<Note>v0.17 replaces the v0.16 getters (`getIndexType`, `getIndexConfig`) with explicit methods for the single DiskIVF index type: `getDimension`, `getMetric`, and `getNLists`. Cached methods avoid repeat round-trips.</Note>
+`EncryptedIndex` exposes index settings and training status as async methods. Every getter except `getIndexName()` calls the service's describe or training-status endpoint.
 
 ## getIndexName
 
@@ -11,18 +11,11 @@ noindex: true
 async getIndexName(): Promise<string>
 ```
 
-Returns the name of the encrypted index. Known at construction — no API call.
-
-### Returns
-
-`Promise<string>`: The unique name identifier of the index.
-
-### Example Usage
+The index's name. Read locally, with no network call.
 
 ```typescript
-const indexName = await index.getIndexName();
-console.log('Index name:', indexName);
-// Output: "my-vectors"
+console.log(await index.getIndexName());
+// Output: my-vectors
 ```
 
 ---
@@ -33,22 +26,12 @@ console.log('Index name:', indexName);
 async getDimension(): Promise<number>
 ```
 
-Vector dimensionality.
+Vector dimensionality. Returns `0` if the index was created without a `dimension` and nothing has been upserted yet.
 
-- Returns the real dimension when `createIndex` was called with an explicit `dimension`, or after the first upsert (auto-detect).
-- Returns `0` if the index was created with auto-detect AND no upsert has happened yet.
-
-Cached on first read; subsequent reads do not hit the server.
-
-### Returns
-
-`Promise<number>`
-
-### Example Usage
+The value is cached after the first call, including a `0`. If you call `getDimension()` before the first upsert, call [`client.loadIndex()`](./client/load-index) again afterwards to get a handle that reports the real dimension.
 
 ```typescript
-const dimension = await index.getDimension();
-console.log('Dimension:', dimension);
+console.log(await index.getDimension());
 // Output: 384
 ```
 
@@ -60,18 +43,11 @@ console.log('Dimension:', dimension);
 async getMetric(): Promise<string>
 ```
 
-Distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. Cached alongside `dimension`.
-
-### Returns
-
-`Promise<string>`
-
-### Example Usage
+Distance metric: `'euclidean'`, `'squared_euclidean'`, or `'cosine'`. Cached after the first call.
 
 ```typescript
-const metric = await index.getMetric();
-console.log('Metric:', metric);
-// Output: "euclidean"
+console.log(await index.getMetric());
+// Output: euclidean
 ```
 
 ---
@@ -82,23 +58,52 @@ console.log('Metric:', metric);
 async getNLists(): Promise<number>
 ```
 
-Number of inverted lists in the IVF index.
-
-- Returns `1` for untrained indexes.
-- Returns the trained cluster count after `train()` completes.
-
-Unlike `getDimension` / `getMetric`, this method is **not cached** — it fetches fresh on every call so callers reading immediately after training see the new value.
-
-### Returns
-
-`Promise<number>`
-
-### Example Usage
+Number of IVF lists. `1` for an untrained index; the trained list count after [`train()`](./encrypted-index/train). Fetched from the service on every call.
 
 ```typescript
-const nLists = await index.getNLists();
-console.log('Lists:', nLists);
-// Output: 1024  (after training)
+console.log(await index.getNLists());
+// Output: 1
+```
+
+---
+
+## metadataSchema
+
+```typescript
+async metadataSchema(): Promise<{ [field: string]: Required<MetadataFieldPolicy> }>
+```
+
+The per-field indexing policy set with `metadataSchema` or `textFields` in [`createIndex()`](./client/create-index#metadata-schema). Each entry has all three settings filled in: `filterable`, `pattern`, and `fullText`. `{}` when the index uses the default policy. Fetched on every call.
+
+```typescript
+console.log(await index.metadataSchema());
+// Output: { body: { filterable: false, pattern: false, fullText: true } }
+```
+
+---
+
+## bm25
+
+```typescript
+async bm25(): Promise<BM25Config | null>
+```
+
+The index's BM25 settings, or `null` when it has no full-text fields.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `k1` | `number` | Term-frequency saturation. |
+| `b` | `number` | Length normalization. |
+| `analyzerVersion` | `string \| null` | Text analyzer the index was built with. |
+
+```typescript
+console.log(await index.bm25());
+// Output:
+// {
+//   k1: 1.2,
+//   b: 0.75,
+//   analyzerVersion: 'en/1;sw=2de831ef7be676b6;snowball-english-utf8-3.0.1'
+// }
 ```
 
 ---
@@ -109,17 +114,10 @@ console.log('Lists:', nLists);
 async isTrained(): Promise<boolean>
 ```
 
-Returns whether the index has been trained. Not cached — training status can change server-side via auto-training.
-
-### Returns
-
-`Promise<boolean>`
-
-### Example Usage
+`true` if the index has been trained. Fetched on every call.
 
 ```typescript
 if (!(await index.isTrained())) {
-    console.log('Index needs training');
     await index.train();
 }
 ```
@@ -132,58 +130,11 @@ if (!(await index.isTrained())) {
 async isTraining(): Promise<boolean>
 ```
 
-Returns `true` if this index is currently being trained (or queued for training) on the server, `false` otherwise.
-
-Under the hood this calls the global training-status endpoint and checks whether this index appears in the returned `trainingIndexes` list — so it always reflects the live server state and is not cached.
-
-### Returns
-
-`Promise<boolean>`
-
-### Example Usage
+`true` while the service is training this index. An index that is queued for training but hasn't started yet returns `false`.
 
 ```typescript
-if (await index.isTraining()) {
-    console.log('Training in progress — try again shortly');
+while (await index.isTraining()) {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 }
-```
-
----
-
-## Client.getHealth
-
-```typescript
-async getHealth(): Promise<HealthResponse>
-```
-
-Returns the service health status. Useful for liveness checks and CI smoke tests. Available on the `Client` (`CyborgDB`) instance.
-
-### Example Usage
-
-```typescript
-const health = await client.getHealth();
-console.log('Service status:', health.status);
-```
-
----
-
-## Client.generateKey
-
-```typescript
-generateKey(): Uint8Array        // instance method
-static generateKey(): Uint8Array // static method
-```
-
-Generates a cryptographically secure 32-byte (256-bit) encryption key suitable for SDK-supplied index creation. Both forms exist for convenience — use the static form when you do not yet have a client instance.
-
-### Example Usage
-
-```typescript
-import { CyborgDB } from 'cyborgdb';
-
-// Static form — no client needed
-const key = CyborgDB.generateKey();
-
-// Instance form
-const sameKindOfKey = client.generateKey();
+console.log(await index.isTrained());
 ```

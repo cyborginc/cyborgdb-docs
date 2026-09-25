@@ -52,7 +52,7 @@ index.query(query_vectors=vector, text="encrypted search", top_k=10)
 ```python
 {
     "id": str,        # Always returned
-    "distance": float, # Vector queries, when "distance" or "metadata" is in include. Lower is closer.
+    "distance": float, # Vector queries, when "distance" is in include. Lower is closer.
     "score": float,    # Hybrid queries only, instead of distance. Higher is more relevant.
     "metadata": Dict,  # When "metadata" is in include
 }
