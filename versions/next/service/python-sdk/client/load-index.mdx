@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Loads and returns an existing `EncryptedIndex` instance.
+Loads an existing encrypted index and returns an `EncryptedIndex` bound to it.
 
 ```python
 client.load_index(
@@ -15,55 +15,49 @@ client.load_index(
 
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index_name` | `str` | Name of an existing index |
-| `index_key` | `bytes` | _(Optional)_ 32-byte encryption key. Required for indexes created with the SDK-supplied KEK path (`provider: none`); omit for KMS-backed indexes. |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `index_name` | `str` | - | Name of an existing index. |
+| `index_key` | `bytes` | `None` | _(Optional)_ The 32-byte key the index was created with. Required for SDK-supplied-key indexes; omit it for KMS-backed indexes (created with `kms_name`). |
 
-<Note>In v0.17 `index_key` is optional. KMS-backed indexes (created with `kms_name`) omit it — the server resolves the DEK via the persisted `KMSBlob`. SDK-supplied indexes (created with only `index_key`) must re-supply the same 32-byte key here.</Note>
-
-<Warning>
-For SDK-supplied indexes, the encryption key must exactly match the key used during index creation. KMS-backed indexes are tied to their `kms_name` slot in the service YAML — load fails if that slot is missing or unreachable.
-</Warning>
+<Warning>For SDK-supplied-key indexes, `index_key` must be the exact key passed to `create_index()`. A KMS-backed index fails to load if its `kms_name` slot is missing from the service YAML or its provider is unreachable.</Warning>
 
 ### Returns
 
-An instance of `EncryptedIndex` bound to the loaded index. The SDK probes the describe endpoint during load, so a missing or inaccessible index raises here rather than silently returning a phantom handle.
+An `EncryptedIndex` bound to the loaded index. `load_index()` calls the service's describe endpoint before returning, so a missing index or a wrong key fails here, not on the first query.
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="ValueError">
-        - Raised if `index_key` is provided but is not exactly 32 bytes.
-        - Raised if the index does not exist on the server (the describe probe fails).
-        - Raised if the supplied key does not match the cached envelope hash (SDK-supplied path).
-        - Raised by the server if a KMS-backed index's slot is unavailable.
-    </Accordion>
-    <Accordion title="Network/API Errors">
-        - Raised if the API request fails due to network issues.
-        - Raised if the server returns an HTTP error status.
-        - Raised if the server is unreachable or times out.
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `ValueError` | `index_key` is passed but is not 32 bytes. Raised before any request is sent. |
+| `cyborgdb.NotFoundError` | No index named `index_name` exists (HTTP `404`). |
+| `cyborgdb.AuthenticationError` | `index_key` doesn't match the index, or the client's `api_key` is missing or invalid (HTTP `401`). |
+| `cyborgdb.ServiceError` | The service returns `5xx`, for example when a KMS-backed index's provider is unavailable. |
+| `cyborgdb.TransportError` | The service can't be reached. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
-#### SDK-supplied index
+#### SDK-supplied-key index
 
 ```python
 from cyborgdb import Client
 
 client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
-# Same 32-byte key used during create_index()
-index_key = your_existing_32_byte_key
+# The same 32 bytes that were passed to create_index(), e.g. stored as hex
+index_key = bytes.fromhex('your-64-character-hex-key')
 
-index = client.load_index("my_index", index_key)
+index = client.load_index('my_index', index_key)
+print(index.index_name)
+# Output: my_index
 ```
 
 #### KMS-backed index
 
 ```python
-# No key required — the server resolves the DEK via the index's KMSBlob.
-index = client.load_index("kms_index")
+# No key needed: the service unwraps it with the index's KMS provider.
+index = client.load_index('kms_index')
 ```

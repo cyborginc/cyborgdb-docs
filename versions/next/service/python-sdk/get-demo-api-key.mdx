@@ -1,0 +1,46 @@
+---
+title: "Get Demo API Key"
+mode: "wide"
+noindex: true
+---
+
+Requests a temporary CyborgDB license key from the CyborgDB demo service, for evaluating CyborgDB without signing up for the Admin Dashboard.
+
+```python
+cyborgdb.get_demo_api_key(description: Optional[str] = None) -> str
+```
+
+The returned key is a **license** key: set it as the service's `CYBORGDB_API_KEY`. It is not the `api_key` passed to [`Client`](./client/client), which authenticates requests to your own service. A demo key runs the service in free-tier mode, capped at 1,000,000 items per index, and expires after a time limit. See [Environment Variables](../guides/advanced/env-vars).
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `description` | `str` | `None` (`"Temporary demo API key"`) | _(Optional)_ Label recorded with the key. |
+
+The function sends a `POST` request to `https://api.cyborgdb.co/v1/api-key/manage/create-demo-key` with a 30-second timeout. Set the `CYBORGDB_DEMO_ENDPOINT` environment variable to use a different endpoint.
+
+### Returns
+
+`str`: the demo license key.
+
+### Exceptions
+
+| Exception | Raised when |
+|-----------|-------------|
+| `ValueError` | The request fails, times out, or the response has no key. |
+
+### Example Usage
+
+```python
+import cyborgdb
+
+demo_key = cyborgdb.get_demo_api_key()
+print(demo_key)
+```
+
+Then start the service with it:
+
+```bash
+CYBORGDB_API_KEY=your-demo-key cyborgdb-service
+```

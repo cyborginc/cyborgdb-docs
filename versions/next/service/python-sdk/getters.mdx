@@ -3,7 +3,9 @@ title: "Getters"
 noindex: true
 ---
 
-<Note>v0.17 replaces the v0.16 getters (`index_type`, `index_config`) with explicit properties for the single DiskIVF index type: `dimension`, `metric`, and `n_lists`. Most are lazily fetched and cached on first read.</Note>
+`EncryptedIndex` exposes index settings as properties, plus two training-status methods. Every getter except `index_name` calls the service's describe or training-status endpoint.
+
+<Note>Getters currently raise the SDK's underlying `ApiException` on HTTP errors, not the [`CyborgDBError`](./errors) classes the other methods raise.</Note>
 
 ## index_name
 
@@ -12,13 +14,11 @@ noindex: true
 index_name: str
 ```
 
-Returns the name of the encrypted index. Always available locally — no network call.
-
-### Example Usage
+The index's name. Read locally, with no network call.
 
 ```python
-print(f'Index name: {index.index_name}')
-# Output: "my-vectors"
+print(index.index_name)
+# Output: my-vectors
 ```
 
 ---
@@ -30,17 +30,12 @@ print(f'Index name: {index.index_name}')
 dimension: int
 ```
 
-Vector dimensionality.
+Vector dimensionality. Returns `0` if the index was created without a `dimension` and nothing has been upserted yet.
 
-- Returns the real dimension when `create_index` was called with an explicit `dimension`, or after the first upsert (auto-detect).
-- Returns `0` if the index was created with auto-detect AND no upsert has happened yet.
-
-Cached on first read; subsequent reads do not hit the server.
-
-### Example Usage
+The value is cached after the first read, including a `0`. If you read `dimension` before the first upsert, call [`client.load_index()`](./client/load-index) again afterwards to get a handle that reports the real dimension.
 
 ```python
-print(f'Vector dimensionality: {index.dimension}')
+print(index.dimension)
 # Output: 384
 ```
 
@@ -53,13 +48,11 @@ print(f'Vector dimensionality: {index.dimension}')
 metric: str
 ```
 
-Distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. Cached on first read alongside `dimension`.
-
-### Example Usage
+Distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. Cached after the first read.
 
 ```python
-print(f'Metric: {index.metric}')
-# Output: "euclidean"
+print(index.metric)
+# Output: euclidean
 ```
 
 ---
@@ -71,18 +64,49 @@ print(f'Metric: {index.metric}')
 n_lists: int
 ```
 
-Number of inverted lists in the IVF index.
-
-- Returns `1` for untrained indexes.
-- Returns the trained cluster count after `train()` completes.
-
-Unlike `dimension` and `metric`, `n_lists` is **fetched fresh on every read** so callers reading immediately after training see the new value.
-
-### Example Usage
+Number of IVF lists. `1` for an untrained index; the trained list count after [`train()`](./encrypted-index/train). Fetched from the service on every read.
 
 ```python
-print(f'Lists: {index.n_lists}')
-# Output: 1024  (after training)
+print(index.n_lists)
+# Output: 1
+```
+
+---
+
+## metadata_schema
+
+```python
+@property
+metadata_schema: Dict[str, Dict[str, bool]]
+```
+
+The per-field indexing policy set with `metadata_schema` or `text_fields` in [`create_index()`](./client/create-index#metadata-schema). Each entry has `filterable`, `pattern`, and `full_text`. `{}` when the index uses the default policy. Fetched on every read.
+
+```python
+print(index.metadata_schema)
+# Output: {'body': {'filterable': False, 'pattern': False, 'full_text': True}}
+```
+
+---
+
+## bm25
+
+```python
+@property
+bm25: Optional[Dict[str, Any]]
+```
+
+The index's BM25 settings, or `None` when it has no full-text fields.
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `k1` | `float` | Term-frequency saturation. |
+| `b` | `float` | Length normalization. |
+| `analyzer_version` | `str` or `None` | Text analyzer the index was built with. |
+
+```python
+print(index.bm25)
+# Output: {'k1': 1.2, 'b': 0.75, 'analyzer_version': 'en/1;sw=2de831ef7be676b6;snowball-english-utf8-3.0.1'}
 ```
 
 ---
@@ -90,20 +114,13 @@ print(f'Lists: {index.n_lists}')
 ## is_trained
 
 ```python
-def is_trained(self) -> bool
+index.is_trained() -> bool
 ```
 
-Returns whether the index has been trained. Training is required for optimal query performance on large indexes.
-
-### Returns
-
-`bool`: `True` if the index has been trained, `False` otherwise (or if the underlying describe call fails).
-
-### Example Usage
+`True` if the index has been trained. Returns `False` if the describe request fails.
 
 ```python
 if not index.is_trained():
-    print('Index needs training for optimal performance')
     index.train()
 ```
 
@@ -112,24 +129,15 @@ if not index.is_trained():
 ## is_training
 
 ```python
-def is_training(self) -> bool
+index.is_training() -> bool
 ```
 
-Returns whether this index is currently in the process of training (either actively training or queued).
-
-### Returns
-
-`bool`: `True` if the index is currently training or queued, `False` otherwise.
-
-### Example Usage
+`True` while the service is training this index. An index that is queued for training but hasn't started yet returns `False`.
 
 ```python
 import time
 
-index.train()  # Kicks off training
-
 while index.is_training():
-    print('Index is still training...')
     time.sleep(5)
-print('Index training complete')
+print(index.is_trained())
 ```

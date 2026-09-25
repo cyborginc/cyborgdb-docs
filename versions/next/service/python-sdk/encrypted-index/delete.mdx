@@ -4,16 +4,17 @@ mode: "wide"
 noindex: true
 ---
 
-Removes vectors from the index by their IDs. This operation permanently deletes the specified vectors and their associated data.
+Permanently removes items from the index by ID, along with their contents and metadata.
 
 ```python
 index.delete(ids)
 ```
 
 ### Parameters
+
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `ids` | `List[str]` | - | List of vector IDs to delete |
+| `ids` | `List[str]` | - | IDs of the items to delete. An empty list is a no-op. |
 
 ### Returns
 
@@ -21,23 +22,18 @@ index.delete(ids)
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the API request fails due to network connectivity issues.
-        - Throws if authentication fails (invalid API key).
-        - Throws if the encryption key is invalid for the specified index.
-        - Throws if there are internal server errors preventing the deletion.
-    </Accordion>
-    <Accordion title="Validation Errors">
-        - Throws if the `ids` parameter is null, undefined, or empty.
-        - Returns `422` from the server if `ids` is not a list of strings.
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `cyborgdb.ValidationError` | The service rejects the request (HTTP `422`), for example when `ids` isn't a list of strings. |
+| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
+| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
 ```python
-# Delete vectors by ID
-vector_ids = ['doc1', 'doc2', 'doc3']
-index.delete(vector_ids)
+index.delete(["doc1", "doc2"])
+print(index.list_ids())
+# Output: ['doc3']
 ```

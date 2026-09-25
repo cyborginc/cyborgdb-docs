@@ -4,9 +4,9 @@ mode: "wide"
 noindex: true
 ---
 
-<Warning>This action is irreversible. Proceed with caution.</Warning>
+<Warning>Deleting an index is irreversible.</Warning>
 
-Deletes the current index and all its associated data from the CyborgDB service.
+Deletes the index and all of its data from the CyborgDB service.
 
 ```python
 index.delete_index()
@@ -18,22 +18,18 @@ index.delete_index()
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the API request fails due to network connectivity issues.
-        - Throws if authentication fails (invalid API key).
-        - Throws if there are internal server errors preventing the deletion.
-    </Accordion>
-    <Accordion title="Index Errors">
-        - Throws `ValueError` if the index does not exist on the server (the service returns `404`).
-        - Throws if the encryption key is invalid for the specified index.
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `cyborgdb.NotFoundError` | The index doesn't exist, for example because it was already deleted (HTTP `404`). |
+| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
+| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
 ```python
-# Delete the index
 index.delete_index()
-print("Index deleted successfully.")
+print(index.index_name in client.list_indexes())
+# Output: False
 ```

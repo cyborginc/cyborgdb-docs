@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Checks the health status of the CyborgDB microservice to verify connectivity and service availability.
+Returns the health status of the CyborgDB service, to check that it is reachable and running.
 
 ```python
 client.get_health()
@@ -12,32 +12,31 @@ client.get_health()
 
 ### Returns
 
-`Dict[str, str]`: Health status information from the service.
+`Dict[str, str]` with these keys:
+
+| Key | Description |
+|-----|-------------|
+| `status` | Service health, `"healthy"` when the service is up. |
+| `api_version` | REST API version, e.g. `"v1"`. |
+| `version` | CyborgDB service version. |
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the health check request fails due to network connectivity issues.
-        - Throws if the server is unreachable or times out.
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Throws if the CyborgDB service is unavailable or unreachable.
-        - Throws if there are internal server errors on the CyborgDB service.
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `cyborgdb.TransportError` | The service can't be reached. |
+| `cyborgdb.ServiceError` | The service returns `5xx`. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
 ```python
+from cyborgdb import Client
+
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+
 health = client.get_health()
-print(f"Service status: {health}")
+print(health)
+# Output: {'status': 'healthy', 'api_version': 'v1', 'version': '0.18.0'}
 ```
-
-### Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | `string` | Current health status of the service (typically "healthy") |
-| `api_version` | `string` | Version of the API interface (e.g., "v1") |
-| `version` | `string` | Version of the CyborgDB application/service |

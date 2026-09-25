@@ -4,196 +4,156 @@ mode: "wide"
 noindex: true
 ---
 
-Searches for nearest neighbors in the encrypted index using vector similarity search. Supports single vector queries, batch queries, semantic search with text content, and — when `text` is passed alongside a query vector — **hybrid** search that fuses BM25 full-text ranking with the vector ranking (see [Full-text and hybrid search](../../../embedded/guides/data-operations/bm25-search)).
+Finds the nearest neighbors of one or more query vectors. With `query_contents`, the service embeds the text first (the index needs an `embedding_model`). With `text`, the query becomes **hybrid**: BM25 full-text ranking is fused with the vector ranking.
 
 ```python
-# Single vector query
+# Single vector
 index.query(query_vectors=vector, top_k=10)
 
-# Batch vector queries
+# Batch of vectors
 index.query(query_vectors=vectors, top_k=10)
 
-# Semantic search with text
+# Text, embedded by the service
 index.query(query_contents=text, top_k=10)
 
-# Hybrid (BM25 + vector) — requires an index with a full_text field
+# Hybrid (BM25 + vector); needs an index with a full-text field
 index.query(query_vectors=vector, text="encrypted search", top_k=10)
 ```
 
 ### Parameters
+
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `query_vectors` | `List[List[float]]` or `List[float]` or `np.ndarray` | `None` | _(Optional)_ Multiple query vectors for batch search |
-| `query_contents` | `str` | `None` | _(Optional)_ Text content for semantic search |
-| `top_k` | `int` | `None` (server default: `100`) | _(Optional)_ Number of results to return per query. |
-| `n_probes` | `int` | `None` | _(Optional)_ Number of clusters to probe for search |
-| `filters` | `Dict` | `None` | _(Optional)_ Metadata filters to apply |
-| `include` | `List[str]` | `None` | _(Optional)_ Fields to include in results. `None` uses the server default (`[]` — only `id` is returned). Note: `id` is always included |
-| `greedy` | `bool` | `None` (server default: `false`) | _(Optional)_ Use greedy search algorithm. |
-| `rerank_mult` | `int` | `None` | _(Optional)_ Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `top_k * rerank_mult` candidates before the rerank pass narrows to `top_k`. Higher values trade query latency for recall. Server default is `10`. Ignored by indexes that do not rerank. |
-| `text` | `str` | `None` | _(Optional)_ Query text for a BM25 full-text leg. Setting it makes the query **hybrid**: BM25 ranking is fused with the vector ranking by weighted RRF and each result carries `score` instead of `distance`. Requires an index with at least one `full_text` field. A `query_vectors` value is still required — it fixes the batch shape. |
-| `text_fields` | `List[str]` | `None` | _(Optional)_ Which `full_text` fields the text leg searches. `None` = all designated fields. Naming a non-`full_text` field raises. |
-| `text_field_weights` | `List[float]` | `None` | _(Optional)_ Per-field weights on the summed per-field BM25 scores, parallel to the searched fields. `None` = 1.0 each. |
-| `require_all_terms` | `bool` | `None` (server default: `false`) | _(Optional)_ Require every query term to match (AND) instead of any (OR, the default). |
-| `alpha` | `float` | `None` (server default: `0.5`) | _(Optional)_ Leg blend in `[0, 1]`: `0` = pure BM25, `1` = pure vector. An exact endpoint skips the dead leg's retrieval. |
-| `rrf_k` | `float` | `None` (server default: `60`) | _(Optional)_ RRF rank-smoothing constant (must be `> 0`). |
-| `window_mult` | `int` | `None` (server default: `3`) | _(Optional)_ Per-leg candidate depth as a **multiple of `top_k`** (must be `>= 1`). |
+| `query_vectors` | `List[float]`, `List[List[float]]`, or `np.ndarray` | `None` | _(Optional)_ One query vector, or a batch. A NumPy array is sent through the binary path, [`query_binary()`](./query-binary). |
+| `query_contents` | `str` | `None` | _(Optional)_ Text for the service to embed and search with. Requires an index created with `embedding_model`. Ignored when `query_vectors` is a NumPy array. |
+| `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. |
+| `n_probes` | `int` | `None` (service default: auto) | _(Optional)_ Clusters to probe. Higher values improve recall and add latency. |
+| `filters` | `Dict` | `None` | _(Optional)_ Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
+| `include` | `List[str]` | `None` (service default: `[]`) | _(Optional)_ Extra fields per result: `"distance"` and `"metadata"`. `id` is always returned. See [Result fields](#result-fields). |
+| `greedy` | `bool` | `None` (service default: `False`) | _(Optional)_ Use greedy search. |
+| `rerank_mult` | `int` | `None` (service default: `10`) | _(Optional)_ Stage 1 returns `top_k * rerank_mult` candidates before reranking narrows them to `top_k`. Higher values trade latency for recall. |
+| `text` | `str` | `None` | _(Optional)_ Query text for a BM25 leg, which makes the query hybrid. Requires an index with at least one full-text field. `query_vectors` is still required. |
+| `text_fields` | `List[str]` | `None` (all full-text fields) | _(Optional)_ Full-text fields the BM25 leg searches. Naming a field that isn't full-text returns `ValidationError`. |
+| `text_field_weights` | `List[float]` | `None` (`1.0` each) | _(Optional)_ Weight per searched field, in the same order as `text_fields`. |
+| `require_all_terms` | `bool` | `None` (service default: `False`) | _(Optional)_ Match only items containing every query term (AND) instead of any term (OR). |
+| `alpha` | `float` | `None` (service default: `0.5`) | _(Optional)_ Blend of the two legs, in `[0, 1]`: `0` is pure BM25, `1` is pure vector. At exactly `0` or `1` the other leg isn't run. |
+| `rrf_k` | `float` | `None` (service default: `60`) | _(Optional)_ Reciprocal rank fusion smoothing constant. Must be `> 0`. |
+| `window_mult` | `int` | `None` (service default: `3`) | _(Optional)_ Candidates retrieved per leg, as a multiple of `top_k`. Must be `>= 1`. |
 
-<Tip>When `np.ndarray` is passed as `query_vectors`, queries are automatically sent in an optimized binary format for better performance.</Tip>
-
-<Note>`include` defaults differ between endpoints: `query` returns `[]` (only `id`) by default, while [`get`](./get) returns `["vector", "contents", "metadata"]`.</Note>
+<Note>`include` defaults differ between methods: `query()` returns only `id` by default, while [`get()`](./get) returns `vector`, `contents`, and `metadata`.</Note>
 
 ### Returns
 
-For single queries: `List[Dict]` - A list of result dictionaries.
-For batch queries: `List[List[Dict]]` - A list of result lists, one for each query vector.
+- **Single query vector:** `List[Dict]`, one dict per neighbor.
+- **Batch of vectors:** `List[List[Dict]]`, one inner list per query vector.
 
-#### Result Format
+#### Result fields
 
-**Single Query Result:**
 ```python
-[  # Returns a flat list of results
-  {
-    "id": str, # Vector identifier (always included)
-    "distance": float, # Similarity distance (pure vector query, if included)
-    "score": float, # Fused BM25 + vector relevance (hybrid query only, larger = better)
-    "metadata": Dict, # Vector metadata (if included)
-    "contents": str, # Vector contents (if included)
-    "vector": List[float] # Vector data (if included)
-  },
-  ...
-]
+{
+    "id": str,        # Always returned
+    "distance": float, # Vector queries, when "distance" or "metadata" is in include. Lower is closer.
+    "score": float,    # Hybrid queries only, instead of distance. Higher is more relevant.
+    "metadata": Dict,  # When "metadata" is in include
+}
 ```
 
-<Note>A hybrid (`text=...`) result carries `score` in place of `distance` — never both, since a text-only match has no vector distance to report.</Note>
-
-**Batch Query Result:**
-```python
-[
-  [  # Results for first query vector
-    {
-      "id": str,
-      "distance": float,
-      "metadata": Dict,
-      ...
-    },
-    ...
-  ],
-  [  # Results for second query vector
-    ...
-  ],
-  ...
-]
-```
+`query()` never returns `vector` or `contents`, even when they're listed in `include`. To read them, pass the result IDs to [`get()`](./get).
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the API request fails due to network connectivity issues.
-        - Throws if authentication fails (invalid API key).
-        - Throws if the encryption key is invalid for the specified index.
-        - Throws if there are internal server errors during the search.
-    </Accordion>
-    <Accordion title="Validation Errors">
-        - Throws if query vectors or query contents is not provided.
-        - Throws if vector dimensions don't match the index configuration.
-        - Throws if parameter values are out of valid ranges.
-        - Throws if the `include` parameter contains invalid field names.
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `pydantic.ValidationError` | Neither `query_vectors` nor `query_contents` is passed. Raised before any request is sent. |
+| `ValueError` | A NumPy `query_vectors` array is not 1-D or 2-D. |
+| `cyborgdb.ValidationError` | The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range parameter. |
+| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
+| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
 
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
-#### Single Vector Query
+#### Single vector
 
 ```python
-# Basic similarity search
-query_vector = [0.1, 0.2, 0.3, 0.4]
-# include defaults to [] (only `id`); pass include to request additional fields
-results = index.query(query_vectors=query_vector, top_k=5, include=["distance", "metadata"])
-
-# Access results (single query returns a flat list)
-for result in results:
-    print(f"ID: {result['id']}, Distance: {result['distance']}")
-```
-
-Batch vector queries:
-
-```python
-import numpy as np
-
-# Query multiple vectors at once
-query_vectors = [
-    [0.1, 0.2, 0.3, 0.4],
-    [0.5, 0.6, 0.7, 0.8],
-    [0.9, 1.0, 1.1, 1.2]
-]
-
-# include defaults to [] (only `id`); pass include to request additional fields
-batch_results = index.query(query_vectors=query_vectors, top_k=3, include=["distance"])
-
-# Process each query's results
-for i, query_results in enumerate(batch_results):
-    print(f"Results for query {i+1}:")
-    for result in query_results:
-        print(f"  ID: {result['id']}, Distance: {result['distance']}")
-```
-
-#### Semantic Search with Text
-
-```python
-# Search using text content
 results = index.query(
-    query_contents="machine learning healthcare applications",
-    top_k=10,
-    include=["contents"]
+    query_vectors=[0.1, 0.2, 0.3, 0.4],
+    top_k=2,
+    include=["distance", "metadata"],
 )
 
 for result in results:
-    print(f"Found: {result['id']}")
-    if 'contents' in result:
-        print(f"Content: {result['contents'][:100]}...")
+    print(result["id"], round(result["distance"], 4), result["metadata"])
+# Output:
+# doc1 0.0 {'category': 'news'}
+# doc2 0.8 {'category': 'research'}
 ```
 
-#### Hybrid Query (BM25 + Vector)
-
-Requires an index created with at least one `full_text` field (see [Full-text and hybrid search](../../../embedded/guides/data-operations/bm25-search)).
+#### Batch of vectors
 
 ```python
-# text=... makes the query hybrid. A query vector is still required.
+batch_results = index.query(
+    query_vectors=[
+        [0.1, 0.2, 0.3, 0.4],
+        [0.5, 0.6, 0.7, 0.8],
+    ],
+    top_k=1,
+    include=["distance"],
+)
+
+for i, results in enumerate(batch_results):
+    print(i, [r["id"] for r in results])
+# Output:
+# 0 ['doc1']
+# 1 ['doc2']
+```
+
+#### Text, embedded by the service
+
+```python
+# The index must have been created with embedding_model=...
+results = index.query(
+    query_contents="machine learning in healthcare",
+    top_k=3,
+)
+print([r["id"] for r in results])
+```
+
+#### Hybrid (BM25 + vector)
+
+The index needs at least one full-text field, set with `text_fields` or `{"full_text": True}` in [`create_index()`](../client/create-index#metadata-schema).
+
+```python
 results = index.query(
     query_vectors=[0.1, 0.2, 0.3, 0.4],
     text="encrypted search",
-    top_k=10,
-    alpha=0.5,               # 0 = pure BM25, 1 = pure vector; default 0.5
+    top_k=2,
+    alpha=0.5,
     include=["metadata"],
 )
 
-# Hybrid results carry `score` (fused relevance, higher = better) instead of `distance`.
 for result in results:
-    print(f"ID: {result['id']}, Score: {result['score']:.4f}")
+    print(result["id"], round(result["score"], 4))
+# Output:
+# doc1 0.0164
+# doc2 0.0161
 ```
 
-Advanced filtering and options:
+#### Filters and search options
 
 ```python
-# Query with metadata filters and custom options
 results = index.query(
-    query_vectors=[0.1] * 384,
+    query_vectors=[0.1, 0.2, 0.3, 0.4],
     top_k=20,
-    n_probes=5,        # Search more clusters for better recall
-    rerank_mult=20,    # Stage 1 returns top_k * 20 candidates before rerank
-    filters={'category': 'healthcare', 'priority': 'high'},
-    include=['distance', 'metadata', 'contents'],  # Must include 'contents' to access it
-    greedy=True        # Use greedy search for potentially better results
+    n_probes=5,
+    rerank_mult=20,
+    greedy=True,
+    filters={"category": "news"},
+    include=["distance", "metadata"],
 )
 
 for result in results:
-    print(f"ID: {result['id']}")
-    print(f"Distance: {result['distance']:.4f}")
-    print(f"Category: {result['metadata']['category']}")
-    print(f"Content preview: {result['contents'][:50]}...")
-    print("---")
+    print(result["id"], result["metadata"]["category"])
+# Output: doc1 news
 ```

@@ -4,9 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Creates and returns an `EncryptedIndex` instance backed by a new encrypted DiskIVF index on the server.
-
-<Note>v0.17 introduces a single **DiskIVF** index type and removes the polymorphic `index_config` argument. The previous `IndexIVFFlat`, `IndexIVFPQ`, and `IndexIVFSQ` types are gone — index configuration is now expressed as flat keyword arguments (`dimension`, `metric`, `storage_precision`).</Note>
+Creates a new encrypted DiskIVF index on the service and returns an `EncryptedIndex` bound to it.
 
 ```python
 client.create_index(
@@ -18,93 +16,113 @@ client.create_index(
     metric = None,
     storage_precision = None,
     metadata_schema = None,
+    text_fields = None,
+    bm25_k1 = None,
+    bm25_b = None,
 )
 ```
+
+<Note>Since v0.17 there is one index type, DiskIVF, configured with flat keyword arguments. The v0.16 `IndexIVFFlat`, `IndexIVFPQ`, and `IndexIVFSQ` types and the `index_config` argument no longer exist.</Note>
 
 ### Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `index_name` | `str` | - | Unique name for the index |
-| `index_key` | `bytes` | `None` | _(Optional)_ 32-byte encryption key. Required when `kms_name` is omitted (SDK-supplied KEK). Must be omitted when `kms_name` references a real KMS provider. |
-| `kms_name` | `str` | `None` | _(Optional)_ Name of a `kms.registry` entry in the service YAML. When supplied, the service generates the KEK and wraps it under the named provider; the SDK never sees the plaintext key. |
-| `dimension` | `int` | `None` | _(Optional)_ Vector dimensionality. If omitted, the server auto-detects from the first upsert. |
-| `embedding_model` | `str` | `None` | _(Optional)_ sentence-transformers model name for automatic embedding generation. When set, `dimension` is inferred from the model. |
-| `metric` | `str` | `None` | _(Optional)_ Distance metric (`"euclidean"`, `"squared_euclidean"`, or `"cosine"`). When `None`, the server applies its default. |
-| `storage_precision` | `str` | `None` | _(Optional)_ On-disk rerank-vector dtype: `"float32"` (default) or `"float16"`. |
-| `metadata_schema` | `Dict[str, Dict[str, bool]]` | `None` | _(Optional)_ Per-field metadata indexing policy, fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
+| `index_name` | `str` | - | Unique name for the index. |
+| `index_key` | `bytes` | `None` | _(Optional)_ 32-byte encryption key (SDK-supplied KEK). Pass either `index_key` or `kms_name`, never both. |
+| `kms_name` | `str` | `None` | _(Optional)_ Name of a `kms.registry` entry in the service YAML. The service generates the KEK and wraps it with that provider; the SDK never sees the plaintext key. |
+| `dimension` | `int` | `None` | _(Optional)_ Vector dimensionality. When omitted, the service detects it from the first upsert. |
+| `embedding_model` | `str` | `None` | _(Optional)_ sentence-transformers model name for automatic embedding generation. When set, `dimension` is taken from the model. |
+| `metric` | `str` | `None` (service default: `"euclidean"`) | _(Optional)_ `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
+| `storage_precision` | `str` | `None` (service default: `"float32"`) | _(Optional)_ Storage format for rerank vectors. See [Storage precision](#storage-precision). |
+| `metadata_schema` | `Dict[str, Dict[str, bool]]` | `None` | _(Optional)_ Per-field metadata indexing policy. Fixed at creation and cannot be changed later. See [Metadata schema](#metadata-schema). |
+| `text_fields` | `List[str]` | `None` | _(Optional)_ Metadata fields to index for BM25 full-text search. Shorthand for `{"full_text": True}` in `metadata_schema`. Enables `text=` on [`query()`](../encrypted-index/query) and [`query_metadata()`](../encrypted-index/query-metadata). |
+| `bm25_k1` | `float` | `None` (service default: `1.2`) | _(Optional)_ BM25 term-frequency saturation, `>= 0`. Requires at least one full-text field. |
+| `bm25_b` | `float` | `None` (service default: `0.75`) | _(Optional)_ BM25 length-normalization strength, in `[0, 1]`. Requires at least one full-text field. |
 
-### Key Management Modes
+### Key management
 
-At least one of `index_key` / `kms_name` must be supplied; supplying both against a real-KMS slot is rejected by the server with 400:
+Pass exactly one of `index_key` or `kms_name`. The service rejects both together with `ValidationError` (HTTP `400`), whatever the KMS provider.
 
-- **SDK-supplied KEK** — pass `index_key`, omit `kms_name`. The server records the index with `provider: none`; you must re-supply the same key on every subsequent call (`load_index`, `query`, `upsert`, etc.).
-- **KMS-backed** — pass `kms_name`, omit `index_key`. The server generates the DEK, wraps it under the named registry slot, and persists the envelope. Subsequent calls omit `index_key` entirely.
+- **SDK-supplied KEK:** pass `index_key`. Supply the same key again on every [`load_index()`](./load-index).
+- **KMS-backed:** pass `kms_name`. The service generates the key, wraps it with the named provider, and stores the wrapped key. Later calls omit `index_key`.
 
-### Metadata Schema
+### Storage precision
 
-`metadata_schema` sets the per-field indexing policy. Metadata itself stays schemaless — this controls how each field is indexed, not what may be stored. Fields left out inherit the default (indexed and filterable).
+`storage_precision` sets how the full-precision rerank vectors are stored. Every value works with every metric.
+
+| Value | Bits per dimension | Notes |
+|-------|--------------------|-------|
+| `"float32"` | 32 | Default. |
+| `"float16"` | 16 | Half the storage of `float32`, with a small precision cost. |
+| `"tq12"` | 12 | TurboQuant. |
+| `"tq8"` | 8 | TurboQuant. |
+| `"tq6"` | 6 | TurboQuant. |
+| `"tq4"` | 4 | TurboQuant. About 8x smaller than `float32`, at about 94% recall@100. |
+
+Lower TurboQuant tiers use less storage in exchange for a small recall and latency cost.
+
+### Metadata schema
+
+`metadata_schema` sets how each metadata field is indexed. Metadata itself stays schemaless: this controls indexing, not what may be stored. Fields left out get the default policy (indexed and filterable). Nested fields use dot-paths such as `"loc.city"`.
 
 ```python
 metadata_schema = {
-    "title":         {"filterable": True, "pattern": True},   # regex-searchable
-    "internal_blob": {"filterable": False},                    # stored, not index-filterable
+    "title":         {"filterable": True, "pattern": True},  # regex-searchable
+    "internal_blob": {"filterable": False},                   # stored, not indexed
+    "body":          {"full_text": True},                     # BM25 full-text search
 }
 ```
 
-Two knobs per field:
+Each field takes three settings:
 
-- `filterable` (default `True`) — build inverted-index postings so filters on the field resolve from the index (pre-filter path, and the only path [`query_metadata()`](../encrypted-index/query-metadata) uses). Setting `False` still stores the field but forces the dense post-filter path when [`query()`](../encrypted-index/query) filters reference it — cheaper writes, slower filtered queries.
-- `pattern` (default `False`) — additionally build the field's regex dictionary, which is what makes `$regex` / `$contains` index-resolvable. Requires `filterable=True`.
+| Setting | Default | Effect |
+|---------|---------|--------|
+| `filterable` | `True` | Builds inverted-index postings, so filters on the field resolve from the index. `False` still stores the field, but [`query()`](../encrypted-index/query) filters on it fall back to a slower post-filter, and [`query_metadata()`](../encrypted-index/query-metadata) rejects them. |
+| `pattern` | `False` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `filterable=True`. |
+| `full_text` | `False` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `filterable=False`, and can't be combined with `pattern=True`. |
 
-On `query()` the schema is a performance hint: filters that miss the index fall back to a post-filter on the decrypted metadata. On `query_metadata()` it is enforced — `$regex` / `$contains` on a non-`pattern` field, or any filter on a `filterable=False` field, comes back as 400.
+On `query()` the schema is a performance hint: filters the index can't answer fall back to a post-filter on the decrypted metadata. On `query_metadata()` it is enforced, and unsupported filters return `ValidationError`.
 
-The recorded policy is echoed on the index describe response as [`EncryptedIndex.metadata_schema`](../encrypted-index/query-metadata#metadata-schema) (empty when the index uses the default posture).
+The stored policy is returned by the [`metadata_schema`](../getters#metadata_schema) getter.
 
 ### Returns
 
-An instance of `EncryptedIndex` bound to the newly created index. For KMS-backed indexes the returned handle holds no plaintext key.
+An `EncryptedIndex` bound to the new index. For KMS-backed indexes it holds no plaintext key.
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="ValueError">
-        - Raised if neither `index_key` nor `kms_name` is provided.
-        - Raised if `index_key` is provided but is not exactly 32 bytes.
-        - Raised by the server (re-wrapped as `ValueError`) if both `index_key` and `kms_name` are provided against a real-KMS slot.
-        - Raised by the server if `metadata_schema` sets `pattern=True` without `filterable=True`, or names an empty field.
-        - Raised by the server if the index name already exists, the embedding model is unsupported, or the KMS slot lookup fails.
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Raised if the CyborgDB service is unavailable, unreachable, or returns 5xx (including KMS-wrap failures as 502).
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `ValueError` | Neither `index_key` nor `kms_name` is passed; `index_key` is not 32 bytes; or `storage_precision` is not one of the six values above. Raised before any request is sent. |
+| `cyborgdb.ValidationError` | The service rejects the request (HTTP `400`): the index name already exists, both `index_key` and `kms_name` were passed, the `kms_name` slot is unknown, or `metadata_schema` combines settings that aren't allowed. |
+| `cyborgdb.ServiceError` | The service returns `5xx`, including KMS wrap failures (`502`). |
+| `cyborgdb.TransportError` | The service can't be reached. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
-#### SDK-supplied key (basic)
+#### SDK-supplied key
 
 ```python
 from cyborgdb import Client
 
-# Initialize client
 client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
-# Generate a secure encryption key
-index_key = client.generate_key(save=True)
+index_key = client.generate_key()
 
-# Create a basic index — dimension is auto-detected from the first upsert
+# The dimension is detected from the first upsert
 index = client.create_index('documents', index_key=index_key)
 ```
 
-<Note>For more info on `generate_key`, refer to [Generate Key](./generate-key).</Note>
+<Note>Store `index_key` securely: it is needed to load the index again. See [Generate Key](./generate-key).</Note>
 
-#### SDK-supplied key with explicit dimension
+#### Explicit dimension and metric
 
 ```python
-# Pin the dimension and metric explicitly
 index = client.create_index(
-    'documents',
+    'documents_384',
     index_key=index_key,
     dimension=384,
     metric='cosine',
@@ -114,20 +132,19 @@ index = client.create_index(
 #### KMS-backed index
 
 ```python
-# The service generates the KEK, wraps it via the 'prod-aws' registry slot,
-# and persists the envelope. The SDK never sees the plaintext key.
+# The service generates the key and wraps it with the 'prod-aws' registry slot.
 index = client.create_index(
     'kms_documents',
     kms_name='prod-aws',
     dimension=384,
 )
-# Subsequent calls — including load_index — omit index_key entirely.
+# Later calls, including load_index(), omit index_key.
 ```
 
-#### Auto-embedding
+#### Automatic embeddings
 
 ```python
-# When embedding_model is set, the server infers `dimension` from the model.
+# The dimension is taken from the embedding model
 index = client.create_index(
     'semantic_docs',
     index_key=index_key,
@@ -135,35 +152,50 @@ index = client.create_index(
 )
 ```
 
-#### Float16 storage for reduced footprint
+See [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).
+
+#### Reduced storage with TurboQuant
 
 ```python
-# Halves on-disk rerank-vector storage at the cost of small recall
 index = client.create_index(
     'compact_docs',
     index_key=index_key,
     dimension=768,
-    storage_precision='float16',
+    storage_precision='tq8',
 )
 ```
 
-#### With per-field metadata policy
+#### Per-field metadata policy
 
 ```python
-# Opt `title` into the regex dictionary; keep `internal_blob` out of the
-# inverted index (still stored, still filterable on query() via post-filter).
 index = client.create_index(
     'docs_index',
     index_key=index_key,
-    dimension=384,
+    dimension=4,
     metadata_schema={
         'title':         {'filterable': True, 'pattern': True},
         'internal_blob': {'filterable': False},
     },
 )
+index.upsert([
+    {'id': 'doc1', 'vector': [0.1, 0.2, 0.3, 0.4], 'metadata': {'title': 'intro to encryption'}},
+    {'id': 'doc2', 'vector': [0.5, 0.6, 0.7, 0.8], 'metadata': {'title': 'advanced setup'}},
+])
 
-# $regex now resolves from the index on query_metadata() and query() alike.
-result = index.query_metadata(filters={'title': {'$regex': '^intro'}})
+# $regex resolves from the index because 'title' has pattern=True
+print(index.query_metadata(filters={'title': {'$regex': '^intro'}}))
+# Output: [{'id': 'doc1'}]
 ```
 
-<Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>
+#### Full-text search fields
+
+```python
+index = client.create_index(
+    'articles',
+    index_key=index_key,
+    dimension=4,
+    text_fields=['body'],
+)
+print(index.bm25)
+# Output: {'k1': 1.2, 'b': 0.75, 'analyzer_version': 'en/1;sw=2de831ef7be676b6;snowball-english-utf8-3.0.1'}
+```

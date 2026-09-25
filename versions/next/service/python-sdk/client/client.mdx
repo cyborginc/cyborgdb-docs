@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-`Client` is the main class exposed by the CyborgDB Python SDK. It provides an interface to interact with the CyborgDB vector database service, allowing you to create and manage encrypted indexes.
+`Client` is the entry point of the CyborgDB Python SDK. It connects to a running CyborgDB service and creates, loads, and lists encrypted indexes.
 
 ## Constructor
 
@@ -12,40 +12,49 @@ noindex: true
 Client(base_url, api_key=None, verify_ssl=None)
 ```
 
-Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB microservice.
-
 ### Parameters
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `base_url` | `str` | - | Base URL of the CyborgDB microservice endpoint |
-| `api_key` | `str` | `None` | _(Optional)_ Service authentication credential, sent as the `X-API-Key` header. Required only when the service has auth enabled |
-| `verify_ssl` | `bool` | `None` | _(Optional)_ SSL verification. When `None`, automatically disabled for `localhost` and `http://` URLs |
+| `base_url` | `str` | - | Base URL of the CyborgDB service, e.g. `"http://localhost:8000"`. |
+| `api_key` | `str` | `None` | _(Optional)_ Service authentication credential, sent as the `X-API-Key` header. Required only when the service has authentication enabled. |
+| `verify_ssl` | `bool` | `None` | _(Optional)_ TLS certificate verification. `None` auto-detects; see [TLS verification](#tls-verification). |
 
-<Note>`api_key` is the service **authentication** credential — the root key or a per-user `cdbk_` token, sent as `X-API-Key`. It is required only when the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set; against an unauthenticated service (the default), you can omit it. This is distinct from the service's `CYBORGDB_API_KEY` license key. See [Managing Keys](../../guides/advanced/managing-keys).</Note>
+<Note>`api_key` is the service **authentication** credential: the root key or a per-user `cdbk_` token. It is required only when the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set; against an unauthenticated service (the default), omit it. This is distinct from the service's `CYBORGDB_API_KEY` license key. See [Managing Keys](../../guides/advanced/managing-keys).</Note>
 
 ### Example Usage
 
 ```python
 from cyborgdb import Client
 
-# Create client with API key
 client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 ```
 
-## Error Handling
+## TLS verification
 
-The `Client` class includes comprehensive error handling that processes different types of API errors:
+`verify_ssl` decides whether the SDK checks the service's TLS certificate:
 
-- **HTTP Errors**: Status codes and response details are logged and converted to meaningful error messages
-- **Validation Errors**: Field validation failures are formatted with detailed information
-- **Network Errors**: Connection and timeout issues are handled gracefully
+| `base_url` | `verify_ssl=None` (default) | `verify_ssl=True` | `verify_ssl=False` |
+|------------|-----------------------------|-------------------|--------------------|
+| `http://…` | No TLS (logs "SSL verification is disabled") | No TLS (logs that the setting is ignored) | No TLS (logs "SSL verification is disabled") |
+| `https://` with host `localhost`, `127.0.0.1`, or `::1` | Verification **off** (logs a warning) | Verification on | Verification off (logs a warning) |
+| Any other `https://` URL | Verification on | Verification on | Verification off (logs a warning) |
 
-All methods throw standard Python exceptions with descriptive messages for easier debugging and error handling in your application.
+The loopback check is an exact hostname match, so `https://localhost.example.com` is verified. Turning verification off also silences urllib3's `InsecureRequestWarning` for the whole Python process.
 
-## Type Safety
+The SDK has no option for a custom CA bundle or client certificate.
 
-The Python SDK provides type hints for better development experience:
+## Errors
 
-- Type annotations for all method parameters and return values
-- IDE support with autocomplete and type checking
-- Runtime validation of critical parameters
+Failed requests raise a subclass of `cyborgdb.CyborgDBError` chosen by HTTP status, such as `NotFoundError` for `404` or `AuthenticationError` for `401`. Arguments rejected inside the SDK, before a request is sent, raise `ValueError` or `TypeError`. See [Errors](../errors) for the full list.
+
+```python
+import cyborgdb
+
+try:
+    Client(base_url='http://localhost:8000', api_key='wrong-key').list_indexes()
+except cyborgdb.AuthenticationError as e:
+    print(e.status_code)
+# Output: 401
+```
+
+The SDK does not retry requests or set a request timeout.

@@ -4,94 +4,120 @@ mode: "wide"
 noindex: true
 ---
 
-Runs a metadata-only query — no query vector required. `query_metadata()` resolves the filter entirely against the encrypted metadata index and returns the IDs of matching items. Works on untrained indexes.
+Finds items by metadata alone, with no query vector. `query_metadata()` resolves the filter against the encrypted metadata index and returns the matching IDs. With `text`, it also ranks matches by BM25 relevance. It works on untrained indexes.
 
 ```python
-def query_metadata(self,
-                   filters: Dict[str, Any] = None,
-                   top_k: int = None,
-                   order_by: Union[str, Dict[str, int]] = None,
-                   ascending: bool = True) -> List[str]
+index.query_metadata(
+    filters=None,
+    top_k=None,
+    order_by=None,
+    ascending=True,
+    text=None,
+    text_fields=None,
+    text_field_weights=None,
+    require_all_terms=None,
+) -> List[MetadataResult]
 ```
 
 ### Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `filters` | `Dict[str, Any]` | `None` | _(Optional)_ Metadata filters as a JSON-like dictionary; `None`/empty matches everything. Same operators as [`query()`](./query) except `$type`. See [Filter constraints](#filter-constraints) below. |
-| `top_k` | `int` | `None` | _(Optional)_ Cap on the number of IDs returned; `None` returns every match. Applied **after** `order_by`, so it yields the first N of the sorted result. |
-| `order_by` | `str` or `Dict[str, int]` | `None` | _(Optional)_ Sort matches by a metadata field, applied post-filter. Accepts a field name (direction controlled by `ascending`) or a MongoDB-style single-field dict, e.g. `{"views": -1}` for descending. |
-| `ascending` | `bool` | `True` | _(Optional)_ Sort direction when `order_by` is a field name. Ignored when `order_by` is a dict (the dict's `1` / `-1` value controls direction). |
+| `filters` | `Dict[str, Any]` | `None` | _(Optional)_ Metadata filter; `None` or `{}` matches everything. See [Filter constraints](#filter-constraints). |
+| `top_k` | `int` | `None` | _(Optional)_ Maximum results; `None` returns every match. Applied after `order_by`. |
+| `order_by` | `str` or `Dict[str, int]` | `None` | _(Optional)_ Sort by a metadata field: a field name (direction set by `ascending`), or a single-field dict such as `{"views": -1}` for descending. Can't be combined with `text`. |
+| `ascending` | `bool` | `True` | _(Optional)_ Sort direction when `order_by` is a field name. Ignored when `order_by` is a dict. |
+| `text` | `str` | `None` | _(Optional)_ Query text for BM25 full-text ranking. Requires an index with at least one full-text field. Results then carry a `score`, sorted by relevance, and `filters` act as a pre-filter. |
+| `text_fields` | `List[str]` | `None` (all full-text fields) | _(Optional)_ Full-text fields to search. |
+| `text_field_weights` | `List[float]` | `None` (`1.0` each) | _(Optional)_ Weight per searched field, in the same order as `text_fields`. |
+| `require_all_terms` | `bool` | `None` (service default: `False`) | _(Optional)_ Match only items containing every query term. |
 
-<Note>
-- Without `order_by`, the result is an **unordered** subset of matching IDs.
-- Items missing the `order_by` field (or holding a non-scalar value) sort last.
-</Note>
+Without `order_by` or `text`, results come back in no particular order. Items missing the `order_by` field, or holding a non-scalar value in it, sort last.
 
 ### Filter constraints
 
-Unlike [`query()`](./query), which falls back to a post-filter over the decrypted metadata when a filter cannot be answered from the index, `query_metadata()` has no fallback stage — every filter leaf must be resolvable from the encrypted metadata index. That makes the index's [`metadata_schema`](../client/create-index#metadata-schema) enforcement instead of a performance hint:
+[`query()`](./query) falls back to a post-filter over decrypted metadata when the index can't answer a filter. `query_metadata()` has no fallback, so every filter must be answerable from the index. The index's [`metadata_schema`](../client/create-index#metadata-schema) is therefore enforced here:
 
-- `$regex` / `$contains` require the field to have been declared `pattern: true` at index create time.
-- A field declared `filterable: false` cannot be filtered on here at all.
-- `$type` is not supported on this endpoint.
+- `$regex` and `$contains` need a field created with `pattern: True`.
+- A field created with `filterable: False` can't be filtered on.
+- `$type` isn't supported.
 
-Any of these come back as 400 with the reason; use [`query()`](./query) with a vector for filters that need the post-filter path. Nested dot-paths (`loc.city`) are supported.
+Any of these returns `cyborgdb.ValidationError` (HTTP `400`) with the reason. Nested dot-paths such as `"loc.city"` are supported.
 
 ### Returns
 
-`List[str]`: IDs of items whose metadata matches `filters` — ordered by `order_by` when set, otherwise unordered.
+`List[MetadataResult]`: one dict per match.
+
+```python
+{
+    "id": str,     # Always returned
+    "score": float, # Only when text is set. BM25 relevance; higher is more relevant.
+}
+```
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="ValueError">
-        - Throws if `order_by` is a dict with more than one field.
-        - Throws if `order_by` is neither a field name (`str`) nor a single-field dict.
-        - Throws if the server rejects the filter (400) — a `$regex`/`$contains` on a non-`pattern` field, a `filterable: false` field, or an unsupported operator.
-    </Accordion>
-    <Accordion title="Service Errors">
-        - Raised if the CyborgDB service is unavailable, unreachable, or returns 5xx.
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `ValueError` | `order_by` is a dict with more than one key, or is neither a `str` nor a dict. Raised before any request is sent. |
+| `cyborgdb.ValidationError` | The service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints). |
+| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
+| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
-_Filter only (all matches, unordered)_:
+#### Filter only
 
 ```python
-ids = index.query_metadata(filters={"label": "dog"})
-# Example output:
-# ["101", "102", "205"]
+results = index.query_metadata(filters={"label": "dog"})
+print(sorted(r["id"] for r in results))  # unordered without order_by
+# Output: ['101', '102']
 ```
 
-_Filter with operators and a result cap_:
+#### Operators and a result cap
 
 ```python
-ids = index.query_metadata(
+results = index.query_metadata(
     filters={"$and": [{"label": "cat"}, {"confidence": {"$gte": 0.9}}]},
     top_k=10,
 )
+print(results)
+# Output: [{'id': '201'}]
 ```
 
-_Sorted by a metadata field_:
+#### Sorted by a field
 
 ```python
-# Ascending by "views" (field name + ascending flag)
-ids = index.query_metadata(filters={"label": "dog"}, order_by="views")
+# Ascending by "views"
+results = index.query_metadata(filters={"label": "dog"}, order_by="views")
 
-# Descending by "views" (MongoDB-style dict); top_k applies after the sort
-ids = index.query_metadata(
+# Descending by "views"; top_k applies after the sort
+results = index.query_metadata(
     filters={"label": "dog"},
     order_by={"views": -1},
     top_k=5,
 )
+print([r["id"] for r in results])
+# Output: ['102', '101']
 ```
 
-_Regex match (field must have been created with `pattern: True`)_:
+#### Regex match
 
 ```python
-ids = index.query_metadata(filters={"title": {"$regex": "^intro"}})
+# "title" must have been created with pattern=True
+results = index.query_metadata(filters={"title": {"$regex": "^intro"}})
 ```
 
-For metadata syntax and supported operators, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).
+#### Full-text search
+
+```python
+# The index needs a full-text field, e.g. create_index(..., text_fields=["body"])
+results = index.query_metadata(text="encrypted search", top_k=5)
+
+for r in results:
+    print(r["id"], round(r["score"], 4))
+```
+
+For filter syntax and operators, see [Metadata filtering](../types#metadata-filtering).

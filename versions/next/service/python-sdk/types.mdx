@@ -3,146 +3,171 @@ title: "Types"
 noindex: true
 ---
 
-## Index Configuration
+## Index configuration
 
-<Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` types from v0.16 have been removed — there is no `index_config` argument any more. Configuration is expressed as flat keyword arguments to `client.create_index`.</Note>
+These keyword arguments to [`client.create_index()`](./client/create-index) configure a DiskIVF index. Since v0.17 there is no `index_config` argument and no `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` types.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `dimension` | `int` | `None` (auto-detect) | Vector dimensionality. Inferred from the first upsert or from `embedding_model` when omitted. |
-| `metric` | `str` | server default (`"euclidean"`) | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
-| `embedding_model` | `str` | `None` | Optional sentence-transformers model name for automatic embedding generation. |
-| `storage_precision` | `str` | `"float32"` | On-disk rerank-vector dtype: `"float32"` or `"float16"`. |
+| `dimension` | `int` | `None` (auto-detect) | Vector dimensionality. Taken from the first upsert, or from `embedding_model`, when omitted. |
+| `metric` | `str` | `"euclidean"` | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
+| `embedding_model` | `str` | `None` | sentence-transformers model name for automatic embedding generation. |
+| `storage_precision` | `str` | `"float32"` | `"float32"`, `"float16"`, or TurboQuant `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`. See [Storage precision](./client/create-index#storage-precision). |
+| `metadata_schema` | `Dict[str, Dict[str, bool]]` | `None` | Per-field indexing policy. See [Metadata schema](./client/create-index#metadata-schema). |
+| `text_fields` | `List[str]` | `None` | Fields to index for BM25 full-text search. |
+| `bm25_k1` | `float` | `1.2` | BM25 term-frequency saturation. |
+| `bm25_b` | `float` | `0.75` | BM25 length normalization. |
 
-## Key Management
+## Key management
 
 | Parameter | Type | Notes |
 |-----------|------|-------|
-| `index_key` | `bytes` | 32-byte encryption key. Used by the SDK-supplied KEK path. Required on every subsequent call for that index. |
-| `kms_name` | `str` | Name of a `kms.registry` entry in the service YAML. The server generates and wraps the DEK on creation; subsequent calls omit `index_key`. |
+| `index_key` | `bytes` | 32-byte key for the SDK-supplied-key path. Pass it again on every `load_index()`. |
+| `kms_name` | `str` | Name of a `kms.registry` entry in the service YAML. The service generates and wraps the key; later calls omit `index_key`. |
 
-At least one of `index_key` / `kms_name` must be supplied to `create_index`. Supplying both against a real-KMS slot is rejected.
+Pass exactly one of the two to `create_index()`; passing both returns `ValidationError`.
 
-## Vector Item Format
+## Vector item
 
-Dictionary format for upsert operations:
+The dict shape [`upsert()`](./encrypted-index/upsert) accepts:
 
 ```python
 vector_item = {
-    "id": "unique_identifier",           # Required: string
-    "vector": [0.1, 0.2, 0.3, ...],    # Optional: List[float]
-    "contents": "text content",          # Optional: string or bytes
-    "metadata": {                        # Optional: Dict[str, Any]
+    "id": "unique_identifier",        # Required: str
+    "vector": [0.1, 0.2, 0.3, 0.4],   # Optional: List[float]
+    "contents": "text content",       # Optional: str or bytes
+    "metadata": {                     # Optional: Dict[str, Any]
         "category": "research",
         "author": "Dr. Smith",
-        "tags": ["ai", "ml"]
-    }
+        "tags": ["ai", "ml"],
+        "published_ms": 1767225600000,  # a date, as epoch milliseconds
+    },
 }
 ```
 
-## Query Result Format
+## Query result
 
-Results returned from query operations:
+[`query()`](./encrypted-index/query) returns a flat list for one query vector, and a list of lists for a batch:
 
 ```python
-# Single query result format (flat list)
-single_query_results = [
-    {
-        "id": "doc1",                    # string (always included)
-        "distance": 0.125,               # float (if included, lower = more similar)
-        "metadata": {                    # Dict (if included in query)
-            "category": "research"
-        },
-        "contents": "text content",      # string (if included in query)
-        "vector": [0.1, 0.2, ...]      # List[float] (if included in query)
-    },
-    # ... more results
+# One query vector
+[
+    {"id": "doc1", "distance": 0.125, "metadata": {"category": "research"}},
+    {"id": "doc2", "distance": 0.234, "metadata": {"category": "news"}},
 ]
 
-# Batch query result format (nested list)
-batch_query_results = [
-    [  # Results for first query vector
-        {"id": "doc1", "distance": 0.125, ...},
-        {"id": "doc2", "distance": 0.234, ...}
-    ],
-    [  # Results for second query vector
-        {"id": "doc3", "distance": 0.156, ...},
-        {"id": "doc4", "distance": 0.278, ...}
-    ]
+# Batch: one inner list per query vector
+[
+    [{"id": "doc1", "distance": 0.125}, {"id": "doc2", "distance": 0.234}],
+    [{"id": "doc3", "distance": 0.156}, {"id": "doc4", "distance": 0.278}],
 ]
 ```
 
-## Metadata Filtering
+Vector queries return `distance` (lower is closer). Hybrid queries (`text=`) return `score` instead (higher is more relevant).
 
-The `filters` parameter in query operations supports MongoDB-style operators:
+## MetadataResult
 
-### Supported Operators
-
-- **`$eq`**: Equality (`{"category": "research"}`)
-- **`$ne`**: Not equal (`{"status": {"$ne": "draft"}}`)
-- **`$gt`**: Greater than (`{"score": {"$gt": 0.8}}`)
-- **`$gte`**: Greater than or equal (`{"year": {"$gte": 2020}}`)
-- **`$lt`**: Less than (`{"price": {"$lt": 100}}`)
-- **`$lte`**: Less than or equal (`{"rating": {"$lte": 4.5}}`)
-- **`$in`**: In array (`{"tag": {"$in": ["ai", "ml"]}}`)
-- **`$nin`**: Not in array (`{"category": {"$nin": ["spam", "deleted"]}}`)
-- **`$and`**: Logical AND (`{"$and": [{"a": 1}, {"b": 2}]}`)
-- **`$or`**: Logical OR (`{"$or": [{"x": 1}, {"y": 2}]}`)
-
-### Filter Examples
+The item type [`query_metadata()`](./encrypted-index/query-metadata) returns, importable as `cyborgdb.MetadataResult`:
 
 ```python
-# Simple equality filter
+{
+    "id": str,      # Always present
+    "score": float, # Only when text is set
+}
+```
+
+## Field selection
+
+`include` picks the fields returned besides `id`:
+
+| Field | `get()` | `query()` / `query_binary()` |
+|-------|---------|------------------------------|
+| `vector` | Yes (default) | Not returned |
+| `contents` | Yes (default) | Not returned |
+| `metadata` | Yes (default) | Yes |
+| `distance` | - | Yes |
+
+`get()` defaults to `["vector", "contents", "metadata"]`; `query()` defaults to `[]`, which returns only `id`.
+
+## Metadata filtering
+
+`filters` on [`query()`](./encrypted-index/query), [`query_binary()`](./encrypted-index/query-binary), and [`query_metadata()`](./encrypted-index/query-metadata) uses MongoDB-style operators. Nested fields use dot-paths such as `"loc.city"`.
+
+### Operators
+
+| Operator | Meaning | Example |
+|----------|---------|---------|
+| `$eq` | Equal (also the meaning of a bare value) | `{"category": "research"}` |
+| `$ne` | Not equal | `{"status": {"$ne": "draft"}}` |
+| `$gt`, `$gte` | Greater than, or equal | `{"year": {"$gte": 2020}}` |
+| `$lt`, `$lte` | Less than, or equal | `{"price": {"$lt": 100}}` |
+| `$in` | Value is in the list | `{"tag": {"$in": ["ai", "ml"]}}` |
+| `$nin` | Value is not in the list | `{"category": {"$nin": ["spam", "deleted"]}}` |
+| `$exists` | Field is present (`true`) or absent (`false`) | `{"reviewer": {"$exists": True}}` |
+| `$regex` | String matches a regular expression | `{"title": {"$regex": "^intro"}}` |
+| `$contains` | String contains a substring | `{"title": {"$contains": "guide"}}` |
+| `$and` | All sub-filters match | `{"$and": [{"a": 1}, {"b": 2}]}` |
+| `$or` | Any sub-filter matches | `{"$or": [{"x": 1}, {"y": 2}]}` |
+| `$nor` | No sub-filter matches | `{"$nor": [{"status": "draft"}, {"status": "deleted"}]}` |
+| `$not` | The sub-filter doesn't match. Takes one filter object, at the top level. | `{"$not": {"price": {"$gt": 100}}}` |
+
+`$gt`, `$gte`, `$lt`, and `$lte` require a number; any other value returns `ValidationError`. `$not` can't be nested inside a field (`{"price": {"$not": ...}}` returns `ValidationError`); wrap the whole condition instead. `$regex` and `$contains` resolve from the index only on fields created with `pattern: True`: `query()` falls back to a slower post-filter otherwise, and `query_metadata()` rejects the filter.
+
+### Examples
+
+```python
+# Equality
 simple_filter = {"category": "research"}
 
-# Range filter
-range_filter = {
-    "published_year": {"$gte": 2020, "$lte": 2024}
-}
+# Range
+range_filter = {"published_year": {"$gte": 2020, "$lte": 2024}}
 
-# Complex compound filter
+# Compound
 complex_filter = {
     "$and": [
         {"category": "research"},
         {"confidence": {"$gte": 0.9}},
-        {"$or": [
-            {"language": "en"},
-            {"translated": True}
-        ]}
+        {"$or": [{"language": "en"}, {"translated": True}]},
     ]
 }
 ```
 
-## Field Selection
+### Dates
 
-Many operations support field selection through the `include` parameter:
-
-### Available Fields
-
-- **`vector`**: The vector data itself
-- **`contents`**: Text or binary content associated with the vector
-- **`metadata`**: Structured metadata object
-- **`distance`**: Similarity distance (query operations only)
-
-<Note>The `id` field is always included in query results. Other fields such as `distance` and `metadata` are controlled by the `include` parameter (server default: `[]` — only `id` is returned unless `include` specifies additional fields).</Note>
-
-### Example Usage
+CyborgDB has no date type. Store dates in metadata as integer milliseconds since the Unix epoch (UTC), so range operators work on them:
 
 ```python
-# Include only metadata (efficient for existence checks)
-metadata_only = ["metadata"]
+from datetime import datetime, timezone
 
-# Include vectors and distances (for similarity analysis)
-vectors_and_distances = ["vector", "distance"]
+published = datetime(2026, 1, 15, tzinfo=timezone.utc)
+published_ms = int(published.timestamp() * 1000)
 
-# Include all available fields
-all_fields = ["vector", "contents", "metadata", "distance"]
+index.upsert([
+    {"id": "doc1", "vector": [0.1, 0.2, 0.3, 0.4], "metadata": {"published_ms": published_ms}},
+])
+
+# Everything published on or after 2026-01-01
+start_ms = int(datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)
+results = index.query_metadata(filters={"published_ms": {"$gte": start_ms}})
+print(results)
+# Output: [{'id': 'doc1'}]
 ```
 
-## Distance Metrics
+Values come back as integers. Convert one back to a `datetime` with:
 
-Supported distance metrics for similarity calculations:
+```python
+item = index.get(["doc1"], include=["metadata"])[0]
+published = datetime.fromtimestamp(item["metadata"]["published_ms"] / 1000, tz=timezone.utc)
+print(published)
+# Output: 2026-01-15 00:00:00+00:00
+```
 
-- **`cosine`**: Cosine similarity (recommended for normalized vectors)
-- **`euclidean`**: Euclidean distance (L2 norm)
-- **`squared_euclidean`**: Squared Euclidean distance (faster than euclidean)
+A date stored as a string, such as `"2026-01-15"`, only works with equality filters. Range operators need a number, so `{"$gte": "2026-01-01"}` returns `ValidationError`.
+
+## Distance metrics
+
+| Metric | Description |
+|--------|-------------|
+| `cosine` | Cosine distance. Suited to normalized embeddings. |
+| `euclidean` | Euclidean (L2) distance. |
+| `squared_euclidean` | Squared Euclidean distance. Same ranking as `euclidean`, without the square root. |

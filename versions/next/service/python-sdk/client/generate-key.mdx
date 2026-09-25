@@ -4,35 +4,33 @@ mode: "wide"
 noindex: true
 ---
 
-Generates a cryptographically secure 256-bit (32-byte) encryption key suitable for creating encrypted indexes.
+Generates a random 32-byte (256-bit) key for creating an encrypted index with an SDK-supplied key.
 
 ```python
 @staticmethod
-generate_key(save: bool = False) -> bytes
+Client.generate_key(save: bool = False) -> bytes
 ```
 
 ### Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `save` | `bool` | `False` | Whether to save/load the generated key to/from a file on your local machine |
+| `save` | `bool` | `False` | _(Optional)_ Store the key at `~/.cyborgdb/index_key`, or reuse the key already stored there. |
 
 ### Returns
 
-`bytes`: A 32-byte object containing cryptographically secure random data suitable for index encryption.
+`bytes`: 32 bytes from Python's `secrets.token_bytes(32)`, which reads the operating system's cryptographic random source.
 
-### Security Notes
+### Saving the key
 
-The generated key is cryptographically secure and suitable for production use:
+With `save=True`:
 
-- Uses Python's `secrets.token_bytes()` which leverages OS entropy sources for maximum security
-- Provides 256 bits of entropy (32 bytes)
-- Compatible with AES-256 encryption used by CyborgDB
-- If `save=True`, the key is stored in the file `~/.cyborgdb/index_key` for future retrieval
+- If `~/.cyborgdb/index_key` exists and holds exactly 32 bytes, that key is returned and no new key is generated.
+- Otherwise a new key is generated, written to that file, and returned.
 
-<Warning>
-This key must be persisted securely. For more information, see [Managing Encryption Keys](../../guides/advanced/managing-keys).
-</Warning>
+The file is not encrypted, and the SDK logs a warning each time it's used. Use `save=True` for local development only; in production, store keys in a secrets manager or use a KMS-backed index. See [Managing Encryption Keys](../../guides/advanced/managing-keys).
+
+<Warning>An index created with an SDK-supplied key can only be opened with that exact key. If the key is lost, the index's data can't be decrypted.</Warning>
 
 ### Example Usage
 
@@ -41,16 +39,12 @@ from cyborgdb import Client
 
 client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
-# Generate a secure encryption key
-index_key = client.generate_key(save=True)
-print(f'Generated key length: {len(index_key)}')  # Output: 32
+index_key = Client.generate_key()
+print(len(index_key))
+# Output: 32
 
-index = client.create_index(
-    'my-secure-index',
-    index_key,
-)
+index = client.create_index('my-secure-index', index_key)
 
-# IMPORTANT: Store the key securely for future access
-# key_hex = index_key.hex()
-# print(f'Store this key safely: {key_hex}')
+# Keep the key somewhere safe, e.g. as hex in a secrets manager
+key_hex = index_key.hex()
 ```

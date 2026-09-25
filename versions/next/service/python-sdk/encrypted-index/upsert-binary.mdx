@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-`upsert_binary` is the low-level, high-throughput upsert path. Vectors are sent as base64-encoded binary instead of JSON arrays, which is significantly faster for large batches. Unlike the two-arg form of [`upsert()`](./upsert), this method also accepts parallel `metadata` and `contents` lists.
+`upsert_binary()` sends vectors as base64-encoded little-endian `float32` instead of JSON arrays, which is faster for large batches. Unlike the two-argument form of [`upsert()`](./upsert), it also takes parallel `metadata`.
 
 ```python
 index.upsert_binary(
@@ -19,10 +19,12 @@ index.upsert_binary(
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `ids` | `List[str]` | - | Unique identifier for each vector. Length must match `vectors.shape[0]`. |
-| `vectors` | `np.ndarray` (shape `(n, dim)`) | - | Vector data as a 2D numpy array. The SDK casts to little-endian `float32` if needed. |
-| `metadata` | `List[Optional[Dict]]` | `None` | _(Optional)_ Per-vector metadata. Same length as `ids`. Use `None` for entries without metadata. |
-| `contents` | `List[Optional[str \| bytes]]` | `None` | _(Optional)_ Per-vector contents. Same length as `ids`. Bytes are base64-encoded, strings are passed through; all contents are encrypted before storage. Use `None` for entries without contents. |
+| `ids` | `List[str]` | - | Unique identifier for each vector. Length must equal `vectors.shape[0]`. |
+| `vectors` | `np.ndarray` (shape `(n, dim)`) | - | Vector data. Cast to little-endian `float32` if needed. |
+| `metadata` | `List[Optional[Dict]]` | `None` | _(Optional)_ Metadata per vector, same length as `ids`. Use `None` for entries without metadata. |
+| `contents` | `List[Optional[str \| bytes]]` | `None` | _(Optional)_ Contents per vector. **Not usable yet:** see the warning below. |
+
+<Warning>Passing any `str` or `bytes` value in `contents` currently raises `pydantic.ValidationError`. To store contents, use the item-dict form of [`upsert()`](./upsert).</Warning>
 
 ### Returns
 
@@ -30,12 +32,14 @@ index.upsert_binary(
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - `TypeError`: `vectors` is not a numpy array.
-        - `ValueError`: `vectors.ndim != 2`, or `len(ids) != vectors.shape[0]`, or the server rejects the upsert.
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `TypeError` | `vectors` is not a NumPy array. |
+| `ValueError` | `vectors` is not 2-D, or `ids`, `metadata`, or `contents` differ in length from `vectors`. |
+| `cyborgdb.ValidationError` | The service rejects the batch (HTTP `400`), for example a vector with the wrong dimension. |
+| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
@@ -43,15 +47,14 @@ index.upsert_binary(
 import numpy as np
 
 ids = ["vec1", "vec2", "vec3"]
-vectors = np.random.rand(3, 384).astype(np.float32)
+vectors = np.random.rand(3, 4).astype(np.float32)
 metadata = [
     {"category": "news", "lang": "en"},
     {"category": "research"},
     None,
 ]
-contents = ["First doc body", "Second doc body", None]
 
-index.upsert_binary(ids, vectors, metadata=metadata, contents=contents)
+index.upsert_binary(ids, vectors, metadata=metadata)
 ```
 
-<Tip>For small batches and most application code, prefer the dictionary form of [`upsert()`](./upsert) for readability. Reach for `upsert_binary` when you have vectors already in numpy form and JSON encoding is on your critical path.</Tip>
+<Tip>For small batches, the item-dict form of [`upsert()`](./upsert) is easier to read. Use `upsert_binary()` when the vectors are already a NumPy array and JSON encoding time matters.</Tip>

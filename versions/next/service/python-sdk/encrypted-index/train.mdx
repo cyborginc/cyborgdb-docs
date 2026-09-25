@@ -4,67 +4,74 @@ mode: "wide"
 noindex: true
 ---
 
-Trains the encrypted index to optimize it for efficient similarity search queries. Training is essential for IVF-based indexes to achieve optimal query performance and accuracy.
-
-<Tip>In CyborgDB Service v0.17, training is **auto-triggered** server-side once upserts cross the configured `RETRAIN_THRESHOLD`. `upsert()` returns `None` either way — to observe training, poll [`is_training()`](../getters#is_training). Calling `train()` explicitly forces immediate clustering and is useful when you want to block until the index is ready (for example, before benchmarking queries). Auto-training can be disabled service-side with the `AUTO_TRAIN_DISABLED` setting.</Tip>
+Clusters the index's vectors into IVF lists so queries only scan the closest lists. `train()` waits until training finishes before returning.
 
 ```python
 index.train(
     n_lists=None,
     batch_size=None,
     max_iters=None,
-    tolerance=None
+    tolerance=None,
 )
 ```
 
+<Tip>The service also trains indexes automatically. An untrained index is trained once it holds more than `AUTO_TRAIN_MIN_VECTORS` vectors (default `65536`), and a trained index is retrained when its size calls for more lists than it has. Set `AUTO_TRAIN_DISABLED=true` on the service to turn this off. Call `train()` yourself to train a smaller index, or to make sure training is finished before running queries or benchmarks.</Tip>
+
 ### Parameters
+
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `n_lists` | `int` | `None` | _(Optional)_ Number of inverted lists to use for the index. When `None`, auto-selects based on the dataset size |
-| `batch_size` | `int` | `None` | _(Optional)_ Number of vectors to process per training batch. When `None`, the server uses 2048 |
-| `max_iters` | `int` | `None` | _(Optional)_ Maximum number of training iterations. When `None`, the server uses 100 |
-| `tolerance` | `float` | `None` | _(Optional)_ Convergence tolerance for training completion. When `None`, the server uses 1e-6 |
+| `n_lists` | `int` | `None` (auto) | _(Optional)_ Number of IVF lists. `None` picks the square root of the vector count, rounded to a power of two. |
+| `batch_size` | `int` | `None` (service default: `2048`) | _(Optional)_ Vectors processed per training batch. |
+| `max_iters` | `int` | `None` (service default: `100`) | _(Optional)_ Maximum clustering iterations. |
+| `tolerance` | `float` | `None` (service default: `1e-6`) | _(Optional)_ Convergence tolerance. |
 
-<Note>Training is a compute-intensive operation that may take several seconds to minutes depending on the index size and configuration.</Note>
+<Note>The service also accepts a `max_memory` training limit, which the Python SDK doesn't expose yet.</Note>
+
+### Requirements
+
+Training only runs when all three hold:
+
+- The index has at least **10,000 vectors**.
+- It has at least twice as many vectors as `n_lists`.
+- The vector dimension is a **multiple of 32**, such as 384, 768, or 1536.
+
+<Warning>`train()` doesn't report a skipped or failed training run. If a requirement isn't met, or training fails on the service, `train()` still returns normally and the index stays untrained. Check [`is_trained()`](../getters#is_trained) after `train()` returns: an untrained index has `n_lists` of `1`. Queries on an untrained index still work.</Warning>
 
 ### Returns
 
-`None`
+`None`. If the index is already training or queued for training, `train()` returns right away without starting a second run; check [`is_training()`](../getters#is_training).
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the API request fails due to network connectivity issues.
-        - Throws if authentication fails (invalid API key).
-        - Throws if the encryption key is invalid for the specified index.
-        - Throws if there are insufficient resources to complete training.
-    </Accordion>
-    <Accordion title="Training Errors">
-        - Throws if the index has no vectors to train on.
-        - Throws if the index configuration is incompatible with training.
-        - Throws if training parameters are out of valid ranges.
-        - Throws if training fails to converge within the specified parameters.
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `cyborgdb.AuthenticationError` | The client isn't using the root key, or the `index_key` is invalid (HTTP `401`/`403`). Training requires the root key. |
+| `cyborgdb.NotFoundError` | The index doesn't exist (HTTP `404`). |
+| `cyborgdb.ValidationError` | A training parameter is out of range (HTTP `400`/`422`). |
+| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. A failed training run doesn't raise; see [Requirements](#requirements). |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
-#### Basic Index Training
+#### Default settings
 
 ```python
-# Train the index after adding the data
 index.train()
+
+# train() doesn't raise if training is skipped, so check the result
+print(index.is_trained(), index.n_lists)
+# Output: True 128
 ```
 
-#### Custom Training Parameters
+#### Custom settings
 
 ```python
-# Train with custom parameters for large dataset
 index.train(
-    n_lists=100,        # Number of inverted lists
-    batch_size=4096,    # Larger batches for better performance
-    max_iters=200,      # More iterations for better convergence
-    tolerance=1e-7      # Stricter convergence criteria
+    n_lists=128,
+    batch_size=4096,
+    max_iters=200,
+    tolerance=1e-7,
 )
 ```

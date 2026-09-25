@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Lists all vector IDs currently stored in the encrypted index.
+Returns every item ID in the index.
 
 ```python
 index.list_ids()
@@ -12,43 +12,28 @@ index.list_ids()
 
 ### Returns
 
-`List[str]` - List of all vector IDs currently stored in the index
+`List[str]`: all IDs in the index, in no particular order. The full list is returned in one response; there is no pagination.
 
 ### Exceptions
 
-<AccordionGroup>
-    <Accordion title="Error">
-        - Throws if the API request fails due to network connectivity issues.
-        - Throws if authentication fails (invalid API key).
-        - Throws if the encryption key is invalid for the specified index.
-        - Throws if the index was not created or loaded yet.
-        - Throws if an error occurs during retrieval.
-    </Accordion>
-</AccordionGroup>
+| Exception | Raised when |
+|-----------|-------------|
+| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
+| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+
+See [Errors](../errors) for the full hierarchy.
 
 ### Example Usage
 
 ```python
-# Get all IDs in the index
 all_ids = index.list_ids()
-print(f"Total items in index: {len(all_ids)}")
+print(len(all_ids))
+# Output: 3
 
-# Print first 10 IDs
-for id in all_ids[:10]:
-    print(f"ID: {id}")
+print("doc1" in all_ids)
+# Output: True
 
-# Check if a specific ID exists
-target_id = "document_123"
-if target_id in all_ids:
-    print(f"Document {target_id} exists in the index")
-else:
-    print(f"Document {target_id} not found")
-
-# Use for batch processing
-batch_size = 100
-for i in range(0, len(all_ids), batch_size):
-    batch_ids = all_ids[i:i+batch_size]
-    # Process batch of documents
-    items = index.get(batch_ids)
-    # ... process items ...
+# Fetch items in batches of 100
+for i in range(0, len(all_ids), 100):
+    items = index.get(all_ids[i:i + 100])
 ```

@@ -1,0 +1,95 @@
+---
+title: "Errors"
+mode: "wide"
+noindex: true
+---
+
+Every failed request to the service raises a subclass of `cyborgdb.CyborgDBError`. The subclass is chosen from the HTTP status code, so callers can catch one class per failure mode.
+
+```python
+import cyborgdb
+
+try:
+    index = client.load_index("missing-index", index_key)
+except cyborgdb.NotFoundError as e:
+    print(e.status_code, e.detail)
+# Output: 404 No KMS envelope for index 'missing-index'
+```
+
+## Exception classes
+
+| Class | Raised for | `retryable` |
+|-------|------------|-------------|
+| `ValidationError` | HTTP `400` or `422`: the service rejected the request's arguments. | `False` |
+| `AuthenticationError` | HTTP `401` or `403`: a missing or invalid `api_key`, or an `index_key` that doesn't match the index. | `False` |
+| `NotFoundError` | HTTP `404`: the index or resource does not exist. | `False` |
+| `ConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `False` |
+| `RateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `True` |
+| `ServiceError` | Any HTTP `5xx` response. | `True` |
+| `TransportError` | No response arrived: DNS failure, refused connection, TLS failure, or timeout. | `True` |
+
+All seven classes inherit from `CyborgDBError`, which inherits from `ValueError`. Code written against earlier SDK versions that catches `ValueError` still catches them.
+
+<Note>`cyborgdb.ValidationError` shares its name with `pydantic.ValidationError`. Import it as `cyborgdb.ValidationError` to avoid confusion.</Note>
+
+## Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `status_code` | `int` or `None` | HTTP status code. `None` for a `TransportError`. |
+| `detail` | `str` or `None` | The service's error message, taken from the response body's `detail` field. |
+| `request_id` | `str` or `None` | Value of the `X-Request-Id` response header, when the service sends one. Include it when reporting a problem. |
+| `retry_after` | `float` or `None` | Seconds from a numeric `Retry-After` header. |
+| `retryable` | `bool` | Class-level flag from the table above. |
+
+The original exception is kept as `__cause__`.
+
+```python
+try:
+    index.query_metadata(filters={"category": {"$regex": "^re"}})
+except cyborgdb.ValidationError as e:
+    print(e.status_code)
+    print(e.detail)
+# Output:
+# 400
+# Failed to query metadata: Invalid input: $regex on 'category' requires a regex-indexed (pattern) field
+```
+
+## Logging
+
+The SDK also logs every failed request at `ERROR` level through Python's `logging` module, including the response headers and body, even when the caller catches the exception. All SDK loggers sit under the `cyborgdb` logger, so they can be quieted together:
+
+```python
+import logging
+
+logging.getLogger("cyborgdb").setLevel(logging.CRITICAL)
+```
+
+## Retries
+
+The SDK does not retry requests or set a request timeout. `retryable` marks the errors that are safe to retry; the retry loop is up to the caller:
+
+```python
+import time
+
+for attempt in range(3):
+    try:
+        results = index.query(query_vectors=[0.1, 0.2, 0.3, 0.4], top_k=5)
+        break
+    except cyborgdb.CyborgDBError as e:
+        if not e.retryable or attempt == 2:
+            raise
+        time.sleep(e.retry_after or 2 ** attempt)
+```
+
+## Errors raised before a request is sent
+
+Argument checks that run in the SDK, before anything is sent to the service, raise standard Python exceptions instead of `CyborgDBError`:
+
+| Exception | Raised when |
+|-----------|-------------|
+| `ValueError` | `index_key` is not 32 bytes, neither `index_key` nor `kms_name` is passed to `create_index()`, a NumPy array has the wrong number of dimensions, or `order_by` is a dict with more than one key. |
+| `TypeError` | `upsert_binary()` or `query_binary()` receives something other than a NumPy array. |
+| `pydantic.ValidationError` | A request body fails the SDK's schema check, such as `query()` called with neither `query_vectors` nor `query_contents`. |
+
+HTTP statuses outside the mapping above (for example `405` or `413`) also raise a plain `ValueError`.
