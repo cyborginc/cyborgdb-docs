@@ -54,7 +54,9 @@ This creates a new DiskIVF encrypted index. The vector dimension is auto-detecte
 
 ## Automatic Embedding Generation
 
-In the Python version of CyborgDB, you can enable automatic embedding generation for the encrypted index by setting `embedding_model` in `create_index()`:
+<Tip>Text embedding is built into `cyborgdb-core` — no `[embeddings]` extra or `sentence-transformers`/`torch` install required. Call `cyborgdb.supported_embedding_models()` for the accepted model names.</Tip>
+
+Enable automatic embedding generation for the encrypted index by setting `embedding_model` in `create_index()`:
 
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
@@ -66,7 +68,7 @@ client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborg
 # Generate an encryption key for the index
 index_key = secrets.token_bytes(32)
 
-# Create an encrypted index with managed embedding generation (model from HuggingFace)
+# Create an encrypted index with managed embedding generation
 index = client.create_index(
     "my_index",
     index_key,
