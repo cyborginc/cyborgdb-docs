@@ -106,7 +106,7 @@ For more info on metadata storage and filtering, see [Metadata Filtering](./meta
 
 ## Automatic Embedding Generation
 
-<Tip>This feature is only available in Python. To use it, use `pip install cyborgdb-core[embeddings]`</Tip>
+<Tip>Text embedding is built into `cyborgdb-core` — no `[embeddings]` extra or `sentence-transformers`/`torch` install required.</Tip>
 
 If you provided an `embedding_model` during index creation, you can automatically generate embeddings for items by providing `contents` to the `upsert()` call:
 
@@ -131,7 +131,7 @@ index.upsert(items, index_key=index_key)
 
 In this example, the `embedding_model` will automatically generate embeddings for the `contents` field. Note that `contents` must be a string. It will also be converted to `bytes` for encrypted item storage.
 
-This feature uses [`sentence-transformers`](https://www.sbert.net/) for embedding generation. You can use any model from the [HuggingFace Model Hub](https://huggingface.co/models) that is compatible with `sentence-transformers`.
+Embedding runs in-process via [`cyborgdb-embed`](https://github.com/cyborginc/cyborgdb-embed) using prebuilt ONNX weights — the models are downloaded on first use and cached (override the cache dir with `CYBORGDB_EMBED_CACHE`; set `CYBORGDB_EMBED_OFFLINE=1` to fail on a cache miss instead of downloading). Call `cyborgdb.supported_embedding_models()` for the full list of accepted names; the `sentence-transformers/` prefix is optional.
 
 ## API Reference
 

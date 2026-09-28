@@ -19,7 +19,7 @@ Initializes a new CyborgDB `Client` instance for connecting to a CyborgDB micros
 |-----------|------|---------|-------------|
 | `base_url` | `str` | - | Base URL of the CyborgDB microservice endpoint |
 | `api_key` | `str` | `None` | _(Optional)_ Service authentication credential, sent as the `X-API-Key` header. Required only when the service has auth enabled |
-| `verify_ssl` | `bool` | `None` | _(Optional)_ SSL verification. When `None`, automatically disabled for `localhost` and `http://` URLs |
+| `verify_ssl` | `bool` | `None` | _(Optional)_ SSL verification. When `None`, auto-disabled for `http://` URLs and for the loopback hostnames `localhost`, `127.0.0.1`, and `::1` (exact match — a URL like `https://localhost.example.com` keeps verification on). Passing `verify_ssl=True` on an `http://` URL logs a warning and is ignored (there is no TLS to negotiate). |
 
 <Note>`api_key` is the service **authentication** credential — the root key or a per-user `cdbk_` token, sent as `X-API-Key`. It is required only when the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set; against an unauthenticated service (the default), you can omit it. This is distinct from the service's `CYBORGDB_API_KEY` license key. See [Managing Keys](../../guides/advanced/managing-keys).</Note>
 

@@ -142,7 +142,7 @@ For more details on metadata filters, see the [Metadata Filtering](./metadata-fi
 
 ## Automatic Embedding Generation
 
-<Tip>This feature is only available in Python. To use it, use `pip install cyborgdb-core[embeddings]`</Tip>
+<Tip>Text embedding is built into `cyborgdb-core` — no `[embeddings]` extra or `sentence-transformers`/`torch` install required.</Tip>
 
 If you provided an `embedding_model` during index creation, you can automatically generate embeddings for queries by providing `query_contents` to the `query()` call:
 
@@ -169,7 +169,7 @@ results = index.query(
 )
 ```
 
-This feature uses [`sentence-transformers`](https://www.sbert.net/) for embedding generation. You can use any model from the [HuggingFace Model Hub](https://huggingface.co/models) that is compatible with `sentence-transformers`.
+Embedding runs in-process via [`cyborgdb-embed`](https://github.com/cyborginc/cyborgdb-embed) using prebuilt ONNX weights. Call `cyborgdb.supported_embedding_models()` for the full list of accepted names; the `sentence-transformers/` prefix is optional. `query_contents` accepts a single string or a list for a batch.
 
 ## Retrieving Items Post-Query
 

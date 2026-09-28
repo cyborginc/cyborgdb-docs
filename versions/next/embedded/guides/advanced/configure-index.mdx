@@ -53,7 +53,7 @@ You can override the defaults at creation time:
 
 - `dimension`: vector dimensionality. Optional — auto-detected from the first upsert, or derived from `embedding_model` if provided.
 - `storage_precision`: the on-disk dtype used for the rerank vectors. `float32` (default) gives the highest recall; `float16` roughly **halves disk footprint** with a slight precision loss. Acceptable values are `numpy.float32` / `numpy.float16` (or the strings `"float32"` / `"float16"`) in Python, and `StoragePrecision::Float32` / `StoragePrecision::Float16` in C++.
-- `embedding_model`: an optional [`sentence-transformers`](https://www.sbert.net/) model name (Python only) that enables automatic embedding generation and fixes the dimension.
+- `embedding_model`: an optional built-in model name that enables automatic text embedding (via [`cyborgdb-embed`](https://github.com/cyborginc/cyborgdb-embed), no `sentence-transformers`/`torch` install required) and fixes the dimension. Call `cyborgdb.supported_embedding_models()` for accepted names.
 - `metric`: the distance metric — `"euclidean"` (default), `"cosine"`, or `"squared_euclidean"`.
 
 <CodeGroup>

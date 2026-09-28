@@ -37,3 +37,17 @@ docker run -p 8000:8000 cyborginc/cyborgdb-service
 ```
 
 For detailed service setup instructions, see our quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).
+
+## Supported runtimes
+
+The SDK ships as a single dependency-free bundle and imports on any JavaScript runtime with `fetch` and Web Crypto:
+
+| Runtime | Supported | Notes |
+| --- | --- | --- |
+| Node.js | >= 18 | Full functionality, including the on-disk sample-dataset cache. |
+| Bun / Deno | Yes | Node-compatible; same functionality as Node. |
+| Browsers | Yes (modern) | `verifySsl: false` has no effect. |
+| Vercel Edge Runtime | Yes | — |
+| Cloudflare Workers | Yes | — |
+
+The main `cyborgdb` entry point does not import `@langchain/core` — install it (as an optional peer) and import from the `cyborgdb/integrations/langchain` subpath only if you use the LangChain integration.
