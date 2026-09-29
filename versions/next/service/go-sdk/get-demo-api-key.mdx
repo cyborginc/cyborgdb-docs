@@ -28,8 +28,9 @@ The demo license key.
 
 | Error | Returned when |
 |-------|---------------|
-| `ErrDemoAPIKeyGeneration` | The request fails or the service returns an error. |
+| `ErrDemoAPIKeyGeneration` | The demo service returns a non-`200` status. |
 | `ErrDemoAPIKeyNotFound` | The response has no key. |
+| Other errors | The request can't be sent or times out, or the response can't be read or parsed. These wrap the underlying error (for example a `*url.Error`) and don't match either sentinel. |
 
 ### Example Usage
 

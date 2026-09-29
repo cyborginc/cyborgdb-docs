@@ -20,7 +20,7 @@ async listIndexes(): Promise<string[]>
 |-----------|-------------|
 | `CyborgDBAuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`). |
 | `CyborgDBServiceError` | The service returns `5xx`. |
-| `Error` | The service can't be reached. See [Known gaps](../errors#known-gaps). |
+| `CyborgDBTransportError` | The service can't be reached. |
 
 See [Errors](../errors) for the full hierarchy.
 

@@ -55,9 +55,11 @@ async query({
 `Promise<QueryResponse>`, whose `results` is:
 
 - **One `number[]` query vector:** `QueryResultItem[]`, one item per neighbor.
-- **A `number[][]` batch, or any `Float32Array`:** `QueryResultItem[][]`, one inner array per query vector. A `Float32Array` holding a single vector still returns a nested array.
+- **Two or more query vectors** (`number[][]` or `Float32Array`): `QueryResultItem[][]`, one inner array per query vector.
 
-<Note>`QueryResponse.results` is currently typed as an empty object, so TypeScript won't let you iterate it directly. Cast it: `response.results as QueryResultItem[]` for one vector, or `as QueryResultItem[][]` for a batch.</Note>
+A query with exactly one vector always returns single results, even when it's sent as a batch or through the binary path.
+
+`QueryResponse.results` is typed `QueryResultItem[] | QueryResultItem[][]`. Since the call shape decides which one you get, narrow it with a cast: `response.results as QueryResultItem[]` for one vector, or `as QueryResultItem[][]` for a batch.
 
 #### Result fields
 
@@ -76,7 +78,7 @@ async query({
 
 | Exception | Thrown when |
 |-----------|-------------|
-| `Error` | Neither `queryVectors` nor `queryContents` is passed, or a `Float32Array` is passed without `dimension`. Thrown before any request is sent. |
+| `CyborgDBValidationError` | Neither `queryVectors` nor `queryContents` is passed, or a `Float32Array` is passed without `dimension`. Thrown before any request is sent. |
 | `CyborgDBValidationError` | The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range parameter. |
 | `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid (HTTP `401`). |
 | `CyborgDBServiceError` | The service returns `5xx`. |

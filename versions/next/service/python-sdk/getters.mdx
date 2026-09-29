@@ -5,7 +5,7 @@ noindex: true
 
 `EncryptedIndex` exposes index settings as properties, plus two training-status methods. Every getter except `index_name` calls the service's describe or training-status endpoint.
 
-<Note>Getters currently raise the SDK's underlying `ApiException` on HTTP errors, not the [`CyborgDBError`](./errors) classes the other methods raise.</Note>
+On HTTP errors, getters raise the same [`CyborgDBError`](./errors) subclasses as the other methods, for example `NotFoundError` if the index was deleted.
 
 ## index_name
 
@@ -30,9 +30,7 @@ print(index.index_name)
 dimension: int
 ```
 
-Vector dimensionality. Returns `0` if the index was created without a `dimension` and nothing has been upserted yet.
-
-The value is cached after the first read, including a `0`. If you read `dimension` before the first upsert, call [`client.load_index()`](./client/load-index) again afterwards to get a handle that reports the real dimension.
+Vector dimensionality. Returns `0` if the index was created without a `dimension` and nothing has been upserted yet. Once non-zero, the value is cached and later reads don't call the service.
 
 ```python
 print(index.dimension)
@@ -117,7 +115,7 @@ print(index.bm25)
 index.is_trained() -> bool
 ```
 
-`True` if the index has been trained. Returns `False` if the describe request fails.
+`True` if the index has been trained. Raises a [`CyborgDBError`](./errors) subclass if the describe request fails, for example `NotFoundError` if the index was deleted.
 
 ```python
 if not index.is_trained():
@@ -132,7 +130,7 @@ if not index.is_trained():
 index.is_training() -> bool
 ```
 
-`True` while the service is training this index. An index that is queued for training but hasn't started yet returns `False`.
+`True` while the service is training this index or has it queued for training.
 
 ```python
 import time

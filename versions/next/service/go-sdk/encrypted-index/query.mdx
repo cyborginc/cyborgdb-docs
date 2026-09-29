@@ -41,8 +41,8 @@ Optional scalar fields are pointers: leave them `nil` to use the service default
 
 The same fields as `QueryParams`, except:
 
-- `QueryVectors [][]float32` replaces `QueryVector` and `BatchQueryVectors`. It always returns batch results, even for one vector.
-- There is no `QueryContents` and no `RerankMult`.
+- `QueryVectors [][]float32` replaces `QueryVector` and `BatchQueryVectors`.
+- There is no `QueryContents`.
 
 <Note>`Include` defaults differ between methods: `Query` returns only `Id` by default, while [`Get`](./get) returns `vector`, `contents`, and `metadata`.</Note>
 
@@ -50,8 +50,10 @@ The same fields as `QueryParams`, except:
 
 `*QueryResponse`, whose `Results` holds exactly one of:
 
-- `Results.ArrayOfQueryResultItem` (`*[]QueryResultItem`): a `QueryParams` with `QueryVector`.
-- `Results.ArrayOfArrayOfQueryResultItem` (`*[][]QueryResultItem`): `BatchQueryVectors`, or any `BinaryQueryParams`.
+- `Results.ArrayOfQueryResultItem` (`*[]QueryResultItem`): one query vector.
+- `Results.ArrayOfArrayOfQueryResultItem` (`*[][]QueryResultItem`): two or more query vectors.
+
+A query with exactly one vector always returns single results, even when it's sent as a batch or through the binary path.
 
 #### Result fields
 

@@ -28,6 +28,8 @@ async train({
 | `tolerance` | `number` | `undefined` (service default: `1e-6`) | _(Optional)_ Convergence tolerance. |
 | `maxMemory` | `number` | `undefined` (service default: `0`, no limit) | _(Optional)_ Memory cap for training, in MB. |
 
+<Warning>Only `nLists` affects training today. The service accepts `batchSize`, `maxIters`, `tolerance`, and `maxMemory` but doesn't pass them to training, so they have no effect.</Warning>
+
 ### Requirements
 
 Training only runs when all three hold:
@@ -36,11 +38,11 @@ Training only runs when all three hold:
 - It has at least twice as many vectors as `nLists`.
 - The vector dimension is a **multiple of 32**, such as 384, 768, or 1536.
 
-<Warning>`train()` doesn't report a skipped or failed training run. If a requirement isn't met, or training fails on the service, `train()` still resolves with `{ status: 'success', message: "Index '...' trained successfully" }` and the index stays untrained. Check [`isTrained()`](../getters#istrained) after `train()` returns: an untrained index has `getNLists()` of `1`. Queries on an untrained index still work.</Warning>
+<Warning>`train()` doesn't report a skipped or failed training run. If a requirement isn't met, `train()` still resolves with `{ status: 'success', message: "Index '...' trained successfully" }`. If training fails on the service, it resolves with `status: 'error'` instead of throwing. Either way, the index stays untrained. Check [`isTrained()`](../getters#istrained) after `train()` returns: an untrained index has `getNLists()` of `1`. Queries on an untrained index still work.</Warning>
 
 ### Returns
 
-`Promise<TrainResponse>` with `status` and `message`. If the index is already training or queued for training, `train()` returns right away without starting a second run; check [`isTraining()`](../getters#istraining).
+`Promise<TrainResponse>` with `status` and `message`. If the index is already training, `train()` waits for that run to finish, then trains again.
 
 ### Exceptions
 

@@ -151,7 +151,7 @@ if !trained {
 func (e *EncryptedIndex) IsTraining(ctx context.Context) (bool, error)
 ```
 
-`true` while the service is training this index. An index that is queued for training but hasn't started yet returns `false`.
+`true` while the service is training this index or has it queued for training.
 
 ```go
 for {

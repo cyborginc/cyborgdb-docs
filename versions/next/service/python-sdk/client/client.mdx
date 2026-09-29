@@ -35,7 +35,7 @@ client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 
 | `base_url` | `verify_ssl=None` (default) | `verify_ssl=True` | `verify_ssl=False` |
 |------------|-----------------------------|-------------------|--------------------|
-| `http://…` | No TLS (logs "SSL verification is disabled") | No TLS (logs that the setting is ignored) | No TLS (logs "SSL verification is disabled") |
+| `http://…` | No TLS | No TLS (logs that the setting is ignored) | No TLS |
 | `https://` with host `localhost`, `127.0.0.1`, or `::1` | Verification **off** (logs a warning) | Verification on | Verification off (logs a warning) |
 | Any other `https://` URL | Verification on | Verification on | Verification off (logs a warning) |
 
@@ -45,7 +45,7 @@ The SDK has no option for a custom CA bundle or client certificate.
 
 ## Errors
 
-Failed requests raise a subclass of `cyborgdb.CyborgDBError` chosen by HTTP status, such as `NotFoundError` for `404` or `AuthenticationError` for `401`. Arguments rejected inside the SDK, before a request is sent, raise `ValueError` or `TypeError`. See [Errors](../errors) for the full list.
+Failed requests raise a subclass of `cyborgdb.CyborgDBError` chosen by HTTP status, such as `NotFoundError` for `404` or `AuthenticationError` for `401`. Arguments rejected inside the SDK, before a request is sent, raise `cyborgdb.ValidationError`. See [Errors](../errors) for the full list.
 
 ```python
 import cyborgdb

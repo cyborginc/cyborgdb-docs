@@ -50,13 +50,11 @@ Strings in `contents` are stored as-is; bytes are base64-encoded first. [`get()`
 
 `Promise<UpsertResponse>` with `status` and `message`, e.g. `{ status: 'success', message: 'Upserted 2 vectors' }`. An empty `items` array returns `{ status: 'success', message: 'No items to upsert' }` without calling the service.
 
-<Note>`UpsertResponse` also declares an `upsertedCount` field, but it is never set. Read the count from `message` if you need it.</Note>
-
 ### Exceptions
 
 | Exception | Thrown when |
 |-----------|-------------|
-| `Error` | The input matches neither shape, arrays differ in length, or a vector contains a non-finite number. Thrown before any request is sent. |
+| `CyborgDBValidationError` | The input matches neither shape, arrays differ in length, or a vector contains a non-finite number. Thrown before any request is sent. |
 | `CyborgDBValidationError` | The service rejects the items (HTTP `400`), for example a vector with the wrong dimension. |
 | `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`). |
 | `CyborgDBServiceError` | The service returns `5xx`. |

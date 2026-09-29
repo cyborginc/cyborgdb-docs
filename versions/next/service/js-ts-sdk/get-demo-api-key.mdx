@@ -20,7 +20,7 @@ The returned key is a **license** key: set it as the service's `CYBORGDB_API_KEY
 
 The function sends a `POST` request to `https://api.cyborgdb.co/v1/api-key/manage/create-demo-key`. Set the `CYBORGDB_DEMO_ENDPOINT` environment variable to use a different endpoint.
 
-`getDemoApiKey()` reads `process.env`, so it needs a runtime that defines `process`, such as Node.js. In a browser it throws a `ReferenceError`.
+The `CYBORGDB_DEMO_ENDPOINT` override is read only where `process.env` exists, such as Node.js; browsers and Edge runtimes always use the default endpoint.
 
 ### Returns
 

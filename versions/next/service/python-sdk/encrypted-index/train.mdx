@@ -12,6 +12,7 @@ index.train(
     batch_size=None,
     max_iters=None,
     tolerance=None,
+    max_memory=None,
 )
 ```
 
@@ -25,8 +26,9 @@ index.train(
 | `batch_size` | `int` | `None` (service default: `2048`) | _(Optional)_ Vectors processed per training batch. |
 | `max_iters` | `int` | `None` (service default: `100`) | _(Optional)_ Maximum clustering iterations. |
 | `tolerance` | `float` | `None` (service default: `1e-6`) | _(Optional)_ Convergence tolerance. |
+| `max_memory` | `int` | `None` (service default: `0`, no limit) | _(Optional)_ Memory cap for training, in MB. |
 
-<Note>The service also accepts a `max_memory` training limit, which the Python SDK doesn't expose yet.</Note>
+<Warning>Only `n_lists` affects training today. The service accepts `batch_size`, `max_iters`, `tolerance`, and `max_memory` but doesn't pass them to training, so they have no effect.</Warning>
 
 ### Requirements
 
@@ -40,7 +42,7 @@ Training only runs when all three hold:
 
 ### Returns
 
-`None`. If the index is already training or queued for training, `train()` returns right away without starting a second run; check [`is_training()`](../getters#is_training).
+`None`. If the index is already training, `train()` waits for that run to finish, then trains again.
 
 ### Exceptions
 

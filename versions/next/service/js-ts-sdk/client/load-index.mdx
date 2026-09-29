@@ -30,10 +30,15 @@ async loadIndex({
 
 | Exception | Thrown when |
 |-----------|-------------|
-| `Error` | `indexKey` is passed but is not 32 bytes. Thrown before any request is sent. |
-| `Error` | Any failed request: the index doesn't exist, `indexKey` doesn't match it, the `apiKey` is invalid, or the service is unreachable. |
+| `CyborgDBValidationError` | `indexKey` is passed but is not 32 bytes. Thrown before any request is sent. |
+| `CyborgDBNotFoundError` | No index named `indexName` exists, or `indexKey` doesn't match an index the service hasn't loaded yet (HTTP `404`). |
+| `CyborgDBAuthenticationError` | `indexKey` doesn't match an index the service already has loaded, or the client's `apiKey` is missing or invalid (HTTP `401`). |
+| `CyborgDBServiceError` | The service returns `5xx`, for example when a KMS-backed index's provider is unavailable. |
+| `CyborgDBTransportError` | The service can't be reached. |
 
-<Note>`loadIndex()` currently throws a plain `Error`, not a [`CyborgDBError`](../errors) subclass, for every failed request. The status code and the service's message are in `error.message`, e.g. `HTTP error Unknown: 404 - No KMS envelope for index 'my-index'`.</Note>
+See [Errors](../errors) for the full hierarchy.
+
+<Note>A wrong key returns `CyborgDBNotFoundError` (HTTP `404`) if the index isn't in the service's cache, for example right after the service restarts, and `CyborgDBAuthenticationError` (HTTP `401`) once it is. Catch both when checking for a bad key.</Note>
 
 ### Example Usage
 

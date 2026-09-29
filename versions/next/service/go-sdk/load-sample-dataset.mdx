@@ -47,7 +47,7 @@ The functions take no `context.Context`. The download has a fixed 120-second tim
 | Error | Returned when |
 |-------|---------------|
 | `ErrUnknownSampleDataset` | The dataset name is unknown. |
-| `ErrSampleDatasetDownload` | The download fails or times out. |
+| `ErrSampleDatasetDownload` | The download returns a non-`200` status. A network failure or timeout returns the underlying error (for example a `*url.Error`) instead, without this sentinel. |
 | `ErrSampleDatasetIntegrity` | The file fails its SHA-256 check. |
 | `ErrSampleDatasetTooLarge` | The decompressed dataset exceeds 512 MiB. |
 

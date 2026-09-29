@@ -45,7 +45,9 @@ index.query(query_vectors=vector, text="encrypted search", top_k=10)
 ### Returns
 
 - **Single query vector:** `List[Dict]`, one dict per neighbor.
-- **Batch of vectors:** `List[List[Dict]]`, one inner list per query vector.
+- **Batch of two or more vectors:** `List[List[Dict]]`, one inner list per query vector.
+
+A query with exactly one vector always returns single results, even when it's sent as a batch or through the binary path.
 
 #### Result fields
 
@@ -65,7 +67,7 @@ index.query(query_vectors=vector, text="encrypted search", top_k=10)
 | Exception | Raised when |
 |-----------|-------------|
 | `pydantic.ValidationError` | Neither `query_vectors` nor `query_contents` is passed. Raised before any request is sent. |
-| `ValueError` | A NumPy `query_vectors` array is not 1-D or 2-D. |
+| `cyborgdb.ValidationError` | A NumPy `query_vectors` array is not 1-D or 2-D. Raised before any request is sent. |
 | `cyborgdb.ValidationError` | The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range parameter. |
 | `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
 | `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |

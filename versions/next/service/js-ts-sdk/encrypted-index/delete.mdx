@@ -20,8 +20,6 @@ async delete({ ids: string[] }): Promise<DeleteResponse>
 
 `Promise<DeleteResponse>` with `status` and `message`, e.g. `{ status: 'success', message: 'Deleted 2 vectors' }`.
 
-<Note>`DeleteResponse` also declares a `deletedCount` field, but it is never set. Read the count from `message` if you need it.</Note>
-
 ### Exceptions
 
 | Exception | Thrown when |

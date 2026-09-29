@@ -38,21 +38,23 @@ const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-
 
 ## TLS verification
 
-**On Node.js, the SDK can't turn TLS certificate verification off.** Setting `verifySsl: false`, or connecting to `https://localhost`, logs "SSL verification disabled", but Node's built-in `fetch` still verifies the certificate. Against a self-signed certificate, every request fails with a plain `Error`.
+`verifySsl` decides whether the SDK checks the service's TLS certificate:
 
-For local development, connect over `http://`, or give the service a certificate your machine trusts. Browsers and Edge runtimes can't disable verification either.
+| `baseUrl` | `verifySsl` unset | `true` | `false` |
+|-----------|-------------------|--------|---------|
+| `http://…` | No TLS | No TLS | No TLS |
+| `https://` with host `localhost`, `127.0.0.1`, or `::1` | Verification **off** | Verification on | Verification off |
+| Any other `https://` URL | Verification on | Verification on | Verification off |
 
-The SDK logs these messages with `console.info` / `console.warn`:
+The loopback check is an exact hostname match, so `https://localhost.example.com` is verified.
 
-| `baseUrl` | Message |
-|-----------|---------|
-| `http://…` | "SSL verification is disabled. Not recommended for production." There's no TLS on `http://`; the message can be ignored. |
-| `https://` whose URL contains `localhost` or `127.0.0.1`, with `verifySsl` unset | "SSL verification disabled for localhost (development mode)" |
-| Any `https://` URL with `verifySsl: false` | "SSL verification is disabled. Not recommended for production." |
+Turning verification off works on Node.js, where requests then go through the `node:https` module instead of `fetch`. It follows redirects and honors `AbortSignal`, and it times out a connection after 300 seconds of inactivity. Browsers and Edge runtimes can't turn verification off; `verifySsl: false` has no effect there.
+
+When verification is off, the SDK logs a warning with `console.warn`, or `console.info` for the loopback case. A plain `http://` URL also logs "SSL verification is disabled", although there is no TLS to disable.
 
 ## Errors
 
-Failed requests throw a subclass of `CyborgDBError` chosen by HTTP status, such as `CyborgDBNotFoundError` for `404` or `CyborgDBAuthenticationError` for `401`. Arguments rejected inside the SDK, before a request is sent, throw a plain `Error`. See [Errors](../errors) for the full list and the current gaps.
+Failed requests throw a subclass of `CyborgDBError` chosen by HTTP status, such as `CyborgDBNotFoundError` for `404` or `CyborgDBAuthenticationError` for `401`. Arguments rejected inside the SDK, before a request is sent, throw `CyborgDBValidationError`. See [Errors](../errors) for the full list.
 
 ```typescript
 import { Client, CyborgDBAuthenticationError } from 'cyborgdb';

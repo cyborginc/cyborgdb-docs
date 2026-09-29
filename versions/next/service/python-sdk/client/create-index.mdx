@@ -78,11 +78,11 @@ Each field takes three settings:
 
 | Setting | Default | Effect |
 |---------|---------|--------|
-| `filterable` | `True` | Builds inverted-index postings, so filters on the field resolve from the index. `False` still stores the field, but [`query()`](../encrypted-index/query) filters on it fall back to a slower post-filter, and [`query_metadata()`](../encrypted-index/query-metadata) rejects them. |
+| `filterable` | `True` | Builds inverted-index postings, so filters on the field resolve from the index. `False` still stores the field, but [`query()`](../encrypted-index/query) vector-only queries on it fall back to a slower post-filter, hybrid queries reject it, and [`query_metadata()`](../encrypted-index/query-metadata) rejects them. |
 | `pattern` | `False` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `filterable=True`. |
 | `full_text` | `False` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `filterable=False`, and can't be combined with `pattern=True`. |
 
-On `query()` the schema is a performance hint: filters the index can't answer fall back to a post-filter on the decrypted metadata. On `query_metadata()` it is enforced, and unsupported filters return `ValidationError`.
+On `query()` the schema is a performance hint for pure vector queries: filters the index can't answer fall back to a post-filter on the decrypted metadata. Hybrid queries (with text) have no post-filter and reject such filters. On `query_metadata()` it is enforced, and unsupported filters return `ValidationError`.
 
 The stored policy is returned by the [`metadata_schema`](../getters#metadata_schema) getter.
 
@@ -94,8 +94,7 @@ An `EncryptedIndex` bound to the new index. For KMS-backed indexes it holds no p
 
 | Exception | Raised when |
 |-----------|-------------|
-| `ValueError` | Neither `index_key` nor `kms_name` is passed; `index_key` is not 32 bytes; or `storage_precision` is not one of the six values above. Raised before any request is sent. |
-| `cyborgdb.ValidationError` | The service rejects the request (HTTP `400`): the index name already exists, both `index_key` and `kms_name` were passed, the `kms_name` slot is unknown, or `metadata_schema` combines settings that aren't allowed. |
+| `cyborgdb.ValidationError` | Before any request is sent: neither `index_key` nor `kms_name` is passed, `index_key` is not 32 bytes, or `storage_precision` is not one of the six values above. From the service (HTTP `400`): the index name already exists, both `index_key` and `kms_name` were passed, the `kms_name` slot is unknown, or `metadata_schema` combines settings that aren't allowed. |
 | `cyborgdb.ServiceError` | The service returns `5xx`, including KMS wrap failures (`502`). |
 | `cyborgdb.TransportError` | The service can't be reached. |
 

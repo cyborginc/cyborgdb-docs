@@ -36,7 +36,7 @@ Without `orderBy` or `text`, results come back in no particular order. Items mis
 
 ### Filter constraints
 
-[`query()`](./query) falls back to a post-filter over decrypted metadata when the index can't answer a filter. `queryMetadata()` has no fallback, so every filter must be answerable from the index. The index's [`metadataSchema`](../client/create-index#metadata-schema) is therefore enforced here:
+[`query()`](./query) falls back to a post-filter over decrypted metadata when the index can't answer a filter, for pure vector queries. `queryMetadata()` has no fallback, so every filter must be answerable from the index. The index's [`metadataSchema`](../client/create-index#metadata-schema) is therefore enforced here:
 
 - `$regex` and `$contains` need a field created with `pattern: true`.
 - A field created with `filterable: false` can't be filtered on.
@@ -59,7 +59,7 @@ Any of these throws `CyborgDBValidationError` (HTTP `400`) with the reason. Nest
 
 | Exception | Thrown when |
 |-----------|-------------|
-| `Error` | `orderBy` is an object with more than one key, or isn't a string or object. Thrown before any request is sent. |
+| `CyborgDBValidationError` | `orderBy` is an object with more than one key, or isn't a string or object. Thrown before any request is sent. |
 | `CyborgDBValidationError` | The service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints). |
 | `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid (HTTP `401`). |
 | `CyborgDBServiceError` | The service returns `5xx`. |

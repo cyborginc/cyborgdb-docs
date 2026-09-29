@@ -44,7 +44,7 @@ Each dict can contain:
 | `ids` | `List[str]` | - | Unique identifier for each vector. |
 | `vectors` | `np.ndarray` (shape `(n, dim)`) | - | Vector data. Sent as binary through [`upsert_binary()`](./upsert-binary). |
 
-Shape 2 can't attach metadata or contents. To send metadata with parallel arrays, call [`upsert_binary()`](./upsert-binary) directly.
+Shape 2 can't attach metadata or contents. To send them with parallel arrays, call [`upsert_binary()`](./upsert-binary) directly.
 
 ### Returns
 
@@ -54,7 +54,7 @@ Shape 2 can't attach metadata or contents. To send metadata with parallel arrays
 
 | Exception | Raised when |
 |-----------|-------------|
-| `TypeError` / `ValueError` | The arguments don't match either shape, or the IDs and vectors differ in length. Raised before any request is sent. |
+| `cyborgdb.ValidationError` | The arguments don't match either shape (also a `TypeError`), an item has no `id`, or the IDs and vectors differ in length. Raised before any request is sent. |
 | `cyborgdb.ValidationError` | The service rejects the items (HTTP `400`), for example a vector with the wrong dimension. |
 | `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
 | `cyborgdb.ServiceError` | The service returns `5xx`. |
@@ -86,7 +86,7 @@ vectors = np.random.rand(3, 4).astype(np.float32)
 index.upsert(ids, vectors)
 ```
 
-#### Parallel arrays with metadata
+#### Parallel arrays with metadata and contents
 
 ```python
 import numpy as np
@@ -94,6 +94,7 @@ import numpy as np
 ids = ["vec4", "vec5", "vec6"]
 vectors = np.random.rand(3, 4).astype(np.float32)
 metadata = [{"category": "news"}, {"category": "research"}, None]
+contents = ["Fourth body", "Fifth body", None]
 
-index.upsert_binary(ids, vectors, metadata=metadata)
+index.upsert_binary(ids, vectors, metadata=metadata, contents=contents)
 ```

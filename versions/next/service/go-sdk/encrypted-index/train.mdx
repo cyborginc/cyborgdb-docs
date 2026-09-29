@@ -26,6 +26,8 @@ All fields are pointers; `nil` uses the service default. Pass `cyborgdb.TrainPar
 | `Tolerance` | `*float64` | `nil` (service default: `1e-6`) | Convergence tolerance. |
 | `MaxMemory` | `*int32` | `nil` (service default: `0`, no limit) | Memory cap for training, in MB. |
 
+<Warning>Only `NLists` affects training today. The service accepts `BatchSize`, `MaxIters`, `Tolerance`, and `MaxMemory` but doesn't pass them to training, so they have no effect.</Warning>
+
 ### Requirements
 
 Training only runs when all three hold:
@@ -38,14 +40,14 @@ Training only runs when all three hold:
 
 ### Returns
 
-`error` only. If the index is already training or queued for training, `Train` returns right away without starting a second run; check [`IsTraining`](../getters#istraining).
+`error` only. If the index is already training, `Train` waits for that run to finish, then trains again.
 
 ### Errors
 
 | Error | Returned when |
 |-------|---------------|
 | `*AuthenticationError` | The client isn't using the root key (HTTP `401`/`403`). Training requires the root key. |
-| `*NotFoundError` | The index doesn't exist, or the key doesn't match it (HTTP `404`). |
+| `*NotFoundError` | The index doesn't exist (HTTP `404`). A wrong key gives `*NotFoundError` or `*AuthenticationError`, as described in [Load Index](../client/load-index#errors). |
 | `*ValidationError` | A training parameter is out of range (HTTP `400`/`422`). |
 | `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. A failed training run doesn't return an error; see [Requirements](#requirements). |
 

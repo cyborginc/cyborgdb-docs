@@ -55,7 +55,7 @@ item := cyborgdb.VectorItem{
 _ = item
 ```
 
-`VectorItem.Contents` uses an `internal` type; set it with `GetContents()` / `SetContents()` as shown in [Upsert](./encrypted-index/upsert#set-contents-on-a-vectoritem).
+Set `VectorItem.Contents` with `item.SetContentsString(s)`, as shown in [Upsert](./encrypted-index/upsert#set-contents-on-a-vectoritem). The contents type is exported as `cyborgdb.Contents`.
 
 ## Query result
 
@@ -63,8 +63,8 @@ _ = item
 
 | Field | Type | Set for |
 |-------|------|---------|
-| `ArrayOfQueryResultItem` | `*[]QueryResultItem` | `QueryParams` with `QueryVector` |
-| `ArrayOfArrayOfQueryResultItem` | `*[][]QueryResultItem` | `BatchQueryVectors`, or any `BinaryQueryParams` |
+| `ArrayOfQueryResultItem` | `*[]QueryResultItem` | One query vector, in any form |
+| `ArrayOfArrayOfQueryResultItem` | `*[][]QueryResultItem` | Two or more query vectors |
 
 `QueryResultItem` has `Id string` and `Metadata map[string]interface{}`, plus `GetDistance()` / `HasDistance()` (vector queries; lower is closer) and `GetScore()` / `HasScore()` (hybrid queries, instead of distance; higher is more relevant).
 
@@ -202,6 +202,7 @@ fmt.Println(time.UnixMilli(ms).UTC())
 |------|--------|---------|
 | `UpsertInput` | Interface implemented by `VectorItems` and `BinaryUpsertParams` | [`Upsert`](./encrypted-index/upsert) |
 | `QueryInput` | Interface implemented by `QueryParams` and `BinaryQueryParams` | [`Query`](./encrypted-index/query) |
+| `QueryMetadataParams` | `Filters`, `TopK`, `OrderBy`, `Ascending *bool`, and the text-search fields | [`QueryMetadata`](./encrypted-index/query-metadata) |
 | `TrainParams` | `NLists`, `BatchSize`, `MaxIters`, `MaxMemory` (`*int32`), `Tolerance` (`*float64`) | [`Train`](./encrypted-index/train) |
 | `GetResponse` | `Results []GetResultItemModel`: `Id`, `Vector`, `Metadata`, `GetContents()` | [`Get`](./encrypted-index/get) |
 | `ListIDsResponse` | `Ids []string`, `Count int32` | [`ListIDs`](./encrypted-index/list-ids) |
@@ -218,6 +219,6 @@ fmt.Println(time.UnixMilli(ms).UTC())
 | `DefaultSampleDataset` | `"quickstart-75k"` |
 | `SampleDatasetsBaseURL` | `"https://cyborgdb-sample-datasets.s3.amazonaws.com"` |
 
-The package has no pointer helpers, so set pointer fields from a local variable: `dim := int32(384)`, then `Dimension: &dim`.
+Pointer fields can be set with the helpers `cyborgdb.Bool`, `cyborgdb.Int32`, `cyborgdb.String`, and `cyborgdb.Float64`, e.g. `Dimension: cyborgdb.Int32(384)`.
 
 Error types and sentinel errors are listed in [Errors](./errors).

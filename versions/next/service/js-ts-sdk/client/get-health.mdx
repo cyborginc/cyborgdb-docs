@@ -25,7 +25,7 @@ async getHealth(): Promise<HealthResponse>
 | Exception | Thrown when |
 |-----------|-------------|
 | `CyborgDBServiceError` | The service returns `5xx`. |
-| `Error` | The service can't be reached. See [Known gaps](../errors#known-gaps). |
+| `CyborgDBTransportError` | The service can't be reached. |
 
 See [Errors](../errors) for the full hierarchy.
 

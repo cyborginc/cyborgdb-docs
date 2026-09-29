@@ -41,7 +41,7 @@ index.query_binary(
 ### Returns
 
 - **1-D `query_vectors`:** `List[Dict]`, one dict per neighbor.
-- **2-D `query_vectors`:** `List[List[Dict]]`, one inner list per query vector.
+- **2-D `query_vectors` with two or more rows:** `List[List[Dict]]`, one inner list per query vector. A 2-D array with one row returns a flat `List[Dict]`.
 
 Each dict has `id`, plus `distance` (vector query) or `score` (hybrid query), and `metadata` when requested. As with [`query()`](./query#result-fields), `vector` and `contents` are not returned.
 
@@ -49,8 +49,8 @@ Each dict has `id`, plus `distance` (vector query) or `score` (hybrid query), an
 
 | Exception | Raised when |
 |-----------|-------------|
-| `TypeError` | `query_vectors` is not a NumPy array. |
-| `ValueError` | `query_vectors` is not 1-D or 2-D. |
+| `cyborgdb.ValidationError` (also a `TypeError`) | `query_vectors` is not a NumPy array. |
+| `cyborgdb.ValidationError` | `query_vectors` is not 1-D or 2-D. |
 | `cyborgdb.ValidationError` | The service rejects the query (HTTP `400`/`422`), for example a wrong vector dimension. |
 | `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
 | `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |

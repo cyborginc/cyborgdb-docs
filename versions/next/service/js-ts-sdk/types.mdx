@@ -75,7 +75,7 @@ const item: VectorItem = {
 ]
 ```
 
-`QueryResultItem` has `id`, and optionally `distance` (vector queries; lower is closer), `score` (hybrid queries, instead of `distance`; higher is more relevant), and `metadata`. `QueryResponse.results` is currently typed as an empty object, so cast it to `QueryResultItem[]` or `QueryResultItem[][]` before iterating.
+`QueryResultItem` has `id`, and optionally `distance` (vector queries; lower is closer), `score` (hybrid queries, instead of `distance`; higher is more relevant), and `metadata`. `QueryResponse.results` is typed `QueryResultItem[] | QueryResultItem[][]`; narrow it with a cast to the shape your call returns.
 
 ## MetadataResult
 
@@ -198,11 +198,14 @@ console.log(published.toISOString());
 
 | Type | Fields | Returned by |
 |------|--------|-------------|
-| `UpsertResponse` | `status: string`, `message?: string`, `upsertedCount?: number` (never set) | [`upsert()`](./encrypted-index/upsert) |
-| `DeleteResponse` | `status: string`, `message?: string`, `deletedCount?: number` (never set) | [`delete()`](./encrypted-index/delete) |
+| `UpsertResponse` | `status: string`, `message?: string` | [`upsert()`](./encrypted-index/upsert) |
+| `DeleteResponse` | `status: string`, `message?: string` | [`delete()`](./encrypted-index/delete) |
 | `TrainResponse` | `status: string`, `message?: string` | [`train()`](./encrypted-index/train) |
 | `HealthResponse` | `status: string`, plus other string fields such as `api_version` and `version` | [`getHealth()`](./client/get-health) |
 | `GetResultItem` | `id: string`, `vector?: number[]`, `contents?: string`, `metadata?: VectorMetadata` | [`get()`](./encrypted-index/get) |
+| `QueryResponse` | `results: QueryResultItem[] \| QueryResultItem[][]` | [`query()`](./encrypted-index/query) |
+
+Since v0.18, `UpsertResponse` and `DeleteResponse` no longer declare `upsertedCount` / `deletedCount`; those fields were never set. Read the count from `message`.
 
 ## TypeScript types
 

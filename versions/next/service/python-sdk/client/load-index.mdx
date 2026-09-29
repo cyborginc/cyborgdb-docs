@@ -30,13 +30,15 @@ An `EncryptedIndex` bound to the loaded index. `load_index()` calls the service'
 
 | Exception | Raised when |
 |-----------|-------------|
-| `ValueError` | `index_key` is passed but is not 32 bytes. Raised before any request is sent. |
-| `cyborgdb.NotFoundError` | No index named `index_name` exists (HTTP `404`). |
-| `cyborgdb.AuthenticationError` | `index_key` doesn't match the index, or the client's `api_key` is missing or invalid (HTTP `401`). |
+| `cyborgdb.ValidationError` | `index_key` is passed but is not 32 bytes. Raised before any request is sent. |
+| `cyborgdb.NotFoundError` | No index named `index_name` exists, or `index_key` doesn't match an index the service hasn't loaded yet (HTTP `404`). |
+| `cyborgdb.AuthenticationError` | `index_key` doesn't match an index the service already has loaded, or the client's `api_key` is missing or invalid (HTTP `401`). |
 | `cyborgdb.ServiceError` | The service returns `5xx`, for example when a KMS-backed index's provider is unavailable. |
 | `cyborgdb.TransportError` | The service can't be reached. |
 
 See [Errors](../errors) for the full hierarchy.
+
+<Note>A wrong key returns `cyborgdb.NotFoundError` (HTTP `404`) if the index isn't in the service's cache, for example right after the service restarts, and `cyborgdb.AuthenticationError` (HTTP `401`) once it is. Catch both when checking for a bad key.</Note>
 
 ### Example Usage
 

@@ -26,9 +26,7 @@ console.log(await index.getIndexName());
 async getDimension(): Promise<number>
 ```
 
-Vector dimensionality. Returns `0` if the index was created without a `dimension` and nothing has been upserted yet.
-
-The value is cached after the first call, including a `0`. If you call `getDimension()` before the first upsert, call [`client.loadIndex()`](./client/load-index) again afterwards to get a handle that reports the real dimension.
+Vector dimensionality. Returns `0` if the index was created without a `dimension` and nothing has been upserted yet. Once non-zero, the value is cached and later calls don't reach the service.
 
 ```typescript
 console.log(await index.getDimension());
@@ -130,7 +128,7 @@ if (!(await index.isTrained())) {
 async isTraining(): Promise<boolean>
 ```
 
-`true` while the service is training this index. An index that is queued for training but hasn't started yet returns `false`.
+`true` while the service is training this index or has it queued for training.
 
 ```typescript
 while (await index.isTraining()) {

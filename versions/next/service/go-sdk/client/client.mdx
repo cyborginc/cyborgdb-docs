@@ -24,7 +24,7 @@ func NewClient(baseURL, apiKey string, verifySSL ...bool) (*Client, error)
 
 `NewClient` returns a `*ValidationError` wrapping `ErrInvalidURL` if `baseURL` has no `http`/`https` scheme or no host, e.g. `"localhost:8000"`.
 
-<Warning>Only the scheme and host of `baseURL` are used; any path is dropped. `https://example.com/cyborgdb` sends requests to `https://example.com/v1/...`. The SDK can't reach a service mounted under a path prefix.</Warning>
+A path in `baseURL` is kept as a prefix, so `https://example.com/cyborgdb` sends requests to `https://example.com/cyborgdb/v1/...`.
 
 ### Example Usage
 
@@ -61,8 +61,8 @@ func main() {
 | `baseURL` | `verifySSL` omitted | `true` | `false` |
 |-----------|---------------------|--------|---------|
 | `http://…` | No TLS | No TLS | No TLS |
-| `https://` with host `localhost` or `127.0.0.1` | Verification **off** | Verification on | Verification off |
-| Any other `https://` URL, including `https://[::1]` | Verification on | Verification on | Verification off |
+| `https://` with host `localhost`, `127.0.0.1`, or `::1` | Verification **off** | Verification on | Verification off |
+| Any other `https://` URL | Verification on | Verification on | Verification off |
 
 The loopback check is an exact hostname match, so `https://localhost.example.com` is verified. The SDK logs nothing when verification is off. There's no option for a custom CA bundle or client certificate.
 

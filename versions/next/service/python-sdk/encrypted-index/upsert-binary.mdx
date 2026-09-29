@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-`upsert_binary()` sends vectors as base64-encoded little-endian `float32` instead of JSON arrays, which is faster for large batches. Unlike the two-argument form of [`upsert()`](./upsert), it also takes parallel `metadata`.
+`upsert_binary()` sends vectors as base64-encoded little-endian `float32` instead of JSON arrays, which is faster for large batches. Unlike the two-argument form of [`upsert()`](./upsert), it also takes parallel `metadata` and `contents`.
 
 ```python
 index.upsert_binary(
@@ -22,9 +22,7 @@ index.upsert_binary(
 | `ids` | `List[str]` | - | Unique identifier for each vector. Length must equal `vectors.shape[0]`. |
 | `vectors` | `np.ndarray` (shape `(n, dim)`) | - | Vector data. Cast to little-endian `float32` if needed. |
 | `metadata` | `List[Optional[Dict]]` | `None` | _(Optional)_ Metadata per vector, same length as `ids`. Use `None` for entries without metadata. |
-| `contents` | `List[Optional[str \| bytes]]` | `None` | _(Optional)_ Contents per vector. **Not usable yet:** see the warning below. |
-
-<Warning>Passing any `str` or `bytes` value in `contents` currently raises `pydantic.ValidationError`. To store contents, use the item-dict form of [`upsert()`](./upsert).</Warning>
+| `contents` | `List[Optional[str \| bytes]]` | `None` | _(Optional)_ Contents per vector, same length as `ids`. Strings are stored as-is; bytes are base64-encoded first. Use `None` for entries without contents. |
 
 ### Returns
 
@@ -34,8 +32,8 @@ index.upsert_binary(
 
 | Exception | Raised when |
 |-----------|-------------|
-| `TypeError` | `vectors` is not a NumPy array. |
-| `ValueError` | `vectors` is not 2-D, or `ids`, `metadata`, or `contents` differ in length from `vectors`. |
+| `cyborgdb.ValidationError` (also a `TypeError`) | `vectors` is not a NumPy array. |
+| `cyborgdb.ValidationError` | `vectors` is not 2-D, or `ids`, `metadata`, or `contents` differ in length from `vectors`. Raised before any request is sent. |
 | `cyborgdb.ValidationError` | The service rejects the batch (HTTP `400`), for example a vector with the wrong dimension. |
 | `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
 
@@ -53,8 +51,11 @@ metadata = [
     {"category": "research"},
     None,
 ]
+contents = ["First doc body", "Second doc body", None]
 
-index.upsert_binary(ids, vectors, metadata=metadata)
+index.upsert_binary(ids, vectors, metadata=metadata, contents=contents)
+print(index.get(["vec1"], include=["contents"]))
+# Output: [{'id': 'vec1', 'contents': 'First doc body'}]
 ```
 
 <Tip>For small batches, the item-dict form of [`upsert()`](./upsert) is easier to read. Use `upsert_binary()` when the vectors are already a NumPy array and JSON encoding time matters.</Tip>

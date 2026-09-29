@@ -21,7 +21,7 @@ except cyborgdb.NotFoundError as e:
 | Class | Raised for | `retryable` |
 |-------|------------|-------------|
 | `ValidationError` | HTTP `400` or `422`: the service rejected the request's arguments. | `False` |
-| `AuthenticationError` | HTTP `401` or `403`: a missing or invalid `api_key`, or an `index_key` that doesn't match the index. | `False` |
+| `AuthenticationError` | HTTP `401` or `403`: a missing or invalid `api_key`, or an `index_key` that doesn't match an index the service already has loaded. | `False` |
 | `NotFoundError` | HTTP `404`: the index or resource does not exist. | `False` |
 | `ConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `False` |
 | `RateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `True` |
@@ -84,12 +84,19 @@ for attempt in range(3):
 
 ## Errors raised before a request is sent
 
-Argument checks that run in the SDK, before anything is sent to the service, raise standard Python exceptions instead of `CyborgDBError`:
+Argument checks that run in the SDK, before anything is sent to the service, raise `cyborgdb.ValidationError` with `status_code` `None`. They cover:
 
-| Exception | Raised when |
-|-----------|-------------|
-| `ValueError` | `index_key` is not 32 bytes, neither `index_key` nor `kms_name` is passed to `create_index()`, a NumPy array has the wrong number of dimensions, or `order_by` is a dict with more than one key. |
-| `TypeError` | `upsert_binary()` or `query_binary()` receives something other than a NumPy array. |
-| `pydantic.ValidationError` | A request body fails the SDK's schema check, such as `query()` called with neither `query_vectors` nor `query_contents`. |
+- an `index_key` that isn't 32 bytes, or neither `index_key` nor `kms_name` passed to `create_index()`
+- an invalid `storage_precision`
+- a NumPy array with the wrong number of dimensions
+- mismatched `ids`, `vectors`, `metadata`, or `contents` lengths in `upsert_binary()`
+- an upsert item without an `id`
+- an `order_by` dict with more than one key
 
-HTTP statuses outside the mapping above (for example `405` or `413`) also raise a plain `ValueError`.
+An argument of the wrong type, such as a list where `upsert_binary()` or `query_binary()` expects a NumPy array, raises a `ValidationError` that is also a `TypeError`, so existing `except TypeError` blocks keep working.
+
+<Note>A few wrong-type arguments are caught by the generated request models instead, and raise `pydantic.ValidationError`: for example `get(5)`, `query(top_k="abc")`, or `query()` with neither `query_vectors` nor `query_contents`. It is still a `ValueError`.</Note>
+
+## Other statuses
+
+HTTP statuses outside the mapping above (for example `405` or `413`) raise the base `CyborgDBError`, with `status_code` set.

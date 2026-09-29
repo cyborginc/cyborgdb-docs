@@ -17,11 +17,11 @@ func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*E
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `ctx` | `context.Context` | Context for cancellation and deadlines. |
-| `params` | `*CreateIndexParams` | Index settings. Must not be `nil`: a `nil` pointer panics. |
+| `params` | `*CreateIndexParams` | Index settings. A `nil` pointer returns a `*ValidationError` wrapping `ErrNilParams`. |
 
 #### CreateIndexParams
 
-Optional scalar fields are pointers: leave them `nil` to use the service default.
+Optional scalar fields are pointers: leave them `nil` to use the service default, or set them with the `cyborgdb.Int32`, `cyborgdb.String`, `cyborgdb.Float64`, and `cyborgdb.Bool` helpers.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -67,11 +67,11 @@ Lower TurboQuant tiers use less storage in exchange for a small recall and laten
 
 | Field | Default | Effect |
 |-------|---------|--------|
-| `Filterable` | `true` | Builds inverted-index postings, so filters on the field resolve from the index. `false` still stores the field, but [`Query`](../encrypted-index/query) filters on it fall back to a slower post-filter, and [`QueryMetadata`](../encrypted-index/query-metadata) rejects them. |
+| `Filterable` | `true` | Builds inverted-index postings, so filters on the field resolve from the index. `false` still stores the field, but [`Query`](../encrypted-index/query) vector-only queries on it fall back to a slower post-filter, hybrid queries reject it, and [`QueryMetadata`](../encrypted-index/query-metadata) rejects them. |
 | `Pattern` | `false` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `Filterable` `true`. |
 | `FullText` | `false` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `Filterable` `false`, and can't be combined with `Pattern` `true`. |
 
-On `Query` the schema is a performance hint: filters the index can't answer fall back to a post-filter on the decrypted metadata. On `QueryMetadata` it is enforced, and unsupported filters return a `*ValidationError`.
+On `Query` the schema is a performance hint for pure vector queries: filters the index can't answer fall back to a post-filter on the decrypted metadata. Hybrid queries (with text) have no post-filter and reject such filters. On `QueryMetadata` it is enforced, and unsupported filters return a `*ValidationError`.
 
 The stored policy is returned by the [`MetadataSchema`](../getters#metadataschema) getter.
 
@@ -83,7 +83,7 @@ The `*EncryptedIndex` bound to the new index. For KMS-backed indexes it holds no
 
 | Error | Returned when |
 |-------|---------------|
-| `*ValidationError` wrapping `ErrMissingKeyOrKMS` or `ErrInvalidKeyLength` | Neither `IndexKey` nor `KmsName` is set, or `IndexKey` isn't 32 bytes. Returned before any request is sent. |
+| `*ValidationError` wrapping `ErrNilParams`, `ErrMissingKeyOrKMS`, or `ErrInvalidKeyLength` | `params` is `nil`, neither `IndexKey` nor `KmsName` is set, or `IndexKey` isn't 32 bytes. Returned before any request is sent. |
 | `*ValidationError` | The service rejects the request (HTTP `400`/`422`): the index name already exists, both `IndexKey` and `KmsName` are set, the `KmsName` slot is unknown, `StoragePrecision` isn't one of the six values, or `MetadataSchema` combines settings that aren't allowed. |
 | `*ServiceError` | The service returns `5xx`, including KMS wrap failures (`502`). |
 | `*TransportError` | The service can't be reached. |
@@ -208,16 +208,13 @@ _ = index
 #### Per-field metadata policy
 
 ```go
-dimension := int32(4)
-yes, no := true, false
-
 index, err := client.CreateIndex(ctx, &cyborgdb.CreateIndexParams{
     IndexName: "docs-index",
     IndexKey:  key,
-    Dimension: &dimension,
+    Dimension: cyborgdb.Int32(4),
     MetadataSchema: map[string]cyborgdb.MetadataFieldPolicy{
-        "title":         {Filterable: &yes, Pattern: &yes},
-        "internal_blob": {Filterable: &no},
+        "title":         {Filterable: cyborgdb.Bool(true), Pattern: cyborgdb.Bool(true)},
+        "internal_blob": {Filterable: cyborgdb.Bool(false)},
     },
 })
 if err != nil {

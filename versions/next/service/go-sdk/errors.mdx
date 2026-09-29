@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Failed requests to the service return an error that wraps one of seven typed errors, chosen from the HTTP status code. Match them with `errors.As`, or match the shared `cyborgdb.Error` interface.
+Failed requests to the service return an error that wraps one of the typed errors below, chosen from the HTTP status code. Match them with `errors.As`, or match the shared `cyborgdb.Error` interface.
 
 ```go
 package main
@@ -44,14 +44,15 @@ func main() {
 | Type | Returned for | `Retryable()` |
 |------|--------------|---------------|
 | `*ValidationError` | HTTP `400` or `422`, and every argument check the SDK runs before sending (see [below](#errors-returned-before-a-request-is-sent)). | `false` |
-| `*AuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, or a non-root key used for a root-only operation. | `false` |
-| `*NotFoundError` | HTTP `404`: the index or resource does not exist, or the `indexKey` doesn't match the index. | `false` |
+| `*AuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match an index the service already has loaded. | `false` |
+| `*NotFoundError` | HTTP `404`: the index or resource does not exist, or the `indexKey` doesn't match an index the service hasn't loaded yet. | `false` |
 | `*ConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `false` |
 | `*RateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `true` |
 | `*ServiceError` | Any HTTP `5xx` response. | `true` |
 | `*TransportError` | No response arrived: DNS failure, refused connection, TLS failure, or timeout. | `true` |
+| `*APIError` | Any other status of `300` or above, such as `405` or `413`. | `false` |
 
-All seven implement `cyborgdb.Error`. Methods such as `CreateIndex` add context to the message (for example `failed to create index: ...`), so always match with `errors.As` or `errors.Is`, never by comparing the error directly.
+All eight implement `cyborgdb.Error`. A `2xx` response whose body can't be decoded returns the decoding error unchanged, not a typed error. Methods such as `CreateIndex` add context to the message (for example `failed to create index: ...`), so always match with `errors.As` or `errors.Is`, never by comparing the error directly.
 
 ## The Error interface
 
@@ -113,6 +114,7 @@ Argument checks that run in the SDK return a `*ValidationError` (with `StatusCod
 | `ErrInvalidURL` | `NewClient` gets a URL without an `http` or `https` scheme or a host. |
 | `ErrInvalidKeyLength` | An index key isn't 32 bytes. |
 | `ErrMissingKeyOrKMS` | `CreateIndex` gets neither `IndexKey` nor `KmsName`. |
+| `ErrNilParams` | `CreateIndex` gets a `nil` params pointer. |
 | `ErrEmptyIDs`, `ErrEmptyVectors`, `ErrEmptyQueryVectors` | A `BinaryUpsertParams` or `BinaryQueryParams` field is empty. |
 | `ErrIDsVectorsLengthMismatch`, `ErrMetadataLengthMismatch`, `ErrContentsLengthMismatch` | `BinaryUpsertParams` slices differ in length. |
 | `ErrInconsistentDimension` | Vectors in one binary upsert or query have different lengths. |
@@ -127,8 +129,3 @@ fmt.Println(errors.Is(err, cyborgdb.ErrInvalidURL))
 Other sentinels are returned without a typed wrapper: `ErrKeyGeneration` from `GenerateKey`, the `ErrUnknownSampleDataset` / `ErrSampleDatasetDownload` / `ErrSampleDatasetTooLarge` / `ErrSampleDatasetIntegrity` errors from `LoadSampleDataset`, and `ErrDemoAPIKeyNotFound` / `ErrDemoAPIKeyGeneration` from `GetDemoAPIKey`.
 
 <Note>The package also declares `ErrQueryVectorsInvalidType`, `ErrMissingQueryInput`, and `ErrUnexpectedTrainingStatus`, but no function returns them. A query with no input is rejected by the service instead, as a `*ValidationError` with status `400`.</Note>
-
-## Known gaps
-
-- **`DeleteUser`** returns the raw generated-client error on failure, not a typed error.
-- **HTTP statuses outside the mapping above** (for example `405` or `413`) are returned as the generated client's error type, which lives in an `internal` package and can't be matched by name. Check `err.Error()` for these.

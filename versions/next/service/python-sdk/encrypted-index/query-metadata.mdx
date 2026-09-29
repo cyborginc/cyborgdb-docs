@@ -36,7 +36,7 @@ Without `order_by` or `text`, results come back in no particular order. Items mi
 
 ### Filter constraints
 
-[`query()`](./query) falls back to a post-filter over decrypted metadata when the index can't answer a filter. `query_metadata()` has no fallback, so every filter must be answerable from the index. The index's [`metadata_schema`](../client/create-index#metadata-schema) is therefore enforced here:
+[`query()`](./query) falls back to a post-filter over decrypted metadata when the index can't answer a filter, for pure vector queries. `query_metadata()` has no fallback, so every filter must be answerable from the index. The index's [`metadata_schema`](../client/create-index#metadata-schema) is therefore enforced here:
 
 - `$regex` and `$contains` need a field created with `pattern: True`.
 - A field created with `filterable: False` can't be filtered on.
@@ -59,8 +59,7 @@ Any of these returns `cyborgdb.ValidationError` (HTTP `400`) with the reason. Ne
 
 | Exception | Raised when |
 |-----------|-------------|
-| `ValueError` | `order_by` is a dict with more than one key, or is neither a `str` nor a dict. Raised before any request is sent. |
-| `cyborgdb.ValidationError` | The service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints). |
+| `cyborgdb.ValidationError` | `order_by` is a dict with more than one key, or is neither a `str` nor a dict (raised before any request is sent), or the service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints). |
 | `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
 | `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
 

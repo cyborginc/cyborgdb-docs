@@ -7,9 +7,7 @@ noindex: true
 
 When the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set, `EncryptedIndex` can create, list, and revoke per-index users. These methods require a client created with the root key.
 
-<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator guide.</Note>
-
-<Warning>`listUsers()` and `deleteUser()` currently work only on **KMS-backed** indexes. On an index created with `indexKey`, both throw `CyborgDBAuthenticationError` (`client_kek required`), because the SDK doesn't send the index key for them. `createUser()` works on both kinds of index.</Warning>
+<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator guide.</Note> They work on both KMS-backed indexes and indexes created with an `indexKey`.
 
 ## createUser
 
@@ -59,7 +57,7 @@ const userClient = new Client({ baseUrl: 'http://localhost:8000', apiKey: user.a
 
 ## listUsers
 
-Lists the users created for this index. KMS-backed indexes only; see the warning above.
+Lists the users created for this index.
 
 ```typescript
 async listUsers(): Promise<{ userId: string; permissions: string[] }[]>
@@ -72,10 +70,12 @@ An array of `{ userId, permissions }`, where `permissions` is a subset of `['rea
 ### Example
 
 ```typescript
-// `index` is a KMS-backed index loaded with the root key
+await index.createUser({ permissions: ['read'] });
+
 for (const u of await index.listUsers()) {
-    console.log(u.userId, u.permissions);
+    console.log(u.permissions);
 }
+// Output: [ 'read' ]
 ```
 
 <Note>Deleting an index doesn't delete its user records. If you create a new index with the same name, `listUsers()` on it still returns the old users. They can't read the new index, because their keys don't unwrap its data key; delete them with `deleteUser()`.</Note>
@@ -84,7 +84,7 @@ for (const u of await index.listUsers()) {
 
 ## deleteUser
 
-Revokes a user. Their access keys for this index are erased, so their `cdbk_` key stops working on the next request. KMS-backed indexes only; see the warning above.
+Revokes a user. Their access keys for this index are erased, so their `cdbk_` key stops working on the next request.
 
 ```typescript
 async deleteUser({ userId: string }): Promise<void>
@@ -99,9 +99,11 @@ async deleteUser({ userId: string }): Promise<void>
 ### Example
 
 ```typescript
-// `index` is a KMS-backed index loaded with the root key
 const { userId } = await index.createUser({ permissions: ['read'] });
 await index.deleteUser({ userId });
+
+console.log(await index.listUsers());
+// Output: []
 ```
 
 ---
@@ -112,7 +114,7 @@ These apply to all three methods:
 
 | Exception | Thrown when |
 |-----------|-------------|
-| `CyborgDBAuthenticationError` | The client isn't using the root key (HTTP `403`), its `apiKey` is invalid (HTTP `401`), or `listUsers()` / `deleteUser()` is called on an index created with `indexKey` (HTTP `401`). |
+| `CyborgDBAuthenticationError` | The client isn't using the root key (HTTP `403`), or its `apiKey` is invalid (HTTP `401`). |
 | `CyborgDBValidationError` | `permissions` is empty or contains a value other than `'read'` or `'write'`, or `userId` isn't hex (HTTP `400`). |
 | `CyborgDBNotFoundError` | The index doesn't exist (HTTP `404`). |
 | `CyborgDBServiceError` | The service returns `5xx`. |

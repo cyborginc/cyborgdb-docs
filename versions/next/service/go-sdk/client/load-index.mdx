@@ -29,12 +29,14 @@ The `*EncryptedIndex` bound to the loaded index. `LoadIndex` calls the service's
 | Error | Returned when |
 |-------|---------------|
 | `*ValidationError` wrapping `ErrInvalidKeyLength` | `indexKey` is non-empty but not 32 bytes. Returned before any request is sent. |
-| `*NotFoundError` | No index named `indexName` exists, or `indexKey` doesn't match it (HTTP `404`). |
-| `*AuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`). |
+| `*NotFoundError` | No index named `indexName` exists, or `indexKey` doesn't match an index the service hasn't loaded yet (HTTP `404`). |
+| `*AuthenticationError` | `indexKey` doesn't match an index the service already has loaded, or the client's `apiKey` is missing or invalid (HTTP `401`). |
 | `*ServiceError` | The service returns `5xx`, for example when a KMS-backed index's provider is unavailable. |
 | `*TransportError` | The service can't be reached. |
 
 See [Errors](../errors).
+
+<Note>A wrong key returns `*NotFoundError` (HTTP `404`) if the index isn't in the service's cache, for example right after the service restarts, and `*AuthenticationError` (HTTP `401`) once it is. Catch both when checking for a bad key.</Note>
 
 ### Example Usage
 

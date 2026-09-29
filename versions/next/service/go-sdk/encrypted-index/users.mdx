@@ -163,6 +163,4 @@ fmt.Println(len(users))
 | `*NotFoundError` | The index doesn't exist (HTTP `404`). |
 | `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
 
-<Note>`DeleteUser` currently returns the raw generated-client error instead of these typed errors. Check `err.Error()` for its failures.</Note>
-
 See [Errors](../errors).
