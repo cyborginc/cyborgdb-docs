@@ -18,7 +18,7 @@ func (c *Client) LoadIndex(ctx context.Context, indexName string, indexKey []byt
 | `indexName` | `string` | Name of an existing index. |
 | `indexKey` | `[]byte` | The 32-byte key the index was created with. Required for SDK-supplied-key indexes; pass `nil` for KMS-backed indexes (created with `KmsName`). |
 
-<Warning>For SDK-supplied-key indexes, `indexKey` must be the exact key passed to `CreateIndex`. A KMS-backed index fails to load if its `KmsName` slot is missing from the service YAML or its provider is unreachable.</Warning>
+<Warning>For SDK-supplied-key indexes, `indexKey` must be the exact key passed to `CreateIndex`. A KMS-backed index fails to load if its `KmsName` slot is missing from the service YAML or its provider is unreachable, with `*AuthenticationError` (HTTP `401`).</Warning>
 
 ### Returns
 
@@ -29,14 +29,14 @@ The `*EncryptedIndex` bound to the loaded index. `LoadIndex` calls the service's
 | Error | Returned when |
 |-------|---------------|
 | `*ValidationError` wrapping `ErrInvalidKeyLength` | `indexKey` is non-empty but not 32 bytes. Returned before any request is sent. |
-| `*NotFoundError` | No index named `indexName` exists, or `indexKey` doesn't match an index the service hasn't loaded yet (HTTP `404`). |
-| `*AuthenticationError` | `indexKey` doesn't match an index the service already has loaded, or the client's `apiKey` is missing or invalid (HTTP `401`). |
-| `*ServiceError` | The service returns `5xx`, for example when a KMS-backed index's provider is unavailable. |
+| `*NotFoundError` | No index named `indexName` exists, or `indexKey` doesn't match (HTTP `404`, in most cases). |
+| `*AuthenticationError` | `indexKey` doesn't match an index that has vectors and is already in the service's cache, or the client's `apiKey` is missing or invalid; or, for a KMS-backed index, its KMS slot is missing or the provider call fails (HTTP `401`). |
+| `*ServiceError` | The service returns `5xx`. |
 | `*TransportError` | The service can't be reached. |
 
 See [Errors](../errors).
 
-<Note>A wrong key returns `*NotFoundError` (HTTP `404`) if the index isn't in the service's cache, for example right after the service restarts, and `*AuthenticationError` (HTTP `401`) once it is. Catch both when checking for a bad key.</Note>
+<Note>A wrong key returns `*AuthenticationError` (HTTP `401`) when the index has vectors and the service already has it cached, and `*NotFoundError` (HTTP `404`) otherwise, for example on an empty index or right after the service restarts. Catch both when checking for a bad key.</Note>
 
 ### Example Usage
 

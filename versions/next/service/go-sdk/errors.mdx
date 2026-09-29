@@ -44,8 +44,8 @@ func main() {
 | Type | Returned for | `Retryable()` |
 |------|--------------|---------------|
 | `*ValidationError` | HTTP `400` or `422`, and every argument check the SDK runs before sending (see [below](#errors-returned-before-a-request-is-sent)). | `false` |
-| `*AuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match an index the service already has loaded. | `false` |
-| `*NotFoundError` | HTTP `404`: the index or resource does not exist, or the `indexKey` doesn't match an index the service hasn't loaded yet. | `false` |
+| `*AuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match an index that has vectors and is already in the service's cache. | `false` |
+| `*NotFoundError` | HTTP `404`: the index or resource does not exist, or (in most cases) the `indexKey` doesn't match. | `false` |
 | `*ConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `false` |
 | `*RateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `true` |
 | `*ServiceError` | Any HTTP `5xx` response. | `true` |

@@ -46,6 +46,8 @@ Strings in `contents` are stored as-is; bytes are base64-encoded first. [`get()`
 | `metadata` | `(object \| null)[]` | `undefined` | _(Optional)_ Metadata per vector, same length as `ids`. |
 | `contents` | `(string \| null)[]` | `undefined` | _(Optional)_ Contents per vector, same length as `ids`. |
 
+<Warning>Don't upsert vectors containing `NaN` or infinite values. The service stores them, and later `get` or `query` calls on that index that return vectors or distances fail with a `5xx` error.</Warning>
+
 ### Returns
 
 `Promise<UpsertResponse>` with `status` and `message`, e.g. `{ status: 'success', message: 'Upserted 2 vectors' }`. An empty `items` array returns `{ status: 'success', message: 'No items to upsert' }` without calling the service.
@@ -54,7 +56,7 @@ Strings in `contents` are stored as-is; bytes are base64-encoded first. [`get()`
 
 | Exception | Thrown when |
 |-----------|-------------|
-| `CyborgDBValidationError` | The input matches neither shape, arrays differ in length, or a vector contains a non-finite number. Thrown before any request is sent. |
+| `CyborgDBValidationError` | The input matches neither shape, arrays differ in length, or an `items` or `number[][]` vector contains a non-finite number. Thrown before any request is sent. `Float32Array` input isn't checked. |
 | `CyborgDBValidationError` | The service rejects the items (HTTP `400`), for example a vector with the wrong dimension. |
 | `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`). |
 | `CyborgDBServiceError` | The service returns `5xx`. |

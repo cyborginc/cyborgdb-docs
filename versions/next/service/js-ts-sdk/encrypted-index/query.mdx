@@ -33,12 +33,12 @@ async query({
 |-----------|------|---------|-------------|
 | `queryVectors` | `number[]`, `number[][]`, or `Float32Array` | `undefined` | _(Optional)_ One query vector, a batch, or a batch packed back to back in a `Float32Array` (sent in a faster binary format). |
 | `queryContents` | `string` | `undefined` | _(Optional)_ Text for the service to embed and search with. Requires an index created with `embeddingModel`. |
-| `topK` | `number` | `undefined` (service default: `100`) | _(Optional)_ Results to return per query. |
+| `topK` | `number` | `undefined` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`: `topK: 0` currently crashes the service process. |
 | `nProbes` | `number` | `undefined` (service default: auto) | _(Optional)_ Clusters to probe. Higher values improve recall and add latency. |
 | `filters` | [`FilterExpression`](../types#filterexpression) | `undefined` | _(Optional)_ Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
 | `include` | `string[]` | `undefined` (service default: `[]`) | _(Optional)_ Extra fields per result: `'distance'` and `'metadata'`. `id` is always returned. See [Result fields](#result-fields). |
 | `greedy` | `boolean` | `undefined` (service default: `false`) | _(Optional)_ Use greedy search. |
-| `rerankMult` | `number` | `undefined` (service default: `10`) | _(Optional)_ Stage 1 returns `topK * rerankMult` candidates before reranking narrows them to `topK`. Higher values trade latency for recall. |
+| `rerankMult` | `number` | `undefined` (service default: `50`) | _(Optional)_ Stage 1 returns `topK * rerankMult` candidates before reranking narrows them to `topK`. Higher values trade latency for recall. |
 | `dimension` | `number` | `undefined` | Required when `queryVectors` is a `Float32Array`, to split it into vectors. Ignored otherwise. |
 | `text` | `string` | `undefined` | _(Optional)_ Query text for a BM25 leg, which makes the query hybrid. Requires an index with at least one full-text field. `queryVectors` is still required. |
 | `textFields` | `string[]` | `undefined` (all full-text fields) | _(Optional)_ Full-text fields the BM25 leg searches. Naming a field that isn't full-text throws `CyborgDBValidationError`. |
@@ -79,7 +79,7 @@ A query with exactly one vector always returns single results, even when it's se
 | Exception | Thrown when |
 |-----------|-------------|
 | `CyborgDBValidationError` | Neither `queryVectors` nor `queryContents` is passed, or a `Float32Array` is passed without `dimension`. Thrown before any request is sent. |
-| `CyborgDBValidationError` | The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range parameter. |
+| `CyborgDBValidationError` | The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range `alpha`, `rrfK`, or `windowMult`. Other numeric parameters aren't range-checked. |
 | `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid (HTTP `401`). |
 | `CyborgDBServiceError` | The service returns `5xx`. |
 

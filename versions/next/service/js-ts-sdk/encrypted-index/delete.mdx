@@ -18,7 +18,7 @@ async delete({ ids: string[] }): Promise<DeleteResponse>
 
 ### Returns
 
-`Promise<DeleteResponse>` with `status` and `message`, e.g. `{ status: 'success', message: 'Deleted 2 vectors' }`.
+`Promise<DeleteResponse>` with `status` and `message`, e.g. `{ status: 'success', message: 'Deleted 2 vectors' }`. The count is the number of IDs sent, including IDs that don't exist.
 
 ### Exceptions
 

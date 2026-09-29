@@ -23,12 +23,14 @@ async train({
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `nLists` | `number` | `undefined` (auto) | _(Optional)_ Number of IVF lists. When omitted, the square root of the vector count, rounded to a power of two. |
-| `batchSize` | `number` | `undefined` (service default: `2048`) | _(Optional)_ Vectors processed per training batch. |
-| `maxIters` | `number` | `undefined` (service default: `100`) | _(Optional)_ Maximum clustering iterations. |
-| `tolerance` | `number` | `undefined` (service default: `1e-6`) | _(Optional)_ Convergence tolerance. |
-| `maxMemory` | `number` | `undefined` (service default: `0`, no limit) | _(Optional)_ Memory cap for training, in MB. |
+| `batchSize` | `number` | `undefined` (ignored) | _(Optional)_ Vectors processed per training batch. |
+| `maxIters` | `number` | `undefined` (ignored) | _(Optional)_ Maximum clustering iterations. |
+| `tolerance` | `number` | `undefined` (ignored) | _(Optional)_ Convergence tolerance. |
+| `maxMemory` | `number` | `undefined` (ignored) | _(Optional)_ Memory cap for training, in MB. |
 
 <Warning>Only `nLists` affects training today. The service accepts `batchSize`, `maxIters`, `tolerance`, and `maxMemory` but doesn't pass them to training, so they have no effect.</Warning>
+
+Parameter values aren't range-checked. An out-of-range value such as `nLists: 0` is accepted and training is skipped as described in [Requirements](#requirements); a negative `nLists` makes `train()` resolve with `status: 'error'`.
 
 ### Requirements
 
@@ -50,7 +52,6 @@ Training only runs when all three hold:
 |-----------|-------------|
 | `CyborgDBAuthenticationError` | The client isn't using the root key, or the `indexKey` is invalid (HTTP `401`/`403`). Training requires the root key. |
 | `CyborgDBNotFoundError` | The index doesn't exist (HTTP `404`). |
-| `CyborgDBValidationError` | A training parameter is out of range (HTTP `400`/`422`). |
 | `CyborgDBServiceError` | The service returns `5xx`. A failed training run doesn't throw; see [Requirements](#requirements). |
 
 See [Errors](../errors) for the full hierarchy.

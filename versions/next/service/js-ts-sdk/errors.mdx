@@ -26,7 +26,7 @@ try {
 | Class | Thrown for | `retryable` |
 |-------|------------|-------------|
 | `CyborgDBValidationError` | HTTP `400` or `422`: the service rejected the request's arguments. Also thrown by the `Client` constructor for an invalid `baseUrl`. | `false` |
-| `CyborgDBAuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match an index the service already has loaded. | `false` |
+| `CyborgDBAuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match an index that has vectors and is already in the service's cache. | `false` |
 | `CyborgDBNotFoundError` | HTTP `404`: the index or resource does not exist. | `false` |
 | `CyborgDBConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `false` |
 | `CyborgDBRateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `true` |
@@ -43,7 +43,7 @@ All seven classes extend `CyborgDBError`, which extends `Error`, so existing `ca
 | `detail` | `string \| null` | The service's error message, from the response body's `detail` field. |
 | `requestId` | `string \| null` | Value of the `X-Request-Id` response header, when the service sends one. Include it when reporting a problem. |
 | `retryAfter` | `number \| null` | Seconds from a numeric `Retry-After` header. |
-| `indexName` | `string \| null` | The index the call targeted. Currently set only by `upsert()`. |
+| `indexName` | `string \| null` | The index the call targeted. Set by `loadIndex()` and by `upsert()` with `items` or `number[][]` vectors; `null` for other calls, including `Float32Array` upserts. |
 | `retryable` | `boolean` | Fixed per class; see the table above. |
 | `cause` | `unknown` | The underlying error. |
 

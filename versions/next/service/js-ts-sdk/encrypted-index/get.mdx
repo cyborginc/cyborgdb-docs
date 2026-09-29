@@ -24,7 +24,7 @@ async get({
 
 ### Returns
 
-`Promise<GetResultItem[]>`, one object per ID found. IDs that don't exist are left out of the result without an error, and an empty `ids` array returns `[]`.
+`Promise<GetResultItem[]>`, one object per ID found. IDs that don't exist are left out of the result without an error, and an empty `ids` array returns `[]`. When `include` doesn't contain `'vector'`, an existing item that has none of the requested fields is also left out.
 
 ```typescript
 {

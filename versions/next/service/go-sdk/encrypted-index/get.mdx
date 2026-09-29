@@ -22,7 +22,7 @@ func (e *EncryptedIndex) Get(ctx context.Context, ids []string, include []string
 
 ### Returns
 
-`*GetResponse`, whose `Results` has one entry per ID found. IDs that don't exist are left out without an error, and an empty `ids` slice returns no results.
+`*GetResponse`, whose `Results` has one entry per ID found. IDs that don't exist are left out without an error, and an empty `ids` slice returns no results. When `include` doesn't contain `"vector"`, an existing item that has none of the requested fields is also left out.
 
 | Field / method | Description |
 |----------------|-------------|

@@ -57,4 +57,4 @@ except cyborgdb.AuthenticationError as e:
 # Output: 401
 ```
 
-The SDK does not retry requests or set a request timeout.
+The SDK adds no retry logic and sets no request timeout. The underlying urllib3 connection pool keeps its default retry policy: connection failures are retried up to 3 times for every request, and GET requests (`get_health()`, `list_indexes()`, `is_training()`) are also retried on dropped connections and on `413`, `429`, or `503` responses that carry `Retry-After`. POST requests aren't retried once sent. urllib3 logs these retries under its own `urllib3` logger.

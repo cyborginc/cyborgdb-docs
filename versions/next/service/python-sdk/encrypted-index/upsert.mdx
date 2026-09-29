@@ -46,6 +46,8 @@ Each dict can contain:
 
 Shape 2 can't attach metadata or contents. To send them with parallel arrays, call [`upsert_binary()`](./upsert-binary) directly.
 
+<Warning>Don't upsert vectors containing `NaN` or infinite values. The service stores them, and later `get` or `query` calls on that index that return vectors or distances fail with a `5xx` error. The SDK doesn't check for them.</Warning>
+
 ### Returns
 
 `None`

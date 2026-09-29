@@ -20,7 +20,7 @@ client.load_index(
 | `index_name` | `str` | - | Name of an existing index. |
 | `index_key` | `bytes` | `None` | _(Optional)_ The 32-byte key the index was created with. Required for SDK-supplied-key indexes; omit it for KMS-backed indexes (created with `kms_name`). |
 
-<Warning>For SDK-supplied-key indexes, `index_key` must be the exact key passed to `create_index()`. A KMS-backed index fails to load if its `kms_name` slot is missing from the service YAML or its provider is unreachable.</Warning>
+<Warning>For SDK-supplied-key indexes, `index_key` must be the exact key passed to `create_index()`. A KMS-backed index fails to load if its `kms_name` slot is missing from the service YAML or its provider is unreachable, with `cyborgdb.AuthenticationError` (HTTP `401`).</Warning>
 
 ### Returns
 
@@ -31,14 +31,14 @@ An `EncryptedIndex` bound to the loaded index. `load_index()` calls the service'
 | Exception | Raised when |
 |-----------|-------------|
 | `cyborgdb.ValidationError` | `index_key` is passed but is not 32 bytes. Raised before any request is sent. |
-| `cyborgdb.NotFoundError` | No index named `index_name` exists, or `index_key` doesn't match an index the service hasn't loaded yet (HTTP `404`). |
-| `cyborgdb.AuthenticationError` | `index_key` doesn't match an index the service already has loaded, or the client's `api_key` is missing or invalid (HTTP `401`). |
-| `cyborgdb.ServiceError` | The service returns `5xx`, for example when a KMS-backed index's provider is unavailable. |
+| `cyborgdb.NotFoundError` | No index named `index_name` exists, or `index_key` doesn't match (HTTP `404`, in most cases). |
+| `cyborgdb.AuthenticationError` | `index_key` doesn't match an index that has vectors and is already in the service's cache, or the client's `api_key` is missing or invalid; or, for a KMS-backed index, its KMS slot is missing or the provider call fails (HTTP `401`). |
+| `cyborgdb.ServiceError` | The service returns `5xx`. |
 | `cyborgdb.TransportError` | The service can't be reached. |
 
 See [Errors](../errors) for the full hierarchy.
 
-<Note>A wrong key returns `cyborgdb.NotFoundError` (HTTP `404`) if the index isn't in the service's cache, for example right after the service restarts, and `cyborgdb.AuthenticationError` (HTTP `401`) once it is. Catch both when checking for a bad key.</Note>
+<Note>A wrong key returns `cyborgdb.AuthenticationError` (HTTP `401`) when the index has vectors and the service already has it cached, and `cyborgdb.NotFoundError` (HTTP `404`) otherwise, for example on an empty index or right after the service restarts. Catch both when checking for a bad key.</Note>
 
 ### Example Usage
 

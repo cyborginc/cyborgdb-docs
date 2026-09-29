@@ -21,7 +21,7 @@ index.get(ids, include=["vector", "contents", "metadata"])
 
 ### Returns
 
-`List[Dict]`, one dict per ID found. IDs that don't exist are left out of the result without an error, and an empty `ids` list returns `[]`.
+`List[Dict]`, one dict per ID found. IDs that don't exist are left out of the result without an error, and an empty `ids` list returns `[]`. When `include` doesn't contain `"vector"`, an existing item that has none of the requested fields is also left out.
 
 ```python
 {

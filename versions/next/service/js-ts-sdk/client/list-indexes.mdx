@@ -18,7 +18,7 @@ async listIndexes(): Promise<string[]>
 
 | Exception | Thrown when |
 |-----------|-------------|
-| `CyborgDBAuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`). |
+| `CyborgDBAuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`), or is a per-user key: listing indexes requires the root key (HTTP `403`). |
 | `CyborgDBServiceError` | The service returns `5xx`. |
 | `CyborgDBTransportError` | The service can't be reached. |
 

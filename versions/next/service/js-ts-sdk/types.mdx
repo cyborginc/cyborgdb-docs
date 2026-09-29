@@ -205,7 +205,7 @@ console.log(published.toISOString());
 | `GetResultItem` | `id: string`, `vector?: number[]`, `contents?: string`, `metadata?: VectorMetadata` | [`get()`](./encrypted-index/get) |
 | `QueryResponse` | `results: QueryResultItem[] \| QueryResultItem[][]` | [`query()`](./encrypted-index/query) |
 
-Since v0.18, `UpsertResponse` and `DeleteResponse` no longer declare `upsertedCount` / `deletedCount`; those fields were never set. Read the count from `message`.
+Since v0.18, `UpsertResponse` and `DeleteResponse` no longer declare `upsertedCount` / `deletedCount`; those fields were never set. `message` reports how many IDs were sent, not how many existed: deleting an ID that doesn't exist still counts it.
 
 ## TypeScript types
 
@@ -254,7 +254,7 @@ The package also exports the generated request and response models `CreateIndexR
 
 | Function | Description |
 |----------|-------------|
-| `isJsonValue(value: unknown): value is JsonValue` | `true` if `value` can be stored as metadata: JSON primitives, arrays, and plain objects, with no circular references. |
+| `isJsonValue(value: unknown): value is JsonValue` | Checks for JSON primitives, arrays, and objects. It doesn't reject non-plain objects such as `Date` or `Map`, or `NaN`, and it treats any object that appears twice as circular, even when it isn't. |
 | `isError(error: unknown): error is Error` | `true` if `error` is an `Error` instance. |
 | `getErrorMessage(error: unknown): string` | `error.message` for an `Error`, otherwise `String(error)`. |
 

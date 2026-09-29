@@ -39,6 +39,8 @@ Vectors are sent as base64-encoded little-endian `float32`, which is faster for 
 
 <Tip>Store dates in `Metadata` as epoch milliseconds (`t.UnixMilli()`) so range filters work on them. See [Dates](../types#dates).</Tip>
 
+<Warning>Don't upsert vectors containing `NaN` or infinite values. The service stores them, and later `get` or `query` calls on that index that return vectors or distances fail with a `5xx` error. The SDK doesn't check for them.</Warning>
+
 ### Returns
 
 `error` only; `nil` on success.

@@ -50,7 +50,7 @@ The loopback check is an exact hostname match, so `https://localhost.example.com
 
 Turning verification off works on Node.js, where requests then go through the `node:https` module instead of `fetch`. It follows redirects and honors `AbortSignal`, and it times out a connection after 300 seconds of inactivity. Browsers and Edge runtimes can't turn verification off; `verifySsl: false` has no effect there.
 
-When verification is off, the SDK logs a warning with `console.warn`, or `console.info` for the loopback case. A plain `http://` URL also logs "SSL verification is disabled", although there is no TLS to disable.
+When verification is off, the SDK logs `console.warn` messages: on Node, one saying verification is disabled and a second saying the insecure transport is in use. The loopback auto-detect case logs its first message with `console.info`. A plain `http://` URL also logs "SSL verification is disabled", although there is no TLS to disable.
 
 ## Errors
 

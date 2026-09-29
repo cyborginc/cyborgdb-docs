@@ -30,12 +30,12 @@ index.query_binary(
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `query_vectors` | `np.ndarray` | - | Shape `(dim,)` for one query or `(n_queries, dim)` for a batch. Cast to little-endian `float32` if needed. |
-| `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. |
+| `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`: `top_k=0` currently crashes the service process. |
 | `n_probes` | `int` | `None` (service default: auto) | _(Optional)_ Clusters to probe. |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
 | `include` | `List[str]` | `None` (service default: `[]`) | _(Optional)_ Extra fields per result: `"distance"` and `"metadata"`. |
 | `greedy` | `bool` | `None` (service default: `False`) | _(Optional)_ Use greedy search. |
-| `rerank_mult` | `int` | `None` (service default: `10`) | _(Optional)_ Stage 1 candidate multiplier before reranking. |
+| `rerank_mult` | `int` | `None` (service default: `50`) | _(Optional)_ Stage 1 candidate multiplier before reranking. |
 | `text`, `text_fields`, `text_field_weights`, `require_all_terms`, `alpha`, `rrf_k`, `window_mult` | | `None` | _(Optional)_ Hybrid search parameters. Same meaning and service defaults as on [`query()`](./query#parameters). |
 
 ### Returns

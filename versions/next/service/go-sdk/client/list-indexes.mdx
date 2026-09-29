@@ -18,7 +18,7 @@ A `[]string` of index names. Empty when the service has no indexes.
 
 | Error | Returned when |
 |-------|---------------|
-| `*AuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`). |
+| `*AuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`), or is a per-user key: listing indexes requires the root key (HTTP `403`). |
 | `*ServiceError` | The service returns `5xx`. |
 | `*TransportError` | The service can't be reached. |
 

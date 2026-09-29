@@ -21,7 +21,7 @@ except cyborgdb.NotFoundError as e:
 | Class | Raised for | `retryable` |
 |-------|------------|-------------|
 | `ValidationError` | HTTP `400` or `422`: the service rejected the request's arguments. | `False` |
-| `AuthenticationError` | HTTP `401` or `403`: a missing or invalid `api_key`, or an `index_key` that doesn't match an index the service already has loaded. | `False` |
+| `AuthenticationError` | HTTP `401` or `403`: a missing or invalid `api_key`, or an `index_key` that doesn't match an index that has vectors and is already in the service's cache. | `False` |
 | `NotFoundError` | HTTP `404`: the index or resource does not exist. | `False` |
 | `ConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `False` |
 | `RateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `True` |
@@ -37,7 +37,7 @@ All seven classes inherit from `CyborgDBError`, which inherits from `ValueError`
 | Attribute | Type | Description |
 |-----------|------|-------------|
 | `status_code` | `int` or `None` | HTTP status code. `None` for a `TransportError`. |
-| `detail` | `str` or `None` | The service's error message, taken from the response body's `detail` field. |
+| `detail` | `str` or `None` | The service's error message, taken from the response body's `detail` field. For a `422` it's the JSON-encoded list of validation errors; for a `TransportError` it's the connection error text. |
 | `request_id` | `str` or `None` | Value of the `X-Request-Id` response header, when the service sends one. Include it when reporting a problem. |
 | `retry_after` | `float` or `None` | Seconds from a numeric `Retry-After` header. |
 | `retryable` | `bool` | Class-level flag from the table above. |
@@ -67,7 +67,7 @@ logging.getLogger("cyborgdb").setLevel(logging.CRITICAL)
 
 ## Retries
 
-The SDK does not retry requests or set a request timeout. `retryable` marks the errors that are safe to retry; the retry loop is up to the caller:
+The SDK adds no retry logic and sets no request timeout; urllib3's default policy still retries connection failures, and GET requests on some statuses (see [Client](./client/client#errors)). `retryable` marks the errors that are safe to retry; any further retry loop is up to the caller:
 
 ```python
 import time
@@ -95,7 +95,7 @@ Argument checks that run in the SDK, before anything is sent to the service, rai
 
 An argument of the wrong type, such as a list where `upsert_binary()` or `query_binary()` expects a NumPy array, raises a `ValidationError` that is also a `TypeError`, so existing `except TypeError` blocks keep working.
 
-<Note>A few wrong-type arguments are caught by the generated request models instead, and raise `pydantic.ValidationError`: for example `get(5)`, `query(top_k="abc")`, or `query()` with neither `query_vectors` nor `query_contents`. It is still a `ValueError`.</Note>
+<Note>A few wrong-type arguments are caught by the generated request models instead, and raise `pydantic.ValidationError`: for example `get(5)`, `delete([1, 2])`, `query(top_k="abc")`, `query_metadata(order_by=5)`, or `query()` with neither `query_vectors` nor `query_contents`. It is still a `ValueError`.</Note>
 
 ## Other statuses
 

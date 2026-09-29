@@ -21,12 +21,14 @@ All fields are pointers; `nil` uses the service default. Pass `cyborgdb.TrainPar
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `NLists` | `*int32` | `nil` (auto) | Number of IVF lists. When `nil`, the square root of the vector count, rounded to a power of two. |
-| `BatchSize` | `*int32` | `nil` (service default: `2048`) | Vectors processed per training batch. |
-| `MaxIters` | `*int32` | `nil` (service default: `100`) | Maximum clustering iterations. |
-| `Tolerance` | `*float64` | `nil` (service default: `1e-6`) | Convergence tolerance. |
-| `MaxMemory` | `*int32` | `nil` (service default: `0`, no limit) | Memory cap for training, in MB. |
+| `BatchSize` | `*int32` | `nil` (ignored) | Vectors processed per training batch. |
+| `MaxIters` | `*int32` | `nil` (ignored) | Maximum clustering iterations. |
+| `Tolerance` | `*float64` | `nil` (ignored) | Convergence tolerance. |
+| `MaxMemory` | `*int32` | `nil` (ignored) | Memory cap for training, in MB. |
 
 <Warning>Only `NLists` affects training today. The service accepts `BatchSize`, `MaxIters`, `Tolerance`, and `MaxMemory` but doesn't pass them to training, so they have no effect.</Warning>
+
+Parameter values aren't range-checked: an out-of-range value such as a negative list count is accepted, and training is skipped as described in [Requirements](#requirements).
 
 ### Requirements
 
@@ -48,7 +50,6 @@ Training only runs when all three hold:
 |-------|---------------|
 | `*AuthenticationError` | The client isn't using the root key (HTTP `401`/`403`). Training requires the root key. |
 | `*NotFoundError` | The index doesn't exist (HTTP `404`). A wrong key gives `*NotFoundError` or `*AuthenticationError`, as described in [Load Index](../client/load-index#errors). |
-| `*ValidationError` | A training parameter is out of range (HTTP `400`/`422`). |
 | `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. A failed training run doesn't return an error; see [Requirements](#requirements). |
 
 See [Errors](../errors).

@@ -24,6 +24,8 @@ index.upsert_binary(
 | `metadata` | `List[Optional[Dict]]` | `None` | _(Optional)_ Metadata per vector, same length as `ids`. Use `None` for entries without metadata. |
 | `contents` | `List[Optional[str \| bytes]]` | `None` | _(Optional)_ Contents per vector, same length as `ids`. Strings are stored as-is; bytes are base64-encoded first. Use `None` for entries without contents. |
 
+<Warning>Don't upsert vectors containing `NaN` or infinite values. The service stores them, and later `get` or `query` calls on that index that return vectors or distances fail with a `5xx` error. The SDK doesn't check for them.</Warning>
+
 ### Returns
 
 `None`

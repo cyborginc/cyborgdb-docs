@@ -28,7 +28,7 @@ Optional scalar fields are pointers: leave them `nil` to use the service default
 | `Filters` | `map[string]interface{}` | `nil` | Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
 | `Include` | `[]string` | `nil` (service default: `[]`) | Extra fields per result: `"distance"` and `"metadata"`. `Id` is always returned. See [Result fields](#result-fields). |
 | `Greedy` | `*bool` | `nil` (service default: `false`) | Use greedy search. |
-| `RerankMult` | `*int32` | `nil` (service default: `10`) | Stage 1 returns `TopK * RerankMult` candidates before reranking narrows them to `TopK`. |
+| `RerankMult` | `*int32` | `nil` (service default: `50`) | Stage 1 returns `TopK * RerankMult` candidates before reranking narrows them to `TopK`. |
 | `Text` | `*string` | `nil` | Query text for a BM25 leg, which makes the query hybrid. Requires an index with at least one full-text field. A query vector is still required. |
 | `TextFields` | `[]string` | `nil` (all full-text fields) | Full-text fields the BM25 leg searches. |
 | `TextFieldWeights` | `[]float32` | `nil` (`1.0` each) | Weight per searched field, in the same order as `TextFields`. |
@@ -71,7 +71,7 @@ A query with exactly one vector always returns single results, even when it's se
 | Error | Returned when |
 |-------|---------------|
 | `*ValidationError` wrapping `ErrEmptyQueryVectors`, `ErrInconsistentDimension`, or `ErrUnsupportedQueryType` | A `BinaryQueryParams` has no vectors or vectors of different lengths, or `input` is another type. Returned before any request is sent. |
-| `*ValidationError` | The service rejects the query (HTTP `400`/`422`): no query input, wrong vector dimension, `Text` on an index without full-text fields, or an out-of-range parameter. |
+| `*ValidationError` | The service rejects the query (HTTP `400`/`422`): no query input, wrong vector dimension, `Text` on an index without full-text fields, or an out-of-range `Alpha`, `RrfK`, or `WindowMult`. Other numeric parameters aren't range-checked. |
 | `*AuthenticationError` | The `apiKey` is invalid (HTTP `401`). |
 | `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
 

@@ -26,12 +26,12 @@ index.query(query_vectors=vector, text="encrypted search", top_k=10)
 |-----------|------|---------|-------------|
 | `query_vectors` | `List[float]`, `List[List[float]]`, or `np.ndarray` | `None` | _(Optional)_ One query vector, or a batch. A NumPy array is sent through the binary path, [`query_binary()`](./query-binary). |
 | `query_contents` | `str` | `None` | _(Optional)_ Text for the service to embed and search with. Requires an index created with `embedding_model`. Ignored when `query_vectors` is a NumPy array. |
-| `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. |
+| `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`: `top_k=0` currently crashes the service process. |
 | `n_probes` | `int` | `None` (service default: auto) | _(Optional)_ Clusters to probe. Higher values improve recall and add latency. |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
 | `include` | `List[str]` | `None` (service default: `[]`) | _(Optional)_ Extra fields per result: `"distance"` and `"metadata"`. `id` is always returned. See [Result fields](#result-fields). |
 | `greedy` | `bool` | `None` (service default: `False`) | _(Optional)_ Use greedy search. |
-| `rerank_mult` | `int` | `None` (service default: `10`) | _(Optional)_ Stage 1 returns `top_k * rerank_mult` candidates before reranking narrows them to `top_k`. Higher values trade latency for recall. |
+| `rerank_mult` | `int` | `None` (service default: `50`) | _(Optional)_ Stage 1 returns `top_k * rerank_mult` candidates before reranking narrows them to `top_k`. Higher values trade latency for recall. |
 | `text` | `str` | `None` | _(Optional)_ Query text for a BM25 leg, which makes the query hybrid. Requires an index with at least one full-text field. `query_vectors` is still required. |
 | `text_fields` | `List[str]` | `None` (all full-text fields) | _(Optional)_ Full-text fields the BM25 leg searches. Naming a field that isn't full-text returns `ValidationError`. |
 | `text_field_weights` | `List[float]` | `None` (`1.0` each) | _(Optional)_ Weight per searched field, in the same order as `text_fields`. |
@@ -68,7 +68,7 @@ A query with exactly one vector always returns single results, even when it's se
 |-----------|-------------|
 | `pydantic.ValidationError` | Neither `query_vectors` nor `query_contents` is passed. Raised before any request is sent. |
 | `cyborgdb.ValidationError` | A NumPy `query_vectors` array is not 1-D or 2-D. Raised before any request is sent. |
-| `cyborgdb.ValidationError` | The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range parameter. |
+| `cyborgdb.ValidationError` | The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range `alpha`, `rrf_k`, or `window_mult`. Other numeric parameters aren't range-checked. |
 | `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
 | `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
 
@@ -124,7 +124,7 @@ print([r["id"] for r in results])
 
 #### Hybrid (BM25 + vector)
 
-The index needs at least one full-text field, set with `text_fields` or `{"full_text": True}` in [`create_index()`](../client/create-index#metadata-schema).
+The index needs at least one full-text field, set with `text_fields` or `{"full_text": True, "filterable": False}` in [`create_index()`](../client/create-index#metadata-schema).
 
 ```python
 results = index.query(
