@@ -42,7 +42,7 @@ X-API-Key: cyborg_your_root_api_key_here
 - `400`: `user_id` is not valid hex.
 - `401`: Authentication failed (invalid root API key).
 - `403`: RBAC is not enabled, or the caller is not using the root key.
-- `404`: Index or user not found.
+- `404`: Index not found. (An unknown or already-revoked `user_id` does **not** return 404 — the revocation step surfaces it as a `400` or `500` instead.)
 - `500`: Internal server error.
 
 ## Example Usage

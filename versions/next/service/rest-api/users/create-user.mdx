@@ -18,7 +18,7 @@ Required — root API key in the `X-API-Key` header:
 X-API-Key: cyborg_your_root_api_key_here
 ```
 
-The legacy single API key (`CYBORGDB_API_KEY`) is **not** accepted on this route; it returns 403.
+The core license key (`CYBORGDB_API_KEY`) is **not** a service credential; sending it as `X-API-Key` returns 401 ("Invalid API Key"). A 403 is returned only for a valid non-root credential (a `cdbk_` user token).
 
 ## Path Parameters
 

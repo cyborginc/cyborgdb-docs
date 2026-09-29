@@ -84,7 +84,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   "status": "success",
   "message": "Upserted 2 vectors",
   "training_triggered": true,
-  "training_message": "Index training has been triggered (vectors: 5000, threshold: 10000)"
+  "training_message": "Index training has been triggered (vectors: 5000)"
 }
 ```
 
@@ -105,10 +105,12 @@ In rare cases where the training check encounters an error but the upsert operat
 
 ## Exceptions
 
+- `400`: Invalid values (e.g. vector dimension mismatch with the index)
 - `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
-- `422`: Invalid request parameters or vector dimensions
+- `422`: Request body failed validation (missing/mistyped fields)
 - `500`: Internal server error
+- `503`: Embedding model unavailable (auto-embedding upserts on indexes with an `embedding_model`)
 
 ## Example Usage
 

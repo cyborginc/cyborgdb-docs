@@ -6,7 +6,7 @@ playground: "simple"
 noindex: true
 ---
 
-Find items by metadata alone — no query vector, no distances. The filter is resolved entirely against the encrypted metadata index and the matching item IDs are returned. Works on untrained indexes.
+Find items by metadata alone — no query vector. With no `text`, the filter is resolved entirely against the encrypted metadata index and the matching items are returned unscored. With `text`, a BM25 full-text search runs over the index's `full_text` fields and the top matches are returned ranked by score; a filter given alongside acts as a pre-filter (the text leg scores only its survivors). Works on untrained indexes.
 
 ## Authentication
 
@@ -44,11 +44,23 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="top_k" type="integer">
     Cap on the number of IDs returned; omit for all matches. Applied **after** `order_by`, so it yields the first N of the sorted result.
   </ParamField>
-  <ParamField body="order_by" type="string">
-    Metadata field to sort matches by, applied post-filter. Unordered when omitted. Items missing the field, or holding a non-scalar, sort last.
+  <ParamField body="order_by" type="string | object">
+    Metadata field to sort matches by, applied post-filter. Accepts a field name, or a single-field MongoDB-style dict such as `{"views": -1}` (`1` ascending, `-1` descending) which overrides `ascending`. Unordered when omitted. Items missing the field, or holding a non-scalar, sort last. Not supported together with `text`.
   </ParamField>
   <ParamField body="ascending" type="boolean" default={true}>
-    Sort direction when `order_by` is set. Ignored when `order_by` is omitted.
+    Sort direction when `order_by` is a field name. Ignored when `order_by` is omitted or is a dict (the dict's sign wins).
+  </ParamField>
+  <ParamField body="text" type="string">
+    Query text for a BM25 full-text search. Requires an index with at least one `full_text` field. When set, results are ranked by descending BM25 `score` and `order_by` is not supported.
+  </ParamField>
+  <ParamField body="text_fields" type="array[string]">
+    Which `full_text` fields the text search covers. Omitted means all designated fields. Naming a non-`full_text` field returns 400.
+  </ParamField>
+  <ParamField body="text_field_weights" type="array[number]">
+    Per-field weights on the summed per-field BM25 scores, parallel to the searched fields. Omitted means 1.0 each.
+  </ParamField>
+  <ParamField body="require_all_terms" type="boolean" default="false">
+    Require every query term to match (AND) instead of any (OR, the default).
   </ParamField>
 </Expandable>
 
@@ -66,19 +78,42 @@ Any of these come back as 400 with the reason; use `/v1/vectors/query` with a ve
 
 ## Response
 
+**Filter-only query** — each result row is `{"id"}` (there is nothing to score):
+
 ```json
 {
+  "results": [
+    {"id": "item_1"},
+    {"id": "item_3"},
+    {"id": "item_7"}
+  ],
   "ids": ["item_1", "item_3", "item_7"],
   "count": 3
 }
 ```
 
+**Text query** — each result row is `{"id", "score"}` in descending BM25 score order:
+
+```json
+{
+  "results": [
+    {"id": "item_3", "score": 4.21},
+    {"id": "item_1", "score": 2.87}
+  ],
+  "ids": ["item_3", "item_1"],
+  "count": 2
+}
+```
+
 <Expandable title="response fields">
+  <ParamField body="results" type="array[object]">
+    Matching items. On a `text` query each row is `{id, score}` in descending score order; on a filter-only query each row is `{id}` (no `score` key), following `order_by` when set, otherwise an unordered subset.
+  </ParamField>
   <ParamField body="ids" type="array[string]">
-    Matching item IDs, ordered by `order_by` when set, otherwise an unordered subset.
+    Matching item IDs, parallel to `results`. Retained for backward compatibility with callers that only read IDs.
   </ParamField>
   <ParamField body="count" type="integer">
-    Number of IDs returned.
+    Number of items returned.
   </ParamField>
 </Expandable>
 
@@ -134,6 +169,20 @@ curl -X POST "http://localhost:8000/v1/vectors/query_metadata" \
        "order_by": "views",
        "ascending": false,
        "top_k": 5
+     }'
+```
+
+**Full-text search (index must have at least one `full_text` field; results ranked by BM25 score):**
+```bash
+curl -X POST "http://localhost:8000/v1/vectors/query_metadata" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "docs_index",
+       "index_key": "your_64_character_hex_key_here",
+       "text": "encrypted search",
+       "filters": {"label": "article"},
+       "top_k": 10
      }'
 ```
 

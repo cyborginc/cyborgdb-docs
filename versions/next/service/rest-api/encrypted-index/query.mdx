@@ -211,14 +211,18 @@ Use MongoDB-style query operators:
 }
 ```
 
-**Supported operators:** `$and`, `$or`, `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$nin`
+**Supported operators:** `$eq`, `$ne`, `$in`, `$nin`, `$exists`, `$gt`, `$gte`, `$lt`, `$lte`, `$regex`, `$contains`, combined with `$and`, `$or`, `$nor`, `$not`
+
+Filtering works on any metadata field; the index's `metadata_schema` only decides *how* a filter is resolved — fields marked `filterable` (the default) are answered from the inverted index, and `$regex` / `$contains` are answered from the regex dictionary on `pattern` fields. Anything else falls back to a post-filter over the decrypted metadata, which is correct but slower. Dates have no native type: store and filter them as epoch milliseconds.
 
 ## Exceptions
 
+- `400`: Invalid values (e.g. vector dimension mismatch with the index), or a filter disallowed on a hybrid (`text`) query — see the Note above
 - `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
-- `422`: Invalid request parameters or vector dimensions
+- `422`: Request body failed validation (missing/mistyped fields)
 - `500`: Internal server error
+- `503`: Embedding model unavailable (semantic search via `query_contents`)
 
 ## Example Usage
 
