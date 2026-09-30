@@ -67,7 +67,7 @@ logging.getLogger("cyborgdb").setLevel(logging.CRITICAL)
 
 ## Retries
 
-The SDK adds no retry logic and sets no request timeout; urllib3's default policy still retries connection failures, and GET requests on some statuses (see [Client](./client/client#errors)). `retryable` marks the errors that are safe to retry; any further retry loop is up to the caller:
+The SDK sets no request timeout and retries a request only once, when its connection fails or drops (see [Client](./client/client#errors)). `retryable` marks the errors that are safe to retry; any further retry loop is up to the caller:
 
 ```python
 import time

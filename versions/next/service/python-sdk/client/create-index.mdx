@@ -36,7 +36,7 @@ client.create_index(
 | `metric` | `str` | `None` (service default: `"euclidean"`) | _(Optional)_ `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
 | `storage_precision` | `str` | `None` (service default: `"float32"`) | _(Optional)_ Storage format for rerank vectors. See [Storage precision](#storage-precision). |
 | `metadata_schema` | `Dict[str, Dict[str, bool]]` | `None` | _(Optional)_ Per-field metadata indexing policy. Fixed at creation and cannot be changed later. See [Metadata schema](#metadata-schema). |
-| `text_fields` | `List[str]` | `None` | _(Optional)_ Metadata fields to index for BM25 full-text search. Equivalent to `{"full_text": True, "filterable": False}` in `metadata_schema`. Enables `text=` on [`query()`](../encrypted-index/query) and [`query_metadata()`](../encrypted-index/query-metadata). |
+| `text_fields` | `List[str]` | `None` | _(Optional)_ Metadata fields to index for BM25 full-text search. Shorthand for `{"full_text": True}` in `metadata_schema`. Enables `text=` on [`query()`](../encrypted-index/query) and [`query_metadata()`](../encrypted-index/query-metadata). |
 | `bm25_k1` | `float` | `None` (service default: `1.2`) | _(Optional)_ BM25 term-frequency saturation, `>= 0`. Requires at least one full-text field. |
 | `bm25_b` | `float` | `None` (service default: `0.75`) | _(Optional)_ BM25 length-normalization strength, in `[0, 1]`. Requires at least one full-text field. |
 
@@ -70,7 +70,7 @@ Lower TurboQuant tiers use less storage in exchange for a small recall and laten
 metadata_schema = {
     "title":         {"filterable": True, "pattern": True},  # regex-searchable
     "internal_blob": {"filterable": False},                   # stored, not indexed
-    "body":          {"full_text": True, "filterable": False},  # BM25 full-text search
+    "body":          {"full_text": True},                     # BM25 full-text search
 }
 ```
 
@@ -80,7 +80,7 @@ Each field takes three settings:
 |---------|---------|--------|
 | `filterable` | `True` | Builds inverted-index postings, so filters on the field resolve from the index. `False` still stores the field, but [`query()`](../encrypted-index/query) vector-only queries on it fall back to a slower post-filter, hybrid queries reject it, and [`query_metadata()`](../encrypted-index/query-metadata) rejects them. |
 | `pattern` | `False` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `filterable=True`. |
-| `full_text` | `False` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Set `filterable=False` with it (or use `text_fields`): the SDK sends `filterable=True` by default, so `{"full_text": True}` alone is rejected with `ValidationError` (HTTP `422`). Can't be combined with `pattern=True`. |
+| `full_text` | `False` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `filterable=False`; an explicit `filterable=True` with it is rejected with `ValidationError` (HTTP `422`). Can't be combined with `pattern=True`. |
 
 On `query()` the schema is a performance hint for pure vector queries: filters the index can't answer fall back to a post-filter on the decrypted metadata. Hybrid queries (with text) have no post-filter and reject such filters. On `query_metadata()` it is enforced, and unsupported filters return `ValidationError`.
 

@@ -124,7 +124,7 @@ print([r["id"] for r in results])
 
 #### Hybrid (BM25 + vector)
 
-The index needs at least one full-text field, set with `text_fields` or `{"full_text": True, "filterable": False}` in [`create_index()`](../client/create-index#metadata-schema).
+The index needs at least one full-text field, set with `text_fields` or `{"full_text": True}` in [`create_index()`](../client/create-index#metadata-schema).
 
 ```python
 results = index.query(
