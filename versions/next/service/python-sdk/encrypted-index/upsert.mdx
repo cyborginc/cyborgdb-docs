@@ -100,3 +100,16 @@ contents = ["Fourth body", "Fifth body", None]
 
 index.upsert_binary(ids, vectors, metadata=metadata, contents=contents)
 ```
+
+#### Replace an existing item
+
+```python
+index.upsert([{"id": "doc1", "vector": [0.1, 0.2, 0.3, 0.4], "metadata": {"version": 1}}])
+
+# Same ID: replaces the vector, contents, and metadata
+index.upsert([{"id": "doc1", "vector": [0.2, 0.3, 0.4, 0.5], "metadata": {"version": 2}}])
+
+item = index.get(["doc1"], include=["metadata"])[0]
+print(item["metadata"])
+# Output: {'version': 2}
+```

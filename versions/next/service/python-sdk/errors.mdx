@@ -21,7 +21,7 @@ except cyborgdb.NotFoundError as e:
 | Class | Raised for | `retryable` |
 |-------|------------|-------------|
 | `ValidationError` | HTTP `400` or `422`: the service rejected the request's arguments. | `False` |
-| `AuthenticationError` | HTTP `401` or `403`: a missing or invalid `api_key`, or an `index_key` that doesn't match an index that has vectors and is already in the service's cache. | `False` |
+| `AuthenticationError` | HTTP `401` or `403`: a missing or invalid `api_key`, a non-root key used for a root-only operation, or an `index_key` that doesn't match an index that has vectors and is already in the service's cache. | `False` |
 | `NotFoundError` | HTTP `404`: the index or resource does not exist. | `False` |
 | `ConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `False` |
 | `RateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `True` |

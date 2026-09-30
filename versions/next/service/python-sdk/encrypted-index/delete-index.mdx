@@ -21,7 +21,7 @@ index.delete_index()
 | Exception | Raised when |
 |-----------|-------------|
 | `cyborgdb.NotFoundError` | The index doesn't exist, for example because it was already deleted (HTTP `404`). |
-| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
+| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`), or the client is using a per-user key: deleting an index requires the root key (HTTP `403`). |
 | `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
 
 See [Errors](../errors) for the full hierarchy.

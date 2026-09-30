@@ -128,7 +128,7 @@ if (!(await index.isTrained())) {
 async isTraining(): Promise<boolean>
 ```
 
-`true` while the service is training this index or has it queued for training.
+`true` while the service is training this index or has it queued for training. Requires the root key: with a per-user key the service returns HTTP `403` and the SDK throws `CyborgDBAuthenticationError`.
 
 ```typescript
 while (await index.isTraining()) {

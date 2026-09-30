@@ -96,6 +96,7 @@ The stored policy is returned by the [`metadataSchema()`](../getters#metadatasch
 |-----------|-------------|
 | `CyborgDBValidationError` | Neither `indexKey` nor `kmsName` is passed, or `indexKey` is not 32 bytes. Thrown before any request is sent. |
 | `CyborgDBValidationError` | The service rejects the request (HTTP `400`/`422`): the index name already exists, both `indexKey` and `kmsName` were passed, the `kmsName` slot is unknown, `storagePrecision` isn't one of the six values, or `metadataSchema` combines settings that aren't allowed. |
+| `CyborgDBAuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`), or is a per-user key: creating an index requires the root key (HTTP `403`). |
 | `CyborgDBServiceError` | The service returns `5xx`, including KMS wrap failures (`502`). |
 | `CyborgDBTransportError` | The service can't be reached. |
 

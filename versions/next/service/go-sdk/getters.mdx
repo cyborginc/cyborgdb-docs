@@ -151,7 +151,7 @@ if !trained {
 func (e *EncryptedIndex) IsTraining(ctx context.Context) (bool, error)
 ```
 
-`true` while the service is training this index or has it queued for training.
+`true` while the service is training this index or has it queued for training. Requires the root key: with a per-user key the service returns HTTP `403` and the SDK returns `*AuthenticationError`.
 
 ```go
 for {

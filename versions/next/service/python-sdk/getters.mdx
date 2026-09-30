@@ -130,7 +130,7 @@ if not index.is_trained():
 index.is_training() -> bool
 ```
 
-`True` while the service is training this index or has it queued for training.
+`True` while the service is training this index or has it queued for training. Requires the root key: with a per-user key the service returns HTTP `403` and the SDK raises `cyborgdb.AuthenticationError`.
 
 ```python
 import time
