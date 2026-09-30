@@ -30,7 +30,7 @@ index.query_binary(
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `query_vectors` | `np.ndarray` | - | Shape `(dim,)` for one query or `(n_queries, dim)` for a batch. Cast to little-endian `float32` if needed. |
-| `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`: `top_k=0` currently crashes the service process. |
+| `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`. |
 | `n_probes` | `int` | `None` (service default: auto) | _(Optional)_ Clusters to probe. |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
 | `include` | `List[str]` | `None` (service default: `[]`) | _(Optional)_ Extra fields per result: `"distance"` and `"metadata"`. |

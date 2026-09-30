@@ -33,7 +33,7 @@ async query({
 |-----------|------|---------|-------------|
 | `queryVectors` | `number[]`, `number[][]`, or `Float32Array` | `undefined` | _(Optional)_ One query vector, a batch, or a batch packed back to back in a `Float32Array` (sent in a faster binary format). |
 | `queryContents` | `string` | `undefined` | _(Optional)_ Text for the service to embed and search with. Requires an index created with `embeddingModel`. |
-| `topK` | `number` | `undefined` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`: `topK: 0` currently crashes the service process. |
+| `topK` | `number` | `undefined` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`. |
 | `nProbes` | `number` | `undefined` (service default: auto) | _(Optional)_ Clusters to probe. Higher values improve recall and add latency. |
 | `filters` | [`FilterExpression`](../types#filterexpression) | `undefined` | _(Optional)_ Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
 | `include` | `string[]` | `undefined` (service default: `[]`) | _(Optional)_ Extra fields per result: `'distance'` and `'metadata'`. `id` is always returned. See [Result fields](#result-fields). |

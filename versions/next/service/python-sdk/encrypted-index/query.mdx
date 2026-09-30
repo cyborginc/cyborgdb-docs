@@ -26,7 +26,7 @@ index.query(query_vectors=vector, text="encrypted search", top_k=10)
 |-----------|------|---------|-------------|
 | `query_vectors` | `List[float]`, `List[List[float]]`, or `np.ndarray` | `None` | _(Optional)_ One query vector, or a batch. A NumPy array is sent through the binary path, [`query_binary()`](./query-binary). |
 | `query_contents` | `str` | `None` | _(Optional)_ Text for the service to embed and search with. Requires an index created with `embedding_model`. Ignored when `query_vectors` is a NumPy array. |
-| `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`: `top_k=0` currently crashes the service process. |
+| `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`. |
 | `n_probes` | `int` | `None` (service default: auto) | _(Optional)_ Clusters to probe. Higher values improve recall and add latency. |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
 | `include` | `List[str]` | `None` (service default: `[]`) | _(Optional)_ Extra fields per result: `"distance"` and `"metadata"`. `id` is always returned. See [Result fields](#result-fields). |
