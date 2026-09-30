@@ -6,7 +6,7 @@ playground: "simple"
 noindex: true
 ---
 
-Find items by metadata alone — no query vector. With no `text`, the filter is resolved entirely against the encrypted metadata index and the matching items are returned unscored. With `text`, a BM25 full-text search runs over the index's `full_text` fields and the top matches are returned ranked by score; a filter given alongside acts as a pre-filter (the text leg scores only its survivors). Works on untrained indexes.
+Find items by metadata alone — no query vector. With no `text`, the filter is resolved entirely against the encrypted metadata index and the matching items are returned unscored. With `text`, a BM25 full-text search runs over the index's `full_text` fields and the top matches are returned ranked by score; a filter given alongside acts as a pre-filter (the text leg scores only its survivors). Works on untrained indexes. To add a vector leg on top of either form, use [`/v1/vectors/query`](./query) — see [Combining search legs](./query#combining-search-legs).
 
 ## Authentication
 
@@ -119,7 +119,7 @@ Any of these come back as 400 with the reason; use `/v1/vectors/query` with a ve
 
 ## Exceptions
 
-- `400`: Filter references a field the metadata index cannot resolve — a `$regex`/`$contains` on a non-`pattern` field, a `filterable: false` field, or an unsupported operator
+- `400`: Filter references a field the metadata index cannot resolve — a `$regex`/`$contains` on a non-`pattern` field, a `filterable: false` field, or an unsupported operator. Also raised for text-parameter violations: `text` on an index with no `full_text` field, a `text_fields` entry that is not a `full_text` field, a text knob (`text_fields` / `text_field_weights` / `require_all_terms`) without `text`, or `order_by` combined with `text`
 - `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
 - `422`: Invalid request parameters

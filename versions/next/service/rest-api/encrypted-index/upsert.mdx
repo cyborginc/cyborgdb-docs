@@ -62,11 +62,33 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
         Text content associated with the vector
       </ParamField>
       <ParamField body="metadata" type="object">
-        Key-value pairs for additional metadata
+        Key-value pairs for additional metadata. String values in fields the index designates `full_text` are BM25-indexed on ingest — see [Full-text (BM25) ingestion](#full-text-bm25-ingestion).
       </ParamField>
     </Expandable>
   </ParamField>
 </Expandable>
+
+## Full-Text (BM25) Ingestion
+
+There is no separate ingestion call or parameter for BM25: text is indexed at upsert, from the metadata fields the index designated `full_text` at [creation](../client/create-index). Put the searchable text in those fields and it is analyzed and added to the encrypted BM25 index automatically, making the item retrievable via `text` on [`/v1/vectors/query`](./query) and [`/v1/vectors/query_metadata`](./query-metadata).
+
+```json
+{
+  "id": "article_1",
+  "vector": [0.1, 0.2, 0.3, 0.4],
+  "metadata": {
+    "title": "Encrypted vector search",
+    "body": "CyborgDB keeps embeddings encrypted during search...",
+    "category": "tech"
+  }
+}
+```
+
+Here `title` and `body` are BM25-searchable if the index marked them `full_text`; `category` (a regular `filterable` field) is exact-match indexed as usual.
+
+- A `full_text` field's value must be a JSON **string**. Items where the field is missing or non-string are skipped for that field — the upsert still succeeds, and the service logs one warning per field per batch.
+- `full_text` designations are fixed at index creation; text upserted into non-designated fields is stored as ordinary metadata and is not text-searchable.
+- `full_text` fields are analyzed instead of exact-match indexed (`filterable: false`), so they cannot be used in `filters` on [`/v1/vectors/query_metadata`](./query-metadata) or on hybrid queries.
 
 ## Response
 

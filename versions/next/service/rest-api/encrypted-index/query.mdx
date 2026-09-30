@@ -6,7 +6,7 @@ api: "POST /v1/vectors/query"
 playground: "simple"
 ---
 
-Retrieve the nearest neighbors for a given query vector. Passing `text` alongside `query_vectors` turns this into a **hybrid** query that fuses BM25 full-text ranking with the vector ranking (see [Full-text and hybrid search](../../../embedded/guides/data-operations/bm25-search)).
+Retrieve the nearest neighbors for a given query vector. Passing `text` alongside `query_vectors` turns this into a **hybrid** query that fuses BM25 full-text ranking with the vector ranking (see [Full-Text and Hybrid Search](../../guides/data-operations/bm25-search)). Adding `filters` on top composes with either form — including a **three-way** query (vector + BM25 + metadata); see [Combining search legs](#combining-search-legs).
 
 ## Authentication
 
@@ -215,9 +215,27 @@ Use MongoDB-style query operators:
 
 Filtering works on any metadata field; the index's `metadata_schema` only decides *how* a filter is resolved — fields marked `filterable` (the default) are answered from the inverted index, and `$regex` / `$contains` are answered from the regex dictionary on `pattern` fields. Anything else falls back to a post-filter over the decrypted metadata, which is correct but slower. Dates have no native type: store and filter them as epoch milliseconds.
 
+## Combining Search Legs
+
+Vector similarity, BM25 full-text, and metadata filtering are independent legs that compose in one request:
+
+| Legs | Request shape | Endpoint |
+|------|---------------|----------|
+| Vector + metadata | `query_vectors` + `filters` | this endpoint |
+| Vector + BM25 (hybrid) | `query_vectors` + `text` | this endpoint |
+| Vector + BM25 + metadata (three-way) | `query_vectors` + `text` + `filters` | this endpoint |
+| BM25 + metadata (no vector) | `text` + `filters` | [`/v1/vectors/query_metadata`](./query-metadata) |
+| Metadata only | `filters` | [`/v1/vectors/query_metadata`](./query-metadata) |
+
+On a three-way query the filter is resolved **once**, before retrieval, and the surviving IDs constrain both the vector and BM25 legs — so both rankings are computed over the same filtered candidate set, then fused by RRF. A filter that matches nothing short-circuits to an empty result without running either leg.
+
+`alpha` still applies: `0` reduces the query to BM25 + metadata, `1` to vector + metadata, and either exact endpoint skips the dead leg's retrieval entirely.
+
+<Note>Any query with `text` set accepts only filters the metadata index can resolve exactly (see the Note above) — this includes the three-way form.</Note>
+
 ## Exceptions
 
-- `400`: Invalid values (e.g. vector dimension mismatch with the index), or a filter disallowed on a hybrid (`text`) query — see the Note above
+- `400`: Invalid values (e.g. vector dimension mismatch with the index), or a hybrid-parameter violation enforced by the index core — a filter disallowed on a hybrid (`text`) query (see the Note above), `text` on an index with no `full_text` field, a `text_fields` entry that is not a `full_text` field, a text knob (`text_fields` / `text_field_weights` / `require_all_terms`) without `text`, `alpha` outside `[0, 1]`, `rrf_k <= 0`, or `window_mult < 1`
 - `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
 - `422`: Request body failed validation (missing/mistyped fields)
@@ -286,6 +304,31 @@ curl -X POST "http://localhost:8000/v1/vectors/query" \
        "index_key": "your_64_character_hex_key_here",
        "query_vectors": [0.1, 0.2, 0.3, 0.4],
        "text": "encrypted search",
+       "top_k": 10,
+       "alpha": 0.5,
+       "include": ["metadata"]
+     }'
+```
+
+**Three-Way Query (Vector + BM25 + Metadata):**
+```bash
+# Filters are resolved once and constrain both legs before retrieval.
+# Every filtered field must be resolvable from the metadata index
+# (filterable, or pattern for $regex) — see the hybrid filter Note.
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: cyborg_your_api_key_here" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "articles",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.1, 0.2, 0.3, 0.4],
+       "text": "encrypted search",
+       "filters": {
+         "$and": [
+           {"category": "tech"},
+           {"published": {"$gte": 1735689600000}}
+         ]
+       },
        "top_k": 10,
        "alpha": 0.5,
        "include": ["metadata"]

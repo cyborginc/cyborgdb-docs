@@ -58,7 +58,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
         Dimensionality of each vector
       </ParamField>
       <ParamField body="metadata" type="array[object]">
-        Optional list of metadata objects, one per vector
+        Optional list of metadata objects, one per vector. String values in fields the index designates `full_text` are BM25-indexed on ingest, same as the standard endpoint — see [Full-text (BM25) ingestion](./upsert#full-text-bm25-ingestion)
       </ParamField>
       <ParamField body="contents" type="array[string]">
         Optional list of text content strings, one per vector

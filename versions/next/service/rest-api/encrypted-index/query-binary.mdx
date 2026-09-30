@@ -99,6 +99,8 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 
 <Note>Hybrid queries narrow which filters are accepted. `$regex` on a non-`pattern` field, and any predicate on an explicitly non-`filterable` field, work in a pure query but return 400 once `text` is set — see the [query endpoint](./query) for details.</Note>
 
+All leg combinations from the standard query endpoint work here too, including the three-way form (`query_vectors` + `text` + `filters`) — see [Combining search legs](./query#combining-search-legs).
+
 ## Response
 
 The response format is the same as the standard [query endpoint](./query). When `text` is set, each result carries a `score` (fused BM25 + vector relevance, higher = more relevant) instead of `distance`:
