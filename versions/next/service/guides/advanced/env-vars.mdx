@@ -43,7 +43,7 @@ This key controls licensing only. Request authentication is a separate concern, 
 | `CYBORGDB_SERVICE_ROOT_KEY` | When set, enables authentication and RBAC. The holder of this key has full admin access and can mint per-user API keys via `POST /v1/indexes/{index_name}/users`. Per-user keys are scoped to one index with `read` / `write` permissions enforced cryptographically. When unset, authentication is disabled. | unset (auth off) |
 | `INDEX_KEK_CACHE_TTL_SECONDS` | TTL for plaintext index KEKs in the service-side cache. Shorter = faster KMS revocation propagation; longer = fewer KMS calls. | `60` |
 
-See the [Multi-Tenancy guide](./multi-tenancy) for the full operator playbook (key kinds, provisioning users, KMS-backed constraint, revocation).
+See the [Multi-Tenancy guide](./multi-tenancy) for the full operator playbook (key kinds, provisioning users, SDK-supplied indexes, revocation).
 
 ## Storage Backend
 
