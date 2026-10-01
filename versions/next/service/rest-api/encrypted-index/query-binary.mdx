@@ -72,7 +72,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
     Metadata filters to apply to the search
   </ParamField>
   <ParamField body="include" type="array[string]">
-    Fields to include in response: `"distance"`, `"metadata"`, `"vector"`. Defaults to `[]` (only `id` is returned). `"contents"` is **not** a valid value — fetch contents via `POST /v1/vectors/get` with the matching IDs afterwards.
+    Fields to include in response: `"distance"`, `"metadata"`. Defaults to `[]` (only `id` is returned). `"contents"` and `"vector"` are **not** valid values — fetch stored vectors or contents via `POST /v1/vectors/get` with the matching IDs afterwards.
   </ParamField>
   <ParamField body="text" type="string">
     Query text for a BM25 full-text leg. Setting it makes the query **hybrid**: the BM25 ranking is fused with the vector ranking by weighted RRF and each result carries `score` instead of `distance`. Requires an index with at least one `full_text` field.
