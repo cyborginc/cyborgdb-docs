@@ -92,8 +92,8 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   <ParamField body="greedy" type="boolean" default="false">
     Use greedy search for higher recall
   </ParamField>
-  <ParamField body="rerank_mult" type="integer" default={10}>
-    Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `top_k * rerank_mult` candidates before the rerank pass narrows the result down to `top_k`. Higher values trade query latency for recall. Ignored by indexes that do not rerank.
+  <ParamField body="rerank_mult" type="integer" default={50}>
+    Multiplier for stage 1 retrieval in reranking indexes. Stage 1 returns `top_k * rerank_mult` candidates before the rerank pass narrows the result down to `top_k`. Higher values trade query latency for recall. Ignored by indexes that do not rerank. `top_k * rerank_mult` must not exceed 10,000; hybrid (vector + `text`) queries multiply by an additional fusion window, so their budget is tighter.
   </ParamField>
   <ParamField body="filters" type="object">
     MongoDB-style metadata filters

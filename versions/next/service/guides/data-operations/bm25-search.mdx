@@ -367,11 +367,11 @@ console.log(response.results);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryRequest, QueryResponse } from 'cyborgdb';
+import { QueryResponse } from 'cyborgdb';
 
 const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
 
-const params: QueryRequest = {
+const params = {
     queryVectors: queryVector,
     text: 'encrypted search',  // <- this is what makes it hybrid
     topK: 10,
@@ -457,9 +457,9 @@ console.log(response.results);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryRequest, QueryResponse } from 'cyborgdb';
+import { QueryResponse } from 'cyborgdb';
 
-const params: QueryRequest = {
+const params = {
     queryVectors: queryVector,
     text: 'encrypted search',
     filters: { author: 'ann' },  // resolved first; both legs rank only its survivors
