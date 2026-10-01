@@ -27,7 +27,7 @@ Initializes a new CyborgDB `Client` instance.
 | `storage_config` | [`StorageConfig`](../types#storageconfig) | - | Backing store for all index keystores. Built via the static factories `StorageConfig.memory()`, `StorageConfig.disk(path)`, or `StorageConfig.s3(bucket)`. |
 | `cpu_threads` | `int` | `0` | _(Optional)_ Number of CPU threads to use for computations (defaults to `0` = all cores). |
 | `gpu_config` | [`GPUConfig`](../types#gpuconfig) \| `None` | `None` | _(Optional)_ GPU operations configuration. Specify which operations use GPU acceleration (defaults to `None`, no GPU). |
-| `embedding_threads` | `int` \| `None` | `None` | _(Optional, keyword-only)_ Threads per text-embedding call (defaults to `1`; concurrent callers already run in parallel). Process-wide: the first `Client` to set it fixes it for the process, and a later `Client` passing a different value raises. |
+| `embedding_threads` | `int` \| `None` | `None` | _(Optional, keyword-only)_ Threads per text-embedding call (defaults to `1`; concurrent callers already run in parallel). |
 
 <Note>A single `storage_config` replaces the former `index_location` / `config_location` / `items_location` trio. The store is shared across all per-index keystores.</Note>
 
