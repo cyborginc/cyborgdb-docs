@@ -40,6 +40,8 @@ Where each dictionary can contain:
 
 <Tip>The `contents` field accepts both strings and bytes. Bytes are automatically base64-encoded before encryption; strings are passed as-is. Contents are returned in their original format (string or bytes) when retrieved with `get()`.</Tip>
 
+<Note>`datetime` and `date` objects in `metadata` are converted to integer epoch milliseconds before being sent (naive datetimes are treated as UTC; sub-millisecond precision is truncated). Values read back with `get()` come back as the same integer, not a `datetime`. The same conversion runs on filter dicts passed to `query()` / `query_binary()` / `query_metadata()`, so a `{"created": {"$gte": datetime(...)}}` predicate works directly.</Note>
+
 #### Shape 2: Parallel arrays
 
 | Parameter | Type | Default | Description |
