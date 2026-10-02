@@ -47,12 +47,18 @@ Vectors are sent as base64-encoded little-endian `float32`, which is faster for 
 
 ### Errors
 
-| Error | Returned when |
-|-------|---------------|
-| `*ValidationError` wrapping a sentinel | A `BinaryUpsertParams` field is empty, slices differ in length (`ErrIDsVectorsLengthMismatch`, `ErrMetadataLengthMismatch`, `ErrContentsLengthMismatch`), or vectors differ in length (`ErrInconsistentDimension`). Returned before any request is sent. `VectorItems` aren't checked in the SDK. |
-| `*ValidationError` | The service rejects the items (HTTP `400`), for example a vector with the wrong dimension. |
-| `*AuthenticationError` | The `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`). |
-| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="*ValidationError">
+        - Wraps a sentinel. A `BinaryUpsertParams` field is empty, slices differ in length (`ErrIDsVectorsLengthMismatch`, `ErrMetadataLengthMismatch`, `ErrContentsLengthMismatch`), or vectors differ in length (`ErrInconsistentDimension`). Returned before any request is sent. `VectorItems` aren't checked in the SDK.
+        - The service rejects the items (HTTP `400`), for example a vector with the wrong dimension.
+    </Accordion>
+    <Accordion title="*AuthenticationError">
+        The `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`).
+    </Accordion>
+    <Accordion title="*ServiceError / *TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors).
 

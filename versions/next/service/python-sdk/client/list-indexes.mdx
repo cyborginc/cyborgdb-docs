@@ -16,11 +16,17 @@ client.list_indexes()
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.AuthenticationError` | The client's `api_key` is missing or invalid (HTTP `401`), or is a per-user key: listing indexes requires the root key (HTTP `403`). |
-| `cyborgdb.ServiceError` | The service returns `5xx`. |
-| `cyborgdb.TransportError` | The service can't be reached. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.AuthenticationError">
+        The client's `api_key` is missing or invalid (HTTP `401`), or is a per-user key: listing indexes requires the root key (HTTP `403`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError">
+        The service returns `5xx`.
+    </Accordion>
+    <Accordion title="cyborgdb.TransportError">
+        The service can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

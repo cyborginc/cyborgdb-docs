@@ -76,12 +76,18 @@ A query with exactly one vector always returns single results, even when it's se
 
 ### Exceptions
 
-| Exception | Thrown when |
-|-----------|-------------|
-| `CyborgDBValidationError` | Neither `queryVectors` nor `queryContents` is passed, or a `Float32Array` is passed without `dimension`. Thrown before any request is sent. |
-| `CyborgDBValidationError` | The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range `alpha`, `rrfK`, or `windowMult`. Other numeric parameters aren't range-checked. |
-| `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid (HTTP `401`). |
-| `CyborgDBServiceError` | The service returns `5xx`. |
+<AccordionGroup>
+    <Accordion title="CyborgDBValidationError">
+        - Neither `queryVectors` nor `queryContents` is passed, or a `Float32Array` is passed without `dimension`. Thrown before any request is sent.
+        - The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range `alpha`, `rrfK`, or `windowMult`. Other numeric parameters aren't range-checked.
+    </Accordion>
+    <Accordion title="CyborgDBAuthenticationError">
+        The `indexKey` or `apiKey` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="CyborgDBServiceError">
+        The service returns `5xx`.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

@@ -54,13 +54,21 @@ Shape 2 can't attach metadata or contents. To send them with parallel arrays, ca
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.ValidationError` | The arguments don't match either shape (also a `TypeError`), an item has no `id`, or the IDs and vectors differ in length. Raised before any request is sent. |
-| `cyborgdb.ValidationError` | The service rejects the items (HTTP `400`), for example a vector with the wrong dimension. |
-| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
-| `cyborgdb.ServiceError` | The service returns `5xx`. |
-| `cyborgdb.TransportError` | The service can't be reached. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.ValidationError">
+        - The arguments don't match either shape (also a `TypeError`), an item has no `id`, or the IDs and vectors differ in length. Raised before any request is sent.
+        - The service rejects the items (HTTP `400`), for example a vector with the wrong dimension.
+    </Accordion>
+    <Accordion title="cyborgdb.AuthenticationError">
+        The `index_key` or `api_key` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError">
+        The service returns `5xx`.
+    </Accordion>
+    <Accordion title="cyborgdb.TransportError">
+        The service can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

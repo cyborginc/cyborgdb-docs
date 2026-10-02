@@ -112,11 +112,19 @@ console.log(await index.listUsers());
 
 These apply to all three methods:
 
-| Exception | Thrown when |
-|-----------|-------------|
-| `CyborgDBAuthenticationError` | The client isn't using the root key (HTTP `403`), or its `apiKey` is invalid (HTTP `401`). |
-| `CyborgDBValidationError` | `permissions` is empty or contains a value other than `'read'` or `'write'`, or `userId` isn't hex (HTTP `400`). |
-| `CyborgDBNotFoundError` | The index doesn't exist (HTTP `404`). |
-| `CyborgDBServiceError` | The service returns `5xx`. |
+<AccordionGroup>
+    <Accordion title="CyborgDBAuthenticationError">
+        The client isn't using the root key (HTTP `403`), or its `apiKey` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="CyborgDBValidationError">
+        `permissions` is empty or contains a value other than `'read'` or `'write'`, or `userId` isn't hex (HTTP `400`).
+    </Accordion>
+    <Accordion title="CyborgDBNotFoundError">
+        The index doesn't exist (HTTP `404`).
+    </Accordion>
+    <Accordion title="CyborgDBServiceError">
+        The service returns `5xx`.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.

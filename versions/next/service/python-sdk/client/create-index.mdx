@@ -108,12 +108,20 @@ An `EncryptedIndex` bound to the new index. For KMS-backed indexes it holds no p
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.ValidationError` | Before any request is sent: neither `index_key` nor `kms_name` is passed, `index_key` is not 32 bytes, or `storage_precision` is not one of the six values above. From the service: the index name already exists, both `index_key` and `kms_name` were passed, or the `kms_name` slot is unknown (HTTP `400`); or `metadata_schema` combines settings that aren't allowed (HTTP `422`). |
-| `cyborgdb.AuthenticationError` | The client's `api_key` is missing or invalid (HTTP `401`), or is a per-user key: creating an index requires the root key (HTTP `403`). |
-| `cyborgdb.ServiceError` | The service returns `5xx`, including KMS wrap failures (`502`). |
-| `cyborgdb.TransportError` | The service can't be reached. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.ValidationError">
+        Before any request is sent: neither `index_key` nor `kms_name` is passed, `index_key` is not 32 bytes, or `storage_precision` is not one of the six values above. From the service: the index name already exists, both `index_key` and `kms_name` were passed, or the `kms_name` slot is unknown (HTTP `400`); or `metadata_schema` combines settings that aren't allowed (HTTP `422`).
+    </Accordion>
+    <Accordion title="cyborgdb.AuthenticationError">
+        The client's `api_key` is missing or invalid (HTTP `401`), or is a per-user key: creating an index requires the root key (HTTP `403`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError">
+        The service returns `5xx`, including KMS wrap failures (`502`).
+    </Accordion>
+    <Accordion title="cyborgdb.TransportError">
+        The service can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

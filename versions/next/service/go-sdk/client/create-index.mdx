@@ -97,13 +97,21 @@ The `*EncryptedIndex` bound to the new index. For KMS-backed indexes it holds no
 
 ### Errors
 
-| Error | Returned when |
-|-------|---------------|
-| `*ValidationError` wrapping `ErrNilParams`, `ErrMissingKeyOrKMS`, or `ErrInvalidKeyLength` | `params` is `nil`, neither `IndexKey` nor `KmsName` is set, or `IndexKey` isn't 32 bytes. Returned before any request is sent. |
-| `*ValidationError` | The service rejects the request (HTTP `400`/`422`): the index name already exists, both `IndexKey` and `KmsName` are set, the `KmsName` slot is unknown, `StoragePrecision` isn't one of the six values, or `MetadataSchema` combines settings that aren't allowed. |
-| `*AuthenticationError` | The client's `apiKey` is missing or invalid (HTTP `401`), or is a per-user key: creating an index requires the root key (HTTP `403`). |
-| `*ServiceError` | The service returns `5xx`, including KMS wrap failures (`502`). |
-| `*TransportError` | The service can't be reached. |
+<AccordionGroup>
+    <Accordion title="*ValidationError">
+        - Wraps `ErrNilParams`, `ErrMissingKeyOrKMS`, or `ErrInvalidKeyLength`. `params` is `nil`, neither `IndexKey` nor `KmsName` is set, or `IndexKey` isn't 32 bytes. Returned before any request is sent.
+        - The service rejects the request (HTTP `400`/`422`): the index name already exists, both `IndexKey` and `KmsName` are set, the `KmsName` slot is unknown, `StoragePrecision` isn't one of the six values, or `MetadataSchema` combines settings that aren't allowed.
+    </Accordion>
+    <Accordion title="*AuthenticationError">
+        The client's `apiKey` is missing or invalid (HTTP `401`), or is a per-user key: creating an index requires the root key (HTTP `403`).
+    </Accordion>
+    <Accordion title="*ServiceError">
+        The service returns `5xx`, including KMS wrap failures (`502`).
+    </Accordion>
+    <Accordion title="*TransportError">
+        The service can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors).
 

@@ -44,12 +44,20 @@ The functions take no `context.Context`. The download has a fixed 120-second tim
 
 ### Errors
 
-| Error | Returned when |
-|-------|---------------|
-| `ErrUnknownSampleDataset` | The dataset name is unknown. |
-| `ErrSampleDatasetDownload` | The download returns a non-`200` status. A network failure or timeout returns the underlying error (for example a `*url.Error`) instead, without this sentinel. |
-| `ErrSampleDatasetIntegrity` | The file fails its SHA-256 check. |
-| `ErrSampleDatasetTooLarge` | The decompressed dataset exceeds 512 MiB. |
+<AccordionGroup>
+    <Accordion title="ErrUnknownSampleDataset">
+        The dataset name is unknown.
+    </Accordion>
+    <Accordion title="ErrSampleDatasetDownload">
+        The download returns a non-`200` status. A network failure or timeout returns the underlying error (for example a `*url.Error`) instead, without this sentinel.
+    </Accordion>
+    <Accordion title="ErrSampleDatasetIntegrity">
+        The file fails its SHA-256 check.
+    </Accordion>
+    <Accordion title="ErrSampleDatasetTooLarge">
+        The decompressed dataset exceeds 512 MiB.
+    </Accordion>
+</AccordionGroup>
 
 These are wrapped with extra context; match them with `errors.Is`.
 

@@ -22,10 +22,14 @@ A `map[string]string` with these keys:
 
 ### Errors
 
-| Error | Returned when |
-|-------|---------------|
-| `*TransportError` | The service can't be reached. |
-| `*ServiceError` | The service returns `5xx`. |
+<AccordionGroup>
+    <Accordion title="*TransportError">
+        The service can't be reached.
+    </Accordion>
+    <Accordion title="*ServiceError">
+        The service returns `5xx`.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors).
 

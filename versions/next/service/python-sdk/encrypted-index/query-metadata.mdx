@@ -57,11 +57,17 @@ Any of these returns `cyborgdb.ValidationError` (HTTP `400`) with the reason. Ne
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.ValidationError` | `order_by` is a dict with more than one key, or is neither a `str` nor a dict (raised before any request is sent), or the service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints). |
-| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
-| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.ValidationError">
+        `order_by` is a dict with more than one key, or is neither a `str` nor a dict (raised before any request is sent), or the service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints).
+    </Accordion>
+    <Accordion title="cyborgdb.AuthenticationError">
+        The `index_key` or `api_key` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError / cyborgdb.TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

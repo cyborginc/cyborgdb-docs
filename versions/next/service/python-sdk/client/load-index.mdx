@@ -28,13 +28,23 @@ An `EncryptedIndex` bound to the loaded index. `load_index()` calls the service'
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.ValidationError` | `index_key` is passed but is not 32 bytes. Raised before any request is sent. |
-| `cyborgdb.NotFoundError` | No index named `index_name` exists, or `index_key` doesn't match (HTTP `404`, in most cases). |
-| `cyborgdb.AuthenticationError` | `index_key` doesn't match an index that has vectors and is already in the service's cache, or the client's `api_key` is missing or invalid; or, for a KMS-backed index, its KMS slot is missing or the provider call fails (HTTP `401`). |
-| `cyborgdb.ServiceError` | The service returns `5xx`. |
-| `cyborgdb.TransportError` | The service can't be reached. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.ValidationError">
+        `index_key` is passed but is not 32 bytes. Raised before any request is sent.
+    </Accordion>
+    <Accordion title="cyborgdb.NotFoundError">
+        No index named `index_name` exists, or `index_key` doesn't match (HTTP `404`, in most cases).
+    </Accordion>
+    <Accordion title="cyborgdb.AuthenticationError">
+        `index_key` doesn't match an index that has vectors and is already in the service's cache, or the client's `api_key` is missing or invalid; or, for a KMS-backed index, its KMS slot is missing or the provider call fails (HTTP `401`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError">
+        The service returns `5xx`.
+    </Accordion>
+    <Accordion title="cyborgdb.TransportError">
+        The service can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

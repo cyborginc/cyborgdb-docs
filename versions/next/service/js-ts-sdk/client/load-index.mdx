@@ -28,13 +28,23 @@ async loadIndex({
 
 ### Exceptions
 
-| Exception | Thrown when |
-|-----------|-------------|
-| `CyborgDBValidationError` | `indexKey` is passed but is not 32 bytes. Thrown before any request is sent. |
-| `CyborgDBNotFoundError` | No index named `indexName` exists, or `indexKey` doesn't match (HTTP `404`, in most cases). |
-| `CyborgDBAuthenticationError` | `indexKey` doesn't match an index that has vectors and is already in the service's cache, or the client's `apiKey` is missing or invalid; or, for a KMS-backed index, its KMS slot is missing or the provider call fails (HTTP `401`). |
-| `CyborgDBServiceError` | The service returns `5xx`. |
-| `CyborgDBTransportError` | The service can't be reached. |
+<AccordionGroup>
+    <Accordion title="CyborgDBValidationError">
+        `indexKey` is passed but is not 32 bytes. Thrown before any request is sent.
+    </Accordion>
+    <Accordion title="CyborgDBNotFoundError">
+        No index named `indexName` exists, or `indexKey` doesn't match (HTTP `404`, in most cases).
+    </Accordion>
+    <Accordion title="CyborgDBAuthenticationError">
+        `indexKey` doesn't match an index that has vectors and is already in the service's cache, or the client's `apiKey` is missing or invalid; or, for a KMS-backed index, its KMS slot is missing or the provider call fails (HTTP `401`).
+    </Accordion>
+    <Accordion title="CyborgDBServiceError">
+        The service returns `5xx`.
+    </Accordion>
+    <Accordion title="CyborgDBTransportError">
+        The service can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

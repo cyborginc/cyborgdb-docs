@@ -22,11 +22,17 @@ async delete({ ids: string[] }): Promise<DeleteResponse>
 
 ### Exceptions
 
-| Exception | Thrown when |
-|-----------|-------------|
-| `CyborgDBValidationError` | The service rejects the request (HTTP `422`), for example when `ids` isn't an array of strings. |
-| `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`). |
-| `CyborgDBServiceError` | The service returns `5xx`. |
+<AccordionGroup>
+    <Accordion title="CyborgDBValidationError">
+        The service rejects the request (HTTP `422`), for example when `ids` isn't an array of strings.
+    </Accordion>
+    <Accordion title="CyborgDBAuthenticationError">
+        The `indexKey` or `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`).
+    </Accordion>
+    <Accordion title="CyborgDBServiceError">
+        The service returns `5xx`.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

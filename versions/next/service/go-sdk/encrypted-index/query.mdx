@@ -68,12 +68,18 @@ A query with exactly one vector always returns single results, even when it's se
 
 ### Errors
 
-| Error | Returned when |
-|-------|---------------|
-| `*ValidationError` wrapping `ErrEmptyQueryVectors`, `ErrInconsistentDimension`, or `ErrUnsupportedQueryType` | A `BinaryQueryParams` has no vectors or vectors of different lengths, or `input` is another type. Returned before any request is sent. |
-| `*ValidationError` | The service rejects the query (HTTP `400`/`422`): no query input, wrong vector dimension, `Text` on an index without full-text fields, or an out-of-range `Alpha`, `RrfK`, or `WindowMult`. Other numeric parameters aren't range-checked. |
-| `*AuthenticationError` | The `apiKey` is invalid (HTTP `401`). |
-| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="*ValidationError">
+        - Wraps `ErrEmptyQueryVectors`, `ErrInconsistentDimension`, or `ErrUnsupportedQueryType`. A `BinaryQueryParams` has no vectors or vectors of different lengths, or `input` is another type. Returned before any request is sent.
+        - The service rejects the query (HTTP `400`/`422`): no query input, wrong vector dimension, `Text` on an index without full-text fields, or an out-of-range `Alpha`, `RrfK`, or `WindowMult`. Other numeric parameters aren't range-checked.
+    </Accordion>
+    <Accordion title="*AuthenticationError">
+        The `apiKey` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="*ServiceError / *TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors).
 

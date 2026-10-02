@@ -48,11 +48,17 @@ Training only runs when all three hold:
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.AuthenticationError` | The client isn't using the root key, or the `index_key` is invalid (HTTP `401`/`403`). Training requires the root key. |
-| `cyborgdb.NotFoundError` | The index doesn't exist (HTTP `404`). |
-| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. A failed training run doesn't raise; see [Requirements](#requirements). |
+<AccordionGroup>
+    <Accordion title="cyborgdb.AuthenticationError">
+        The client isn't using the root key, or the `index_key` is invalid (HTTP `401`/`403`). Training requires the root key.
+    </Accordion>
+    <Accordion title="cyborgdb.NotFoundError">
+        The index doesn't exist (HTTP `404`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError / cyborgdb.TransportError">
+        The service returns `5xx` or can't be reached. A failed training run doesn't raise; see [Requirements](#requirements).
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

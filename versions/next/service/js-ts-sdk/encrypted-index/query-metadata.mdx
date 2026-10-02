@@ -57,12 +57,18 @@ Any of these throws `CyborgDBValidationError` (HTTP `400`) with the reason. Nest
 
 ### Exceptions
 
-| Exception | Thrown when |
-|-----------|-------------|
-| `CyborgDBValidationError` | `orderBy` is an object with more than one key, or isn't a string or object. Thrown before any request is sent. |
-| `CyborgDBValidationError` | The service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints). |
-| `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid (HTTP `401`). |
-| `CyborgDBServiceError` | The service returns `5xx`. |
+<AccordionGroup>
+    <Accordion title="CyborgDBValidationError">
+        - `orderBy` is an object with more than one key, or isn't a string or object. Thrown before any request is sent.
+        - The service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints).
+    </Accordion>
+    <Accordion title="CyborgDBAuthenticationError">
+        The `indexKey` or `apiKey` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="CyborgDBServiceError">
+        The service returns `5xx`.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

@@ -36,10 +36,14 @@ index.get(ids, include=["vector", "contents", "metadata"])
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
-| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.AuthenticationError">
+        The `index_key` or `api_key` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError / cyborgdb.TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

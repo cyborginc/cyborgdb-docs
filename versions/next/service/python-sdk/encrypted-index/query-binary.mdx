@@ -47,13 +47,19 @@ Each dict has `id`, plus `distance` (vector query) or `score` (hybrid query), an
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.ValidationError` (also a `TypeError`) | `query_vectors` is not a NumPy array. |
-| `cyborgdb.ValidationError` | `query_vectors` is not 1-D or 2-D. |
-| `cyborgdb.ValidationError` | The service rejects the query (HTTP `400`/`422`), for example a wrong vector dimension. |
-| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
-| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.ValidationError">
+        - Also a `TypeError`. `query_vectors` is not a NumPy array.
+        - `query_vectors` is not 1-D or 2-D.
+        - The service rejects the query (HTTP `400`/`422`), for example a wrong vector dimension.
+    </Accordion>
+    <Accordion title="cyborgdb.AuthenticationError">
+        The `index_key` or `api_key` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError / cyborgdb.TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

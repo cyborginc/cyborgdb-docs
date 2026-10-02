@@ -23,10 +23,14 @@ func (e *EncryptedIndex) Delete(ctx context.Context, ids []string) error
 
 ### Errors
 
-| Error | Returned when |
-|-------|---------------|
-| `*AuthenticationError` | The `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`). |
-| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="*AuthenticationError">
+        The `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`).
+    </Accordion>
+    <Accordion title="*ServiceError / *TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors).
 

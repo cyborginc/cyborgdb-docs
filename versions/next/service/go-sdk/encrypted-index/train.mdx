@@ -46,11 +46,17 @@ Training only runs when all three hold:
 
 ### Errors
 
-| Error | Returned when |
-|-------|---------------|
-| `*AuthenticationError` | The client isn't using the root key (HTTP `401`/`403`). Training requires the root key. |
-| `*NotFoundError` | The index doesn't exist (HTTP `404`). A wrong key gives `*NotFoundError` or `*AuthenticationError`, as described in [Load Index](../client/load-index#errors). |
-| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. A failed training run doesn't return an error; see [Requirements](#requirements). |
+<AccordionGroup>
+    <Accordion title="*AuthenticationError">
+        The client isn't using the root key (HTTP `401`/`403`). Training requires the root key.
+    </Accordion>
+    <Accordion title="*NotFoundError">
+        The index doesn't exist (HTTP `404`). A wrong key gives `*NotFoundError` or `*AuthenticationError`, as described in [Load Index](../client/load-index#errors).
+    </Accordion>
+    <Accordion title="*ServiceError / *TransportError">
+        The service returns `5xx` or can't be reached. A failed training run doesn't return an error; see [Requirements](#requirements).
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors).
 

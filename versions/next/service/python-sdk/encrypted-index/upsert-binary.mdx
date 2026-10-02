@@ -32,12 +32,16 @@ index.upsert_binary(
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.ValidationError` (also a `TypeError`) | `vectors` is not a NumPy array. |
-| `cyborgdb.ValidationError` | `vectors` is not 2-D, or `ids`, `metadata`, or `contents` differ in length from `vectors`. Raised before any request is sent. |
-| `cyborgdb.ValidationError` | The service rejects the batch (HTTP `400`), for example a vector with the wrong dimension. |
-| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.ValidationError">
+        - Also a `TypeError`. `vectors` is not a NumPy array.
+        - `vectors` is not 2-D, or `ids`, `metadata`, or `contents` differ in length from `vectors`. Raised before any request is sent.
+        - The service rejects the batch (HTTP `400`), for example a vector with the wrong dimension.
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError / cyborgdb.TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

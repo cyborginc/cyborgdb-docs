@@ -39,10 +39,14 @@ async get({
 
 ### Exceptions
 
-| Exception | Thrown when |
-|-----------|-------------|
-| `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid (HTTP `401`). |
-| `CyborgDBServiceError` | The service returns `5xx`. |
+<AccordionGroup>
+    <Accordion title="CyborgDBAuthenticationError">
+        The `indexKey` or `apiKey` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="CyborgDBServiceError">
+        The service returns `5xx`.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

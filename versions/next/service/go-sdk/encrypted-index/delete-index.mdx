@@ -18,11 +18,17 @@ func (e *EncryptedIndex) DeleteIndex(ctx context.Context) error
 
 ### Errors
 
-| Error | Returned when |
-|-------|---------------|
-| `*NotFoundError` | The index doesn't exist, for example because it was already deleted (HTTP `404`). |
-| `*AuthenticationError` | The `apiKey` is invalid (HTTP `401`), or the client is using a per-user key: deleting an index requires the root key (HTTP `403`). |
-| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="*NotFoundError">
+        The index doesn't exist, for example because it was already deleted (HTTP `404`).
+    </Accordion>
+    <Accordion title="*AuthenticationError">
+        The `apiKey` is invalid (HTTP `401`), or the client is using a per-user key: deleting an index requires the root key (HTTP `403`).
+    </Accordion>
+    <Accordion title="*ServiceError / *TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors).
 

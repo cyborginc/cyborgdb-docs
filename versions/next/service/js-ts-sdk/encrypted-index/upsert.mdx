@@ -54,12 +54,18 @@ Strings in `contents` are stored as-is; bytes are base64-encoded first. [`get()`
 
 ### Exceptions
 
-| Exception | Thrown when |
-|-----------|-------------|
-| `CyborgDBValidationError` | The input matches neither shape, arrays differ in length, or an `items` or `number[][]` vector contains a non-finite number. Thrown before any request is sent. `Float32Array` input isn't checked. |
-| `CyborgDBValidationError` | The service rejects the items (HTTP `400`), for example a vector with the wrong dimension. |
-| `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`). |
-| `CyborgDBServiceError` | The service returns `5xx`. |
+<AccordionGroup>
+    <Accordion title="CyborgDBValidationError">
+        - The input matches neither shape, arrays differ in length, or an `items` or `number[][]` vector contains a non-finite number. Thrown before any request is sent. `Float32Array` input isn't checked.
+        - The service rejects the items (HTTP `400`), for example a vector with the wrong dimension.
+    </Accordion>
+    <Accordion title="CyborgDBAuthenticationError">
+        The `indexKey` or `apiKey` is invalid, or a read-only user key is used (HTTP `401`/`403`).
+    </Accordion>
+    <Accordion title="CyborgDBServiceError">
+        The service returns `5xx`.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

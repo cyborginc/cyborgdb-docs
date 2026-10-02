@@ -64,13 +64,21 @@ A query with exactly one vector always returns single results, even when it's se
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `pydantic.ValidationError` | Neither `query_vectors` nor `query_contents` is passed. Raised before any request is sent. |
-| `cyborgdb.ValidationError` | A NumPy `query_vectors` array is not 1-D or 2-D. Raised before any request is sent. |
-| `cyborgdb.ValidationError` | The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range `alpha`, `rrf_k`, or `window_mult`. Other numeric parameters aren't range-checked. |
-| `cyborgdb.AuthenticationError` | The `index_key` or `api_key` is invalid (HTTP `401`). |
-| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="pydantic.ValidationError">
+        Neither `query_vectors` nor `query_contents` is passed. Raised before any request is sent.
+    </Accordion>
+    <Accordion title="cyborgdb.ValidationError">
+        - A NumPy `query_vectors` array is not 1-D or 2-D. Raised before any request is sent.
+        - The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range `alpha`, `rrf_k`, or `window_mult`. Other numeric parameters aren't range-checked.
+    </Accordion>
+    <Accordion title="cyborgdb.AuthenticationError">
+        The `index_key` or `api_key` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError / cyborgdb.TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

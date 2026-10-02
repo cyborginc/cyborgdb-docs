@@ -18,11 +18,17 @@ async deleteIndex(): Promise<{ status?: string; message: string }>
 
 ### Exceptions
 
-| Exception | Thrown when |
-|-----------|-------------|
-| `CyborgDBNotFoundError` | The index doesn't exist, for example because it was already deleted (HTTP `404`). |
-| `CyborgDBAuthenticationError` | The `indexKey` or `apiKey` is invalid (HTTP `401`), or the client is using a per-user key: deleting an index requires the root key (HTTP `403`). |
-| `CyborgDBServiceError` | The service returns `5xx`. |
+<AccordionGroup>
+    <Accordion title="CyborgDBNotFoundError">
+        The index doesn't exist, for example because it was already deleted (HTTP `404`).
+    </Accordion>
+    <Accordion title="CyborgDBAuthenticationError">
+        The `indexKey` or `apiKey` is invalid (HTTP `401`), or the client is using a per-user key: deleting an index requires the root key (HTTP `403`).
+    </Accordion>
+    <Accordion title="CyborgDBServiceError">
+        The service returns `5xx`.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

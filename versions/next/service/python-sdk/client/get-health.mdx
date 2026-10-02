@@ -22,10 +22,14 @@ client.get_health()
 
 ### Exceptions
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.TransportError` | The service can't be reached. |
-| `cyborgdb.ServiceError` | The service returns `5xx`. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.TransportError">
+        The service can't be reached.
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError">
+        The service returns `5xx`.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
 

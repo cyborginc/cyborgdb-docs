@@ -51,11 +51,17 @@ Any of these returns a `*ValidationError` (HTTP `400`) with the reason. Nested d
 
 ### Errors
 
-| Error | Returned when |
-|-------|---------------|
-| `*ValidationError` | The service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints). |
-| `*AuthenticationError` | The `apiKey` is invalid (HTTP `401`). |
-| `*ServiceError` / `*TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="*ValidationError">
+        The service rejects the query (HTTP `400`): see [Filter constraints](#filter-constraints).
+    </Accordion>
+    <Accordion title="*AuthenticationError">
+        The `apiKey` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="*ServiceError / *TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors).
 

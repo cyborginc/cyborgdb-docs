@@ -112,11 +112,19 @@ print(index.list_users())
 
 These apply to all three methods:
 
-| Exception | Raised when |
-|-----------|-------------|
-| `cyborgdb.AuthenticationError` | The client isn't using the root key (HTTP `403`), or its `api_key` is invalid (HTTP `401`). |
-| `cyborgdb.ValidationError` | `permissions` is empty or contains a value other than `"read"` or `"write"`, or `user_id` isn't hex (HTTP `400`). |
-| `cyborgdb.NotFoundError` | The index doesn't exist (HTTP `404`). |
-| `cyborgdb.ServiceError` / `cyborgdb.TransportError` | The service returns `5xx` or can't be reached. |
+<AccordionGroup>
+    <Accordion title="cyborgdb.AuthenticationError">
+        The client isn't using the root key (HTTP `403`), or its `api_key` is invalid (HTTP `401`).
+    </Accordion>
+    <Accordion title="cyborgdb.ValidationError">
+        `permissions` is empty or contains a value other than `"read"` or `"write"`, or `user_id` isn't hex (HTTP `400`).
+    </Accordion>
+    <Accordion title="cyborgdb.NotFoundError">
+        The index doesn't exist (HTTP `404`).
+    </Accordion>
+    <Accordion title="cyborgdb.ServiceError / cyborgdb.TransportError">
+        The service returns `5xx` or can't be reached.
+    </Accordion>
+</AccordionGroup>
 
 See [Errors](../errors) for the full hierarchy.
