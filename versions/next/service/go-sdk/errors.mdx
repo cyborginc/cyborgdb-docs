@@ -126,6 +126,6 @@ fmt.Println(errors.Is(err, cyborgdb.ErrInvalidURL))
 // Output: true
 ```
 
-Other sentinels are returned without a typed wrapper: `ErrKeyGeneration` from `GenerateKey`, the `ErrUnknownSampleDataset` / `ErrSampleDatasetDownload` / `ErrSampleDatasetTooLarge` / `ErrSampleDatasetIntegrity` errors from `LoadSampleDataset`, and `ErrDemoAPIKeyNotFound` / `ErrDemoAPIKeyGeneration` from `GetDemoAPIKey`.
+Other sentinels are returned without a typed wrapper: `ErrKeyGeneration` from `GenerateKey`, and the `ErrUnknownSampleDataset` / `ErrSampleDatasetDownload` / `ErrSampleDatasetTooLarge` / `ErrSampleDatasetIntegrity` errors from `LoadSampleDataset`.
 
 <Note>The package also declares `ErrQueryVectorsInvalidType`, `ErrMissingQueryInput`, and `ErrUnexpectedTrainingStatus`, but no function returns them. A query with no input is rejected by the service instead, as a `*ValidationError` with status `400`.</Note>

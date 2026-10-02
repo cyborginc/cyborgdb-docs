@@ -25,8 +25,6 @@ func (e *EncryptedIndex) QueryMetadata(ctx context.Context, params QueryMetadata
 | `TextFieldWeights` | `[]float32` | `nil` (`1.0` each) | Weight per searched field, in the same order as `TextFields`. |
 | `RequireAllTerms` | `*bool` | `nil` (service default: `false`) | Match only items containing every query term. |
 
-<Note>Before v0.18, `Ascending` was a plain `bool`, so leaving it unset sorted descending. It's now a `*bool`, and unset means ascending, matching the Python and JS SDKs.</Note>
-
 <Note>
 - Without `OrderBy` or `Text`, results come back in no particular order.
 - Items missing the `OrderBy` field, or holding a non-scalar value in it, sort last.
