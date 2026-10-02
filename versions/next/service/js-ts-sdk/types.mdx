@@ -11,7 +11,7 @@ These fields of [`client.createIndex()`](./client/create-index) configure a Disk
 |-----------|------|---------|-------------|
 | `dimension` | `number` | auto-detect | Vector dimensionality. Taken from the first upsert, or from `embeddingModel`, when omitted. |
 | `metric` | `string` | `'euclidean'` | `'euclidean'`, `'squared_euclidean'`, or `'cosine'`. |
-| `embeddingModel` | `string` | `undefined` | sentence-transformers model name for automatic embedding generation. |
+| `embeddingModel` | `string` | `undefined` | Name of one of the service's built-in embedding models (listed by `GET /v1/embedding-models`), used for automatic embedding generation. |
 | `storagePrecision` | `string` | `'float32'` | `'float32'`, `'float16'`, or TurboQuant `'tq12'`, `'tq8'`, `'tq6'`, `'tq4'`. See [Storage precision](./client/create-index#storage-precision). |
 | `metadataSchema` | `{ [field: string]: MetadataFieldPolicy }` | `undefined` | Per-field indexing policy. See [Metadata schema](./client/create-index#metadata-schema). |
 | `textFields` | `string[]` | `undefined` | Fields to index for BM25 full-text search. |

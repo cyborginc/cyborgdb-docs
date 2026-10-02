@@ -30,7 +30,7 @@ Optional scalar fields are pointers: leave them `nil` to use the service default
 | `KmsName` | `*string` | `nil` | Name of a `kms.registry` entry in the service YAML. The service generates the KEK and wraps it with that provider; the SDK never sees the plaintext key. |
 | `Dimension` | `*int32` | `nil` | Vector dimensionality. When `nil`, the service detects it from the first upsert. |
 | `Metric` | `*string` | `nil` (service default: `"euclidean"`) | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
-| `EmbeddingModel` | `*string` | `nil` | sentence-transformers model name for automatic embedding generation. When set, `Dimension` is taken from the model. |
+| `EmbeddingModel` | `*string` | `nil` | Name of one of the service's built-in embedding models (listed by `GET /v1/embedding-models`), used for automatic embedding generation. When set, `Dimension` is taken from the model. |
 | `StoragePrecision` | `*string` | `nil` (service default: `"float32"`) | Storage format for rerank vectors. See [Storage precision](#storage-precision). |
 | `MetadataSchema` | `map[string]MetadataFieldPolicy` | `nil` | Per-field metadata indexing policy. Fixed at creation and cannot be changed later. See [Metadata schema](#metadata-schema). |
 | `TextFields` | `[]string` | `nil` | Metadata fields to index for BM25 full-text search. Shorthand for `FullText: true` in `MetadataSchema`. Enables `Text` on [`Query`](../encrypted-index/query) and [`QueryMetadata`](../encrypted-index/query-metadata). |

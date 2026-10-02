@@ -11,7 +11,7 @@ These keyword arguments to [`client.create_index()`](./client/create-index) conf
 |-----------|------|---------|-------------|
 | `dimension` | `int` | `None` (auto-detect) | Vector dimensionality. Taken from the first upsert, or from `embedding_model`, when omitted. |
 | `metric` | `str` | `"euclidean"` | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
-| `embedding_model` | `str` | `None` | sentence-transformers model name for automatic embedding generation. |
+| `embedding_model` | `str` | `None` | Name of one of the service's built-in embedding models (listed by `GET /v1/embedding-models`), used for automatic embedding generation. |
 | `storage_precision` | `str` | `"float32"` | `"float32"`, `"float16"`, or TurboQuant `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`. See [Storage precision](./client/create-index#storage-precision). |
 | `metadata_schema` | `Dict[str, Dict[str, bool]]` | `None` | Per-field indexing policy. See [Metadata schema](./client/create-index#metadata-schema). |
 | `text_fields` | `List[str]` | `None` | Fields to index for BM25 full-text search. |

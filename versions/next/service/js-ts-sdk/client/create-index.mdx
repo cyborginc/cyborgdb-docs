@@ -33,7 +33,7 @@ async createIndex({
 | `kmsName` | `string` | `undefined` | _(Optional)_ Name of a `kms.registry` entry in the service YAML. The service generates the KEK and wraps it with that provider; the SDK never sees the plaintext key. |
 | `dimension` | `number` | `undefined` | _(Optional)_ Vector dimensionality. When omitted, the service detects it from the first upsert. |
 | `metric` | `string` | `undefined` (service default: `'euclidean'`) | _(Optional)_ `'euclidean'`, `'squared_euclidean'`, or `'cosine'`. |
-| `embeddingModel` | `string` | `undefined` | _(Optional)_ sentence-transformers model name for automatic embedding generation. When set, `dimension` is taken from the model. |
+| `embeddingModel` | `string` | `undefined` | _(Optional)_ Name of one of the service's built-in embedding models (listed by `GET /v1/embedding-models`), used for automatic embedding generation. When set, `dimension` is taken from the model. |
 | `storagePrecision` | `string` | `undefined` (service default: `'float32'`) | _(Optional)_ Storage format for rerank vectors. See [Storage precision](#storage-precision). |
 | `metadataSchema` | `{ [field: string]: MetadataFieldPolicy }` | `undefined` | _(Optional)_ Per-field metadata indexing policy. Fixed at creation and cannot be changed later. See [Metadata schema](#metadata-schema). |
 | `textFields` | `string[]` | `undefined` | _(Optional)_ Metadata fields to index for BM25 full-text search. Shorthand for `{ fullText: true }` in `metadataSchema`. Enables `text` on [`query()`](../encrypted-index/query) and [`queryMetadata()`](../encrypted-index/query-metadata). |

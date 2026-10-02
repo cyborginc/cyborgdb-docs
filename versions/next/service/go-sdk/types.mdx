@@ -11,7 +11,7 @@ These fields of [`CreateIndexParams`](./client/create-index#createindexparams) c
 |-------|------|---------|-------------|
 | `Dimension` | `*int32` | auto-detect | Vector dimensionality. Taken from the first upsert, or from `EmbeddingModel`, when `nil`. |
 | `Metric` | `*string` | `"euclidean"` | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
-| `EmbeddingModel` | `*string` | `nil` | sentence-transformers model name for automatic embedding generation. |
+| `EmbeddingModel` | `*string` | `nil` | Name of one of the service's built-in embedding models (listed by `GET /v1/embedding-models`), used for automatic embedding generation. |
 | `StoragePrecision` | `*string` | `"float32"` | One of the `StoragePrecision*` constants: `Float32`, `Float16`, or TurboQuant `TQ12`, `TQ8`, `TQ6`, `TQ4`. See [Storage precision](./client/create-index#storage-precision). |
 | `MetadataSchema` | `map[string]MetadataFieldPolicy` | `nil` | Per-field indexing policy. See [Metadata schema](./client/create-index#metadata-schema). |
 | `TextFields` | `[]string` | `nil` | Fields to index for BM25 full-text search. |
