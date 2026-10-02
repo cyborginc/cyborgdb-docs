@@ -6,6 +6,49 @@ mode: wide
 
 CyborgDB follows a bi-monthly release cadence, with new features, enhancements, and bug fixes released every even month (Feb, Apr, etc). This changelog provides a summary of the changes in each release.
 
+<Update label="v0.18.0" description="2026-10-01">
+## CyborgDB v0.18.0
+
+### Deployment Model
+
+- Embedded Library (Python & C++)
+- REST API (Microservice via Python or Docker)
+- Client SDK (Python, JavaScript, TypeScript & Go)
+
+### New Features
+
+- **Metadata queries.** `query_metadata` retrieves items by metadata alone, with no query vector, in the embedded library, the service, and all three SDKs
+  - Two new metadata indexes back metadata lookups, configured per index through a metadata schema
+  - Metadata filters on vector queries are now planned by a cost-based query planner that picks pre-filtering or post-filtering per query
+- **Hybrid keyword + vector search.** BM25 full-text search over a built-in core tokenization pipeline, combinable with vector search
+- **TurboQuant quantization** in core, the service, and the Python SDK
+- **Built-in embedding engine.** Automatic embedding now runs on `cyborgdb-embed` instead of `sentence-transformers` / `torch`
+- `load_sample_dataset` in the Python, JavaScript/TypeScript, and Go SDKs loads a ready-made dataset for trying CyborgDB in minutes
+
+### Improvements
+
+- Lower core memory footprint, with a RAM-regression workflow guarding it in CI
+- `$regex` filters are evaluated with RE2
+- The Python SDK raises standardized, catchable exception types
+- The Python SDK retries once on a dropped keep-alive connection
+- Telemetry is skipped entirely when no API key is set — no outbound calls, no console errors
+
+### Bug Fixes
+
+- Python SDK: datetimes are stored so that date-range filters work
+- Python SDK: TLS verification is no longer disabled for URLs containing `localhost` or `127.0.0.1`
+- Python SDK: `load_index` errors name the missing index
+- Metadata is no longer dropped on the dense-shortfall query fallback
+
+### Breaking Changes
+
+- **Storage engine.** Appendix replaces RocksDB as the embedded `disk` store
+- **Embeddings install.** The `cyborgdb-core[embeddings]` extra is removed — automatic embedding is built in
+- `create_index` bounds the index dimension
+- Python SDK exception types have changed — update any `except` clauses that match on the old types
+
+</Update>
+
 <Update label="v0.17.0" description="2026-06-25">
 ## CyborgDB v0.17.0
 
