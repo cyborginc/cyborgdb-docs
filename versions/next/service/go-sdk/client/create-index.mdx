@@ -48,16 +48,16 @@ Set exactly one of `IndexKey` or `KmsName`. The service rejects both together wi
 
 `StoragePrecision` sets the format used to store the index's vector embeddings. Every value works with every metric.
 
-| Constant | Value | Bits per dimension | Notes |
-|----------|-------|--------------------|-------|
-| `StoragePrecisionFloat32` | `"float32"` | 32 | Default. |
-| `StoragePrecisionFloat16` | `"float16"` | 16 | Half the storage of `float32`, with a small precision cost. |
-| `StoragePrecisionTQ12` | `"tq12"` | 12 | TurboQuant. |
-| `StoragePrecisionTQ8` | `"tq8"` | 8 | TurboQuant. |
-| `StoragePrecisionTQ6` | `"tq6"` | 6 | TurboQuant. |
-| `StoragePrecisionTQ4` | `"tq4"` | 4 | TurboQuant. About 8x smaller than `float32`, at about 94% recall@100. |
+| Constant | Value | Bits per dimension |
+|----------|-------|--------------------|
+| `StoragePrecisionFloat32` | `"float32"` | 32 |
+| `StoragePrecisionFloat16` | `"float16"` | 16 |
+| `StoragePrecisionTQ12` | `"tq12"` | 12 |
+| `StoragePrecisionTQ8` | `"tq8"` | 8 |
+| `StoragePrecisionTQ6` | `"tq6"` | 6 |
+| `StoragePrecisionTQ4` | `"tq4"` | 4 |
 
-Lower TurboQuant tiers use less storage in exchange for a small recall and latency cost.
+The `tq*` values are TurboQuant tiers; lower tiers use less storage in exchange for a small recall and latency cost.
 
 ### Metadata schema
 

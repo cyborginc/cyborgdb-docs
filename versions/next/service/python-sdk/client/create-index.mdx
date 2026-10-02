@@ -51,16 +51,16 @@ Pass exactly one of `index_key` or `kms_name`. The service rejects both together
 
 `storage_precision` sets the format used to store the index's vector embeddings. Every value works with every metric.
 
-| Value | Bits per dimension | Notes |
-|-------|--------------------|-------|
-| `"float32"` | 32 | Default. |
-| `"float16"` | 16 | Half the storage of `float32`, with a small precision cost. |
-| `"tq12"` | 12 | TurboQuant. |
-| `"tq8"` | 8 | TurboQuant. |
-| `"tq6"` | 6 | TurboQuant. |
-| `"tq4"` | 4 | TurboQuant. About 8x smaller than `float32`, at about 94% recall@100. |
+| Value | Bits per dimension |
+|-------|--------------------|
+| `"float32"` | 32 |
+| `"float16"` | 16 |
+| `"tq12"` | 12 |
+| `"tq8"` | 8 |
+| `"tq6"` | 6 |
+| `"tq4"` | 4 |
 
-Lower TurboQuant tiers use less storage in exchange for a small recall and latency cost.
+The `tq*` values are TurboQuant tiers; lower tiers use less storage in exchange for a small recall and latency cost.
 
 ### Metadata schema
 
@@ -68,7 +68,7 @@ Lower TurboQuant tiers use less storage in exchange for a small recall and laten
 
 ```python
 metadata_schema = {
-    "title":         {"filterable": True, "pattern": True},  # regex-searchable
+    "title":         {"filterable": True, "pattern": True},   # regex-searchable
     "internal_blob": {"filterable": False},                   # stored, not indexed
     "body":          {"full_text": True},                     # BM25 full-text search
 }
