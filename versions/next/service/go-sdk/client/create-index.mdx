@@ -67,11 +67,27 @@ The `tq*` values are TurboQuant tiers; lower tiers use less storage in exchange 
 
 | Field | Default | Effect |
 |-------|---------|--------|
-| `Filterable` | `true` | Builds inverted-index postings, so filters on the field resolve from the index. `false` still stores the field, but [`Query`](../encrypted-index/query) vector-only queries on it fall back to a slower post-filter, hybrid queries reject it, and [`QueryMetadata`](../encrypted-index/query-metadata) rejects them. |
+| `Filterable` | `true` | Builds inverted-index postings, so filters on the field resolve from the index. `false` still stores the field but doesn't index it; see [Filters the index cannot answer](#filters-the-index-cannot-answer). |
 | `Pattern` | `false` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `Filterable` `true`. |
 | `FullText` | `false` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `Filterable` `false`, and can't be combined with `Pattern` `true`. |
 
-On `Query` the schema is a performance hint for pure vector queries: filters the index can't answer fall back to a post-filter on the decrypted metadata. Hybrid queries (with text) have no post-filter and reject such filters. On `QueryMetadata` it is enforced, and unsupported filters return a `*ValidationError`.
+#### Filters the index cannot answer
+
+The index can answer a filter when the field is filterable and, for `$regex` or `$contains`, the field also has `pattern` set. Any other filter is handled differently depending on the call:
+
+| Call | Filter the index can't answer |
+|------|-------------------------------|
+| [`Query`](../encrypted-index/query) without `text` | Still works, but slower: the filter is applied to the decrypted metadata after the search. |
+| [`Query`](../encrypted-index/query) with `text` | Rejected with a `*ValidationError`. |
+| [`QueryMetadata`](../encrypted-index/query-metadata) | Rejected with a `*ValidationError`. |
+
+With the schema from the [per-field example](#per-field-metadata-policy) below:
+
+```go
+map[string]interface{}{"title": map[string]interface{}{"$regex": "^Intro"}}  // answerable: title is filterable and has Pattern
+map[string]interface{}{"internal_blob": "abc"}                               // not answerable: internal_blob isn't filterable
+map[string]interface{}{"author": map[string]interface{}{"$regex": "^Ann"}}   // not answerable: author is filterable by default, but has no Pattern
+```
 
 The stored policy is returned by the [`MetadataSchema`](../getters#metadataschema) getter.
 

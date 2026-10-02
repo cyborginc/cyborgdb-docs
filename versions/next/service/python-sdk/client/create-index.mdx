@@ -78,11 +78,27 @@ Each field takes three settings:
 
 | Setting | Default | Effect |
 |---------|---------|--------|
-| `filterable` | `True` | Builds inverted-index postings, so filters on the field resolve from the index. `False` still stores the field, but [`query()`](../encrypted-index/query) vector-only queries on it fall back to a slower post-filter, hybrid queries reject it, and [`query_metadata()`](../encrypted-index/query-metadata) rejects them. |
+| `filterable` | `True` | Builds inverted-index postings, so filters on the field resolve from the index. `False` still stores the field but doesn't index it; see [Filters the index cannot answer](#filters-the-index-cannot-answer). |
 | `pattern` | `False` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `filterable=True`. |
 | `full_text` | `False` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `filterable=False`; an explicit `filterable=True` with it is rejected with `ValidationError` (HTTP `422`). Can't be combined with `pattern=True`. |
 
-On `query()` the schema is a performance hint for pure vector queries: filters the index can't answer fall back to a post-filter on the decrypted metadata. Hybrid queries (with text) have no post-filter and reject such filters. On `query_metadata()` it is enforced, and unsupported filters return `ValidationError`.
+#### Filters the index cannot answer
+
+The index can answer a filter when the field is filterable and, for `$regex` or `$contains`, the field also has `pattern` set. Any other filter is handled differently depending on the call:
+
+| Call | Filter the index can't answer |
+|------|-------------------------------|
+| [`query()`](../encrypted-index/query) without `text` | Still works, but slower: the filter is applied to the decrypted metadata after the search. |
+| [`query()`](../encrypted-index/query) with `text` | Rejected with `ValidationError`. |
+| [`query_metadata()`](../encrypted-index/query-metadata) | Rejected with `ValidationError`. |
+
+With the schema above:
+
+```python
+{"title": {"$regex": "^Intro"}}    # answerable: title is filterable and has pattern
+{"internal_blob": "abc"}           # not answerable: internal_blob isn't filterable
+{"author": {"$regex": "^Ann"}}     # not answerable: author is filterable by default, but has no pattern
+```
 
 The stored policy is returned by the [`metadata_schema`](../getters#metadata_schema) getter.
 

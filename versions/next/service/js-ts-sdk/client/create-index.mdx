@@ -78,11 +78,27 @@ Each field takes three settings (the [`MetadataFieldPolicy`](../types#metadatafi
 
 | Setting | Default | Effect |
 |---------|---------|--------|
-| `filterable` | `true` | Builds inverted-index postings, so filters on the field resolve from the index. `false` still stores the field, but [`query()`](../encrypted-index/query) vector-only queries on it fall back to a slower post-filter, hybrid queries reject it, and [`queryMetadata()`](../encrypted-index/query-metadata) rejects them. |
+| `filterable` | `true` | Builds inverted-index postings, so filters on the field resolve from the index. `false` still stores the field but doesn't index it; see [Filters the index cannot answer](#filters-the-index-cannot-answer). |
 | `pattern` | `false` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `filterable: true`. |
 | `fullText` | `false` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `filterable: false`, and can't be combined with `pattern: true`. |
 
-On `query()` the schema is a performance hint for pure vector queries: filters the index can't answer fall back to a post-filter on the decrypted metadata. Hybrid queries (with text) have no post-filter and reject such filters. On `queryMetadata()` it is enforced, and unsupported filters throw `CyborgDBValidationError`.
+#### Filters the index cannot answer
+
+The index can answer a filter when the field is filterable and, for `$regex` or `$contains`, the field also has `pattern` set. Any other filter is handled differently depending on the call:
+
+| Call | Filter the index can't answer |
+|------|-------------------------------|
+| [`query()`](../encrypted-index/query) without `text` | Still works, but slower: the filter is applied to the decrypted metadata after the search. |
+| [`query()`](../encrypted-index/query) with `text` | Rejected with `CyborgDBValidationError`. |
+| [`queryMetadata()`](../encrypted-index/query-metadata) | Rejected with `CyborgDBValidationError`. |
+
+With the schema above:
+
+```typescript
+{ title: { $regex: '^Intro' } }    // answerable: title is filterable and has pattern
+{ internalBlob: 'abc' }            // not answerable: internalBlob isn't filterable
+{ author: { $regex: '^Ann' } }     // not answerable: author is filterable by default, but has no pattern
+```
 
 The stored policy is returned by the [`metadataSchema()`](../getters#metadataschema) getter.
 
