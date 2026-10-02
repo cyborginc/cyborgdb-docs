@@ -97,19 +97,33 @@ store = cyborgdb.StorageConfig.s3("my-bucket", region="us-east-1", credentials=c
 
 ## Storage Precision
 
-`storage_precision` controls the on-disk dtype of the rerank vectors for a DiskIVF index, set at [`create_index`](./client/create-index) time.
+`storage_precision` controls the on-disk format of the rerank vectors for a DiskIVF index, set at [`create_index`](./client/create-index) time and immutable thereafter. The `StoragePrecision` enum lives on the top-level `cyborgdb_core` module; each member is `str`-valued and interchangeable with its raw wire string (e.g. `StoragePrecision.TQ4 == "tq4"`).
 
-| Value | Description |
-|-------|-------------|
-| `numpy.float32` (default) | Full-precision rerank vectors. |
-| `numpy.float16` | Halves the on-disk footprint with a slight precision loss. |
+| Value | Bits / dim | Description |
+|-------|------------|-------------|
+| `StoragePrecision.FLOAT32` (default) | 32 | Full-precision (IEEE `float32`) rerank vectors. |
+| `StoragePrecision.FLOAT16` | 16 | IEEE `float16`. Halves the on-disk footprint with a slight precision loss. |
+| `StoragePrecision.TQ12` | 12 | TurboQuant, 12 bits per dimension. |
+| `StoragePrecision.TQ8` | 8 | TurboQuant, 8 bits per dimension. ~4x smaller than `FLOAT32`. |
+| `StoragePrecision.TQ6` | 6 | TurboQuant, 6 bits per dimension. |
+| `StoragePrecision.TQ4` | 4 | TurboQuant, 4 bits per dimension. Most aggressive (~8x smaller than `FLOAT32`, ~94% recall@100 on wiki-all-768). |
 
-The strings `"float32"` and `"float16"` are also accepted.
+The `TQ*` tiers compress rerank vectors on upsert and decode them back to `float32` at query time during the stage-2 rerank — trading a small recall and per-query latency cost for a large reduction in disk footprint. All tiers work with every distance metric; the recall/latency profile depends on your data, so validate on a representative sample before adopting the more aggressive tiers.
+
+The raw lowercase strings (`"float32"`, `"float16"`, `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`) and the numpy dtypes `np.float32` / `np.float16` are also accepted anywhere a `storage_precision` is expected.
 
 ```python
 import cyborgdb_core as cyborgdb
+from cyborgdb_core import StoragePrecision
 import numpy as np
 
+# Symbolic name (recommended)
+index = client.create_index("my_index", index_key, storage_precision=StoragePrecision.TQ8)
+
+# Raw string
+index = client.create_index("my_index", index_key, storage_precision="tq8")
+
+# Legacy numpy dtype (still accepted for FLOAT32 / FLOAT16)
 index = client.create_index("my_index", index_key, storage_precision=np.float16)
 ```
 
