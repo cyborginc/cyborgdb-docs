@@ -28,8 +28,8 @@ def create_index(self,
 | `index_name` | `str` | - | Name of the index to create. Must be unique. |
 | `index_key` | `bytes` | - | 32-byte encryption key (KEK) for the index, used to secure the index data. |
 | `dimension` | `int` \| `None` | `None` | _(Optional, keyword-only)_ Dimensionality of vector embeddings. When `None`, auto-detected from the first upsert (or derived from `embedding_model`). |
-| `storage_precision` | [`StoragePrecision`](../types#storage-precision) \| `str` \| `np.float32` \| `np.float16` | `StoragePrecision.FLOAT32` | _(Optional, keyword-only)_ On-disk format for the rerank vectors, fixed at create time. One of `StoragePrecision.FLOAT32` (default), `FLOAT16`, `TQ12`, `TQ8`, `TQ6`, or `TQ4`. `FLOAT16` halves the disk footprint with a slight precision loss; the TurboQuant tiers `TQ12`/`TQ8`/`TQ6`/`TQ4` hold that many bits per dimension and trade storage for a small recall/latency cost, with `TQ4` the most aggressive (~8x smaller than `FLOAT32`, ~94% recall@100 on wiki-all-768). All tiers work with every metric. The enum members are `str`-valued, so the raw strings (`"float32"`, `"float16"`, `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`) and `np.float32` / `np.float16` are also accepted. See [storage precision](../types#storage-precision). |
-| `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of a built-in embedding model for automatic text embeddings. Sets the index `dimension`; an explicit `dimension` must match; call `cyborgdb.supported_embedding_models()` for the full list. |
+| `storage_precision` | [`StoragePrecision`](../types#storage-precision) \| `str` \| `np.float32` \| `np.float16` | `StoragePrecision.FLOAT32` | _(Optional, keyword-only)_ On-disk format for the index's stored vector embeddings, fixed at creation. One of `StoragePrecision.FLOAT32` (default), `FLOAT16`, `TQ12`, `TQ8`, `TQ6`, or `TQ4`. `FLOAT16` halves the disk footprint with a slight precision loss. The TurboQuant tiers `TQ12`, `TQ8`, `TQ6`, and `TQ4` store 12, 8, 6, or 4 bits per dimension, trading a small recall and latency cost for less storage. Every tier works with every metric. The raw strings (`"float32"`, `"float16"`, `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`) and `np.float32` / `np.float16` are also accepted. See [storage precision](../types#storage-precision). |
+| `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of a built-in embedding model for automatic text embeddings. List them with `cyborgdb.supported_embedding_models()`. Sets the index `dimension`; an explicit `dimension` must match it. |
 | `metric` | `str` \| `None` | `"euclidean"` | _(Optional, keyword-only)_ Distance metric to use: `"euclidean"`, `"cosine"`, or `"squared_euclidean"`. See [`DistanceMetric`](../types#distancemetric). |
 | `metadata_schema` | `dict` \| `None` | `None` | _(Optional, keyword-only)_ Per-field metadata indexing policy, keyed by field name (dot-paths for nested fields). Fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
 | `logger` | [`Logger`](./logger) | `None` | _(Optional, keyword-only)_ Logger instance for capturing operation logs. |
@@ -113,7 +113,7 @@ index = client.create_index(
     index_name,
     index_key,
     dimension=128,
-    storage_precision=np.float16,  # halve on-disk rerank-vector footprint
+    storage_precision=np.float16,  # halve the on-disk footprint of stored vectors
     metric="cosine",
     logger=logger,
 )
