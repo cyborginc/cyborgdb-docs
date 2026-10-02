@@ -28,10 +28,10 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
     </Tab>
 
     <Tab title="JS/TS">
-        Install the `cyborgdb` npm package:
+        Install the `cyborgdb` npm package and `@langchain/core` (an optional peer of `cyborgdb`, only required for this integration):
 
         ```bash
-        npm install cyborgdb
+        npm install cyborgdb @langchain/core
         ```
     </Tab>
 </Tabs>
@@ -55,7 +55,7 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
 
     <Tab title="JS/TS">
         ```typescript
-        import { CyborgVectorStore } from 'cyborgdb';
+        import { CyborgVectorStore } from 'cyborgdb/integrations/langchain';
         ```
     </Tab>
 </Tabs>
@@ -132,7 +132,7 @@ Configuration object for defining the location of index data. v0.17 supports `me
 
     <Tab title="JS/TS">
         ```typescript
-        import { CyborgVectorStore } from 'cyborgdb';
+        import { CyborgVectorStore } from 'cyborgdb/integrations/langchain';
         import { OpenAIEmbeddings } from '@langchain/openai';
 
         const store = await CyborgVectorStore.fromTexts(

@@ -78,6 +78,9 @@ For more info on metadata, see [Metadata Filtering](../../guides/data-operations
         - Throws if `rrf_k <= 0` or `window_mult < 1` is passed explicitly (pass `None` for defaults).
         - Throws if a filter references a field the index cannot resolve when `text` is set (e.g. `$regex` on a non-`pattern` field, or any predicate on an explicitly non-`filterable` field).
     </Accordion>
+    <Accordion title="EmbeddingModelUnavailable">
+        - Throws if `query_contents` needs embedding and the index's built-in model cannot be downloaded or loaded (offline cache miss, network failure). Often transient.
+    </Accordion>
     <Accordion title="RuntimeError">
         - Throws if the query could not be executed.
     </Accordion>
