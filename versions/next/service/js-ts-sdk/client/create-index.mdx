@@ -16,7 +16,7 @@ async createIndex({
     dimension?: number,                                     // optional, auto-detected from first upsert
     metric?: 'euclidean' | 'squared_euclidean' | 'cosine',  // optional, defaults to server default ('euclidean')
     embeddingModel?: string,                                // optional
-    storagePrecision?: 'float32' | 'float16',               // optional, defaults to 'float32'
+    storagePrecision?: 'float32' | 'float16' | 'tq12' | 'tq8' | 'tq6' | 'tq4', // optional, defaults to 'float32'
     metadataSchema?: { [field: string]: MetadataFieldPolicy } // optional, immutable after create
 }): Promise<EncryptedIndex>
 ```
@@ -31,7 +31,7 @@ async createIndex({
 | `dimension` | `number` | _(Optional)_ Vector dimensionality. If omitted, the server auto-detects from the first upsert. |
 | `metric` | `'euclidean' \| 'squared_euclidean' \| 'cosine'` | _(Optional)_ Distance metric. If omitted, the SDK does not set a value and the server applies its default. |
 | `embeddingModel` | `string` | _(Optional)_ sentence-transformers model name for automatic embedding generation. |
-| `storagePrecision` | `'float32' \| 'float16'` | _(Optional)_ On-disk rerank-vector dtype. Defaults to `'float32'`. |
+| `storagePrecision` | `'float32' \| 'float16' \| 'tq12' \| 'tq8' \| 'tq6' \| 'tq4'` | _(Optional)_ On-disk rerank-vector format, chosen at create time and immutable. Defaults to `'float32'`. `'float16'` halves storage at a small precision cost; the TurboQuant tiers (`'tq12'` / `'tq8'` / `'tq6'` / `'tq4'`, at 12/8/6/4 bits per dimension) trade storage for a small recall/latency cost, with `'tq4'` the most aggressive (~8× smaller than `float32`, ~94% recall@100). All tiers work with every metric. The `CreateIndexRequestStoragePrecisionEnum` enum exports matching values (`Float32`, `Float16`, `Tq12`, `Tq8`, `Tq6`, `Tq4`). |
 | `metadataSchema` | `{ [field: string]: MetadataFieldPolicy }` | _(Optional)_ Per-field metadata indexing policy, fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
 
 ### Key Management Modes

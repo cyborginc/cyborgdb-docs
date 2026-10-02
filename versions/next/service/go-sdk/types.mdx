@@ -45,7 +45,7 @@ type CreateIndexParams struct {
     Dimension        *int32  `json:"dimension,omitempty"`
     Metric           *string `json:"metric,omitempty"`
     EmbeddingModel   *string `json:"embedding_model,omitempty"`
-    StoragePrecision *string `json:"storage_precision,omitempty"` // "float32" | "float16"
+    StoragePrecision *string `json:"storage_precision,omitempty"` // "float32" | "float16" | "tq12" | "tq8" | "tq6" | "tq4"
 }
 ```
 
@@ -59,7 +59,7 @@ type CreateIndexParams struct {
 | `Dimension` | `*int32` | No | Vector dimensionality (auto-detected from first upsert if nil) |
 | `Metric` | `*string` | No | Distance metric: `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. Defaults to the server's default (`"euclidean"`). |
 | `EmbeddingModel` | `*string` | No | Optional sentence-transformers model name for auto-embedding |
-| `StoragePrecision` | `*string` | No | On-disk rerank-vector dtype: `"float32"` (default) or `"float16"`. Use `cyborgdb.StoragePrecisionFloat32` / `StoragePrecisionFloat16` constants. |
+| `StoragePrecision` | `*string` | No | On-disk rerank-vector format, chosen at create time and immutable. One of `"float32"` (default), `"float16"`, or the TurboQuant tiers `"tq12"` / `"tq8"` / `"tq6"` / `"tq4"` (12/8/6/4 bits per dimension). Prefer the exported constants (`cyborgdb.StoragePrecisionFloat32`, `StoragePrecisionFloat16`, `StoragePrecisionTQ12`, `StoragePrecisionTQ8`, `StoragePrecisionTQ6`, `StoragePrecisionTQ4`). TurboQuant trades storage for a small recall/latency cost; `"tq4"` is the most aggressive (~8× smaller than `float32`, ~94% recall@100). All tiers work with every metric. |
 
 <Note>v0.17 introduces a single **DiskIVF** index type. The polymorphic `IndexIVFFlat` / `IndexIVFPQ` / `IndexIVFSQ` constructors and the `IndexModel` interface have been removed.</Note>
 

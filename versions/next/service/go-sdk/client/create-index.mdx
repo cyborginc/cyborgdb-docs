@@ -29,7 +29,7 @@ func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*E
 | `Dimension` | `*int32` | No | Vector dimensionality. Auto-detected from the first upsert if nil. |
 | `Metric` | `*string` | No | Distance metric (`"euclidean"`, `"squared_euclidean"`, `"cosine"`). Defaults to the server's default (`"euclidean"`). |
 | `EmbeddingModel` | `*string` | No | Optional sentence-transformers model name for automatic embedding generation. |
-| `StoragePrecision` | `*string` | No | On-disk rerank-vector dtype: `"float32"` (default) or `"float16"`. |
+| `StoragePrecision` | `*string` | No | On-disk rerank-vector format, chosen at create time and immutable. One of `"float32"` (default), `"float16"`, or the TurboQuant tiers `"tq12"` / `"tq8"` / `"tq6"` / `"tq4"` (12/8/6/4 bits per dimension). Prefer the exported constants (`cyborgdb.StoragePrecisionFloat32`, `StoragePrecisionFloat16`, `StoragePrecisionTQ12`, `StoragePrecisionTQ8`, `StoragePrecisionTQ6`, `StoragePrecisionTQ4`). `"float16"` halves storage at a small precision cost; TurboQuant trades storage for a small recall/latency cost, with `"tq4"` the most aggressive (~8× smaller than `float32`, ~94% recall@100). All tiers work with every metric. |
 | `MetadataSchema` | `map[string]MetadataFieldPolicy` | No | Per-field metadata indexing policy, fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
 
 ### Key Management Modes

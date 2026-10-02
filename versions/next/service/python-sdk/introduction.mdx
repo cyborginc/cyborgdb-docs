@@ -35,3 +35,41 @@ docker run -p 8000:8000 cyborginc/cyborgdb-service
 ```
 
 For detailed service setup instructions, see our quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).
+
+## Error Handling
+
+The SDK raises typed exceptions from `cyborgdb.exceptions`; the top-level `cyborgdb` module re-exports them for convenience. All are subclasses of `CyborgError`, so a single `except CyborgError` catches everything the SDK translates:
+
+```python
+import cyborgdb
+from cyborgdb.exceptions import (
+    CyborgError,
+    AuthenticationError,
+    ServiceUnavailableError,
+    ConnectionTimeoutError,
+)
+```
+
+| Exception | Raised when |
+|-----------|-------------|
+| `AuthenticationError` | Service rejects the API key (HTTP `401`) or the caller lacks permission (HTTP `403`). |
+| `ServiceUnavailableError` | Service returns `5xx`, or the SDK cannot reach it (`urllib3.MaxRetryError`, `NewConnectionError`). Retry with exponential backoff. |
+| `ConnectionTimeoutError` | Request timed out before the service responded (`urllib3.TimeoutError`). |
+| `ValueError` | Client-side validation failed, or the service returned `400` / `404` (bad input, missing index, etc.). Not a `CyborgError` — inspect the message. |
+
+`Client(...)` performs no network call at construction, so authentication is validated on the first method invocation rather than at connect time. Every translated exception preserves the originating error via `__cause__`, so the underlying HTTP status is still reachable:
+
+```python
+try:
+    client.list_indexes()
+except AuthenticationError as e:
+    original = e.__cause__          # openapi_client ApiException
+    status = getattr(original, "status", None)
+    print(f"auth failure (HTTP {status}): {e}")
+except ServiceUnavailableError:
+    # backoff and retry
+    ...
+except CyborgError:
+    # catch-all for any SDK-translated error
+    ...
+```
