@@ -39,7 +39,6 @@ client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 | `https://` with host `localhost`, `127.0.0.1`, or `::1` | Verification **off** (logs a warning) | Verification on | Verification off (logs a warning) |
 | Any other `https://` URL | Verification on | Verification on | Verification off (logs a warning) |
 
-The loopback check is an exact hostname match, so `https://localhost.example.com` is verified. Turning verification off also silences urllib3's `InsecureRequestWarning` for the whole Python process.
 
 The SDK has no option for a custom CA bundle or client certificate.
 
