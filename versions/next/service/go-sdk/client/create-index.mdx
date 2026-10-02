@@ -31,7 +31,7 @@ Optional scalar fields are pointers: leave them `nil` to use the service default
 | `Dimension` | `*int32` | `nil` | Vector dimensionality. When `nil`, the service detects it from the first upsert. |
 | `Metric` | `*string` | `nil` (service default: `"euclidean"`) | `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
 | `EmbeddingModel` | `*string` | `nil` | Name of one of the service's built-in embedding models (listed by `GET /v1/embedding-models`), used for automatic embedding generation. When set, `Dimension` is taken from the model. |
-| `StoragePrecision` | `*string` | `nil` (service default: `"float32"`) | Storage format for rerank vectors. See [Storage precision](#storage-precision). |
+| `StoragePrecision` | `*string` | `nil` (service default: `"float32"`) | Storage format for the index's stored vector embeddings. See [Storage precision](#storage-precision). |
 | `MetadataSchema` | `map[string]MetadataFieldPolicy` | `nil` | Per-field metadata indexing policy. Fixed at creation and cannot be changed later. See [Metadata schema](#metadata-schema). |
 | `TextFields` | `[]string` | `nil` | Metadata fields to index for BM25 full-text search. Shorthand for `FullText: true` in `MetadataSchema`. Enables `Text` on [`Query`](../encrypted-index/query) and [`QueryMetadata`](../encrypted-index/query-metadata). |
 | `Bm25K1` | `*float64` | `nil` (service default: `1.2`) | BM25 term-frequency saturation, `>= 0`. Requires at least one full-text field. |
@@ -46,7 +46,7 @@ Set exactly one of `IndexKey` or `KmsName`. The service rejects both together wi
 
 ### Storage precision
 
-`StoragePrecision` sets how the full-precision rerank vectors are stored. Every value works with every metric.
+`StoragePrecision` sets the format used to store the index's vector embeddings. Every value works with every metric.
 
 | Constant | Value | Bits per dimension | Notes |
 |----------|-------|--------------------|-------|

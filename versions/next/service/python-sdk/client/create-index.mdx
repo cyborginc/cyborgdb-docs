@@ -34,7 +34,7 @@ client.create_index(
 | `dimension` | `int` | `None` | _(Optional)_ Vector dimensionality. When omitted, the service detects it from the first upsert. |
 | `embedding_model` | `str` | `None` | _(Optional)_ Name of one of the service's built-in embedding models (listed by `GET /v1/embedding-models`), used for automatic embedding generation. When set, `dimension` is taken from the model. |
 | `metric` | `str` | `None` (service default: `"euclidean"`) | _(Optional)_ `"euclidean"`, `"squared_euclidean"`, or `"cosine"`. |
-| `storage_precision` | `str` | `None` (service default: `"float32"`) | _(Optional)_ Storage format for rerank vectors. See [Storage precision](#storage-precision). |
+| `storage_precision` | `str` | `None` (service default: `"float32"`) | _(Optional)_ Storage format for the index's stored vector embeddings. See [Storage precision](#storage-precision). |
 | `metadata_schema` | `Dict[str, Dict[str, bool]]` | `None` | _(Optional)_ Per-field metadata indexing policy. Fixed at creation and cannot be changed later. See [Metadata schema](#metadata-schema). |
 | `text_fields` | `List[str]` | `None` | _(Optional)_ Metadata fields to index for BM25 full-text search. Shorthand for `{"full_text": True}` in `metadata_schema`. Enables `text=` on [`query()`](../encrypted-index/query) and [`query_metadata()`](../encrypted-index/query-metadata). |
 | `bm25_k1` | `float` | `None` (service default: `1.2`) | _(Optional)_ BM25 term-frequency saturation, `>= 0`. Requires at least one full-text field. |
@@ -49,7 +49,7 @@ Pass exactly one of `index_key` or `kms_name`. The service rejects both together
 
 ### Storage precision
 
-`storage_precision` sets how the full-precision rerank vectors are stored. Every value works with every metric.
+`storage_precision` sets the format used to store the index's vector embeddings. Every value works with every metric.
 
 | Value | Bits per dimension | Notes |
 |-------|--------------------|-------|
