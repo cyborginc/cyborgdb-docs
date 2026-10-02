@@ -64,8 +64,6 @@ func main() {
 | `https://` with host `localhost`, `127.0.0.1`, or `::1` | Verification **off** | Verification on | Verification off |
 | Any other `https://` URL | Verification on | Verification on | Verification off |
 
-The loopback check is an exact hostname match, so `https://localhost.example.com` is verified. The SDK logs nothing when verification is off. There's no option for a custom CA bundle or client certificate.
-
 ## Errors and timeouts
 
 Failed requests return errors that wrap a typed error chosen by HTTP status, such as `*NotFoundError` for `404`; arguments the SDK rejects before sending return a `*ValidationError`. See [Errors](../errors).

@@ -46,8 +46,6 @@ const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-
 | `https://` with host `localhost`, `127.0.0.1`, or `::1` | Verification **off** | Verification on | Verification off |
 | Any other `https://` URL | Verification on | Verification on | Verification off |
 
-The loopback check is an exact hostname match, so `https://localhost.example.com` is verified.
-
 Turning verification off works on Node.js, where requests then go through the `node:https` module instead of `fetch`. It follows redirects and honors `AbortSignal`, and it times out a connection after 300 seconds of inactivity. Browsers and Edge runtimes can't turn verification off; `verifySsl: false` has no effect there.
 
 When verification is off, the SDK logs `console.warn` messages: on Node, one saying verification is disabled and a second saying the insecure transport is in use. The loopback auto-detect case logs its first message with `console.info`. A plain `http://` URL also logs "SSL verification is disabled", although there is no TLS to disable.
