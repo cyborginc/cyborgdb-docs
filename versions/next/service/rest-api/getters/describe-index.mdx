@@ -44,7 +44,11 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   "is_trained": true,
   "dimension": 384,
   "metric": "euclidean",
-  "n_lists": 1024
+  "n_lists": 1024,
+  "metadata_schema": {
+    "title": {"filterable": true, "pattern": true, "full_text": false}
+  },
+  "bm25": null
 }
 ```
 
@@ -63,6 +67,12 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   </ResponseField>
   <ResponseField name="n_lists" type="integer">
     Number of inverted lists in the IVF index. Returns `1` for untrained indexes; populated with the trained cluster count after `train()`.
+  </ResponseField>
+  <ResponseField name="metadata_schema" type="object">
+    Per-field metadata indexing policy recorded at create time, keyed by field name (each entry has `filterable`, `pattern`, and `full_text` booleans). Empty object when the index uses the default index-everything posture.
+  </ResponseField>
+  <ResponseField name="bm25" type="object | null">
+    BM25 scoring config when the index has at least one `full_text` field; `null` otherwise. Contains `k1` and `b` (the tuning parameters supplied at create time, or their defaults) and `analyzer_version`, which identifies the tokenizer/stemmer pipeline the corpus was indexed with.
   </ResponseField>
 </Expandable>
 

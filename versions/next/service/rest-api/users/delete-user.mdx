@@ -37,12 +37,14 @@ X-API-Key: cyborg_your_root_api_key_here
 
 `204 No Content` on success — body is empty.
 
+Revocation is idempotent: an unknown or already-revoked `user_id` also returns `204`, not an error.
+
 ## Exceptions
 
 - `400`: `user_id` is not valid hex.
 - `401`: Authentication failed (invalid root API key).
 - `403`: RBAC is not enabled, or the caller is not using the root key.
-- `404`: Index or user not found.
+- `404`: Index not found.
 - `500`: Internal server error.
 
 ## Example Usage

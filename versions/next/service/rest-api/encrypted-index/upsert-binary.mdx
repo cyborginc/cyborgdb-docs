@@ -58,7 +58,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
         Dimensionality of each vector
       </ParamField>
       <ParamField body="metadata" type="array[object]">
-        Optional list of metadata objects, one per vector
+        Optional list of metadata objects, one per vector. String values in fields the index designates `full_text` are BM25-indexed on ingest, same as the standard endpoint — see [Full-text (BM25) ingestion](./upsert#full-text-bm25-ingestion)
       </ParamField>
       <ParamField body="contents" type="array[string]">
         Optional list of text content strings, one per vector
@@ -82,15 +82,29 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   "status": "success",
   "message": "Upserted 2 vectors",
   "training_triggered": true,
-  "training_message": "Index training has been triggered (vectors: 5000, threshold: 10000)"
+  "training_message": "Index training has been triggered (vectors: 5000)"
 }
 ```
 
+**With Training Check Warning:**
+```json
+{
+  "status": "success",
+  "message": "Upserted 2 vectors",
+  "warning": "Training check failed but upsert succeeded"
+}
+```
+
+<Note>
+In rare cases where the training check encounters an error but the upsert operation itself succeeds, a `warning` field will be included instead. The vectors are still successfully upserted in this scenario.
+</Note>
+
 ## Exceptions
 
+- `400`: Invalid values (e.g. vector dimension mismatch with the index)
 - `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
 - `404`: Index not found
-- `422`: Invalid request parameters or vector dimensions
+- `422`: Request body failed validation (missing/mistyped fields)
 - `500`: Internal server error
 
 ## Example Usage

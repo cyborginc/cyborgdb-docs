@@ -18,7 +18,7 @@ Required — root API key in the `X-API-Key` header:
 X-API-Key: cyborg_your_root_api_key_here
 ```
 
-The legacy single API key (`CYBORGDB_API_KEY`) is **not** accepted on this route; it returns 403.
+The core license key (`CYBORGDB_API_KEY`) is **not** a service credential; sending it as `X-API-Key` returns 401 ("Invalid API Key"). A 403 is returned only for a valid non-root credential (a `cdbk_` user token).
 
 ## Path Parameters
 
@@ -44,7 +44,7 @@ The legacy single API key (`CYBORGDB_API_KEY`) is **not** accepted on this route
   <ParamField body="index_key" type="string">
     32-byte index KEK as a hex string. Required for SDK-supplied indexes (`provider: none`) so the service can unwrap the root DEK and re-wrap it under the new user. Omit for KMS-backed indexes — the service resolves the KEK via the stored `KMSBlob`.
 
-    Note: even though `index_key` is accepted here, per-user keys only **work** against KMS-backed indexes (the service can't resolve the KEK for a user on later requests). See [the KMS-backed constraint](../../guides/advanced/multi-tenancy#kms-backed-constraint).
+    Note: the index KEK is needed only at mint time. The minted user then authenticates with their `cdbk_` token alone — the service opens the index via the user's own wrapped DEK, on KMS-backed and SDK-supplied indexes alike. One caveat for SDK-supplied indexes: auto-training after a user's upsert is skipped (the service holds no index KEK to train with) — see [SDK-supplied indexes](../../guides/advanced/multi-tenancy#sdk-supplied-indexes).
   </ParamField>
 </Expandable>
 
@@ -99,7 +99,7 @@ curl -X POST "http://localhost:8000/v1/indexes/documents/users" \
      }'
 ```
 
-**SDK-supplied index (legacy path):**
+**SDK-supplied index (KEK in body):**
 ```bash
 curl -X POST "http://localhost:8000/v1/indexes/documents/users" \
      -H "X-API-Key: cyborg_your_root_api_key_here" \

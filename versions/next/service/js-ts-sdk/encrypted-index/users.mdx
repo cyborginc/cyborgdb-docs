@@ -5,9 +5,9 @@ mode: "wide"
 noindex: true
 ---
 
-When the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set, `EncryptedIndex` can create, list, and revoke per-index users. These methods require a client created with the root key.
+When the service runs with `CYBORGDB_SERVICE_ROOT_KEY` set, `EncryptedIndex` can create, list, and revoke per-index users. These methods require a client created with the root key. They work on both KMS-backed indexes and indexes created with an `indexKey`.
 
-<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator guide.</Note> They work on both KMS-backed indexes and indexes created with an `indexKey`.
+<Note>See [Multi-Tenancy & RBAC](../../guides/advanced/multi-tenancy) for the operator-side playbook (modes, key kinds, SDK-supplied indexes).</Note>
 
 ## createUser
 

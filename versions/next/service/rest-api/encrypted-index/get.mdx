@@ -43,7 +43,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
     Fields to include in response:
     <Expandable title="include options">
       <ParamField body="vector" type="string">
-        Include the stored rerank vector. Returned at the index's configured `storage_precision` (`float32` by default, or `float16` if set at create time).
+        Include the stored rerank vector. Returned at the index's configured `storage_precision` (`float32` by default; `float16` or a TurboQuant tier `tq12`/`tq8`/`tq6`/`tq4` if set at create time).
       </ParamField>
       <ParamField body="contents" type="string">
         Include text content associated with the vector

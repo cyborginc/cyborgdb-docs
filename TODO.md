@@ -1,5 +1,9 @@
 # Docs TODO
 
+## At next release cut (v0.18 promote)
+
+- [ ] Add `versions/latest/service/rest-api/client/list-embedding-models` to the REST API "Client" nav group in docs.json (page is staged in `next/` only; `scripts/docs.py` will also flag it during promote)
+
 ## Should have
 
 - [ ] Langchain for Python SDK
