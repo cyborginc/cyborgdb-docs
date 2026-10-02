@@ -32,7 +32,10 @@ async queryMetadata({
 | `textFieldWeights` | `number[]` | `undefined` (`1.0` each) | _(Optional)_ Weight per searched field, in the same order as `textFields`. |
 | `requireAllTerms` | `boolean` | `undefined` (service default: `false`) | _(Optional)_ Match only items containing every query term. |
 
-Without `orderBy` or `text`, results come back in no particular order. Items missing the `orderBy` field, or holding a non-scalar value in it, sort last.
+<Note>
+- Without `orderBy` or `text`, results come back in no particular order.
+- Items missing the `orderBy` field, or holding a non-scalar value in it, sort last.
+</Note>
 
 ### Filter constraints
 

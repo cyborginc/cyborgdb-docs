@@ -32,7 +32,10 @@ index.query_metadata(
 | `text_field_weights` | `List[float]` | `None` (`1.0` each) | _(Optional)_ Weight per searched field, in the same order as `text_fields`. |
 | `require_all_terms` | `bool` | `None` (service default: `False`) | _(Optional)_ Match only items containing every query term. |
 
-Without `order_by` or `text`, results come back in no particular order. Items missing the `order_by` field, or holding a non-scalar value in it, sort last.
+<Note>
+- Without `order_by` or `text`, results come back in no particular order.
+- Items missing the `order_by` field, or holding a non-scalar value in it, sort last.
+</Note>
 
 ### Filter constraints
 

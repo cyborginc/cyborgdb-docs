@@ -27,7 +27,10 @@ func (e *EncryptedIndex) QueryMetadata(ctx context.Context, params QueryMetadata
 
 <Note>Before v0.18, `Ascending` was a plain `bool`, so leaving it unset sorted descending. It's now a `*bool`, and unset means ascending, matching the Python and JS SDKs.</Note>
 
-Without `OrderBy` or `Text`, results come back in no particular order. Items missing the `OrderBy` field, or holding a non-scalar value in it, sort last.
+<Note>
+- Without `OrderBy` or `Text`, results come back in no particular order.
+- Items missing the `OrderBy` field, or holding a non-scalar value in it, sort last.
+</Note>
 
 ### Filter constraints
 

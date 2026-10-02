@@ -18,7 +18,7 @@ The returned key is a **license** key: set it as the service's `CYBORGDB_API_KEY
 |-----------|------|-------------|
 | `description` | `string` | Label recorded with the key. `""` uses `DefaultDemoDescription`. |
 
-The function sends a `POST` request to `DefaultDemoEndpoint` (`https://api.cyborgdb.co/v1/api-key/manage/create-demo-key`) with a 30-second timeout (`DefaultDemoTimeout`). Set the `CYBORGDB_DEMO_ENDPOINT` environment variable to use a different endpoint. It takes no `context.Context`, and it prints the key's expiry time to standard output.
+The function sends a `POST` request to `DefaultDemoEndpoint` (`https://api.cyborgdb.co/v1/api-key/manage/create-demo-key`) with a 30-second timeout (`DefaultDemoTimeout`). Set the `CYBORGDB_DEMO_ENDPOINT` environment variable to use a different endpoint. It takes no `context.Context`. When the response includes an expiry, it prints the time remaining to standard output, as `Demo API key will expire in <duration>`.
 
 ### Returns
 
