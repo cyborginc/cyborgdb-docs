@@ -39,9 +39,6 @@ client = Client(base_url='http://localhost:8000', api_key='your-api-key')
 | `https://` with host `localhost`, `127.0.0.1`, or `::1` | Verification **off** (logs a warning) | Verification on | Verification off (logs a warning) |
 | Any other `https://` URL | Verification on | Verification on | Verification off (logs a warning) |
 
-
-The SDK has no option for a custom CA bundle or client certificate.
-
 ## Errors
 
 Failed requests raise a subclass of `cyborgdb.CyborgDBError` chosen by HTTP status, such as `NotFoundError` for `404` or `AuthenticationError` for `401`. Arguments rejected inside the SDK, before a request is sent, raise `cyborgdb.ValidationError`. See [Errors](../errors) for the full list.
@@ -55,5 +52,3 @@ except cyborgdb.AuthenticationError as e:
     print(e.status_code)
 # Output: 401
 ```
-
-The SDK sets no request timeout. It retries each request once, GET or POST, when the connection fails or drops before a response arrives, such as a pooled keep-alive connection the service closed while idle. A write whose connection dropped after the service received it can be applied twice. Error responses aren't retried. urllib3 logs these retries under its own `urllib3` logger.

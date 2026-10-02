@@ -68,7 +68,7 @@ func main() {
 
 Failed requests return errors that wrap a typed error chosen by HTTP status, such as `*NotFoundError` for `404`; arguments the SDK rejects before sending return a `*ValidationError`. See [Errors](../errors).
 
-The SDK's HTTP client has no timeout and doesn't retry. Bound each call with a context deadline:
+Bound each call with a context deadline:
 
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
