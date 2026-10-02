@@ -48,7 +48,6 @@ async query({
 | `rrfK` | `number` | `undefined` (service default: `60`) | _(Optional)_ Reciprocal rank fusion smoothing constant. Must be `> 0`. |
 | `windowMult` | `number` | `undefined` (service default: `3`) | _(Optional)_ Candidates retrieved per leg, as a multiple of `topK`. Must be `>= 1`. |
 
-<Note>`include` defaults differ between methods: `query()` returns only `id` by default, while [`get()`](./get) returns `vector`, `contents`, and `metadata`.</Note>
 
 ### Returns
 

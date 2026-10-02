@@ -40,7 +40,6 @@ index.query(query_vectors=vector, text="encrypted search", top_k=10)
 | `rrf_k` | `float` | `None` (service default: `60`) | _(Optional)_ Reciprocal rank fusion smoothing constant. Must be `> 0`. |
 | `window_mult` | `int` | `None` (service default: `3`) | _(Optional)_ Candidates retrieved per leg, as a multiple of `top_k`. Must be `>= 1`. |
 
-<Note>`include` defaults differ between methods: `query()` returns only `id` by default, while [`get()`](./get) returns `vector`, `contents`, and `metadata`.</Note>
 
 ### Returns
 

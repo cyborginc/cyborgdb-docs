@@ -20,7 +20,6 @@ async get({
 | `ids` | `string[]` | - | IDs of the items to retrieve. |
 | `include` | `string[]` | `['vector', 'contents', 'metadata']` | _(Optional)_ Fields to return besides `id`. Other values are ignored. |
 
-<Note>`include` defaults differ between methods: `get()` returns `vector`, `contents`, and `metadata` by default, while [`query()`](./query) returns only `id`.</Note>
 
 ### Returns
 

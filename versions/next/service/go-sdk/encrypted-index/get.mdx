@@ -18,7 +18,6 @@ func (e *EncryptedIndex) Get(ctx context.Context, ids []string, include []string
 | `ids` | `[]string` | IDs of the items to retrieve. |
 | `include` | `[]string` | Fields to return besides the ID. `nil` uses the service default, `{"vector", "contents", "metadata"}`. |
 
-<Note>`include` defaults differ between methods: `Get` returns `vector`, `contents`, and `metadata` by default, while [`Query`](./query) returns only the ID.</Note>
 
 ### Returns
 

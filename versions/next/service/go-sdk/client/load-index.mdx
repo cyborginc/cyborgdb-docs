@@ -22,7 +22,7 @@ func (c *Client) LoadIndex(ctx context.Context, indexName string, indexKey []byt
 
 ### Returns
 
-The `*EncryptedIndex` bound to the loaded index. `LoadIndex` calls the service's describe endpoint before returning, so a missing index or a wrong key fails here, not on the first query.
+The `*EncryptedIndex` bound to the loaded index.
 
 ### Errors
 
