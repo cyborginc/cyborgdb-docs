@@ -28,7 +28,7 @@ def create_index(self,
 | `index_name` | `str` | - | Name of the index to create. Must be unique. |
 | `index_key` | `bytes` | - | 32-byte encryption key (KEK) for the index, used to secure the index data. |
 | `dimension` | `int` \| `None` | `None` | _(Optional, keyword-only)_ Dimensionality of vector embeddings. When `None`, auto-detected from the first upsert (or derived from `embedding_model`). |
-| `storage_precision` | `np.float32` \| `np.float16` | `np.float32` | _(Optional, keyword-only)_ On-disk dtype for the rerank vectors. `np.float16` (or `"float16"`) halves the disk footprint with a slight precision loss. See [storage precision](../types#storage-precision). |
+| `storage_precision` | `np.float32` \| `np.float16` | `np.float32` | _(Optional, keyword-only)_ On-disk dtype for the index's stored vector embeddings. `np.float16` (or `"float16"`) halves the disk footprint with a slight precision loss. See [storage precision](../types#storage-precision). |
 | `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of the SentenceTransformer model to use for automatic text embeddings. |
 | `metric` | `str` \| `None` | `"euclidean"` | _(Optional, keyword-only)_ Distance metric to use: `"euclidean"`, `"cosine"`, or `"squared_euclidean"`. See [`DistanceMetric`](../types#distancemetric). |
 | `metadata_schema` | `dict` \| `None` | `None` | _(Optional, keyword-only)_ Per-field metadata indexing policy, keyed by field name (dot-paths for nested fields). Fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
@@ -110,7 +110,7 @@ index = client.create_index(
     index_name,
     index_key,
     dimension=128,
-    storage_precision=np.float16,  # halve on-disk rerank-vector footprint
+    storage_precision=np.float16,  # halve the on-disk footprint of stored vectors
     metric="cosine",
     logger=logger,
 )

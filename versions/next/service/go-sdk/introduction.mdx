@@ -1,14 +1,14 @@
 ---
 title: "CyborgDB - Go SDK Reference"
 sidebarTitle: "Go SDK Introduction"
-description: "`v0.17.x`"
+description: "`v0.18.x`"
 mode: "wide"
 noindex: true
 ---
 
-The **CyborgDB** Go SDK provides a strongly-typed interface for securely interacting with encrypted indexes. It supports all core operations including index creation, data insertion, and encrypted querying.
+The **CyborgDB** Go SDK is a client for the CyborgDB service. It creates encrypted indexes, upserts and retrieves vectors, runs vector, hybrid (BM25 + vector), and metadata-only queries, and manages per-index users. Every call that reaches the service takes a `context.Context`, and failures return [typed errors](./errors).
 
-The package source code is available on [GitHub](https://github.com/cyborginc/cyborgdb-go).
+The source code is on [GitHub](https://github.com/cyborginc/cyborgdb-go).
 
 ## Installation
 
@@ -16,22 +16,23 @@ The package source code is available on [GitHub](https://github.com/cyborginc/cy
 go get github.com/cyborginc/cyborgdb-go
 ```
 
+The package name is `cyborgdb`:
+
+```go
+import "github.com/cyborginc/cyborgdb-go"
+```
+
 ## Prerequisites
 
-Before using the CyborgDB Go SDK, you need to have the CyborgDB service running:
+The SDK needs a running CyborgDB service:
 
 ```bash
-# Install the CyborgDB service
+# Install and start the service
 pip install cyborgdb-service
-
-# Or pull the Docker image
-docker pull cyborginc/cyborgdb-service
-
-# Start the service
 cyborgdb-service
 
-# Or run the Docker container
+# Or run the Docker image
 docker run -p 8000:8000 cyborginc/cyborgdb-service
 ```
 
-For detailed service setup instructions, see our quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).
+See the quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).

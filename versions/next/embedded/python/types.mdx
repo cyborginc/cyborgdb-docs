@@ -97,11 +97,11 @@ store = cyborgdb.StorageConfig.s3("my-bucket", region="us-east-1", credentials=c
 
 ## Storage Precision
 
-`storage_precision` controls the on-disk dtype of the rerank vectors for a DiskIVF index, set at [`create_index`](./client/create-index) time.
+`storage_precision` controls the on-disk dtype of the index's stored vector embeddings for a DiskIVF index, set at [`create_index`](./client/create-index) time.
 
 | Value | Description |
 |-------|-------------|
-| `numpy.float32` (default) | Full-precision rerank vectors. |
+| `numpy.float32` (default) | Full-precision vector embeddings. |
 | `numpy.float16` | Halves the on-disk footprint with a slight precision loss. |
 
 The strings `"float32"` and `"float16"` are also accepted.

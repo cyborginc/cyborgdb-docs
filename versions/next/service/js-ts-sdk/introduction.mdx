@@ -1,16 +1,14 @@
 ---
 title: "CyborgDB - JavaScript/TypeScript SDK Reference"
 sidebarTitle: "JS/TS SDK Introduction"
-description: "`v0.17.x`"
+description: "`v0.18.x`"
 mode: "wide"
 noindex: true
 ---
 
-The **CyborgDB** JavaScript and TypeScript SDK allows you to securely interact with encrypted indexes from both Node.js and browser environments. It supports all core operations including index creation, data insertion, and encrypted querying.
+The **CyborgDB** JavaScript/TypeScript SDK is a client for the CyborgDB service. It creates encrypted indexes, upserts and retrieves vectors, runs vector, hybrid (BM25 + vector), and metadata-only queries, and manages per-index users. It ships TypeScript types and runs on Node.js 18+, Bun, Deno, modern browsers, Vercel Edge Runtime, and Cloudflare Workers.
 
-The SDK provides comprehensive TypeScript support with strongly-typed interfaces, improved type safety, and utility functions for working with JSON metadata and error handling.
-
-The package is available on [npm](https://www.npmjs.com/package/cyborgdb) and the source code is available on [GitHub](https://github.com/cyborginc/cyborgdb-js).
+The package is available on [npm](https://www.npmjs.com/package/cyborgdb) and the source code is on [GitHub](https://github.com/cyborginc/cyborgdb-js).
 
 ## Installation
 
@@ -18,22 +16,33 @@ The package is available on [npm](https://www.npmjs.com/package/cyborgdb) and th
 npm install cyborgdb
 ```
 
-## Prerequisites
+The package has no runtime dependencies.
 
-Before using the CyborgDB JavaScript/TypeScript SDK, you need to have the CyborgDB service running:
+## LangChain
+
+The LangChain vector store, `CyborgVectorStore`, is a separate entry point, so the main package doesn't require LangChain:
 
 ```bash
-# Install the CyborgDB service
+npm install cyborgdb @langchain/core
+```
+
+```typescript
+import { CyborgVectorStore } from 'cyborgdb/integrations/langchain';
+```
+
+`@langchain/core` `^1.0.0` is an optional peer dependency. Since v0.18, `CyborgVectorStore` is no longer exported from `'cyborgdb'` itself.
+
+## Prerequisites
+
+The SDK needs a running CyborgDB service:
+
+```bash
+# Install and start the service
 pip install cyborgdb-service
-
-# Or pull the Docker image
-docker pull cyborginc/cyborgdb-service
-
-# Start the service
 cyborgdb-service
 
-# Or run the Docker container
+# Or run the Docker image
 docker run -p 8000:8000 cyborginc/cyborgdb-service
 ```
 
-For detailed service setup instructions, see our quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).
+See the quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).

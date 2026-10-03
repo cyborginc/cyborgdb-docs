@@ -65,12 +65,20 @@ dataset = cyborgdb.load_sample_dataset()
 ```python
 import cyborgdb
 
-client = cyborgdb.Client('https://localhost:8000', 'your-service-root-key')
+client = cyborgdb.Client('http://localhost:8000', 'your-api-key')
 index_key = client.generate_key()
-index = client.create_index(index_name="demo", index_key=index_key)
 
 # Load the sample dataset (downloads on first use, cached afterwards)
 dataset = cyborgdb.load_sample_dataset()
+print(dataset.name, dataset.count, dataset.dimension, dataset.metric)
+# Output: quickstart-75k 75000 128 euclidean
+
+index = client.create_index(
+    index_name="demo",
+    index_key=index_key,
+    dimension=dataset.dimension,
+    metric=dataset.metric,
+)
 
 # Populate the index
 index.upsert(dataset.items)
@@ -80,6 +88,8 @@ results = index.query(query_vectors=dataset.sample_queries[0], top_k=5)
 
 # Try a curated metadata filter
 example = dataset.example_filters[0]
+print(example["name"], example["filter"])
+# Output: Equality filter (string field) {'string': 'string_0'}
 results = index.query(
     query_vectors=dataset.sample_queries[0],
     filters=example["filter"],

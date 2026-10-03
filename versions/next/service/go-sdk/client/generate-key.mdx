@@ -4,29 +4,21 @@ mode: "wide"
 noindex: true
 ---
 
-Generates a cryptographically secure 256-bit (32-byte) encryption key suitable for creating encrypted indexes.
+Generates a random 32-byte (256-bit) key for creating an encrypted index with an SDK-supplied key.
+
 ```go
 func GenerateKey() ([]byte, error)
 ```
 
+`GenerateKey` is a package-level function, not a `Client` method. The package also exports the key length as `cyborgdb.KeySize` (`32`).
+
 ### Returns
 
-| Type | Description |
-|------|-------------|
-| `[]byte` | A 32-byte encryption key suitable for use with encrypted indexes |
-| `error` | Any error that occurred during key generation |
+A 32-byte key read from Go's `crypto/rand`. The error, which wraps `ErrKeyGeneration`, is non-nil only if the operating system's random source fails.
 
-### Security
+Unlike the Python SDK, there is no option to save the key to a file.
 
-The generated key is cryptographically secure and suitable for production use:
-
-- Uses Go's `crypto/rand` package for secure random number generation
-- Provides 256 bits of entropy (32 bytes)
-- Compatible with AES-256 encryption used by CyborgDB
-
-<Warning>
-This key must be persisted securely. For more information, see [Managing Encryption Keys](../../guides/advanced/managing-keys).
-</Warning>
+<Warning>An index created with an SDK-supplied key can only be opened with that exact key. If the key is lost, the index's data can't be decrypted. Store it in a secrets manager, or use a KMS-backed index. See [Managing Encryption Keys](../../guides/advanced/managing-keys).</Warning>
 
 ### Example Usage
 
@@ -34,23 +26,37 @@ This key must be persisted securely. For more information, see [Managing Encrypt
 package main
 
 import (
+    "context"
     "encoding/hex"
     "fmt"
     "log"
-    
+
     "github.com/cyborginc/cyborgdb-go"
 )
 
 func main() {
-    // Generate a new encryption key
+    client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
+
     key, err := cyborgdb.GenerateKey()
     if err != nil {
-        log.Fatal("Failed to generate key:", err)
+        log.Fatal(err)
     }
-    
-    // Convert to hex string for storage/transmission
+    fmt.Println(len(key))
+    // Output: 32
+
+    _, err = client.CreateIndex(context.Background(), &cyborgdb.CreateIndexParams{
+        IndexName: "my-secure-index",
+        IndexKey:  key,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Keep the key somewhere safe, e.g. as hex in a secrets manager
     keyHex := hex.EncodeToString(key)
-    fmt.Printf("Generated key: %s\n", keyHex)
-    fmt.Printf("Key length: %d bytes\n", len(key))
+    _ = keyHex
 }
 ```
