@@ -1,0 +1,640 @@
+---
+title: "Full-Text and Hybrid Search"
+mode: "wide"
+noindex: true
+---
+
+CyborgDB supports **BM25 full-text search** on designated metadata fields, alongside vector search. This unlocks two new query paths on top of the existing vector query:
+
+| Query | Method | Ranks by |
+|---|---|---|
+| Full text (no vector) | `query_metadata()` with `text` | BM25 score |
+| Full text + metadata (no vector) | `query_metadata()` with `text` + `filters` | BM25 score over the filter's survivors |
+| Hybrid (BM25 + vector) | `query()` with `query_vectors` + `text` | weighted RRF of BM25 rank + vector rank |
+| Three-way (vector + BM25 + metadata) | `query()` with `query_vectors` + `text` + `filters` | weighted RRF over the filter's survivors |
+
+Terms are stored as encrypted, unlinkable postings — the backing store never sees a readable term, a document's vocabulary, or a posting-list length.
+
+## How It Works
+
+- **BM25 is enabled by designating fields, not by a flag.** An index with at least one `full_text` field supports text search. An index with none writes no BM25 config and pays nothing.
+- **Text is sourced from metadata field values**, not from `contents`. `contents` stays arbitrary binary and is never analyzed.
+- **English only in v1**: lowercase → split on non-alphanumeric → stopword filter → Porter2 stem.
+- **Designations are fixed for the index's lifetime.** There is no post-creation change in v1.
+- **Fusion is by rank, not score.** BM25 relevance and vector distance have no common unit, so hybrid queries fuse *positions*: `score(d) = Σ w_leg / (k + rank_leg(d))`. `alpha` sets the leg weights, `rrf_k` damps how much a single leg's top hit dominates, and `window_mult` sets how deep each leg retrieves before fusing.
+
+## Designating Fields
+
+At index creation, mark fields as `full_text` in `metadata_schema` — or use the `text_fields` shorthand:
+
+<CodeGroup>
+```python Python SDK icon="python"
+from cyborgdb import Client
+
+client = Client(base_url='http://localhost:8000', api_key='your-api-key')
+index_key = client.generate_key(save=True)
+
+# Shorthand: text_fields=[...] marks each field full_text=True.
+index = client.create_index(
+    'articles',
+    index_key=index_key,
+    dimension=4,
+    text_fields=['title', 'body'],
+)
+```
+
+```javascript JavaScript SDK icon="js"
+import { Client } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+const indexKey = client.generateKey();
+
+// Shorthand: textFields marks each field fullText: true.
+const index = await client.createIndex({
+    indexName: 'articles',
+    indexKey,
+    dimension: 4,
+    textFields: ['title', 'body'],
+});
+```
+
+```typescript TypeScript SDK icon="code"
+import { Client, EncryptedIndex } from 'cyborgdb';
+
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-api-key' });
+const indexKey: Uint8Array = client.generateKey();
+
+// Shorthand: textFields marks each field fullText: true.
+const index: EncryptedIndex = await client.createIndex({
+    indexName: 'articles',
+    indexKey,
+    dimension: 4,
+    textFields: ['title', 'body'],
+});
+```
+
+```go Go SDK icon="golang"
+client, err := cyborgdb.NewClient("http://localhost:8000", "your-api-key")
+if err != nil {
+    log.Fatal(err)
+}
+key, err := cyborgdb.GenerateKey()
+if err != nil {
+    log.Fatal(err)
+}
+
+// Shorthand: TextFields marks each field full_text=true.
+dimension := int32(4)
+params := &cyborgdb.CreateIndexParams{
+    IndexName:  "articles",
+    IndexKey:   key,
+    Dimension:  &dimension,
+    TextFields: []string{"title", "body"},
+}
+
+index, err := client.CreateIndex(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/indexes/create" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "articles",
+       "index_key": "your_64_character_hex_key_here",
+       "dimension": 4,
+       "text_fields": ["title", "body"]
+     }'
+```
+</CodeGroup>
+
+The longhand — `metadata_schema={"title": {"full_text": true}}` — is equivalent, and is what you need when other fields want policy too (e.g. a `filterable` or `pattern` field alongside). The BM25 scoring constants can also be tuned at creation via `bm25_k1` (term-frequency saturation, default `1.2`) and `bm25_b` (length normalization, default `0.75`); both require at least one `full_text` field.
+
+<Note>`full_text: true` implies `filterable: false` and is incompatible with `pattern: true` — a field is either analyzed for BM25 or exact-match indexed, never both. Writing an explicit `filterable: true` alongside `full_text: true` is rejected. If a field needs to be both text-searchable and exact-match filterable, store it twice under two names.</Note>
+
+## Ingesting Text
+
+Nothing special is needed at upsert — text comes from the designated fields' metadata values:
+
+<CodeGroup>
+```python Python SDK icon="python"
+index.upsert([
+    {
+        'id': 'a1',
+        'vector': [0.1, 0.2, 0.3, 0.4],
+        'metadata': {
+            'title': 'Encrypted vector search',
+            'body': 'Searching over encrypted embeddings without decrypting them.',
+            'author': 'ann',
+        },
+    },
+])
+```
+
+```javascript JavaScript SDK icon="js"
+await index.upsert([
+    {
+        id: 'a1',
+        vector: [0.1, 0.2, 0.3, 0.4],
+        metadata: {
+            title: 'Encrypted vector search',
+            body: 'Searching over encrypted embeddings without decrypting them.',
+            author: 'ann',
+        },
+    },
+]);
+```
+
+```typescript TypeScript SDK icon="code"
+await index.upsert([
+    {
+        id: 'a1',
+        vector: [0.1, 0.2, 0.3, 0.4],
+        metadata: {
+            title: 'Encrypted vector search',
+            body: 'Searching over encrypted embeddings without decrypting them.',
+            author: 'ann',
+        },
+    },
+]);
+```
+
+```go Go SDK icon="golang"
+items := cyborgdb.VectorItems{
+    {
+        Id:     "a1",
+        Vector: []float32{0.1, 0.2, 0.3, 0.4},
+        Metadata: map[string]interface{}{
+            "title":  "Encrypted vector search",
+            "body":   "Searching over encrypted embeddings without decrypting them.",
+            "author": "ann",
+        },
+    },
+}
+
+err := index.Upsert(context.Background(), items)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/upsert" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "articles",
+       "index_key": "your_64_character_hex_key_here",
+       "items": [
+         {
+           "id": "a1",
+           "vector": [0.1, 0.2, 0.3, 0.4],
+           "metadata": {
+             "title": "Encrypted vector search",
+             "body": "Searching over encrypted embeddings without decrypting them.",
+             "author": "ann"
+           }
+         }
+       ]
+     }'
+```
+</CodeGroup>
+
+A `full_text` field's value must be a string. Items where the field is missing or non-string (including a list of strings) are skipped for that field — the upsert still succeeds. An empty or all-stopword value is legal and simply contributes no terms.
+
+## Full-Text Query — No Vector
+
+Pass `text` to `query_metadata()` to run a pure BM25 search. Rows come back as `{"id", "score"}`, descending by BM25 score:
+
+<CodeGroup>
+```python Python SDK icon="python"
+results = index.query_metadata(text='encrypted search', top_k=10)
+
+print(results)
+# [{"id": "a1", "score": 2.63}, {"id": "a2", "score": 1.15}, ...]
+```
+
+```javascript JavaScript SDK icon="js"
+const results = await index.queryMetadata({ text: 'encrypted search', topK: 10 });
+
+console.log(results);
+// [{id: "a1", score: 2.63}, {id: "a2", score: 1.15}, ...]
+```
+
+```typescript TypeScript SDK icon="code"
+import { MetadataResult } from 'cyborgdb';
+
+const results: MetadataResult[] = await index.queryMetadata({
+    text: 'encrypted search',
+    topK: 10,
+});
+
+console.log(results);
+// [{id: "a1", score: 2.63}, {id: "a2", score: 1.15}, ...]
+```
+
+```go Go SDK icon="golang"
+resp, err := index.QueryMetadata(context.Background(), cyborgdb.QueryMetadataParams{
+    Text: cyborgdb.String("encrypted search"),
+    TopK: 10,
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+for _, row := range resp.Results {
+    fmt.Println(row.Id, row.GetScore())
+}
+// a1 2.63
+// a2 1.15
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query_metadata" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "articles",
+       "index_key": "your_64_character_hex_key_here",
+       "text": "encrypted search",
+       "top_k": 10
+     }'
+```
+</CodeGroup>
+
+`score` is present only when there is one — a filter-only `query_metadata()` call has nothing to score, so the key is absent rather than null.
+
+Three optional knobs shape the text search:
+
+- `text_fields` — search only some of the designated fields (naming a non-`full_text` field is rejected).
+- `text_field_weights` — per-field weights, parallel to the searched fields (name them explicitly when weighting).
+- `require_all_terms` — require every term to match (AND) instead of any (OR, the default).
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Weight title matches double, and require every term
+results = index.query_metadata(
+    text='encrypted search',
+    text_fields=['title', 'body'],
+    text_field_weights=[2.0, 1.0],
+    require_all_terms=True,
+)
+```
+
+```javascript JavaScript SDK icon="js"
+// Weight title matches double, and require every term
+const results = await index.queryMetadata({
+    text: 'encrypted search',
+    textFields: ['title', 'body'],
+    textFieldWeights: [2.0, 1.0],
+    requireAllTerms: true,
+});
+```
+
+```typescript TypeScript SDK icon="code"
+// Weight title matches double, and require every term
+const results: MetadataResult[] = await index.queryMetadata({
+    text: 'encrypted search',
+    textFields: ['title', 'body'],
+    textFieldWeights: [2.0, 1.0],
+    requireAllTerms: true,
+});
+```
+
+```go Go SDK icon="golang"
+// Weight title matches double, and require every term
+resp, err := index.QueryMetadata(context.Background(), cyborgdb.QueryMetadataParams{
+    Text:             cyborgdb.String("encrypted search"),
+    TextFields:       []string{"title", "body"},
+    TextFieldWeights: []float32{2.0, 1.0},
+    RequireAllTerms:  cyborgdb.Bool(true),
+})
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query_metadata" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "articles",
+       "index_key": "your_64_character_hex_key_here",
+       "text": "encrypted search",
+       "text_fields": ["title", "body"],
+       "text_field_weights": [2.0, 1.0],
+       "require_all_terms": true
+     }'
+```
+</CodeGroup>
+
+A `filters` argument given alongside `text` acts as a **pre-filter** — it resolves first, then only its survivors are scored. Document frequency and per-field corpus stats stay corpus-global, so a document's score never depends on the filter. `order_by` is not supported together with `text` — text results rank by score.
+
+## Hybrid Query — BM25 + Vector
+
+Set `text` on `query()` to fuse BM25 with vector similarity:
+
+<CodeGroup>
+```python Python SDK icon="python"
+query_vector = [0.5, 0.9, 0.2, 0.7]
+
+results = index.query(
+    query_vectors=query_vector,
+    text='encrypted search',   # <- this is what makes it hybrid
+    top_k=10,
+    alpha=0.5,                 # 0 = pure BM25, 1 = pure vector; default 0.5
+    include=['metadata'],
+)
+
+print(results)
+# [{"id": "a1", "score": 0.0161, "metadata": {...}}, ...]
+```
+
+```javascript JavaScript SDK icon="js"
+const queryVector = [0.5, 0.9, 0.2, 0.7];
+
+const response = await index.query({
+    queryVectors: queryVector,
+    text: 'encrypted search',  // <- this is what makes it hybrid
+    topK: 10,
+    alpha: 0.5,                // 0 = pure BM25, 1 = pure vector; default 0.5
+    include: ['metadata'],
+});
+
+console.log(response.results);
+// [{id: "a1", score: 0.0161, metadata: {...}}, ...]
+```
+
+```typescript TypeScript SDK icon="code"
+import { QueryResponse } from 'cyborgdb';
+
+const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
+
+const params = {
+    queryVectors: queryVector,
+    text: 'encrypted search',  // <- this is what makes it hybrid
+    topK: 10,
+    alpha: 0.5,                // 0 = pure BM25, 1 = pure vector; default 0.5
+    include: ['metadata'],
+};
+const response: QueryResponse = await index.query(params);
+
+console.log(response.results);
+// [{id: "a1", score: 0.0161, metadata: {...}}, ...]
+```
+
+```go Go SDK icon="golang"
+queryVector := []float32{0.5, 0.9, 0.2, 0.7}
+params := cyborgdb.QueryParams{
+    QueryVector: queryVector,
+    Text:        cyborgdb.String("encrypted search"), // <- this makes it hybrid
+    TopK:        int32(10),
+    Alpha:       cyborgdb.Float64(0.5), // 0 = pure BM25, 1 = pure vector
+    Include:     []string{"metadata"},
+}
+
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(results)
+// [{"id": "a1", "score": 0.0161, "metadata": {...}}, ...]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "articles",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.5, 0.9, 0.2, 0.7],
+       "text": "encrypted search",
+       "top_k": 10,
+       "alpha": 0.5,
+       "include": ["metadata"]
+     }'
+```
+</CodeGroup>
+
+Hybrid results carry `score` (fused relevance, larger = better) and **never** `distance` — a document matched by text alone has no vector distance to report.
+
+A query vector is required even at `alpha=0` — it fixes the batch shape. For text search with no vector, use `query_metadata()` with `text`.
+
+## Three-Way Query — Vector + BM25 + Metadata
+
+Adding `filters` on top of a hybrid query composes all three legs in one request. The filter is resolved **once**, before retrieval, and the surviving IDs constrain both the vector and BM25 legs — so both rankings are computed over the same filtered candidate set, then fused by RRF. A filter that matches nothing short-circuits to an empty result without running either leg:
+
+<CodeGroup>
+```python Python SDK icon="python"
+results = index.query(
+    query_vectors=query_vector,
+    text='encrypted search',
+    filters={'author': 'ann'},   # resolved first; both legs rank only its survivors
+    top_k=10,
+    alpha=0.5,
+    include=['metadata'],
+)
+
+print(results)
+# [{"id": "a1", "score": 0.0161, "metadata": {"author": "ann", ...}}, ...]
+```
+
+```javascript JavaScript SDK icon="js"
+const response = await index.query({
+    queryVectors: queryVector,
+    text: 'encrypted search',
+    filters: { author: 'ann' },  // resolved first; both legs rank only its survivors
+    topK: 10,
+    alpha: 0.5,
+    include: ['metadata'],
+});
+
+console.log(response.results);
+// [{id: "a1", score: 0.0161, metadata: {author: "ann", ...}}, ...]
+```
+
+```typescript TypeScript SDK icon="code"
+import { QueryResponse } from 'cyborgdb';
+
+const params = {
+    queryVectors: queryVector,
+    text: 'encrypted search',
+    filters: { author: 'ann' },  // resolved first; both legs rank only its survivors
+    topK: 10,
+    alpha: 0.5,
+    include: ['metadata'],
+};
+const response: QueryResponse = await index.query(params);
+
+console.log(response.results);
+// [{id: "a1", score: 0.0161, metadata: {author: "ann", ...}}, ...]
+```
+
+```go Go SDK icon="golang"
+params := cyborgdb.QueryParams{
+    QueryVector: queryVector,
+    Text:        cyborgdb.String("encrypted search"),
+    // Resolved first; both legs rank only its survivors.
+    Filters: map[string]interface{}{"author": "ann"},
+    TopK:    int32(10),
+    Alpha:   cyborgdb.Float64(0.5),
+    Include: []string{"metadata"},
+}
+
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(results)
+// [{"id": "a1", "score": 0.0161, "metadata": {"author": "ann", ...}}, ...]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "articles",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.5, 0.9, 0.2, 0.7],
+       "text": "encrypted search",
+       "filters": {"author": "ann"},
+       "top_k": 10,
+       "alpha": 0.5,
+       "include": ["metadata"]
+     }'
+```
+</CodeGroup>
+
+`alpha` still applies: `0` reduces the query to BM25 + metadata, `1` to vector + metadata, and either exact endpoint skips the dead leg's retrieval entirely. For BM25 + metadata with no vector at all, use `query_metadata()` with `text` and `filters` instead.
+
+<Note>Any query with `text` set accepts only filters the metadata index can resolve exactly. `$regex` on a non-`pattern` field, and any predicate on an explicitly non-`filterable` field, work in a pure `query()` but are rejected once `text` is set — the BM25 leg has no post-verify stage, so an inexact survivor set would silently leave it unfiltered. In the example above, `author` works because it is an ordinary filterable field, not a `full_text` one.</Note>
+
+## Tuning
+
+| Knob | Set at | Raise it to | Lower it to |
+|---|---|---|---|
+| `bm25_k1` (1.2) | index creation | let repeated terms keep adding score | saturate sooner; 0 = presence/absence only |
+| `bm25_b` (0.75) | index creation | punish long documents harder; 1 = full normalization | ignore length; 0 = no normalization |
+| `alpha` (0.5) | per query | favor vector similarity | favor keyword relevance |
+| `rrf_k` (60) | per query | reward cross-leg agreement further down each list | trust each leg's top hits more |
+| `window_mult` (3) | per query | let documents deep in both legs still win on fusion | retrieve less per leg |
+
+Two non-obvious properties worth knowing before tuning:
+
+- **No positive `rrf_k` lets one leg's rank-1 outrank two legs' rank-2.** If you want a single leg to dominate, use `alpha`, not `rrf_k`. At `alpha=0` or `alpha=1` the dead leg's retrieval is skipped entirely.
+- **`rrf_k` is only meaningful as deep as the legs actually retrieved.** At `window_mult=3` and `top_k=10` each leg is 30 deep, and every value of `rrf_k` above ~28 makes the same decision — sweeping `rrf_k` alone at a shallow window will look like the knob does nothing. Sweep the two together.
+
+## Reading Back the Config
+
+The recorded BM25 config — `k1`, `b`, and the `analyzer_version` the corpus was indexed with — is reported on the index handle, or `null` when the index has no `full_text` field:
+
+<CodeGroup>
+```python Python SDK icon="python"
+print(index.bm25)
+# {"k1": 1.2, "b": 0.75, "analyzer_version": "en/1;sw=...;snowball-english-utf8-3.0.1"}
+
+print(index.metadata_schema)
+# {"title": {"filterable": False, "pattern": False, "full_text": True}, ...}
+```
+
+```javascript JavaScript SDK icon="js"
+console.log(await index.bm25());
+// {k1: 1.2, b: 0.75, analyzerVersion: "en/1;sw=...;snowball-english-utf8-3.0.1"}
+
+console.log(await index.metadataSchema());
+// {title: {filterable: false, pattern: false, fullText: true}, ...}
+```
+
+```typescript TypeScript SDK icon="code"
+console.log(await index.bm25());
+// {k1: 1.2, b: 0.75, analyzerVersion: "en/1;sw=...;snowball-english-utf8-3.0.1"}
+
+console.log(await index.metadataSchema());
+// {title: {filterable: false, pattern: false, fullText: true}, ...}
+```
+
+```go Go SDK icon="golang"
+bm25, err := index.BM25(context.Background())
+if err != nil {
+    log.Fatal(err)
+}
+if bm25 != nil {
+    fmt.Println(bm25.K1, bm25.B, bm25.GetAnalyzerVersion())
+}
+
+schema, err := index.MetadataSchema(context.Background())
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(schema)
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/indexes/describe" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "articles",
+       "index_key": "your_64_character_hex_key_here"
+     }'
+# Response includes:
+# "metadata_schema": {"title": {"filterable": false, "pattern": false, "full_text": true}, ...},
+# "bm25": {"k1": 1.2, "b": 0.75, "analyzer_version": "en/1;sw=...;snowball-english-utf8-3.0.1"}
+```
+</CodeGroup>
+
+## Constraints and Gotchas
+
+- **`full_text` + explicit `filterable: true` is an error**, and **`full_text` + `pattern: true` is an error always**. If you need a field both text-searchable and exact-match filterable, store it twice under two names.
+- **Designations are fixed for the index's lifetime.** No post-creation change in v1.
+- **`order_by` cannot be combined with `text`.** Text results rank by score.
+- **Only single string values are analyzed.** A `full_text` field holding a number, boolean, object, or a *list of strings* is skipped for that item — join multi-part text into one string before upserting.
+- **Not in v1:** phrase queries, `NOT`/exclusion, nested boolean expressions, non-English analysis, and dual-indexing a field as both analyzed and exact-match.
+- **The analyzer is versioned.** The pipeline version, stopword-list hash, and stemmer identity are stamped into the index at creation (see `analyzer_version` above). Opening an index with a build whose analyzer differs is a loud error, not silent recall loss.
+- **Multi-tenant guidance:** use index-per-tenant. Corpus statistics are per index, so co-mingling tenants behind a `tenant_id` filter gives every tenant blended term rarity — BM25 statistics are deliberately global and never scoped to a filtered subset.
+
+## Common Errors
+
+Create-time schema violations are rejected by request validation (HTTP `422`); query-time and cross-parameter violations are enforced by the index core (HTTP `400`). The SDKs surface both as errors/exceptions with the reason.
+
+| Error | Cause | Fix |
+|---|---|---|
+| `text query requires an index with at least one full_text field` | No field designated | Designate at creation; it cannot be added later |
+| text query names a field that is not `full_text` | `text_fields` naming an undesignated field | Use a designated field, or drop the argument to search all |
+| text knobs require non-empty query text | `text_fields` / `text_field_weights` / `require_all_terms` set without `text` | Pass `text`, or drop the knob |
+| `full_text=true` is incompatible with an explicit `filterable=true` | Both written explicitly | Drop `filterable`, or use two fields |
+| `bm25_k1` / `bm25_b` require at least one `full_text` field | Tuning an index with no text | Designate a field, or drop the parameters |
+| `order_by is not supported together with query text` | Two ordering authorities | Drop `order_by` |
+| `rrf_k must be > 0` / `window_mult must be >= 1` | Explicit `0` passed | Omit the parameter for the default |
+| `hybrid query cannot filter on a non-indexed metadata field` | Filter on a non-`filterable` / non-`pattern` field with `text` set | Move the filter to a `filterable` / `pattern` field, or drop `text` |
+| Empty result, no error | Text analyzed to no terms (empty, punctuation, all stopwords), or no term matched | Expected: degenerate input is defined-empty |
+
+## API Reference
+
+For more information on full-text and hybrid search, refer to the API reference:
+
+<CardGroup cols={2}>
+    <Card title="REST API: Query" href="../../rest-api/encrypted-index/query" icon="rectangle-terminal">
+        Hybrid query on `/v1/vectors/query`
+    </Card>
+    <Card title="REST API: Query Metadata" href="../../rest-api/encrypted-index/query-metadata" icon="rectangle-terminal">
+        Full-text query on `/v1/vectors/query_metadata`
+    </Card>
+    <Card title="Python SDK Reference" href="../../python-sdk/encrypted-index/query" icon="python">
+        API reference for `query()` and `query_metadata()` in Python
+    </Card>
+    <Card title="JS/TS SDK Reference" href="../../js-ts-sdk/encrypted-index/query" icon="js">
+        API reference for `query()` and `queryMetadata()` in JavaScript/TypeScript
+    </Card>
+    <Card title="Go SDK Reference" href="../../go-sdk/encrypted-index/query" icon="golang">
+        API reference for `Query()` and `QueryMetadata()` in Go
+    </Card>
+    <Card title="Create Index (REST API)" href="../../rest-api/client/create-index" icon="database">
+        Designating `full_text` fields at creation
+    </Card>
+</CardGroup>
