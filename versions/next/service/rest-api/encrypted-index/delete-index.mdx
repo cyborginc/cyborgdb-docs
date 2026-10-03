@@ -12,7 +12,7 @@ Permanently delete an index and all its data.
 
 ## Authentication
 
-Required - API key via `X-API-Key` header:
+Required - **admin (root) API key** via `X-API-Key` header. Per-user (`cdbk_`) keys are rejected with `403` — a per-user credential operates on data, not index lifecycle:
 
 ```http
 X-API-Key: cyborg_your_api_key_here
@@ -50,6 +50,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 ## Exceptions
 
 - `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
+- `403`: Authenticated with a per-user (`cdbk_`) key — this operation requires the admin (root) API key
 - `404`: Index not found
 - `422`: Invalid request parameters
 - `500`: Internal server error

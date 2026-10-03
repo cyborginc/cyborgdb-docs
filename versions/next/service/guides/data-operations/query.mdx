@@ -34,14 +34,14 @@ console.log(response.results);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryRequest, QueryResponse } from 'cyborgdb';
+import { QueryResponse } from 'cyborgdb';
 
 // Example query
 const queryVectors: number[] = [0.5, 0.9, 0.2, 0.7];
 const topK: number = 10;
 
 // Perform query
-const params: QueryRequest = { queryVectors, topK };
+const params = { queryVectors, topK };
 const response: QueryResponse = await index.query(params);
 
 console.log(response.results);
@@ -138,7 +138,7 @@ console.log(response.results);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryRequest, QueryResponse, FilterExpression } from 'cyborgdb';
+import { QueryResponse, FilterExpression } from 'cyborgdb';
 
 // Example query with parameters
 const queryVectors: number[] = [0.5, 0.9, 0.2, 0.7];
@@ -148,7 +148,7 @@ const filters: FilterExpression = {age: {$gt: 18}};
 const include: string[] = ["distance", "metadata"];
 
 // Perform query
-const params: QueryRequest = {
+const params = {
     queryVectors,
     topK,
     nProbes,
@@ -241,14 +241,14 @@ console.log(response.results);
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryRequest, QueryResponse } from 'cyborgdb';
+import { QueryResponse } from 'cyborgdb';
 
 // Example batch query
 const queryVectors: number[][] = [[0.5, 0.9, 0.2, 0.7], [0.1, 0.3, 0.8, 0.6]];
 const topK: number = 10;
 
 // Perform batch query
-const params: QueryRequest = {
+const params = {
     queryVectors,
     topK
 };
@@ -350,7 +350,7 @@ const results = await index.query({
 ```
 
 ```typescript TypeScript SDK icon="code"
-import { QueryRequest, QueryResponse, EncryptedIndex } from 'cyborgdb';
+import { QueryResponse, EncryptedIndex } from 'cyborgdb';
 
 // ... index creation and embedding model setup
 const embeddingModel: string = "all-MiniLM-L6-v2";
@@ -363,7 +363,7 @@ const queryContents: string = "What is the capital of France?";
 const topK: number = 10;
 
 // Perform query
-const params: QueryRequest = {
+const params = {
     queryContents,
     topK
 };
@@ -402,6 +402,149 @@ curl -X POST "http://localhost:8000/v1/vectors/query" \
 </CodeGroup>
 
 This feature allows you to perform semantic search using natural language queries. The service will automatically generate embeddings for your query text using the specified embedding model.
+
+## Hybrid Search (BM25 + Vector)
+
+If the index was created with at least one `full_text` metadata field, passing `text` alongside `query_vectors` turns the query into a **hybrid** query: BM25 full-text ranking is fused with the vector ranking, and each result carries a `score` (fused relevance, larger = better) instead of a `distance`:
+
+<CodeGroup>
+```python Python SDK icon="python"
+# Requires an index created with text_fields=[...] (or full_text in metadata_schema)
+results = index.query(
+    query_vectors=query_vector,
+    text="encrypted search",
+    top_k=10,
+    alpha=0.5,  # 0 = pure BM25, 1 = pure vector; default 0.5
+)
+# [{"id": "a1", "score": 0.0161}, ...]
+```
+
+```javascript JavaScript SDK icon="js"
+// Requires an index created with textFields (or fullText in metadataSchema)
+const queryVector = [0.5, 0.9, 0.2, 0.7];
+
+const response = await index.query({
+    queryVectors: queryVector,
+    text: "encrypted search",
+    topK: 10,
+    alpha: 0.5,  // 0 = pure BM25, 1 = pure vector; default 0.5
+});
+// [{id: "a1", score: 0.0161}, ...]
+```
+
+```typescript TypeScript SDK icon="code"
+import { QueryResponse } from 'cyborgdb';
+
+// Requires an index created with textFields (or fullText in metadataSchema)
+const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
+
+const params = {
+    queryVectors: queryVector,
+    text: "encrypted search",
+    topK: 10,
+    alpha: 0.5,  // 0 = pure BM25, 1 = pure vector; default 0.5
+};
+const response: QueryResponse = await index.query(params);
+// [{id: "a1", score: 0.0161}, ...]
+```
+
+```go Go SDK icon="golang"
+// Requires an index created with TextFields (or full_text in MetadataSchema)
+params := cyborgdb.QueryParams{
+    QueryVector: queryVector,
+    Text:        cyborgdb.String("encrypted search"),
+    TopK:        int32(10),
+    Alpha:       cyborgdb.Float64(0.5), // 0 = pure BM25, 1 = pure vector
+}
+
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+// [{"id": "a1", "score": 0.0161}, ...]
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.5, 0.9, 0.2, 0.7],
+       "text": "encrypted search",
+       "top_k": 10,
+       "alpha": 0.5
+     }'
+```
+</CodeGroup>
+
+Adding `filters` on top composes a **three-way** query (vector + BM25 + metadata). The filter is resolved first, and both legs rank only its survivors:
+
+<CodeGroup>
+```python Python SDK icon="python"
+results = index.query(
+    query_vectors=query_vector,
+    text="encrypted search",
+    filters={"author": "ann"},  # resolved first; constrains both legs
+    top_k=10,
+)
+```
+
+```javascript JavaScript SDK icon="js"
+const response = await index.query({
+    queryVectors: queryVector,
+    text: "encrypted search",
+    filters: { author: "ann" },  // resolved first; constrains both legs
+    topK: 10,
+});
+```
+
+```typescript TypeScript SDK icon="code"
+import { QueryResponse } from 'cyborgdb';
+
+const params = {
+    queryVectors: queryVector,
+    text: "encrypted search",
+    filters: { author: "ann" },  // resolved first; constrains both legs
+    topK: 10,
+};
+const response: QueryResponse = await index.query(params);
+```
+
+```go Go SDK icon="golang"
+params := cyborgdb.QueryParams{
+    QueryVector: queryVector,
+    Text:        cyborgdb.String("encrypted search"),
+    // Resolved first; constrains both legs.
+    Filters: map[string]interface{}{"author": "ann"},
+    TopK:    int32(10),
+}
+
+results, err := index.Query(context.Background(), params)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+```bash cURL icon="rectangle-terminal"
+curl -X POST "http://localhost:8000/v1/vectors/query" \
+     -H "X-API-Key: your-api-key" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "index_name": "my_index",
+       "index_key": "your_64_character_hex_key_here",
+       "query_vectors": [0.5, 0.9, 0.2, 0.7],
+       "text": "encrypted search",
+       "filters": {"author": "ann"},
+       "top_k": 10
+     }'
+```
+</CodeGroup>
+
+<Note>A query with `text` set accepts only filters the metadata index can resolve exactly — `$regex` on a non-`pattern` field, or any predicate on a `filterable: false` field, is rejected once `text` is present.</Note>
+
+For full-text search without a vector, field designation at index creation, tuning knobs (`alpha`, `rrf_k`, `window_mult`), and constraints, see the [Full-Text and Hybrid Search](./bm25-search) guide.
 
 ## Retrieving Items Post-Query
 

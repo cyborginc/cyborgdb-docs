@@ -99,7 +99,7 @@ _ = user.APIKey
 
 <Warning>**The `api_key` is returned exactly once and is never stored by the service.** If you lose it, you must revoke the user and mint a new one. Hand it to the user securely (out-of-band, encrypted channel, secret store).</Warning>
 
-The user authenticates by passing `cdbk_…` as `api_key` to their `Client` — they need **no index key** of their own (the service resolves the index KEK server-side).
+The user authenticates by passing `cdbk_…` as `api_key` to their `Client` — they need **no index key** of their own (the token carries the user's key material, and the service opens the index via that user's wrapped DEK).
 
 ```python
 # End user
@@ -144,13 +144,13 @@ _ = index.DeleteUser(context.Background(), "ab12…")
 
 Revocation is **cryptographic, not policy-based**: the service erases that user's wrapped DEK(s) for the index. On the next request, the service has nothing to unwrap for them — even a captured `cdbk_…` token becomes useless. There is no propagation lag.
 
-## KMS-backed constraint
+## SDK-supplied indexes
 
-Per-user keys work **only against KMS-backed indexes** — i.e., indexes created with `kms_name=…` rather than `index_key=…`. The reason is mechanical: a user does not hold the index key, so the service must be able to resolve it server-side from a `kms.registry` slot. For SDK-supplied indexes (`provider: none`), there is no server-side key to resolve, so per-user provisioning is not supported.
+Per-user keys work on **both** key-management paths — KMS-backed indexes (`kms_name=…`) and SDK-supplied indexes (`index_key=…`). The index KEK is needed only at **mint time**, to unwrap the root DEK and re-wrap it under the new user: for KMS-backed indexes the service resolves the KEK server-side, while for SDK-supplied indexes you pass it on the `create_user` call (`index_key` in the POST body). From then on the user authenticates with their `cdbk_…` token alone — the service opens the index via the user's own wrapped DEK, so no index KEK is involved on their requests, on either path.
 
-If you want multi-tenant access to an index that today uses an SDK-supplied key, migrate it to KMS-backed first (see [Managing Encryption Keys → Migrating](./managing-keys#migrating-from-sdk-supplied-to-kms-backed)).
+One difference remains on SDK-supplied indexes: **auto-training after a user's upsert is skipped**, because the training job runs out-of-band with the index KEK and the service holds none for a `provider: none` index. The skip is per-caller, not per-index: a root upsert that supplies `index_key` still triggers auto-training on the same index. So to keep an SDK-supplied index trained under user writes, either train it explicitly with the root key (supplying `index_key`), upsert as root when practical, or migrate to KMS-backed (see [Managing Encryption Keys → Migrating](./managing-keys#migrating-from-sdk-supplied-to-kms-backed)).
 
-<Note>Mint-time provisioning still requires the index KEK to bootstrap the new user's wrapped DEK. For KMS-backed indexes this happens server-side; for SDK-supplied indexes you'd need to pass the index key on the `create_user` call, but the resulting user still wouldn't have a path to authenticate (the service can't resolve the KEK for their later requests). This is why the constraint exists end-to-end.</Note>
+<Note>KMS-backed indexes stay the smoother fit for multi-tenancy: minting needs no key material in the request, and auto-training keeps working for user writes. But it is a recommendation, not a requirement.</Note>
 
 ## End-to-end example
 
