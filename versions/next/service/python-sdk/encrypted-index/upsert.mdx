@@ -35,7 +35,7 @@ Each dict can contain:
 
 `contents` accepts a `str` or `bytes`. Strings are stored as-is; bytes are base64-encoded first. [`get()`](./get) always returns `contents` as a `str`, so bytes come back as their base64 text: decode them with `base64.b64decode()`.
 
-<Tip>Store dates in `metadata` as integer epoch milliseconds so range filters work on them. See [Dates](../types#dates).</Tip>
+<Note>`datetime` and `date` objects in `metadata` are converted to integer epoch milliseconds before being sent (naive datetimes are treated as UTC; sub-millisecond precision is truncated). Values read back with `get()` come back as the same integer, not a `datetime`. The same conversion runs on filter dicts passed to `query()` / `query_binary()` / `query_metadata()`, so a `{"created": {"$gte": datetime(...)}}` predicate works directly. See [Dates](../types#dates).</Note>
 
 #### Shape 2: parallel arrays
 

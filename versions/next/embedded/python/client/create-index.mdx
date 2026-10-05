@@ -29,7 +29,7 @@ def create_index(self,
 | `index_key` | `bytes` | - | 32-byte encryption key (KEK) for the index, used to secure the index data. |
 | `dimension` | `int` \| `None` | `None` | _(Optional, keyword-only)_ Dimensionality of vector embeddings. When `None`, auto-detected from the first upsert (or derived from `embedding_model`). |
 | `storage_precision` | `str` \| `np.float32` \| `np.float16` | `StoragePrecision.FLOAT32` | _(Optional, keyword-only)_ On-disk format for vectors, fixed at create time. The raw strings (`"float32"`, `"float16"`, `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`) as well as numpy's dtypes `np.float32` / `np.float16` are accepted. |
-| `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of the SentenceTransformer model to use for automatic text embeddings. |
+| `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of a built-in embedding model for automatic text embeddings. Sets the index `dimension`; an explicit `dimension` must match; call `cyborgdb.supported_embedding_models()` for the full list. |
 | `metric` | `str` \| `None` | `"euclidean"` | _(Optional, keyword-only)_ Distance metric to use: `"euclidean"`, `"cosine"`, or `"squared_euclidean"`. See [`DistanceMetric`](../types#distancemetric). |
 | `metadata_schema` | `dict` \| `None` | `None` | _(Optional, keyword-only)_ Per-field metadata indexing policy, keyed by field name (dot-paths for nested fields). Fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
 | `logger` | [`Logger`](./logger) | `None` | _(Optional, keyword-only)_ Logger instance for capturing operation logs. |
@@ -66,6 +66,9 @@ On `query()` these are a performance hint: filters that miss the index just fall
         - Throws if the index configuration is invalid.
         - Throws if `metadata_schema` sets `pattern=True` without `filterable=True`.
         - Throws if the index could not be created.
+    </Accordion>
+    <Accordion title="EmbeddingModelUnavailable">
+        - Throws if `embedding_model` cannot be downloaded or loaded (network or model-hub failure, offline cache miss). Often transient.
     </Accordion>
 </AccordionGroup>
 
