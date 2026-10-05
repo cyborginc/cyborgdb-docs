@@ -5,11 +5,9 @@ mode: "wide"
 noindex: true
 ---
 
-CyborgDB Service stores every encrypted index as a **DiskIVF** index — an inverted-file (IVF) index whose clusters are produced by a training step. Training fits the clustering model to the actual vectors in your index so queries can probe a small number of clusters instead of scanning everything.
+CyborgDB Service stores every encrypted index as an inverted-file (IVF) index whose clusters are produced by a training step. Training fits the clustering model to the actual vectors in your index so queries can probe a small number of clusters instead of scanning everything.
 
-In CyborgDB Service, training is handled automatically after 10,000 vectors have been upserted. However, you can explicitly trigger training once enough vectors have been added, if you wish to specify training parameters.
-
-<Tip>You can adjust the number of vectors that will trigger automatic training by setting the `RETRAIN_THRESHOLD` environment variable. See more in the [Environment Variables](./env-vars) guide.</Tip>
+In CyborgDB Service, training is handled automatically: by default, an index is trained once it holds more than 65,536 vectors, and retrained as it grows (see [How automatic training works](#how-automatic-training-works)). You can also trigger training explicitly once enough vectors have been added, for example to specify training parameters.
 
 <CodeGroup>
 ```python Python SDK icon="python"
@@ -58,7 +56,7 @@ curl -X POST "http://localhost:8000/v1/indexes/train" \
 ```
 </CodeGroup>
 
-<Tip>You must have at least 10,000 or `2 * n_lists` number of vectors in the index (ingested via `upsert`) before you can call `train`.</Tip>
+<Note>Training requires at least 10,000 vectors **and** at least `2 * n_lists` vectors in the index (ingested via `upsert`). If the index has fewer, `train` does not return an error: the service logs a warning and the index stays untrained. Use `is_trained()` to check whether training took effect.</Note>
 
 ## Training Parameters
 
@@ -78,6 +76,31 @@ Parameters are available to customize the training process:
 - Each cluster should have between `100` - `10,000` vectors; so `n_lists` should be roughly between `1/100` - `1/10,000` of the total number of items which will be indexed.
 
 If not specified, CyborgDB will auto-determine the best `n_lists` value based on the number of vectors in the index.
+
+## How automatic training works
+
+After each upsert, the service checks whether the index should be trained or retrained:
+
+- **First training.** An untrained index is trained automatically once it holds more than `AUTO_TRAIN_MIN_VECTORS` vectors (default `65536`).
+- **Retraining.** A trained index is retrained automatically when the optimal `n_lists` for its current vector count grows past the index's current `n_lists`. The optimal `n_lists` is the square root of the vector count, rounded to a power of two and capped at `65,536`. In practice, an index is retrained roughly each time its vector count grows about 4x.
+
+Automatic training uses the optimal `n_lists` for the vector count at the time it runs. Training runs in the background, so the upsert that triggers it returns immediately.
+
+For an index that was first trained automatically, the progression looks like this:
+
+| Vectors in index | Optimal `n_lists` | Automatic action |
+|------------------|-------------------|------------------|
+| 65,536 or fewer | — | None (index stays untrained) |
+| 65,537 | 256 | First training |
+| 131,072 | 512 | Retrain |
+| 524,288 | 1,024 | Retrain |
+| 2,097,152 | 2,048 | Retrain |
+| 8,388,608 | 4,096 | Retrain |
+| 33,554,432 | 8,192 | Retrain |
+
+If you train with an explicit `n_lists`, the index is retrained automatically only once the optimal `n_lists` exceeds the value you chose.
+
+To change the first-training threshold, set `AUTO_TRAIN_MIN_VECTORS`. To turn off automatic training and retraining entirely, set `AUTO_TRAIN_DISABLED=true`; you then train indexes yourself with `train()`. See the [Environment Variables](./env-vars#optional-environment-variables) guide.
 
 ## Avoid the large-untrained-query warning
 

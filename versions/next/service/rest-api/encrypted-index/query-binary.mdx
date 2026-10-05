@@ -42,7 +42,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
     Name of the target index
   </ParamField>
   <ParamField body="index_key" type="string">
-    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key via the stored KMSBlob).
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key from the index's stored key envelope).
   </ParamField>
   <ParamField body="batch" type="object" required="true">
     Batch of query vectors in binary format:
@@ -97,7 +97,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
   </ParamField>
 </Expandable>
 
-<Note>Hybrid queries narrow which filters are accepted. `$regex` on a non-`pattern` field, and any predicate on an explicitly non-`filterable` field, work in a pure query but return 400 once `text` is set — see the [query endpoint](./query) for details.</Note>
+<Note>Hybrid queries accept fewer filters than pure vector queries. Filtering on a `full_text` or `filterable: false` field, or using `$regex`/`$contains` on a non-`pattern` field, works in a pure query but is rejected with 400 when `text` is set. See the [query endpoint](./query) for details.</Note>
 
 All leg combinations from the standard query endpoint work here too, including the three-way form (`query_vectors` + `text` + `filters`) — see [Combining search legs](./query#combining-search-legs).
 

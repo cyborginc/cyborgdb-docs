@@ -20,7 +20,7 @@ The root holder calls `create_user_keys` (Python) / `CreateUserKeys` (C++), supp
 import cyborgdb_core as cyborgdb
 import secrets
 
-client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 # Root index KEK — the admin gate for user management
 index_key = secrets.token_bytes(32)
@@ -42,7 +42,7 @@ index.create_user_keys(writer_id, writer_kek, permissions=["read", "write"], ind
 #include <array>
 #include <openssl/rand.h>
 
-cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 
 // Root index KEK — the admin gate for user management
 std::array<uint8_t, 32> index_key;
@@ -102,7 +102,7 @@ cyborg::QueryResults results = user_index->Query(q, cyborg::QueryParams{5}, user
 ```
 </CodeGroup>
 
-<Note>In Python, you can also override the key per operation with `index_key=` and `user_id=` keyword arguments — required in stateless/service deployments that reload the index per request. In C++, every key-bearing method takes a trailing `KeyContext`; construct it as `cyborg::KeyContext{user_kek, user_id}` for an RBAC user, or pass a bare KEK for the root holder.</Note>
+<Note>In Python, every data operation requires the `index_key=` keyword argument; an RBAC user passes their KEK as `index_key=` together with `user_id=`. In C++, every key-bearing method takes a trailing `KeyContext`; construct it as `cyborg::KeyContext{user_kek, user_id}` for an RBAC user, or pass a bare KEK for the root holder.</Note>
 
 ---
 

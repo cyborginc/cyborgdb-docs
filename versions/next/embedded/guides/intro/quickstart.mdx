@@ -27,7 +27,7 @@ Get started with CyborgDB in minutes.
         import secrets
 
         # Backing store: local disk, for simple persistent storage.
-        # Use .memory() for ephemeral storage or .s3("bucket") for cloud persistence.
+        # Use .s3("bucket") for cloud persistence.
         client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
         ```
 
@@ -98,6 +98,9 @@ Get started with CyborgDB in minutes.
         for r in results:
             contents = by_id[r["id"]]["contents"].decode()
             print(f"ID: {r['id']}  Distance: {r['distance']:.4f}  Contents: {contents}")
+
+        # Delete the index so the example can be run again (the key above is not saved).
+        index.delete_index(index_key=index_key)
         ```
 
         <Note>

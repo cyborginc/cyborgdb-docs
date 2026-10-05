@@ -37,7 +37,7 @@ When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is requi
     Name of the index to train
   </ParamField>
   <ParamField body="index_key" type="string">
-    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key via the stored KMSBlob).
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key from the index's stored key envelope).
   </ParamField>
   <ParamField body="n_lists" type="integer" default="null (auto)">
     Number of inverted lists to create. When `null` or omitted, automatically determines optimal value based on dataset size

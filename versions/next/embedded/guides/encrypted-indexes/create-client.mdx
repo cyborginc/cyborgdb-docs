@@ -8,14 +8,14 @@ The `Client` class provides an interface to initialize, create, load and list En
 
 ## Creating the Client
 
-To create the client, supply a [backing store](../../../intro/backing-stores) (`StorageConfig`) which it will use to persist all encrypted index data. No API key is required — without one the client runs in free-tier mode, capped at 1,000,000 items per index. The simplest backing store is an in-memory store, which is ephemeral and ideal for development and tests:
+To create the client, supply a [backing store](../../../intro/backing-stores) (`StorageConfig`) which it will use to persist all encrypted index data. No API key is required — without one the client runs in free-tier mode, capped at 1,000,000 items per index. The simplest backing store is a local directory on disk:
 
 <CodeGroup>
 ```python Python icon="python"
 import cyborgdb_core as cyborgdb
 
-# In-memory backing store (ephemeral, for development/tests)
-client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+# Local disk backing store
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb-dev"))
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -25,7 +25,7 @@ client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
 
 // In-memory backing store (ephemeral, for development/tests).
 // Pass "" for api_key to run in free-tier mode.
-cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 ```
 </CodeGroup>
 
@@ -37,7 +37,7 @@ Bear in mind that all contents stored in the backing store are end-to-end encryp
 
 ## Persistent Backing Stores
 
-For persistence, use a disk-backed or S3 backing store instead of memory. `StorageConfig` exposes three static factories: `memory()`, `disk(path)` (local disk), and `s3(bucket)` (AWS S3 or S3-compatible).
+`StorageConfig` exposes two static factories: `disk(path)` (local disk) and `s3(bucket)` (AWS S3 or S3-compatible).
 
 <CodeGroup>
 ```python Python icon="python"

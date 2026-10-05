@@ -32,7 +32,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
     Name of the index to describe.
   </ParamField>
   <ParamField body="index_key" type="string">
-    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path (`provider: none`). Omit for KMS-backed indexes — the service resolves the key via the stored `KMSBlob`.
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path (`provider: none`). Omit for KMS-backed indexes — the service resolves the key from the index's stored key envelope.
   </ParamField>
 </Expandable>
 
@@ -76,7 +76,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
   </ResponseField>
 </Expandable>
 
-<Note>v0.17 simplified the describe response. The `index_type` and nested `index_config` fields from v0.16 are gone — there is now a single DiskIVF index type and the relevant parameters are returned as top-level fields.</Note>
+<Note>The response has no `index_type` or nested `index_config` field. There is a single index type, and its parameters are returned as top-level fields.</Note>
 
 ## Exceptions
 

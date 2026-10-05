@@ -5,7 +5,7 @@ mode: "wide"
 noindex: true
 ---
 
-CyborgDB Service v0.17 ships with an **operator-side multi-tenancy model** built on cryptographic isolation: each index is wrapped by its own key, and per-user API keys hold their own wrapped data-encryption keys (DEKs). Permissions aren't stored as a policy blob — the **set of wrapped DEKs a user holds *is* their permission set**, enforced by the encrypted-index engine on every request.
+CyborgDB Service ships with an **operator-side multi-tenancy model** built on cryptographic isolation: each index is wrapped by its own key, and per-user API keys hold their own wrapped data-encryption keys (DEKs). Permissions aren't stored as a policy blob — the **set of wrapped DEKs a user holds *is* their permission set**, enforced cryptographically on every request.
 
 This page is the operator playbook: how to enable RBAC, mint and revoke users, and the constraints to be aware of.
 

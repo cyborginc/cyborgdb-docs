@@ -7,45 +7,32 @@ noindex: true
 <Tabs>
     <Tab title="Embedded">
 
-        ## DBConfig
+        ## StorageConfig
 
-        The `DBConfig` class specifies the storage location for the index, with options for in-memory storage or databases.
+        The `StorageConfig` class specifies where the index data is stored. Build it with one of the static factories:
 
-        ### Parameters
-
-        | Parameter | Type | Default | Description |
-        |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
-        | `location` | `string` | - | DB location (`disk`, `s3`, `memory`) |
-        | `connection_string` | `string` | None | _(Optional)_ Connection string or path for the chosen location. |
-
-        The supported `location` options are:
-
-        - `"disk"`: Use for persistent, on-disk key-value storage (recommended for embedded/local deployments).
-        - `"s3"`: Use for AWS S3 or any S3-compatible object store (MinIO, Cloudflare R2). Connection string carries the URI and credentials.
-        - `"memory"`: Use for temporary in-memory storage (for benchmarking and evaluation purposes).
+        | Factory | Description |
+        |---------|-------------|
+        | `StorageConfig.disk(path, *, cache_vectors=False, cache_metadata=False, cache_ids=False, cache_metadata_index=False)` | Persistent local storage at `path` (recommended for embedded/local deployments). |
+        | `StorageConfig.s3(bucket, *, region=None, endpoint=None, prefix="", credentials=None)` | AWS S3 or any S3-compatible object store (MinIO, Cloudflare R2). Uses the AWS default credential chain unless `credentials` is set. |
 
         ### Example Usage
 
         ```python
-        from cyborgdb_core import DBConfig
+        from cyborgdb_core import StorageConfig, S3Credentials
 
         # Local disk (persistent local storage)
-        disk_location = DBConfig(
-            location="disk",
-            connection_string="/path/to/data"
-        )
+        disk_storage = StorageConfig.disk("/path/to/data")
 
         # S3 (cloud-native)
-        s3_location = DBConfig(
-            location="s3",
-            connection_string="s3://my-bucket?region=us-east-1"
+        s3_storage = StorageConfig.s3("my-bucket", region="us-east-1")
+
+        # S3-compatible store with explicit credentials
+        minio_storage = StorageConfig.s3(
+            "my-bucket",
+            endpoint="http://localhost:9000",
+            credentials=S3Credentials(access_key="minioadmin", secret_key="minioadmin"),
         )
-
-        # Memory configuration (for testing)
-        memory_location = DBConfig(location="memory")
-
-        # Thread-safe memory configuration (for multi-threaded testing)
-        ts_memory_location = DBConfig(location="threadsafememory")
         ```
 
         ---
@@ -58,6 +45,7 @@ noindex: true
 
         | Type | Description | Example |
         |------|-------------|---------|
+        | `str` | Name of a built-in embedding model | `"all-MiniLM-L6-v2"` |
         | `Embeddings` | Any LangChain Embeddings implementation | `OpenAIEmbeddings()`, `HuggingFaceEmbeddings()` |
 
         ### Example Usage
@@ -65,7 +53,7 @@ noindex: true
         ```python
         from langchain_openai import OpenAIEmbeddings
         from cyborgdb_core.integrations.langchain import CyborgVectorStore
-        from cyborgdb_core import DBConfig
+        from cyborgdb_core import StorageConfig
 
         # Using LangChain Embeddings
         store = CyborgVectorStore(
@@ -73,8 +61,7 @@ noindex: true
             index_key=key,
             api_key="your-api-key",
             embedding=OpenAIEmbeddings(),
-            index_location=DBConfig("memory"),
-            config_location=DBConfig("memory")
+            storage_config=StorageConfig.disk("/tmp/cyborgdb-langchain")
         )
         ```
 
@@ -95,93 +82,6 @@ noindex: true
         | `cosine` | [0, 2] | 0 | Text embeddings, normalized vectors |
         | `euclidean` | [0, ∞) | 0 | Raw feature vectors |
         | `squared_euclidean` | [0, ∞) | 0 | When avoiding sqrt computation |
-
-        ---
-
-        ## IndexType
-
-        The index type determines the algorithm used for approximate nearest neighbor search.
-
-        ### Available Index Types
-
-        | Type | Description | Speed | Recall | Index Size |
-        |------|-------------|-------|--------|------------|
-        | `"ivfflat"` | Inverted file with flat storage | Fast | Highest | Biggest |
-        | `"ivfpq"` | Inverted file with product quantization | Fast | High | Medium |
-        | `"ivfsq"` | Inverted file with scalar quantization | Fast | High | Small |
-
-        <Note>The default index type for the Embedded library is `"ivfsq"`.</Note>
-
-        ### Example Usage
-
-        ```python
-        from langchain_openai import OpenAIEmbeddings
-
-        # IVFFlat index (highest recall)
-        store = CyborgVectorStore(
-            index_name="high_recall_index",
-            index_key=key,
-            api_key="your-api-key",
-            embedding=OpenAIEmbeddings(),
-            index_location=DBConfig("memory"),
-            config_location=DBConfig("memory"),
-            index_type="ivfflat",
-            index_config_params={"n_lists": 1024}
-        )
-
-        # IVFPQ index (balanced performance)
-        store = CyborgVectorStore(
-            index_name="balanced_index",
-            index_key=key,
-            api_key="your-api-key",
-            embedding=OpenAIEmbeddings(),
-            index_location=DBConfig("memory"),
-            config_location=DBConfig("memory"),
-            index_type="ivfpq",
-            index_config_params={
-                "n_lists": 1024,
-                "pq_dim": 64,
-                "pq_bits": 8
-            }
-        )
-        ```
-
-        ---
-
-        ## IndexConfigParams
-
-        Optional parameters for configuring the index, passed as a dictionary.
-
-        ### Parameters by Index Type
-
-        #### IVFFlat
-
-        | Parameter | Type | Default | Description |
-        |-----------|------|---------|-------------|
-        | `n_lists` | `int` | 1024 | Number of inverted lists (clusters) |
-
-        #### IVFPQ
-
-        | Parameter | Type | Default | Description |
-        |-----------|------|---------|-------------|
-        | `n_lists` | `int` | 1024 | Number of inverted lists (clusters) |
-        | `pq_dim` | `int` | 8 | Dimensionality after product quantization |
-        | `pq_bits` | `int` | 8 | Bits per quantized dimension (1-16) |
-
-        #### IVFSQ
-
-        | Parameter | Type | Default | Description |
-        |-----------|------|---------|-------------|
-        | `n_lists` | `int` | 1024 | Number of inverted lists (clusters) |
-        | `sq_bits` | `int` | 16 | Bits per scalar quantized value |
-
-        ### Tuning Guidelines
-
-        <Tip>
-        - **n_lists**: Use √n where n is the expected number of vectors. Common values: 256, 512, 1024, 2048
-        - **pq_dim**: Should divide the embedding dimension evenly. Lower values = more compression
-        - **pq_bits / sq_bits**: 8 bits provides good balance. Lower = more compression, higher = better accuracy
-        </Tip>
 
         ---
 
@@ -332,7 +232,7 @@ noindex: true
 
         ## Connection Configuration
 
-        The Python SDK connects to a running CyborgDB service instead of using `DBConfig` for storage locations.
+        The Python SDK connects to a running CyborgDB service instead of using a `StorageConfig`.
 
         | Parameter | Type | Default | Description |
         |-----------|------|---------|-------------|
@@ -340,7 +240,7 @@ noindex: true
         | `api_key` | `str` | - | API key for authentication with the microservice |
         | `verify_ssl` | `bool` | `None` | _(Optional)_ SSL verification. When `None`, automatically disabled for `localhost` and `http://` URLs |
 
-        <Note>`DBConfig` and `GPUConfig` are not applicable to the Python SDK. Storage configuration is managed by the CyborgDB service.</Note>
+        <Note>`StorageConfig` and `GPUConfig` are not applicable to the Python SDK. Storage configuration is managed by the CyborgDB service.</Note>
 
         ### Example Usage
 
@@ -383,18 +283,6 @@ noindex: true
         | `cosine` | [0, 2] | 0 | Text embeddings, normalized vectors |
         | `euclidean` | [0, ∞) | 0 | Raw feature vectors |
         | `squared_euclidean` | [0, ∞) | 0 | When avoiding sqrt computation |
-
-        ---
-
-        ## IndexType
-
-        Same as Embedded:
-
-        | Type | Description | Speed | Recall | Index Size |
-        |------|-------------|-------|--------|------------|
-        | `"ivfflat"` | Inverted file with flat storage | Fast | Highest | Biggest |
-        | `"ivfpq"` | Inverted file with product quantization | Fast | High | Medium |
-        | `"ivfsq"` | Inverted file with scalar quantization | Fast | High | Small |
 
         ---
 
@@ -478,8 +366,6 @@ noindex: true
             apiKey: string;
             indexName: string;
             indexKey: Uint8Array;
-            indexType?: "ivfflat" | "ivfpq" | "ivfsq";
-            indexConfigParams?: Record<string, number>;
             dimension?: number;
             metric?: "cosine" | "euclidean" | "squared_euclidean";
             verifySsl?: boolean;
@@ -492,8 +378,6 @@ noindex: true
         | `apiKey` | `string` | - | API key for authentication |
         | `indexName` | `string` | - | Name of the index |
         | `indexKey` | `Uint8Array` | - | 32-byte encryption key |
-        | `indexType` | `string` | `"ivfflat"` | _(Optional)_ Index algorithm type |
-        | `indexConfigParams` | `Record<string, number>` | - | _(Optional)_ Additional index configuration parameters |
         | `dimension` | `number` | - | _(Optional)_ Embedding dimension (auto-inferred if not provided) |
         | `metric` | `string` | `"cosine"` | _(Optional)_ Distance metric |
         | `verifySsl` | `boolean` | `true` | _(Optional)_ SSL verification |

@@ -51,7 +51,7 @@ You can specify additional parameters for the query, such as:
 - `filters`: a list of metadata filters to apply to the query.
 - `include`: a list of item fields to return (e.g., `["distance", "metadata"]`).
 - `greedy`: whether to perform a greedy search (higher recall but slower).
-- `rerank_mult`: stage-1 retrieval multiplier for the reranking pass on `DiskIVF` indexes (default `10`). Higher values retrieve more candidates before the float32/float16 rerank, increasing recall at some latency cost.
+- `rerank_mult`: stage-1 retrieval multiplier for the reranking pass (default `50`). Higher values retrieve more candidates before the float32/float16 rerank, increasing recall at some latency cost.
 
 <CodeGroup>
 ```python Python icon="python"

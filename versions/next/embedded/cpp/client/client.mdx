@@ -21,7 +21,7 @@ Initializes a new instance of `Client`.
 | Parameter | Type | Description |
 |-------------------|-----------------------|------------------------------------------------------|
 | `api_key` | `std::string` | API key for your CyborgDB account. |
-| `storage_config` | [`StorageConfig`](../types#storageconfig) | Backing store shared across the client and all of its indexes. Built via `StorageConfig::Memory()`, `StorageConfig::Disk(path)`, or `StorageConfig::S3(bucket)`. |
+| `storage_config` | [`StorageConfig`](../types#storageconfig) | Backing store shared across the client and all of its indexes. Built via `StorageConfig::Disk(path)` or `StorageConfig::S3(bucket)`. |
 | `cpu_threads` | `int` | Number of CPU threads to use (e.g., `0` to use all available cores).|
 | `gpu_config` | [`GPUConfig`](../types#gpuconfig) | GPU operations configuration (requires CUDA). Use bitflags: `kNone` (no GPU), `kUpsert` (GPU for upsert), `kTrain` (GPU for training), `kQuery` (GPU for query), or `kAll` (GPU for all operations). Combine with `\|` operator.|
 
@@ -49,18 +49,18 @@ Initializes a new instance of `Client`.
 std::string api_key = "your_api_key_here";  // Replace with your CyborgDB API key
 int cpu_threads = 4;
 
-// In-memory backing store (use StorageConfig::Disk(path) or ::S3(bucket) to persist).
-cyborg::StorageConfig storage = cyborg::StorageConfig::Memory();
+// Local disk backing store (use StorageConfig::S3(bucket) for S3).
+cyborg::StorageConfig storage = cyborg::StorageConfig::Disk("/tmp/cyborgdb");
 
 // Example 1: Enable GPU for all operations
-cyborg::Client client1(api_key, cyborg::StorageConfig::Memory(), cpu_threads, cyborg::kAll);
+cyborg::Client client1(api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), cpu_threads, cyborg::kAll);
 
 // Example 2: Enable GPU for specific operations (upsert, train, and query)
 cyborg::GPUConfig gpu_config_selective = cyborg::kUpsert | cyborg::kTrain | cyborg::kQuery;
-cyborg::Client client2(api_key, cyborg::StorageConfig::Memory(), cpu_threads, gpu_config_selective);
+cyborg::Client client2(api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), cpu_threads, gpu_config_selective);
 
 // Example 3: Disable GPU completely
-cyborg::Client client3(api_key, cyborg::StorageConfig::Memory(), cpu_threads, cyborg::kNone);
+cyborg::Client client3(api_key, cyborg::StorageConfig::Disk("/tmp/cyborgdb"), cpu_threads, cyborg::kNone);
 
 // Hold the client via unique_ptr (Client is non-movable)
 auto client = std::make_unique<cyborg::Client>(

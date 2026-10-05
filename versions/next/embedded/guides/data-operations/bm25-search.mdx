@@ -11,14 +11,14 @@ CyborgDB supports **BM25 full-text search** on designated metadata fields, along
 | Full text (no vector) | `query_metadata(text=...)` | BM25 score |
 | Hybrid (BM25 + vector) | `query(query_vectors=..., text=...)` | weighted RRF of BM25 rank + vector rank |
 
-Terms are stored as encrypted, unlinkable postings — the backing store never sees a readable term, a document's vocabulary, or a posting-list length.
+Text-search data is stored encrypted: the backing store never sees a readable term, which terms a document contains, or how many documents contain a given term.
 
 ## How it works
 
-- **BM25 is enabled by designating fields, not by a flag.** An index with at least one `full_text` field supports text search. An index with none writes no BM25 config and pays nothing.
+- **BM25 is enabled by designating fields, not by a flag.** An index with at least one `full_text` field supports text search. An index with none is unaffected.
 - **Text is sourced from metadata field values**, not from `contents`. `contents` stays arbitrary binary and is never analyzed.
-- **English only in v1**: lowercase → split on non-alphanumeric → stopword filter → Porter2 stem.
-- **Designations are fixed for the index's lifetime.** There is no post-creation change in v1.
+- **English only (currently)**: lowercase → split on non-alphanumeric → stopword filter → Porter2 stem.
+- **Designations are fixed for the index's lifetime.** They cannot currently be changed after creation.
 - **Fusion is by rank, not score.** BM25 relevance and vector distance have no common unit, so hybrid queries fuse *positions*: `score(d) = Σ w_leg / (k + rank_leg(d))`. `alpha` sets the leg weights, `rrf_k` damps how much a single leg's top hit dominates, and `window_mult` sets how deep each leg retrieves before fusing.
 
 ## Designating fields
@@ -93,7 +93,7 @@ index.upsert([
 ], index_key=index_key)
 ```
 
-A `full_text` field that is missing or whose value is not a JSON string is skipped for that item (logged by id only, never value bytes) and excluded from that field's document count. An empty or all-stopword value is legal and simply contributes no terms.
+A `full_text` field that is missing or whose value is not a JSON string is skipped for that item (the value is never logged) and excluded from that field's document count. An empty or all-stopword value is legal and simply contributes no terms.
 
 ## Full-text query — no vector
 
@@ -165,7 +165,7 @@ Hybrid results carry `score` (fused relevance, larger = better) and **never** `d
 
 A query vector is required even at `alpha=0` — it fixes the batch shape. For text search with no vector, use `query_metadata(text=...)`.
 
-<Note>Hybrid queries narrow which filters are accepted. `$regex` on a non-`pattern` field, and any predicate on an explicitly non-`filterable` field, work in a pure `query()` but are rejected once `text` is set — the BM25 leg has no post-verify stage, so an inexact survivor set would silently leave it unfiltered.</Note>
+<Note>Hybrid queries narrow which filters are accepted. `$regex` on a non-`pattern` field, and any predicate on an explicitly non-`filterable` field, work in a pure `query()` but are rejected once `text` is set, because the text leg can only be filtered on fields resolvable from the encrypted metadata index.</Note>
 
 ## Tuning
 
@@ -184,11 +184,11 @@ Two non-obvious properties worth knowing before tuning:
 
 ## Constraints and gotchas
 
-- **`full_text` + `filterable=True` (explicit) is an error**, and **`full_text` + `pattern=True` is an error always** — the regex dictionary stores field values, and prose there is junk postings plus a vocabulary-shaped leak. If you need a field both searchable and exact-match filterable, store it twice under two names.
-- **Designations are fixed for the index's lifetime.** No post-creation change in v1.
+- **`full_text` + `filterable=True` (explicit) is an error**, and **`full_text` + `pattern=True` is an error always** — a field can't be both full-text and pattern-indexed. If you need a field both searchable and exact-match filterable, store it twice under two names.
+- **Designations are fixed for the index's lifetime.** They cannot currently be changed after creation.
 - **`order_by` cannot be combined with `text`.** Text results rank by score.
-- **Not in v1:** phrase queries, `NOT`/exclusion, nested boolean expressions, non-English analysis, and dual-indexing a field as both analyzed and exact-match.
-- **The analyzer is versioned.** The pipeline version, stopword-list hash, and stemmer identity are stamped into the index at creation. Opening an index with a build whose analyzer differs is a loud error, not silent recall loss — every existing posting was written by the old analyzer.
+- **Not currently supported:** phrase queries, `NOT`/exclusion, nested boolean expressions, non-English analysis, and dual-indexing a field as both analyzed and exact-match.
+- **The analyzer is versioned.** The pipeline version, stopword-list hash, and stemmer identity are stamped into the index at creation. Opening an index with a build whose analyzer differs is a loud error, not silent recall loss — every existing document was indexed by the old analyzer.
 - **Multi-tenant guidance:** use index-per-tenant. Corpus statistics are per index, so co-mingling tenants behind a `tenant_id` filter gives every tenant blended term rarity — BM25 statistics are deliberately global and never scoped to a filtered subset.
 
 ## Common errors

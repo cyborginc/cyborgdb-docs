@@ -11,13 +11,8 @@ Generates a secure random 32-byte encryption key for index encryption.
 
         ```python
         @staticmethod
-        generate_key(save: bool = False) -> bytes
+        generate_key() -> bytes
         ```
-
-        ### Parameters
-        | Parameter | Type | Default | Description |
-        |-----------|------|---------|-------------|
-        | `save` | `bool` | `False` | Whether to save/load the generated key to/from a local file |
 
         ### Returns
 
@@ -26,8 +21,10 @@ Generates a secure random 32-byte encryption key for index encryption.
         ### Example Usage
 
         ```python
+        from cyborgdb_core import StorageConfig
+
         # Generate a new encryption key
-        index_key = CyborgVectorStore.generate_key(save=True)
+        index_key = CyborgVectorStore.generate_key()
         print(f"Key length: {len(index_key)} bytes")
 
         # Use the key to create a store
@@ -36,8 +33,7 @@ Generates a secure random 32-byte encryption key for index encryption.
             index_key=index_key,
             api_key="your-api-key",
             embedding="all-MiniLM-L6-v2",
-            index_location=DBConfig("s3", bucket="secure-bucket"),
-            config_location=DBConfig("s3", bucket="secure-bucket")
+            storage_config=StorageConfig.s3("secure-bucket", region="us-east-1")
         )
 
         # Store the key securely for future use

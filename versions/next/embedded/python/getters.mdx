@@ -94,7 +94,7 @@ print("Current index name:", index.index_name())
 
 ## index_type
 
-Returns the type of the current index. CyborgDB indexes are DiskIVF indexes, so this returns `"disk_ivf"`.
+Returns the type of the current index. CyborgDB uses a single IVF index type, so this returns `"disk_ivf"`.
 
 ```python
 def index_type(self) -> str: ...
@@ -218,7 +218,7 @@ Returns the number of vectors currently stored in the index.
 ```python
 def get_num_vectors(self,
                     *,
-                    index_key: bytes = None,
+                    index_key: bytes,
                     user_id: bytes = None) -> int: ...
 ```
 
@@ -226,13 +226,13 @@ def get_num_vectors(self,
 
 `int`: The number of vectors in the index.
 
-<Note>The simple call reuses the key supplied at `create_index()` / `load_index()`. Pass `index_key=` (and `user_id=` for an [RBAC user](./encrypted-index/manage-users)) to override the per-operation key in stateless/service deployments.</Note>
+<Note>`index_key=` is required. For an [RBAC user](./encrypted-index/manage-users), pass the user's KEK as `index_key=` together with their `user_id=`.</Note>
 
 ### Example Usage
 
 ```python
 # Get the number of vectors in the index
-num_vectors = index.get_num_vectors()
+num_vectors = index.get_num_vectors(index_key=index_key)
 print(f"The index contains {num_vectors} vectors.")
 ```
 
@@ -245,7 +245,7 @@ Lists all item IDs currently stored in the index.
 ```python
 def list_ids(self,
              *,
-             index_key: bytes = None,
+             index_key: bytes,
              user_id: bytes = None) -> List[str]: ...
 ```
 
@@ -253,7 +253,7 @@ def list_ids(self,
 
 `List[str]`: A list containing all item IDs in the index.
 
-<Note>The simple call reuses the key supplied at `create_index()` / `load_index()`. Pass `index_key=` (and `user_id=` for an [RBAC user](./encrypted-index/manage-users)) to override the per-operation key in stateless/service deployments.</Note>
+<Note>`index_key=` is required. For an [RBAC user](./encrypted-index/manage-users), pass the user's KEK as `index_key=` together with their `user_id=`.</Note>
 
 ### Exceptions
 
@@ -268,7 +268,7 @@ def list_ids(self,
 
 ```python
 # List all IDs in the index
-all_ids = index.list_ids()
+all_ids = index.list_ids(index_key=index_key)
 print(f"Total items in index: {len(all_ids)}")
 
 # Print first 10 IDs

@@ -552,9 +552,9 @@ In certain applications, such as RAG, it may be desirable to retrieve matching i
 
 ## Index Training for Optimal Performance
 
-For optimal query performance, you should train your index after adding a significant amount of data (typically more than 50,000 vectors). The CyborgDB service supports index training to improve query speed and accuracy.
+Training improves query speed and accuracy. The CyborgDB service trains your index automatically once it holds enough vectors (more than 65,536 by default) and retrains it as it grows, so you usually don't need to train it yourself.
 
-Queries will initially use exhaustive search, which is fine for small datasets. Once you have a substantial amount of data, train the index for better performance. For more details, see [Training an Encrypted Index](../advanced/train-index).
+Until the index is trained, queries use exhaustive search, which is fine for small datasets. You can also train explicitly, for example to choose training parameters. For more details, see [Training an Encrypted Index](../advanced/train-index).
 
 ## API Reference
 

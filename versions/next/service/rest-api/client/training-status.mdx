@@ -27,7 +27,7 @@ This is a GET request with no request body. Authentication is required via the a
 ```json
 {
   "training_indexes": ["my_index", "semantic_index"],
-  "retrain_threshold": 10000,
+  "retrain_threshold": 65536,
   "currently_training": "my_index",
   "queued_indexes": ["semantic_index"],
   "worker_running": true,
@@ -41,7 +41,7 @@ This is a GET request with no request body. Authentication is required via the a
     List of index names currently being trained or queued for training
   </ResponseField>
   <ResponseField name="retrain_threshold" type="integer">
-    Vector-count floor before the first automatic training: an untrained index is auto-trained once `num_vectors > retrain_threshold` (default 65536). _In earlier versions this was a retrain multiplier; the field name is kept for SDK compatibility._
+    Vector-count floor before the first automatic training: an untrained index is auto-trained once `num_vectors > retrain_threshold`. Reflects the service's `AUTO_TRAIN_MIN_VECTORS` setting (default 65536).
   </ResponseField>
   <ResponseField name="currently_training" type="string | null">
     Name of the index currently being trained, or null if none
@@ -137,6 +137,8 @@ Training is automatically triggered when:
 1. An untrained index's vector count exceeds the first-train floor (`num_vectors > retrain_threshold`)
 2. A trained index grows enough that its optimal number of inverted lists exceeds the current `n_lists`
 3. Manual training is requested via the `/v1/indexes/train` endpoint
+
+Set `AUTO_TRAIN_DISABLED=true` on the service to turn off automatic training. See [Train an Encrypted Index](../../guides/advanced/train-index) for details.
 </Note>
 
 <Tip>Use this endpoint to avoid querying an index while it's being trained, as training can temporarily affect query performance.</Tip>

@@ -46,7 +46,7 @@ Forward privacy ensures that newly inserted entries cannot be linked to prior se
    Search queries produce tokens that only target the minimal set of node keys required to execute the query. Unnecessary index nodes are ignored.
 
 4. **In-use encryption**  
-   Queries are executed over ciphertext nodes, preventing leakage from memory.
+   Queries are executed over ciphertext nodes and only decrypt the candidates they score.
 
 ### Cryptographic Vector Indexing Flow
 
@@ -59,7 +59,7 @@ graph TD
     MK(Master Key) -->|"HMAC(MasterKey,ClusterID)"| C(Cluster Seed)
     B --> C
     
-    CM(Counter Map) --> D(Seed + Counter)
+    CM(Insertion Counter) --> D(Seed + Counter)
     C --> D
     
     D -->|"SHA-3(left)"| E1(Node Key L)
@@ -75,7 +75,7 @@ This flow demonstrates how CyborgDB transforms a single vector embedding into mu
 
 1. **Vector clustering**: The clustering model assigns each embedding to an optimal cluster for efficient ANN search
 2. **Deterministic key derivation**: The master key and cluster ID generate a unique seed for this cluster
-3. **Forward privacy**: The counter map ensures identical embeddings get different cryptographic treatment on each insertion
+3. **Forward privacy**: A per-cluster insertion counter ensures identical embeddings get different cryptographic treatment on each insertion
 4. **Dual-purpose keys**: SHA-3 produces two keys serving different functions - one for storage indexing, one for encryption
 5. **Secure storage**: The final encrypted embedding can only be decrypted with the derived Node Key R
 
@@ -100,7 +100,7 @@ graph TD
     MK(Master Key) -->|"HMAC(MasterKey,ClusterID)"| C(Cluster Seeds)
     B --> C
     
-    CM(Counter Map) --> ITER{{"For each occurrence"}}
+    CM(Insertion Counter) --> ITER{{"For each occurrence"}}
     C --> ITER
     
     ITER -->|"SHA-3(left)"| E1(Node Key L)
@@ -138,8 +138,6 @@ The retrieval and decryption process:
 
 This ensures that the server can execute efficient ANN search while never having persistent access to plaintext embeddings or the ability to decrypt irrelevant index nodes.
 
-Alternatively, node decryption can happen client-side, ensuring the server only deals with ciphertext and never sees plaintext embeddings. 
-
 ## 4. Security Benefits
 
 CyborgDB's multi-layered cryptographic design provides comprehensive protection against various threat scenarios, leveraging Cyborg's patented technology to achieve security properties impossible with traditional approaches.
@@ -150,7 +148,7 @@ CyborgDB's multi-layered cryptographic design provides comprehensive protection 
 | ------------------------ | -------------------------------------------------------------------------------- |
 | **Disk theft**           | AES-256-GCM encryption at rest                                                   |
 | **Network interception** | TLS + AEAD encryption in transit                                                 |
-| **Server compromise**    | In-use encryption prevents extraction of plaintext embeddings or node keys       |
+| **Server compromise**    | In-use encryption limits plaintext to the candidates being scored               |
 | **Index leakage**        | Forward privacy hides relationship between new inserts and past searches         |
 | **Embedding inversion**  | Ciphertext embeddings are never exposed — inversion is not possible without keys |
 
@@ -159,7 +157,7 @@ CyborgDB's multi-layered cryptographic design provides comprehensive protection 
 | Property | Implementation | Benefit |
 |----------|----------------|---------|
 | **Query Privacy** | Token-scoped key derivation | Server never sees full index keys |
-| **Result Confidentiality** | End-to-end encryption | Plaintext results never leave client |
+| **Result Confidentiality** | End-to-end encryption | Results are only returned to callers holding the index key |
 | **Forward Security** | Counter-based key evolution | Past compromises don't affect future queries |
 | **Index Obfuscation** | Ciphertext-only storage | Unused index nodes remain opaque |
 | **Correlation Resistance** | Per-insertion randomization | Identical vectors produce different ciphertexts |

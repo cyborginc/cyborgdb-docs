@@ -17,7 +17,7 @@ covered separately under [Managing Encryption Keys](./managing-keys).
 </Note>
 
 <Warning>
-**When KMS-backed, omit `index_key` everywhere.** Migrating an index from the SDK-supplied path to KMS-backed means **removing `index_key` from every call** — `create_index`, `load_index`, `describe_index`, `train`, `upsert`, `query`, `get`, `delete`, `list_ids`, `query_metadata`, `delete_index`, and the user-management calls. The service resolves the KEK server-side from the stored `KMSBlob`; supplying `index_key` for a KMS-backed index is rejected with HTTP 400. If your code still passes a key, the rejection is loud — but worth a single search-and-clean pass before you ramp.
+**When KMS-backed, omit `index_key` everywhere.** Migrating an index from the SDK-supplied path to KMS-backed means **removing `index_key` from every call** — `create_index`, `load_index`, `describe_index`, `train`, `upsert`, `query`, `get`, `delete`, `list_ids`, `query_metadata`, `delete_index`, and the user-management calls. The service resolves the KEK server-side from the index's stored key envelope; supplying `index_key` for a KMS-backed index is rejected with HTTP 400. If your code still passes a key, the rejection is loud — but worth a single search-and-clean pass before you ramp.
 </Warning>
 
 ## AWS access — what the service expects
@@ -76,8 +76,8 @@ CyborgDB Service uses a two-key hierarchy per index:
   60 s).
 - **DEK** (Data-Encryption Key, 32 bytes) — per index. Generated
   internally at index-creation time, wrapped under the KEK with
-  AES-GCM, and persisted alongside the index. Never crosses out of
-  the core engine.
+  AES-GCM, and persisted alongside the index. Never leaves the
+  service and is never returned to clients.
 
 There are exactly two ways to provision a CyborgDB index:
 
@@ -235,8 +235,8 @@ curl -X POST "http://localhost:8000/v1/indexes/create" \
 On every subsequent request for this index — `load_index`, `upsert`,
 `query`, `delete` — the SDK omits `index_key`. The service looks up
 the index's persisted envelope, resolves the KEK via the named KMS
-slot (cache hit, or fresh wrap/unwrap on miss), and passes it to the
-engine.
+slot (cache hit, or fresh wrap/unwrap on miss), and uses it to
+open the index.
 
 ## Bring Your Own KMS (cross-account)
 
@@ -258,8 +258,8 @@ Setup is a two-party handshake:
         ```
     </Step>
     <Step title="Service operator: share three values with the customer">
-        - The service's AWS principal ARN (the identity boto3 will
-          use). Get it with:
+        - The service's AWS principal ARN (the service's AWS
+          identity). Get it with:
           ```bash
           aws sts get-caller-identity --query 'Arn' --output text
           ```

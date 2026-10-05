@@ -4,13 +4,13 @@ mode: "wide"
 noindex: true
 ---
 
-Creates a new encrypted DiskIVF index on the service and returns an `*EncryptedIndex` bound to it.
+Creates a new encrypted index on the service and returns an `*EncryptedIndex` bound to it.
 
 ```go
 func (c *Client) CreateIndex(ctx context.Context, params *CreateIndexParams) (*EncryptedIndex, error)
 ```
 
-<Note>Since v0.17 there is one index type, DiskIVF, configured with flat fields. The v0.16 `IndexIVFFlat`, `IndexIVFPQ`, and `IndexIVFSQ` helpers and the `IndexConfig` field no longer exist.</Note>
+<Note>There is one index type, configured with flat fields. The earlier `IndexIVFFlat`, `IndexIVFPQ`, and `IndexIVFSQ` helpers and the `IndexConfig` field no longer exist.</Note>
 
 ### Parameters
 
@@ -67,7 +67,7 @@ The `tq*` values are TurboQuant tiers; lower tiers use less storage in exchange 
 
 | Field | Default | Effect |
 |-------|---------|--------|
-| `Filterable` | `true` | Builds inverted-index postings, so filters on the field resolve from the index. `false` still stores the field but doesn't index it; see [Filters the index cannot answer](#filters-the-index-cannot-answer). |
+| `Filterable` | `true` | Indexes the field, so filters on it resolve from the index. `false` still stores the field but doesn't index it; see [Filters the index cannot answer](#filters-the-index-cannot-answer). |
 | `Pattern` | `false` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `Filterable` `true`. |
 | `FullText` | `false` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `Filterable` `false`, and can't be combined with `Pattern` `true`. |
 

@@ -6,10 +6,10 @@ noindex: true
 ---
 
 <Note>
-v0.17 collapsed the embedded family of index types (`IVFFlat`, `IVFPQ`, `IVFSQ`) into a single **DiskIVF** index type at the service layer. The polymorphic `index_config` argument is gone — configuration is now expressed as flat parameters on `create_index`.
+CyborgDB Service uses a single IVF index type; there are no separate `IVFFlat`, `IVFPQ`, or `IVFSQ` types and no `index_config` argument. Configuration is expressed as flat parameters on `create_index`.
 </Note>
 
-CyborgDB Service stores every encrypted index as a **DiskIVF** index: an inverted-file (IVF) index whose data is persisted by the service's configured storage backend (`memory`, `disk`, or `s3`). The four knobs you control at create time are:
+CyborgDB Service stores every encrypted index as an inverted-file (IVF) index whose data is persisted by the service's configured storage backend (`disk` or `s3`). The four knobs you control at create time are:
 
 | Parameter | Default | What it controls |
 |---|---|---|
@@ -22,7 +22,7 @@ Two more parameters control key management — they are mutually exclusive, and 
 
 | Parameter | When to use it |
 |---|---|
-| `index_key` | SDK-supplied KEK path. You generate and persist a 32-byte key locally; the service records the index as `provider: none`. The same key must be re-supplied on every subsequent call. |
+| `index_key` | SDK-supplied KEK path. You generate and persist a 32-byte key locally; the service records the index as `provider: none`. The same key must be supplied again when you load the index (and on every REST call). |
 | `kms_name` | KMS-backed path. References a named entry in the service YAML's `kms.registry` (e.g. `aws-kms` or `aws`). The service generates the KEK, wraps it via the named provider, and persists the envelope. The SDK never sees the plaintext key. |
 
 See [KMS & BYOK](./kms-byok) for the registry schema and [Managing Encryption Keys](./managing-keys) for the SDK-supplied path.
@@ -169,7 +169,7 @@ index, _ := client.CreateIndex(context.Background(), params)
 
 ## Training the index
 
-DiskIVF needs to be trained once it has enough vectors. The service auto-triggers training when `num_vectors > n_lists * RETRAIN_THRESHOLD` (default `RETRAIN_THRESHOLD = 10000`) — most callers do not need to call `train()` explicitly. See [Train an Encrypted Index](./train-index) for the manual-training path and the tuning knobs (`n_lists`, `batch_size`, `max_iters`, `tolerance`, `max_memory`).
+The index needs to be trained once it has enough vectors. By default, the service trains it automatically once it holds more than 65,536 vectors and retrains it as it grows (see [How automatic training works](./train-index#how-automatic-training-works)) — most callers do not need to call `train()` explicitly. See [Train an Encrypted Index](./train-index) for the manual-training path and the tuning knobs (`n_lists`, `batch_size`, `max_iters`, `tolerance`, `max_memory`).
 
 ## API reference
 

@@ -14,15 +14,11 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
             index_name: str,
             index_key: bytes | list[int] | tuple[int, ...] | np.ndarray,
             api_key: str,
-            embedding: Embeddings,
-            index_location: DBConfig,
-            config_location: DBConfig,
-            items_location: Optional[DBConfig] = None,
-            index_type: str = "ivfsq",
-            index_config_params: Optional[Dict[str, Any]] = None,
+            embedding: Union[str, Embeddings],
+            storage_config: StorageConfig,
+            gpu_config: Optional[GPUConfig] = None,
             dimension: Optional[int] = None,
-            metric: str = "cosine",
-            gpu_config: Optional[GPUConfig] = None
+            metric: str = "cosine"
         )
         ```
 
@@ -33,15 +29,11 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
         | `index_name` | `str` | Name of the index (must be unique) |
         | `index_key` | `bytes \| list[int] \| tuple[int, ...] \| np.ndarray` | 32-byte encryption key for securing index data |
         | `api_key` | `str` | API key for CyborgDB authentication |
-        | `embedding` | `Embeddings` | LangChain Embeddings instance |
-        | `index_location` | `DBConfig` | Configuration for index data storage location |
-        | `config_location` | `DBConfig` | Configuration for index config storage location |
-        | `items_location` | `Optional[DBConfig]` | _(Optional)_ Location for item data storage (default: memory) |
-        | `index_type` | `str` | Type of index: `"ivfflat"`, `"ivfpq"`, or `"ivfsq"` (default: `"ivfsq"`) |
-        | `index_config_params` | `Optional[Dict[str, Any]]` | _(Optional)_ Additional index configuration parameters |
+        | `embedding` | `Union[str, Embeddings]` | LangChain Embeddings instance, or the name of a built-in embedding model |
+        | `storage_config` | `StorageConfig` | Backing-store configuration, built with `StorageConfig.disk(...)` or `StorageConfig.s3(...)` |
+        | `gpu_config` | `Optional[GPUConfig]` | _(Optional)_ GPU configuration for accelerated operations |
         | `dimension` | `Optional[int]` | _(Optional)_ Embedding dimension (auto-inferred if not provided) |
         | `metric` | `str` | Distance metric: `"cosine"`, `"euclidean"`, or `"squared_euclidean"` (default: `"cosine"`) |
-        | `gpu_config` | `Optional[GPUConfig]` | _(Optional)_ GPU configuration for accelerated operations |
 
         ### Returns
 
@@ -51,11 +43,11 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
 
         ```python
         from cyborgdb_core.integrations.langchain import CyborgVectorStore
-        from cyborgdb_core import DBConfig
+        from cyborgdb_core import StorageConfig
         from langchain_openai import OpenAIEmbeddings
 
         # Generate a secure key
-        index_key = CyborgVectorStore.generate_key(save=True)
+        index_key = CyborgVectorStore.generate_key()
 
         # Initialize with LangChain Embeddings
         store = CyborgVectorStore(
@@ -63,9 +55,7 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
             index_key=index_key,
             api_key="your-api-key",
             embedding=OpenAIEmbeddings(),
-            index_location=DBConfig("disk"),
-            config_location=DBConfig("disk"),
-            index_type="ivfsq",
+            storage_config=StorageConfig.disk("/var/lib/cyborgdb"),
             metric="cosine"
         )
         ```
@@ -81,11 +71,9 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
             api_key: str,
             embedding: Union[str, Embeddings, SentenceTransformer],
             base_url: str,
-            verify_ssl: Optional[bool] = None,
-            index_type: str = "ivfflat",
-            index_config_params: Optional[Dict[str, Any]] = None,
             dimension: Optional[int] = None,
-            metric: str = "cosine"
+            metric: str = "cosine",
+            verify_ssl: Optional[bool] = None
         )
         ```
 
@@ -99,8 +87,6 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
         | `embedding` | `Union[str, Embeddings, SentenceTransformer]` | Embedding model name or instance |
         | `base_url` | `str` | Base URL of the CyborgDB microservice endpoint |
         | `verify_ssl` | `Optional[bool]` | _(Optional)_ SSL verification. When `None`, automatically disabled for `localhost` and `http://` URLs |
-        | `index_type` | `str` | Type of index: `"ivfflat"`, `"ivfpq"`, or `"ivfsq"` (default: `"ivfflat"`) |
-        | `index_config_params` | `Optional[Dict[str, Any]]` | _(Optional)_ Additional index configuration parameters |
         | `dimension` | `Optional[int]` | _(Optional)_ Embedding dimension (auto-inferred if not provided) |
         | `metric` | `str` | Distance metric: "cosine", "euclidean", or "squared_euclidean" (default: "cosine") |
 
@@ -108,7 +94,7 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
 
         `CyborgVectorStore`: Initialized vector store instance
 
-        <Note>The Python SDK requires a running CyborgDB service. Use `base_url` to point to your service endpoint instead of providing `DBConfig` storage locations.</Note>
+        <Note>The Python SDK requires a running CyborgDB service. Use `base_url` to point to your service endpoint instead of providing a `StorageConfig`; storage is configured on the service.</Note>
 
         ### Example Usage
 
@@ -125,7 +111,6 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
             api_key="your-api-key",
             embedding="sentence-transformers/all-MiniLM-L6-v2",
             base_url="http://localhost:8000",
-            index_type="ivfflat",
             metric="cosine"
         )
         ```
@@ -153,8 +138,6 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
         | `apiKey` | `string` | API key for CyborgDB authentication |
         | `indexName` | `string` | Name of the index (must be unique) |
         | `indexKey` | `Uint8Array` | 32-byte encryption key for securing index data |
-        | `indexType` | `string` | _(Optional)_ Type of index: `"ivfflat"`, `"ivfpq"`, or `"ivfsq"` (default: `"ivfflat"`) |
-        | `indexConfigParams` | `Record<string, number>` | _(Optional)_ Additional index configuration parameters |
         | `dimension` | `number` | _(Optional)_ Embedding dimension (auto-inferred if not provided) |
         | `metric` | `string` | _(Optional)_ Distance metric: `"cosine"`, `"euclidean"`, or `"squared_euclidean"` (default: `"cosine"`) |
         | `verifySsl` | `boolean` | _(Optional)_ SSL verification (default: `true`) |
@@ -163,7 +146,7 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
 
         `CyborgVectorStore`: Initialized vector store instance
 
-        <Note>The JS/TS SDK requires a running CyborgDB service. Use `baseUrl` to point to your service endpoint instead of providing `DBConfig` storage locations.</Note>
+        <Note>The JS/TS SDK requires a running CyborgDB service. Use `baseUrl` to point to your service endpoint; storage is configured on the service.</Note>
 
         ### Example Usage
 
@@ -178,7 +161,6 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
                 apiKey: "your-api-key",
                 indexName: "my_documents",
                 indexKey: CyborgVectorStore.generateKey(),
-                indexType: "ivfflat",
                 metric: "cosine"
             }
         );
@@ -190,9 +172,6 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
 ### Exceptions
 
 <AccordionGroup>
-    <Accordion title="ValueError">
-        - Throws if index_type is invalid
-    </Accordion>
     <Accordion title="RuntimeError">
         - Throws if no embedding model provided and dimension not specified
     </Accordion>
