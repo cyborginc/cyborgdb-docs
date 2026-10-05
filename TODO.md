@@ -3,6 +3,7 @@
 ## At next release cut (v0.18 promote)
 
 - [ ] Add `versions/latest/service/rest-api/client/list-embedding-models` to the REST API "Client" nav group in docs.json (page is staged in `next/` only; `scripts/docs.py` will also flag it during promote)
+- [ ] C++ docs are removed in `next/`. Before running `promote`, delete `versions/latest/embedded/cpp/`, the C++ nav group for the latest version in docs.json, and point the `/cpp-embedded` redirect to `/versions/latest/embedded/python/introduction`. Until then, `promote` refuses and `sync-next` re-creates the pages in `next/`.
 
 ## Should have
 
