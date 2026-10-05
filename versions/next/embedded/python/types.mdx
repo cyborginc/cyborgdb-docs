@@ -95,26 +95,6 @@ store = cyborgdb.StorageConfig.s3("my-bucket", region="us-east-1", credentials=c
 
 ---
 
-## Storage Precision
-
-`storage_precision` controls the on-disk dtype of the index's stored vector embeddings for a DiskIVF index, set at [`create_index`](./client/create-index) time.
-
-| Value | Description |
-|-------|-------------|
-| `numpy.float32` (default) | Full-precision vector embeddings. |
-| `numpy.float16` | Halves the on-disk footprint with a slight precision loss. |
-
-The strings `"float32"` and `"float16"` are also accepted.
-
-```python
-import cyborgdb_core as cyborgdb
-import numpy as np
-
-index = client.create_index("my_index", index_key, storage_precision=np.float16)
-```
-
----
-
 ## GPUConfig
 
 The `GPUConfig` class configures which operations should use GPU acceleration. GPU acceleration requires CUDA support.
