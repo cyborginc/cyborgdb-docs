@@ -70,7 +70,7 @@ This combination of centralized intelligence and plaintext storage transforms wh
 | **Log & telemetry access** | Misconfigured logging, compromised SIEM |
 | **Code execution on server** | Supply chain attack, RCE in application stack |
 
-The **Server-Side Adversary** case — full memory, disk, and runtime access — is the primary driver for CyborgDB's *in-use encryption* and *forward-secure index* design.
+The **Server-Side Adversary** case — full memory, disk, and runtime access — is the primary driver for CyborgDB's *minimal in-use decryption* and *forward-secure index* design. Note that an adversary with live access to the running process can read keys and data while they are in use.
 
 ## 4. Attack Demonstration
 
@@ -118,15 +118,15 @@ The table below maps specific adversary actions to CyborgDB controls:
 | Attack Vector | Mitigation | Residual Risk |
 |---------------|------------|---------------|
 | **Disk theft** | AES-256-GCM encryption at rest | Key theft from KMS would bypass |
-| **Memory scraping** | In-use encryption with ephemeral node keys | Queries in progress may suggest active clusters |
+| **Memory scraping** | Minimal, transient decryption with ephemeral node keys | An attacker with live memory access can read keys in use and the entries being scored |
 | **Index structure analysis** | Forward privacy & per-insertion randomization | Search pattern leakage still possible within active session |
-| **Embedding inversion** | Encrypted embeddings never stored/processed in plaintext | Compromised client could still expose |
+| **Embedding inversion** | Embeddings never stored in plaintext | Compromised client or live process memory could still expose |
 | **Network interception** | TLS + AEAD | Endpoint compromise would still allow decryption |
 | **Query correlation** | Forward-secure cryptographic counters | Statistical attacks on *large* query volumes |
 | **Cross-system linking** | Per-record key derivation with unique IVs | Metadata correlation if encryption keys compromised |
 
 <Info>
-These controls assume standard cryptographic primitives — AES-256, SHA-3, HMAC — remain unbroken and that all encryption keys remain secret. If either assumption fails, the corresponding protections may no longer hold.
+These controls assume standard cryptographic primitives — AES-256 and HMAC — remain unbroken and that all encryption keys remain secret. If either assumption fails, the corresponding protections may no longer hold.
 </Info>
 
 ### Control Points in the Attack Chain
@@ -141,7 +141,7 @@ flowchart LR
     subgraph "CyborgDB Controls"
         F[TLS + AEAD] --> B
         G[AES-256-GCM] --> C
-        H[In-use Encryption] --> D
+        H[Minimal In-use Decryption] --> D
         I[Forward Privacy] --> E
         J[Per-insertion Randomization] --> E
     end
@@ -162,7 +162,7 @@ CyborgDB **does not** protect against:
 - **Authorized insider misuse**: Valid users performing authorized but malicious actions within their permissions
 - **Social engineering**: Attacks targeting users to reveal credentials or perform unauthorized actions
 - **Physical access to client devices**: Direct access to unlocked client machines
-- **Key escrow attacks**: Government or legal compulsion to provide decryption keys (mitigated by BYOK/HYOK)
+- **Key escrow attacks**: Government or legal compulsion to provide decryption keys (mitigated by BYOK)
 
 <Warning>
 Organizations should implement complementary controls (endpoint protection, user training, access controls) to address these out-of-scope threat vectors.

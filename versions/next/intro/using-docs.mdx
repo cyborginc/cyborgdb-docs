@@ -24,7 +24,7 @@ Our documentation is organized into four main sections:
     *Self-deployed REST API service*
     
     - REST API documentation
-    - Client SDKs (Python, JS/TS, Go, C++)
+    - Client SDKs (Python, JS/TS, Go)
     - Docker and Python deployment
     - Authentication and configuration
   </Card>
@@ -42,7 +42,6 @@ Our documentation is organized into four main sections:
     *Framework integrations*
     
     - LangChain integration
-    - Migration from other vector databases
     - Framework-specific guides
     - Custom integrations
   </Card>
@@ -67,7 +66,7 @@ Our documentation is organized into four main sections:
   </Card>
   
   <Card title="Code Examples" icon="code">
-    - **Multiple Languages** - Python, JavaScript, TypeScript, C++
+    - **Multiple Languages** - Python, JavaScript, TypeScript, Go, C++
     - **Copy Button** - One-click code copying
     - **Runnable Examples** - Complete working code
   </Card>
@@ -135,9 +134,9 @@ client = Client(api_key="your-key", storage_config=StorageConfig.disk("/tmp/cybo
   <Tab title="I'm migrating from another database">
     **Moving from existing vector database**
     
-    → Check the [Integrations](../integrations/about) section for migration guides
+    → Use the [migration guide](./migrate) to move your data with `cyborgdb-migrate`
     
-    LangChain and other framework integrations make migration seamless.
+    It supports Pinecone, Qdrant, Weaviate, ChromaDB, and Milvus as sources.
   </Tab>
 </Tabs>
 

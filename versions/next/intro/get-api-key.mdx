@@ -5,7 +5,7 @@ mode: "wide"
 noindex: true
 ---
 
-To use CyborgDB, you'll need an API key that authenticates your requests and determines your service capabilities. This guide will walk you through the process of signing up and generating your API key.
+An API key is optional. Without one, CyborgDB runs in free tier with a limit of 1,000,000 items per index. A paid API key removes that limit. This guide walks you through signing up and generating an API key.
 
 ## Overview
 
@@ -15,17 +15,14 @@ CyborgDB offers both free and paid API keys:
   <Card title="Free API Key" icon="gift">
     *Perfect for evaluation and testing*
     
-    - Up to 1M vectors maximum
+    - Up to 1M items per index
     - Community support
   </Card>
   
   <Card title="Paid API Key" icon="credit-card">
     *Full production capabilities*
     
-    - Access to `cyborgdb-core` features
-    - Unlimited items and vectors
-    - All backing stores (Disk, S3)
-    - GPU acceleration support
+    - Unlimited items per index
     - Priority support
   </Card>
 </CardGroup>
@@ -57,7 +54,7 @@ CyborgDB offers both free and paid API keys:
     4. Complete the payment setup
     
     <Warning>
-    **Plan Disclosure**: Paid plans unlock `cyborgdb-core` with unlimited vectors, GPU acceleration, and all backing stores. Free plans have a 1M item limite per index. You can always start free and upgrade later.
+    **Plan Disclosure**: Paid plans remove the 1M item limit per index. Free plans and keyless use have a 1M item limit per index. You can always start free and upgrade later.
     </Warning>
   </Step>
 
@@ -95,7 +92,13 @@ CyborgDB offers both free and paid API keys:
 
 ## Using Your API Key
 
-Once you have your API key, you can use it with any CyborgDB deployment:
+Once you have your API key, you can use it with any CyborgDB deployment.
+
+<Note>
+With CyborgDB Service, the API key is set on the server as `CYBORGDB_API_KEY`. Client SDKs do not send this key; when authentication is enabled, they authenticate to the service with the service root key or a per-user token. See [Environment Variables](../service/guides/advanced/env-vars).
+</Note>
+
+With the embedded library, pass it to `Client`:
 
 <Tabs>
   <Tab title="Environment Variable (Recommended)">
@@ -112,7 +115,7 @@ Once you have your API key, you can use it with any CyborgDB deployment:
     from cyborgdb_core import Client, StorageConfig
     
     client = Client(
-        api_key=os.getenv("CYBORGDB_API_KEY"),
+        api_key=os.getenv("CYBORGDB_API_KEY", ""),
         storage_config=StorageConfig.disk("/var/lib/cyborgdb"),
     )
     ```

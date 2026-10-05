@@ -28,7 +28,7 @@ Object storage scales seamlessly with your data — no capacity planning or prov
 No database servers to patch, tune, or back up. AWS handles availability and durability.
 
 **S3-Compatible**  
-Works with AWS S3, MinIO, Cloudflare R2, and any other S3-compatible object store.
+Works with AWS S3 and S3-compatible object stores such as MinIO and Cloudflare R2. The store must support conditional writes (`If-Match` / `If-None-Match`).
 
 **Best For:** Cloud-native deployments and workloads that already rely on object storage infrastructure.
 
@@ -170,6 +170,6 @@ export CYBORGDB_S3_SESSION_TOKEN=...                # optional
 | Backing Store | Latency | Throughput | Durability | Consistency |
 |---------------|:-------:|:----------:|:----------:|:-----------:|
 | **Disk** | ~10µs | High | Local Disk | Single Process |
-| **S3** | ~10ms | Medium | Full (11 nines) | Eventual |
+| **S3** | ~10ms | Medium | Full (11 nines) | Single Process |
 
 Choose based on your application's specific requirements for speed, durability, and consistency.

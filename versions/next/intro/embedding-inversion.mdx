@@ -147,14 +147,15 @@ These controls remain valuable - but as long as **the embeddings themselves are 
 
 ## 6. How CyborgDB Prevents Inversion
 
-CyborgDB eliminates the inversion attack surface by ensuring embeddings are **never stored or processed in plaintext**:
+CyborgDB eliminates the inversion attack surface by ensuring embeddings are **never stored in plaintext**:
 
 - **Encryption at rest**: All embeddings are encrypted with AES-256-GCM before being written to the backing store
-- **Encryption in use**: Embeddings remain encrypted during search and computation
-- **Per-record key isolation**: Each record uses a unique initialization vector, preventing cross-record correlation
-- **Customer key control**: Encryption keys are managed by the customer, not the database operator
-- **KMS integration**: Keys are protected via integration with AWS KMS, Azure Key Vault, and GCP KMS for hardware-backed security and audit logging
-Because the backing store only ever contains ciphertext, an attacker who gains full access to the database - whether through file system access, memory dumps, or compromised infrastructure - obtains only encrypted data that is computationally infeasible to invert.
+- **Minimal decryption in use**: During search, only the candidates being scored are decrypted, transiently and in memory
+- **Per-record IVs**: Each record is encrypted with a unique initialization vector, preventing cross-record correlation
+- **Customer key control**: Encryption keys can be held by the customer, or kept in the customer's own AWS account with BYOK
+- **KMS integration**: CyborgDB Service can protect index keys with AWS KMS or AWS Secrets Manager, including keys in a customer-owned AWS account
+
+Because the backing store only ever contains ciphertext, an attacker who gains full access to the database - whether through file system access, storage snapshots, or a compromised backing store - obtains only encrypted data that is computationally infeasible to invert.
 
 <Tip>
 For full details on CyborgDB's cryptographic implementation, see the [Encryption](./encryption) guide.
