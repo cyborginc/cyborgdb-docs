@@ -75,8 +75,8 @@ The `index_key` must be **exactly 32 raw bytes**. The simplest way to generate o
     #include "cyborgdb_core/client.hpp"
     #include "cyborgdb_core/encrypted_index.hpp"
 
-    // Local disk backing store (or use StorageConfig::S3(bucket) for cloud persistence)
-    cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
+    // In-memory backing store (use StorageConfig::Disk(path) or ::S3(bucket) to persist)
+    cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
 
     // index_key holds the 32 raw bytes generated above
     auto index = client.CreateIndex("test_index", index_key);

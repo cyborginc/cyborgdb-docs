@@ -7,11 +7,12 @@ noindex: true
 
 `StorageConfig` defines the backing store for an index and all of its per-index keystores. It is immutable and has no public default constructor — instances are created via the static factory methods below. A single `StorageConfig` is shared across the client and all indexes it manages.
 
-CyborgDB supports two backing stores: local disk and S3 (or any S3-compatible store such as MinIO).
+CyborgDB supports three backing stores: in-memory (ephemeral), local disk, and S3 (or any S3-compatible store such as MinIO).
 
 ### Static Factories
 
 ```cpp
+static StorageConfig Memory();
 static StorageConfig Disk(std::optional<std::filesystem::path> path,
                           CachePolicy cache_policy = {});
 static StorageConfig S3(std::string bucket, S3Options opts = {});
@@ -19,6 +20,7 @@ static StorageConfig S3(std::string bucket, S3Options opts = {});
 
 | Factory | Description |
 |---------|-------------|
+| `Memory()` | Ephemeral in-memory storage with no persistence. Useful for tests and short-lived workloads. |
 | `Disk(path, cache_policy)` | Local persistent storage on disk at `path`. Pass a [`CachePolicy`](#cachepolicy) to keep hot data in memory. |
 | `S3(bucket, opts)` | AWS S3 or any S3-compatible object store. Configure region, endpoint, prefix, and credentials via [`S3Options`](#s3options). |
 
@@ -26,6 +28,9 @@ static StorageConfig S3(std::string bucket, S3Options opts = {});
 
 ```cpp
 #include "cyborgdb_core/client.hpp"
+
+// Ephemeral in-memory store
+cyborg::StorageConfig mem = cyborg::StorageConfig::Memory();
 
 // Local disk store with vector caching
 cyborg::CachePolicy cache;
@@ -185,7 +190,7 @@ enum class DistanceMetric {
 
 ## IndexDiskIVF
 
-`IndexDiskIVF` configures an IVF index — the single index type supported in CyborgDB. It replaces the older `IndexConfig` family. Pass an instance to [`CreateIndex`](./client/create-index) when you want explicit control over dimensionality or storage precision; otherwise the default-config overload of `CreateIndex` constructs one for you.
+`IndexDiskIVF` configures a DiskIVF index — the single index type supported in CyborgDB. It replaces the older `IndexConfig` family. Pass an instance to [`CreateIndex`](./client/create-index) when you want explicit control over dimensionality or storage precision; otherwise the default-config overload of `CreateIndex` constructs one for you.
 
 ### Constructor
 
@@ -235,7 +240,7 @@ cyborg::IndexDiskIVF config3(1024, "", cyborg::StoragePrecision::Float16);
 
 ## StoragePrecision
 
-`StoragePrecision` controls the on-disk dtype of rerank vectors for an index.
+`StoragePrecision` controls the on-disk dtype of rerank vectors for a DiskIVF index.
 
 ```cpp
 enum class StoragePrecision {
@@ -264,7 +269,7 @@ While an index is in the `Training` state, queries transparently fall back to th
 
 ## IndexType
 
-The `IndexType` enum defines the supported index types in CyborgDB. CyborgDB supports a single index type, `DISK_IVF`:
+The `IndexType` enum defines the supported index types in CyborgDB. CyborgDB now supports a single index type, DiskIVF:
 
 ```cpp
 enum IndexType {
@@ -394,7 +399,7 @@ explicit QueryParams(size_t top_k = 100,
 | `filters` | `std::string` | _(Optional)_ A JSON string of filters to apply to vector metadata, limiting search scope to these vectors. |
 | `include` | `std::vector<ResultFields>` | _(Optional)_ List of result fields to return. Can include `kDistance` and `kMetadata`. Defaults to empty. |
 | `greedy` | `bool` | _(Optional)_ Whether to perform greedy search. Defaults to `false`. |
-| `rerank_mult` | `size_t` | _(Optional)_ Stage-1 retrieval multiplier used for reranking. Defaults to `50` (`kDefaultRerankMult`). |
+| `rerank_mult` | `size_t` | _(Optional)_ Stage-1 retrieval multiplier used for reranking on DiskIVF indexes. Defaults to `50` (`kDefaultRerankMult`). |
 
 Higher n_probes values may improve recall but could slow down query time, so select a value based on desired recall and performance trade-offs.
 
