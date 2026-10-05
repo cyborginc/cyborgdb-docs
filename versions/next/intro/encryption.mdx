@@ -45,8 +45,8 @@ Forward privacy ensures that newly inserted entries cannot be linked to prior se
 3. **Token-scoped search**  
    Search queries produce tokens that only target the minimal set of node keys required to execute the query. Unnecessary index nodes are ignored.
 
-4. **Minimal decryption in use**  
-   Queries only decrypt the candidate entries they need to score, transiently and in process memory. Everything else stays encrypted.
+4. **In-use encryption**  
+   Queries are executed over ciphertext nodes and only decrypt the candidates they score.
 
 ### Cryptographic Vector Indexing Flow
 
@@ -148,7 +148,7 @@ CyborgDB's multi-layered cryptographic design provides comprehensive protection 
 | ------------------------ | -------------------------------------------------------------------------------- |
 | **Disk theft**           | AES-256-GCM encryption at rest                                                   |
 | **Network interception** | TLS + AEAD encryption in transit                                                 |
-| **Server compromise**    | Only entries being scored are decrypted, transiently; stored data and unrelated index nodes stay encrypted |
+| **Server compromise**    | In-use encryption limits plaintext to the candidates being scored               |
 | **Index leakage**        | Forward privacy hides relationship between new inserts and past searches         |
 | **Embedding inversion**  | Ciphertext embeddings are never exposed — inversion is not possible without keys |
 
@@ -157,7 +157,7 @@ CyborgDB's multi-layered cryptographic design provides comprehensive protection 
 | Property | Implementation | Benefit |
 |----------|----------------|---------|
 | **Query Privacy** | Token-scoped key derivation | Server never sees full index keys |
-| **Result Confidentiality** | Encryption at rest, TLS in transit | Results are only returned to callers holding the index key |
+| **Result Confidentiality** | End-to-end encryption | Results are only returned to callers holding the index key |
 | **Forward Security** | Counter-based key evolution | Past compromises don't affect future queries |
 | **Index Obfuscation** | Ciphertext-only storage | Unused index nodes remain opaque |
 | **Correlation Resistance** | Per-insertion randomization | Identical vectors produce different ciphertexts |

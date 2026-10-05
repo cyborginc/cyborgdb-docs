@@ -28,7 +28,7 @@ Vector Search powers the most popular AI applications - RAG, RecSys, Semantic Se
 
 This creates a massive attack surface. Your sensitive data - converted to embeddings that still contain semantic meaning - sits unprotected in your database. For enterprise AI applications, this is unacceptable.
 
-**CyborgDB solves this** by enabling Approximate Nearest-Neighbor (ANN) search directly over **encrypted vectors**. Your embeddings are never stored in plaintext, and during search only the candidates being scored are decrypted, transiently and in memory.
+**CyborgDB solves this** by enabling Approximate Nearest-Neighbor (ANN) search directly over **encrypted vectors**. Your embeddings are never stored in plaintext, and during search only the candidates being scored are decrypted.
 
 ### How CyborgDB Works
 
@@ -37,11 +37,11 @@ CyborgDB uses **cryptographic hashing** and **symmetric encryption** to enable v
 **The Process:**
 1. **Your app sends vectors** → CyborgDB encrypts them using your private key
 2. **Encrypted vectors stored** → Your database stores only encrypted data, never plaintext
-3. **Search tokens derived** → Your key derives search tokens that locate only the relevant encrypted clusters  
-4. **Search over encrypted index** → ANN search runs over the encrypted index, decrypting only the candidates it scores
-5. **Results returned** → Matching IDs, scores, and any requested fields are returned to your application
+3. **Search tokens derived** → Your key derives search tokens for the relevant clusters  
+4. **Search over encrypted space** → ANN search happens on encrypted vectors
+5. **Results returned** → Matching vectors and metadata
 
-**Key Innovation:** Traditional vector databases keep the whole index in plaintext to search it. CyborgDB searches an encrypted index and only decrypts the few candidates it needs to score, so your embeddings are **never stored or exposed in bulk in plaintext**.
+**Key Innovation:** Traditional vector databases decrypt data during search. CyborgDB performs similarity search over an encrypted index and only decrypts the candidates it scores, so your sensitive embeddings are **never stored in plaintext**.
 
 This approach gives you a **Confidential Vector Database** you run yourself, with embeddings that are never stored in plaintext.
 
@@ -51,7 +51,7 @@ This approach gives you a **Confidential Vector Database** you run yourself, wit
 No need to rewrite applications. CyborgDB exposes a familiar vector API that drops into the AI pipelines and frameworks you already use.
 
 **🔒 True End-to-End Encryption**  
-Vector embeddings stay encrypted at rest and in transit, and **during search** only the candidates being scored are decrypted, transiently and in memory.
+Vector embeddings stay encrypted throughout their entire lifecycle - at rest, in transit, and **during search operations**, where only the candidates being scored are decrypted.
 
 **⚡ Production-Ready Performance**  
 GPU-accelerated indexing and training with CUDA support. Optimized algorithms deliver fast results without compromising security.

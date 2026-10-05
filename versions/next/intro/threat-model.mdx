@@ -70,7 +70,7 @@ This combination of centralized intelligence and plaintext storage transforms wh
 | **Log & telemetry access** | Misconfigured logging, compromised SIEM |
 | **Code execution on server** | Supply chain attack, RCE in application stack |
 
-The **Server-Side Adversary** case — full memory, disk, and runtime access — is the primary driver for CyborgDB's *minimal in-use decryption* and *forward-secure index* design. Note that an adversary with live access to the running process can read keys and data while they are in use.
+The **Server-Side Adversary** case — full memory, disk, and runtime access — is the primary driver for CyborgDB's *in-use encryption* and *forward-secure index* design.
 
 ## 4. Attack Demonstration
 
@@ -118,7 +118,7 @@ The table below maps specific adversary actions to CyborgDB controls:
 | Attack Vector | Mitigation | Residual Risk |
 |---------------|------------|---------------|
 | **Disk theft** | AES-256-GCM encryption at rest | Key theft from KMS would bypass |
-| **Memory scraping** | Minimal, transient decryption with ephemeral node keys | An attacker with live memory access can read keys in use and the entries being scored |
+| **Memory scraping** | In-use encryption with ephemeral node keys | An attacker with live memory access can read keys in use and the entries being scored |
 | **Index structure analysis** | Forward privacy & per-insertion randomization | Search pattern leakage still possible within active session |
 | **Embedding inversion** | Embeddings never stored in plaintext | Compromised client or live process memory could still expose |
 | **Network interception** | TLS + AEAD | Endpoint compromise would still allow decryption |
@@ -141,7 +141,7 @@ flowchart LR
     subgraph "CyborgDB Controls"
         F[TLS + AEAD] --> B
         G[AES-256-GCM] --> C
-        H[Minimal In-use Decryption] --> D
+        H[In-use Encryption] --> D
         I[Forward Privacy] --> E
         J[Per-insertion Randomization] --> E
     end

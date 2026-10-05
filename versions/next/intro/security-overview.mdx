@@ -83,7 +83,7 @@ graph TD
     A --> C[Forward Privacy]
     A --> D[Key Isolation]
     
-    B --> F[Minimal In-Use Decryption]
+    B --> F[In-Use Encryption]
     B --> G[End-to-End Protection]
     
     C --> H[Query Unlinkability]
@@ -95,26 +95,26 @@ graph TD
 
 This security is achieved through several key mechanisms:
 
-- **Minimal decryption in use**: Only the candidates being scored are decrypted, transiently and in memory
+- **In-use encryption**: Embeddings remain encrypted during computation, except the candidates being scored
 - **Query unlinkability**: Current searches cannot be correlated with historical patterns
 - **Insertion obfuscation**: New data additions reveal no information about existing content
 - **Temporal isolation**: Past compromises do not affect future security
 - **Customer key control**: Encryption keys remain under customer management
-- **No plaintext key storage**: Encryption keys are never persisted in plaintext; with KMS, the service only holds unwrapped keys in memory for a short time
+- **No plaintext key storage**: CyborgDB never persists decryption keys in plaintext
 
 <Tip>To learn more about how CyborgDB implements these protections, read the [Encryption guide](./encryption).</Tip>
 
 ## 4. Security Guarantees
 
-CyborgDB provides cryptographic protections against the threat scenarios in the [threat model](./threat-model).
+CyborgDB provides mathematically provable protections against the threat scenarios in the [threat model](./threat-model).
 
 | Attack Vector | Standard Vector DB | CyborgDB Protection | Security Guarantee |
 |---------------|-------------------|---------------------|-------------------|
 | **Embedding extraction** | ❌ Immediate plaintext access | ✅ AES-256-GCM encrypted storage | Computational security (2^256 operations) |
-| **Memory scraping** | ❌ Plaintext in RAM | ✅ Minimal, transient decryption | Only candidates being scored are in plaintext, briefly |
+| **Memory scraping** | ❌ Plaintext in RAM | ✅ In-use encryption | Semantic security preservation |
 | **Inversion attacks** | ❌ Direct ML exploitation | ✅ Ciphertext-only exposure | Computational security |
 | **Query correlation** | ❌ Full access pattern visibility | ✅ Forward-private indexing | Unlinkability guarantee |
-| **Cross-system linking** | ❌ Trivial metadata correlation | ✅ Per-record IVs and per-insertion randomization | Computational indistinguishability |
+| **Cross-system linking** | ❌ Trivial metadata correlation | ✅ Per-record IVs | Computational indistinguishability |
 
 ## 5. Getting Started
 
