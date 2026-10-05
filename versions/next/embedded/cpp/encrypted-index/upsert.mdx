@@ -62,4 +62,4 @@ std::vector<std::string> metadata = {"{\"type\": \"image\"}", "{\"type\": \"text
 index->Upsert(ids, embeddings, contents, metadata, index_key);
 ```
 
-<Tip>`index_key` is the 32-byte `std::array<uint8_t, 32>` index KEK. It converts implicitly to a `KeyContext`. In a stateless service that reloads the index per request, pass the key on every operation.</Tip>
+<Tip>`index_key` is the 32-byte `std::array<uint8_t, 32>` index KEK. It converts implicitly to a `KeyContext`. The key is required on every operation.</Tip>

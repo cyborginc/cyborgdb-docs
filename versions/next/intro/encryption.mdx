@@ -59,7 +59,7 @@ graph TD
     MK(Master Key) -->|"HMAC(MasterKey,ClusterID)"| C(Cluster Seed)
     B --> C
     
-    CM(Counter Map) --> D(Seed + Counter)
+    CM(Insertion Counter) --> D(Seed + Counter)
     C --> D
     
     D -->|"SHA-3(left)"| E1(Node Key L)
@@ -75,7 +75,7 @@ This flow demonstrates how CyborgDB transforms a single vector embedding into mu
 
 1. **Vector clustering**: The clustering model assigns each embedding to an optimal cluster for efficient ANN search
 2. **Deterministic key derivation**: The master key and cluster ID generate a unique seed for this cluster
-3. **Forward privacy**: The counter map ensures identical embeddings get different cryptographic treatment on each insertion
+3. **Forward privacy**: A per-cluster insertion counter ensures identical embeddings get different cryptographic treatment on each insertion
 4. **Dual-purpose keys**: SHA-3 produces two keys serving different functions - one for storage indexing, one for encryption
 5. **Secure storage**: The final encrypted embedding can only be decrypted with the derived Node Key R
 
@@ -100,7 +100,7 @@ graph TD
     MK(Master Key) -->|"HMAC(MasterKey,ClusterID)"| C(Cluster Seeds)
     B --> C
     
-    CM(Counter Map) --> ITER{{"For each occurrence"}}
+    CM(Insertion Counter) --> ITER{{"For each occurrence"}}
     C --> ITER
     
     ITER -->|"SHA-3(left)"| E1(Node Key L)

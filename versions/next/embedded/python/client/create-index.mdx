@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Creates and returns a new encrypted index. CyborgDB v0.17 uses a single **DiskIVF** index type, so there is no longer an `index_config` parameter to choose between index variants.
+Creates and returns a new encrypted index. CyborgDB uses a single IVF index type, so there is no `index_config` parameter to choose between index variants.
 
 ```python
 def create_index(self,
@@ -49,8 +49,8 @@ metadata_schema = {
 
 Two knobs per field:
 
-- `filterable` (default `True`) — build inverted-index postings so filters on the field resolve from the index (pre-filter path, and the only path [`query_metadata()`](../encrypted-index/query-metadata) uses). Setting `False` still stores the field, but a filter referencing it forces the dense post-filter path on [`query()`](../encrypted-index/query#filters) — cheaper writes, slower filtered queries.
-- `pattern` (default `False`) — additionally build the field's regex dictionary, which is what makes `$regex` / `$contains` index-resolvable. Requires `filterable=True`.
+- `filterable` (default `True`) — index the field so filters on it resolve from the encrypted metadata index (pre-filter path, and the only path [`query_metadata()`](../encrypted-index/query-metadata) uses). Setting `False` still stores the field, but a filter referencing it forces the dense post-filter path on [`query()`](../encrypted-index/query#filters) — cheaper writes, slower filtered queries.
+- `pattern` (default `False`) — additionally index the field for pattern matching, which is what makes `$regex` / `$contains` index-resolvable. Requires `filterable=True`.
 
 On `query()` these are a performance hint: filters that miss the index just fall back to a post-filter over the decrypted metadata, same rows either way. On `query_metadata()` they are enforced — `$regex` / `$contains` on a non-`pattern` field, or any filter on a `filterable=False` field, raises `ValueError`.
 
@@ -82,7 +82,7 @@ import secrets
 
 api_key = "your_api_key_here"  # Replace with your CyborgDB API key
 
-client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.memory())
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 index_name = "my_index"
 index_key = secrets.token_bytes(32)  # 32-byte index KEK — store securely
@@ -140,8 +140,8 @@ index = client.create_index(
 #### With Per-Field Metadata Policy
 
 ```python
-# Opt `title` into the regex dictionary; keep `internal_blob` out of the
-# inverted index (still stored, still filterable via post-filter on query()).
+# Opt `title` into pattern matching; keep `internal_blob` out of the
+# metadata index (still stored, still filterable via post-filter on query()).
 index = client.create_index(
     "docs_index",
     index_key,
@@ -153,5 +153,5 @@ index = client.create_index(
 )
 
 # $regex now resolves from the index on query_metadata() and query() alike.
-ids = index.query_metadata(filters={"title": {"$regex": "^intro"}})
+results = index.query_metadata(filters={"title": {"$regex": "^intro"}}, index_key=index_key)
 ```

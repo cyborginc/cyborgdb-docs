@@ -6,9 +6,9 @@ playground: "simple"
 noindex: true
 ---
 
-Create a new encrypted DiskIVF index.
+Create a new encrypted index.
 
-<Note>v0.17 introduces a single **DiskIVF** index type and removes the polymorphic `index_config` object from previous versions. Configuration parameters (`dimension`, `metric`, `embedding_model`, `storage_precision`) are now top-level fields. The IVFFlat/IVFPQ/IVFSQ distinction no longer applies.</Note>
+<Note>There is a single index type. Configuration parameters (`dimension`, `metric`, `embedding_model`, `storage_precision`) are top-level fields; the `index_config` object and the IVFFlat/IVFPQ/IVFSQ distinction from earlier versions no longer apply.</Note>
 
 ## Authentication
 
@@ -63,7 +63,7 @@ When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is requi
     Per-field metadata indexing policy, keyed by field name (dot-paths for nested fields). Fixed at create time and immutable. Fields omitted here inherit the default (indexed and filterable). See [Metadata Schema](#metadata-schema) below.
     <Expandable title="MetadataFieldPolicy">
       <ParamField body="filterable" type="boolean" default={true}>
-        Build inverted-index postings so filters on the field resolve from the index. When `false`, the field is still stored and still filterable via post-filter on `/v1/vectors/query`, but cannot be filtered on `/v1/vectors/query_metadata`.
+        Index the field so filters on it resolve from the index. When `false`, the field is still stored and still filterable via post-filter on `/v1/vectors/query`, but cannot be filtered on `/v1/vectors/query_metadata`.
       </ParamField>
       <ParamField body="pattern" type="boolean" default={false}>
         Additionally build the field's regex dictionary, needed for index-resolved `$regex` / `$contains`. Requires `filterable=true`.
@@ -89,7 +89,7 @@ When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is requi
 Exactly one of `index_key` / `kms_name` must be supplied:
 
 - **SDK-supplied KEK** (set `index_key`, omit `kms_name`) — the service records the index with `provider: none`. The same key must be re-supplied on every subsequent request (load, query, upsert, etc.).
-- **KMS-backed** (set `kms_name`, omit `index_key`) — the service generates the KEK, wraps it under the named registry slot, and persists the envelope. Subsequent requests omit `index_key` entirely; the service resolves it via the stored `KMSBlob`.
+- **KMS-backed** (set `kms_name`, omit `index_key`) — the service generates the KEK, wraps it under the named registry slot, and persists the envelope. Subsequent requests omit `index_key` entirely; the service resolves it from the index's stored key envelope.
 
 Supplying both is rejected with 400, regardless of the registry slot's provider type. (The `none` provider is not addressable by name — omit `kms_name` to use the SDK-supplied path.)
 
@@ -97,7 +97,7 @@ Supplying both is rejected with 400, regardless of the registry slot's provider 
 
 `metadata_schema` sets the per-field indexing policy. Metadata itself stays schemaless — this controls how each field is indexed, not what may be stored. Three knobs per field:
 
-- `filterable` (default `true`) — build inverted-index postings so filters resolve from the index (pre-filter, and the only path `/v1/vectors/query_metadata` uses). `false` still stores the field but forces the dense post-filter path when `/v1/vectors/query` filters reference it — cheaper writes, slower filtered queries.
+- `filterable` (default `true`) — index the field so filters on it resolve from the index (pre-filter, and the only path `/v1/vectors/query_metadata` uses). `false` still stores the field but forces the dense post-filter path when `/v1/vectors/query` filters reference it — cheaper writes, slower filtered queries.
 - `pattern` (default `false`) — additionally build the field's regex dictionary, needed for index-resolved `$regex` / `$contains`. Requires `filterable: true`.
 - `full_text` (default `false`) — route the field through the BM25 analyzer for full-text search instead of exact-match indexing. Implies `filterable: false` and is incompatible with `pattern: true`.
 
@@ -118,7 +118,7 @@ The recorded policy is echoed back on `POST /v1/indexes/describe` under `metadat
 
 <AccordionGroup>
     <Accordion title="400 Bad Request">
-        Index name already exists. Also raised for missing/conflicting key parameters (both `index_key` and `kms_name` supplied, or neither), and for BM25 parameter violations enforced by the index core: `bm25_k1` / `bm25_b` supplied for an index with no `full_text` field, `bm25_k1 < 0`, `bm25_b` outside `[0, 1]`, or a `text_fields` entry naming a field the schema sets `full_text=false`
+        Index name already exists. Also raised for missing/conflicting key parameters (both `index_key` and `kms_name` supplied, or neither), and for BM25 parameter violations: `bm25_k1` / `bm25_b` supplied for an index with no `full_text` field, `bm25_k1 < 0`, `bm25_b` outside `[0, 1]`, or a `text_fields` entry naming a field the schema sets `full_text=false`
     </Accordion>
     <Accordion title="401 Unauthorized">
         Authentication failed (invalid API key)

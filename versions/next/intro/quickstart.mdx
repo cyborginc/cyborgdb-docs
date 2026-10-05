@@ -7,7 +7,7 @@ noindex: true
 
 ## Try CyborgDB in 5 minutes
 
-Run this end-to-end — install, create an encrypted index, upsert, and query — with no server and no config:
+Run this end-to-end — install, create an encrypted index, upsert, and query — with no server to run:
 
 ```bash
 pip install cyborgdb-core
@@ -17,8 +17,8 @@ pip install cyborgdb-core
 import cyborgdb_core as cyborgdb
 import secrets
 
-# Ephemeral in-memory backing store — no server, no config.
-client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+# Local disk backing store — no server required.
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb-quickstart"))
 
 # Generate an encryption key for the index.
 # WARNING: store this key securely — data encrypted with a lost key is unrecoverable.
@@ -95,12 +95,15 @@ Already on Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Bring your workload 
   <Card title="LangChain Integration" href="../integrations/langchain/introduction" icon="link">
     Drop-in replacement for existing vector stores:
     ```python
+    from cyborgdb_core import StorageConfig
     from cyborgdb_core.integrations.langchain import CyborgVectorStore
 
     store = CyborgVectorStore.from_texts(
         texts=["hello world", "goodbye world"],
         embedding="all-MiniLM-L6-v2",
-        index_key=CyborgVectorStore.generate_key(save=True),
+        index_key=CyborgVectorStore.generate_key(),
+        api_key="your-api-key",
+        storage_config=StorageConfig.disk("/tmp/cyborgdb-langchain"),
     )
     ```
   </Card>
@@ -121,7 +124,7 @@ Already on Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Bring your workload 
   </Card>
 
   <Card title="Choose a Backing Store" href="./backing-stores" icon="database">
-    Memory, disk (default), or S3 — pick per environment.
+    Local disk (default) or S3 — pick per environment.
   </Card>
 
   <Card title="Deployment Models" href="./deployment-models" icon="server">

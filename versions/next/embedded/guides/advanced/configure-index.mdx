@@ -6,15 +6,15 @@ noindex: true
 
 <Info>Index configuration is automatically handled by default. This guide allows you to override these defaults to customize index behavior & performance characteristics.</Info>
 
-CyborgDB uses a single index type: **DiskIVF**, a disk-backed inverted-file index. Rather than choosing between several index variants, you tune one index with a small set of knobs.
+CyborgDB uses a single index type: a disk-backed inverted-file (IVF) index. Rather than choosing between several index variants, you tune one index with a small set of knobs.
 
-DiskIVF retrieves results in two stages: a fast first stage narrows down candidates using a compact Product-Quantized (PQ) representation, then a rerank stage recomputes exact distances against the stored vectors (in `float32` or `float16`) to deliver high recall. This gives you the speed of a quantized index with the accuracy of an exact rerank, all within a single index that scales to disk.
+The index retrieves results in two stages: a fast first stage narrows down candidates using a compact Product-Quantized (PQ) representation, then a rerank stage recomputes exact distances against the stored vectors (in `float32` or `float16`) to deliver high recall. This gives you the speed of a quantized index with the accuracy of an exact rerank, all within a single index that scales to disk.
 
-There are no longer any `IVFFlat` / `IVFPQ` / `IVFSQ` variants to choose between — a single DiskIVF index covers all of these use cases. You configure it at **creation time** (dimension, storage precision, metric), at **training time** (clustering parameters), and at **query time** (`n_probes`, `rerank_mult`).
+There are no longer any `IVFFlat` / `IVFPQ` / `IVFSQ` variants to choose between — a single index type covers all of these use cases. You configure it at **creation time** (dimension, storage precision, metric), at **training time** (clustering parameters), and at **query time** (`n_probes`, `rerank_mult`).
 
 ---
 
-## Creating a DiskIVF Index
+## Creating an Index
 
 The most common path is to let CyborgDB choose sensible defaults. You only need an index name and a 32-byte key; the `dimension` is auto-detected from your first upsert (or derived from `embedding_model` if you provide one).
 
@@ -23,11 +23,11 @@ The most common path is to let CyborgDB choose sensible defaults. You only need 
 import cyborgdb_core as cyborgdb
 import secrets
 
-client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 index_key = secrets.token_bytes(32)  # 32-byte index KEK
 
-# Create a DiskIVF index with defaults (dimension auto-detected on first upsert)
+# Create an index with defaults (dimension auto-detected on first upsert)
 index = client.create_index("test_index", index_key)
 ```
 
@@ -37,12 +37,12 @@ index = client.create_index("test_index", index_key)
 #include <array>
 #include <openssl/rand.h>
 
-cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 
 std::array<uint8_t, 32> index_key;
 RAND_bytes(index_key.data(), index_key.size());  // 32-byte index KEK
 
-// Create a DiskIVF index with defaults (dimension auto-detected on first upsert)
+// Create an index with defaults (dimension auto-detected on first upsert)
 auto index = client.CreateIndex("test_index", index_key);
 ```
 </CodeGroup>
@@ -53,7 +53,7 @@ You can override the defaults at creation time:
 
 - `dimension`: vector dimensionality. Optional — auto-detected from the first upsert, or derived from `embedding_model` if provided.
 - `storage_precision`: the on-disk dtype used for the rerank vectors. `float32` (default) gives the highest recall; `float16` roughly **halves disk footprint** with a slight precision loss. Acceptable values are `numpy.float32` / `numpy.float16` (or the strings `"float32"` / `"float16"`) in Python, and `StoragePrecision::Float32` / `StoragePrecision::Float16` in C++.
-- `embedding_model`: an optional built-in model name that enables automatic text embedding (via [`cyborgdb-embed`](https://github.com/cyborginc/cyborgdb-embed), no `sentence-transformers`/`torch` install required) and overwrites the dimension. Call `cyborgdb.supported_embedding_models()` for accepted names.
+- `embedding_model`: an optional built-in model name that enables automatic text embedding (no `sentence-transformers`/`torch` install required) and overwrites the dimension. Call `cyborgdb.supported_embedding_models()` for accepted names.
 - `metric`: the distance metric — `"euclidean"` (default), `"cosine"`, or `"squared_euclidean"`.
 
 <CodeGroup>
@@ -64,7 +64,7 @@ import secrets
 
 index_key = secrets.token_bytes(32)
 
-# Create a DiskIVF index with explicit configuration
+# Create an index with explicit configuration
 index = client.create_index(
     "test_index",
     index_key,
@@ -78,7 +78,7 @@ index = client.create_index(
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
 
-// Build a DiskIVF config: dimension 768, float16 rerank storage
+// Build an index config: dimension 768, float16 rerank storage
 cyborg::IndexDiskIVF index_config(
     /*dimension=*/768,
     /*embedding_model=*/"",
@@ -135,10 +135,10 @@ For more on the training lifecycle, see [Training an Encrypted Index](../encrypt
 
 ## Query-Time Parameters
 
-DiskIVF exposes two knobs at query time that trade recall against latency:
+The index exposes two knobs at query time that trade recall against latency:
 
 - `n_probes`: how many clusters to search per query. Higher values increase recall at some latency cost. `0` (default) auto-selects based on `n_lists`.
-- `rerank_mult`: the stage-1 retrieval multiplier. CyborgDB first retrieves `rerank_mult * top_k` candidates using the compact PQ representation, then reranks them against the stored `float32`/`float16` vectors. Higher values improve recall at some latency cost (default `10`).
+- `rerank_mult`: the stage-1 retrieval multiplier. CyborgDB first retrieves `rerank_mult * top_k` candidates using the compact PQ representation, then reranks them against the stored `float32`/`float16` vectors. Higher values improve recall at some latency cost (default `50`).
 
 <CodeGroup>
 ```python Python icon="python"

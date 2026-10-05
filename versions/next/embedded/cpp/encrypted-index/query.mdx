@@ -60,4 +60,4 @@ for (uint32_t j = 0; j < view.num_results; ++j) {
 }
 ```
 
-<Tip>`index_key` is the 32-byte `std::array<uint8_t, 32>` index KEK and converts implicitly to a `KeyContext`. In a stateless service that reloads the index per request, pass the key on every operation.</Tip>
+<Tip>`index_key` is the 32-byte `std::array<uint8_t, 32>` index KEK and converts implicitly to a `KeyContext`. The key is required on every operation.</Tip>

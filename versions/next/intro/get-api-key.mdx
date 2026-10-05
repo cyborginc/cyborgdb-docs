@@ -24,7 +24,7 @@ CyborgDB offers both free and paid API keys:
     
     - Access to `cyborgdb-core` features
     - Unlimited items and vectors
-    - All backing stores (Memory, Disk, S3)
+    - All backing stores (Disk, S3)
     - GPU acceleration support
     - Priority support
   </Card>
@@ -109,9 +109,12 @@ Once you have your API key, you can use it with any CyborgDB deployment:
     
     ```python
     import os
-    from cyborgdb_core import Client
+    from cyborgdb_core import Client, StorageConfig
     
-    client = Client(api_key=os.getenv("CYBORGDB_API_KEY"))
+    client = Client(
+        api_key=os.getenv("CYBORGDB_API_KEY"),
+        storage_config=StorageConfig.disk("/var/lib/cyborgdb"),
+    )
     ```
   </Tab>
   
@@ -119,9 +122,12 @@ Once you have your API key, you can use it with any CyborgDB deployment:
     Use your API key directly in your code (not recommended for production):
     
     ```python
-    from cyborgdb_core import Client
+    from cyborgdb_core import Client, StorageConfig
     
-    client = Client(api_key="your-api-key-here")
+    client = Client(
+        api_key="your-api-key-here",
+        storage_config=StorageConfig.disk("/var/lib/cyborgdb"),
+    )
     ```
   </Tab>
   
@@ -134,9 +140,12 @@ Once you have your API key, you can use it with any CyborgDB deployment:
     
     # main.py
     from config import CYBORGDB_API_KEY
-    from cyborgdb_core import Client
+    from cyborgdb_core import Client, StorageConfig
     
-    client = Client(api_key=CYBORGDB_API_KEY)
+    client = Client(
+        api_key=CYBORGDB_API_KEY,
+        storage_config=StorageConfig.disk("/var/lib/cyborgdb"),
+    )
     ```
   </Tab>
 </Tabs>

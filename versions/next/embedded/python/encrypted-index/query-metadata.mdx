@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Runs a metadata-only query — no query vector required. `query_metadata()` evaluates a filter expression entirely against the encrypted metadata index and returns the IDs of matching items.
+Runs a metadata-only query — no query vector required. `query_metadata()` evaluates a filter expression entirely against the encrypted metadata index and returns the matching items. Pass `text` to rank matches by BM25 full-text relevance instead (see [Full-text and hybrid search](../../guides/data-operations/bm25-search)).
 
 ```python
 def query_metadata(self,
@@ -13,8 +13,12 @@ def query_metadata(self,
                    order_by: Union[str, Dict[str, int]] = None,
                    ascending: bool = True,
                    *,
-                   index_key: bytes = None,
-                   user_id: bytes = None) -> List[str]
+                   text: str = None,
+                   text_fields: List[str] = None,
+                   text_field_weights: List[float] = None,
+                   require_all_terms: bool = False,
+                   index_key: bytes,
+                   user_id: bytes = None) -> List[Dict[str, Any]]
 ```
 
 ### Parameters
@@ -25,19 +29,23 @@ def query_metadata(self,
 | `top_k` | `int` | `None` | _(Optional)_ Maximum number of matching IDs to return. When `None`, **all** matches are returned. Applied **after** sorting when `order_by` is set. |
 | `order_by` | `str` or `Dict[str, int]` | `None` | _(Optional)_ Sort the matches by a metadata field before `top_k` is applied. Accepts a field name (direction controlled by `ascending`) or a MongoDB-style single-field dict, e.g. `{"views": -1}` for descending. |
 | `ascending` | `bool` | `True` | _(Optional)_ Sort direction when `order_by` is a field name. Ignored when `order_by` is a dict (the dict's `1` / `-1` value controls direction). |
-| `index_key` | `bytes` | `None` | _(Optional, keyword-only)_ Override the per-operation index key, as in [`query()`](./query#per-operation-key-override). |
+| `text` | `str` | `None` | _(Optional, keyword-only)_ Query text for BM25 full-text search over the index's `full_text` fields. When set, results are ranked by BM25 score and carry a `score`. Requires an index with at least one `full_text` field. Not supported together with `order_by`. |
+| `text_fields` | `List[str]` | `None` | _(Optional, keyword-only)_ Which `full_text` fields to search. `None` = all designated fields. Naming a non-`full_text` field raises. |
+| `text_field_weights` | `List[float]` | `None` | _(Optional, keyword-only)_ Per-field weights on the summed per-field BM25 scores, parallel to the searched fields. `None` = 1.0 each. |
+| `require_all_terms` | `bool` | `False` | _(Optional, keyword-only)_ Require every query term to match (AND) instead of any (OR, the default). |
+| `index_key` | `bytes` | - | _(Required, keyword-only)_ 32-byte index KEK. For an [RBAC user](./manage-users), pass the user's KEK together with `user_id=`. |
 | `user_id` | `bytes` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. |
 
 <Note>
-- Without `order_by`, the result is an **unordered** subset of matching IDs.
+- Without `order_by` (and without `text`), the result is an **unordered** subset of matching items.
 - Items missing the `order_by` field (or holding a non-scalar value) sort last.
 - Metadata-only queries work on **untrained** indexes.
-- `$type` is not supported on this endpoint. `$regex` / `$contains` require the field to have been declared `pattern: true` in the index's [`metadata_schema`](../client/create-index#metadata_schema); a field declared `filterable: false` cannot be filtered on here at all. Both raise `ValueError` — run the same filter through [`query()`](./query) with a vector if you need to bypass the schema constraint. Nested dot-paths (`owner.name`) are supported.
+- `$type` is not supported on this endpoint. `$regex` / `$contains` require the field to have been declared `pattern: true` in the index's [`metadata_schema`](../client/create-index#metadata-schema); a field declared `filterable: false` cannot be filtered on here at all. Both raise `ValueError` — run the same filter through [`query()`](./query) with a vector if you need to bypass the schema constraint. Nested dot-paths (`owner.name`) are supported.
 </Note>
 
 ### Returns
 
-`List[str]`: IDs of the items whose metadata matches `filters`.
+`List[Dict[str, Any]]`: One dictionary per matching item. Each carries `id` (`str`). When `text` is set, each also carries `score` (`float`, the BM25 score) and results are sorted by descending score; without `text`, there is no `score` key.
 
 ### Exceptions
 
@@ -45,6 +53,8 @@ def query_metadata(self,
     <Accordion title="ValueError">
         - Throws if `order_by` is a dict with more than one field.
         - Throws if `order_by` is neither a field name (`str`) nor a single-field dict.
+        - Throws if `text` is passed but the index has no `full_text` field, or `text_fields` names a field that is not `full_text`.
+        - Throws if any `text_*` parameter is set without a non-empty `text`.
     </Accordion>
     <Accordion title="RuntimeError">
         - Throws if the query could not be executed.
@@ -56,17 +66,18 @@ def query_metadata(self,
 _Filter only (all matches, unordered)_:
 
 ```python
-ids = index.query_metadata(filters={"label": "dog"})
+results = index.query_metadata(filters={"label": "dog"}, index_key=index_key)
 # Example output:
-# ["101", "102", "205"]
+# [{"id": "101"}, {"id": "102"}, {"id": "205"}]
 ```
 
 _Filter with operators and a result cap_:
 
 ```python
-ids = index.query_metadata(
+results = index.query_metadata(
     filters={"$and": [{"label": "cat"}, {"confidence": {"$gte": 0.9}}]},
     top_k=10,
+    index_key=index_key,
 )
 ```
 
@@ -74,14 +85,27 @@ _Sorted by a metadata field_:
 
 ```python
 # Ascending by "views" (field name + ascending flag)
-ids = index.query_metadata(filters={"label": "dog"}, order_by="views")
+results = index.query_metadata(filters={"label": "dog"}, order_by="views", index_key=index_key)
 
 # Descending by "views" (MongoDB-style dict); top_k applies after the sort
-ids = index.query_metadata(
+results = index.query_metadata(
     filters={"label": "dog"},
     order_by={"views": -1},
     top_k=5,
+    index_key=index_key,
 )
+```
+
+_Full-text search (BM25)_:
+
+```python
+results = index.query_metadata(
+    text="encrypted search",
+    top_k=10,
+    index_key=index_key,
+)
+# Example output:
+# [{"id": "a1", "score": 3.42}, {"id": "b7", "score": 2.18}, ...]
 ```
 
 For metadata syntax and supported operators, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).

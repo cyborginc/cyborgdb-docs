@@ -7,19 +7,17 @@ noindex: true
 
 The `StorageConfig` class specifies the backing store for an index's keystores. It is immutable and is built via static factory methods. A single `StorageConfig` is shared across all per-index keystores and is passed to the [`Client`](./client/client) constructor.
 
-CyborgDB supports three backing stores: **memory**, **disk**, and **s3**.
+CyborgDB supports two backing stores: **disk** and **s3**.
 
 ### Factories
 
 ```text
-StorageConfig.memory()
-# Ephemeral, no persistence (tests / benchmarking).
-
 StorageConfig.disk(path: str,
                    *,
                    cache_vectors: bool = False,
                    cache_metadata: bool = False,
-                   cache_ids: bool = False)
+                   cache_ids: bool = False,
+                   cache_metadata_index: bool = False)
 # Local persistent storage on disk.
 
 StorageConfig.s3(bucket: str,
@@ -33,17 +31,13 @@ StorageConfig.s3(bucket: str,
 
 | Factory | Description |
 |---------|-------------|
-| `memory()` | Ephemeral in-memory store with no persistence. Use for tests and benchmarking. |
-| `disk(path, ...)` | Local persistent store on disk. Optional `cache_*` flags keep vectors / metadata / IDs in memory for faster reads. |
+| `disk(path, ...)` | Local persistent store on disk. Optional `cache_*` flags keep vectors / metadata / IDs / the metadata index in memory for faster reads. |
 | `s3(bucket, ...)` | S3 or S3-compatible object store. Set `endpoint` for non-AWS providers (path-style addressing is auto-selected). Omit `credentials` to use the AWS default credential provider chain. |
 
 ### Example Usage
 
 ```python
 import cyborgdb_core as cyborgdb
-
-# In-memory (ephemeral)
-memory_store = cyborgdb.StorageConfig.memory()
 
 # Local disk, caching vectors in memory
 disk_store = cyborgdb.StorageConfig.disk("/tmp/cyborgdb", cache_vectors=True)

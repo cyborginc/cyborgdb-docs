@@ -71,7 +71,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
     Name of the target index
   </ParamField>
   <ParamField body="index_key" type="string">
-    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key via the stored KMSBlob).
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key from the index's stored key envelope).
   </ParamField>
   <ParamField body="query_vectors" type="array[number] | array[array[number]]">
     Query vector(s) for similarity search:
@@ -132,7 +132,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
   </ParamField>
 </Expandable>
 
-<Note>Hybrid queries narrow which filters are accepted. `$regex` on a non-`pattern` field, and any predicate on an explicitly non-`filterable` field, work in a pure query but return 400 once `text` is set — the BM25 leg has no post-verify stage, so an inexact survivor set would silently leave it unfiltered.</Note>
+<Note>Hybrid queries accept fewer filters than pure vector queries. Filtering on a `full_text` or `filterable: false` field, or using `$regex`/`$contains` on a non-`pattern` field, works in a pure query but is rejected with 400 when `text` is set. To keep such a filter, run the query without `text`.</Note>
 
 ## Response
 
@@ -234,7 +234,7 @@ On a three-way query the filter is resolved **once**, before retrieval, and the 
 
 <AccordionGroup>
     <Accordion title="400 Bad Request">
-        Invalid values (e.g. vector dimension mismatch with the index), or a hybrid-parameter violation enforced by the index core — a filter disallowed on a hybrid (`text`) query (see the Note above), `text` on an index with no `full_text` field, a `text_fields` entry that is not a `full_text` field, a text knob (`text_fields` / `text_field_weights` / `require_all_terms`) without `text`, `alpha` outside `[0, 1]`, `rrf_k <= 0`, or `window_mult < 1`
+        Invalid values (e.g. vector dimension mismatch with the index), or a hybrid-parameter violation — a filter disallowed on a hybrid (`text`) query (see the Note above), `text` on an index with no `full_text` field, a `text_fields` entry that is not a `full_text` field, a text knob (`text_fields` / `text_field_weights` / `require_all_terms`) without `text`, `alpha` outside `[0, 1]`, `rrf_k <= 0`, or `window_mult < 1`
     </Accordion>
     <Accordion title="401 Unauthorized">
         Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)

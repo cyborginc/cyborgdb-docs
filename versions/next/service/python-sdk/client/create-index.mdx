@@ -4,7 +4,7 @@ mode: "wide"
 noindex: true
 ---
 
-Creates a new encrypted DiskIVF index on the service and returns an `EncryptedIndex` bound to it.
+Creates a new encrypted index on the service and returns an `EncryptedIndex` bound to it.
 
 ```python
 client.create_index(
@@ -22,7 +22,7 @@ client.create_index(
 )
 ```
 
-<Note>Since v0.17 there is one index type, DiskIVF, configured with flat keyword arguments. The v0.16 `IndexIVFFlat`, `IndexIVFPQ`, and `IndexIVFSQ` types and the `index_config` argument no longer exist.</Note>
+<Note>There is one index type, configured with flat keyword arguments. The earlier `IndexIVFFlat`, `IndexIVFPQ`, and `IndexIVFSQ` types and the `index_config` argument no longer exist.</Note>
 
 ### Parameters
 
@@ -78,7 +78,7 @@ Each field takes three settings:
 
 | Setting | Default | Effect |
 |---------|---------|--------|
-| `filterable` | `True` | Builds inverted-index postings, so filters on the field resolve from the index. `False` still stores the field but doesn't index it; see [Filters the index cannot answer](#filters-the-index-cannot-answer). |
+| `filterable` | `True` | Indexes the field, so filters on it resolve from the index. `False` still stores the field but doesn't index it; see [Filters the index cannot answer](#filters-the-index-cannot-answer). |
 | `pattern` | `False` | Also builds a regex dictionary, so `$regex` and `$contains` resolve from the index. Requires `filterable=True`. |
 | `full_text` | `False` | Sends the field's text through the BM25 analyzer instead of exact-match indexing. Implies `filterable=False`; an explicit `filterable=True` with it is rejected with `ValidationError` (HTTP `422`). Can't be combined with `pattern=True`. |
 

@@ -27,7 +27,7 @@ Get started with CyborgDB in minutes.
         import secrets
 
         # Backing store: local disk, for simple persistent storage.
-        # Use .memory() for ephemeral storage or .s3("bucket") for cloud persistence.
+        # Use .s3("bucket") for cloud persistence.
         client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
         ```
 

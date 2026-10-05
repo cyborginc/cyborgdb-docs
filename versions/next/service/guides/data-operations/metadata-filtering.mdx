@@ -208,7 +208,7 @@ curl -X POST "http://localhost:8000/v1/vectors/query" \
 
 ## Metadata Indexing
 
-All metadata fields are indexed using encrypted indexing. This allows CyborgDB to securely exclude clusters which don't match the provided metadata filters. As a result, searches with metadata filter should be as fast or faster than those without.
+By default, every metadata field is indexed using encrypted indexing, so filters on indexed fields are resolved from the index and are fast. You can opt individual fields out of indexing with `metadata_schema` at index creation (see [Metadata schema](../../python-sdk/client/create-index#metadata-schema)). Filters on non-indexed fields still work, but they are evaluated after decryption and are slower, as are `$regex` / `$contains` filters on fields not indexed for pattern matching.
 
 ## Metadata Query Operators
 

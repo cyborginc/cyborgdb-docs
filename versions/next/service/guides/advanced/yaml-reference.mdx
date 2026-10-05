@@ -26,11 +26,9 @@ A missing file is fine — the service falls back to env-only.
 
 Settings precedence, highest to lowest:
 
-1. Init args (programmatic embedding)
-2. Environment variables
-3. `.env` file
-4. YAML file
-5. File secrets
+1. Environment variables
+2. `.env` file
+3. YAML file
 
 ## Env-var substitution
 
@@ -64,7 +62,7 @@ service:
                                                    # See ./multi-tenancy.
 
   # ---- Storage backend ----
-  cyborgdb_db_type: disk                           # memory | disk | s3. Default: disk.
+  cyborgdb_db_type: disk                           # disk | s3. Default: disk.
   cyborgdb_disk_path: /var/lib/cyborgdb            # string. disk only. Default: ~/.cyborgdb/data
                                                    # (or /app/cyborgdb_data in Docker).
 
@@ -86,12 +84,13 @@ service:
   cpu_threads: 0                                   # int. 0 = auto-detect. Default: 0.
   gpu_operations: none                             # none | upsert | train | all | comma-list.
                                                    # Default: none. (Query GPU not yet supported.)
-  retrain_threshold: 10000                         # int. Auto-retrain trigger:
-                                                   # fires when num_vectors > n_lists * this.
+  auto_train_min_vectors: 65536                    # int. Default: 65536. An untrained index is
+                                                   # trained automatically once it holds more than
+                                                   # this many vectors. See ./train-index.
   auto_train_disabled: false                       # bool. Default: false. Set to true to fully
-                                                   # disable post-upsert auto-training (explicit
-                                                   # train() / POST /v1/indexes/train still work).
-                                                   # Also implied when retrain_threshold < 0.
+                                                   # disable post-upsert auto-training and
+                                                   # retraining (explicit train() /
+                                                   # POST /v1/indexes/train still work).
 
   # ---- KMS cache ----
   index_kek_cache_ttl_seconds: 60                  # int. Default: 60. TTL for plaintext index KEKs
@@ -122,7 +121,6 @@ kms:
 
 | Backend | Persistence | Required keys (beyond `cyborgdb_db_type`) | Credential source |
 |---|---|---|---|
-| `memory` | In-process only | — | n/a |
 | `disk` (default) | Persistent store on local disk | `cyborgdb_disk_path` (optional) | n/a |
 | `s3` (AWS, instance role) | AWS S3 | `cyborgdb_s3_bucket` | AWS default credential provider chain (instance/task role, env, profile) |
 | `s3` (AWS, explicit keys) | AWS S3 | `cyborgdb_s3_bucket` + `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` env vars | AWS default chain |
@@ -191,7 +189,7 @@ kms:
 
 ## Validation behavior
 
-- Invalid `cyborgdb_db_type` (anything not in `memory | disk | s3`) — startup fails fast with a clear error.
+- Invalid `cyborgdb_db_type` (anything not in `disk | s3`) — startup fails fast with a clear error.
 - `CYBORGDB_CONFIG_FILE` set to a missing path — hard error.
 - `${VAR}` referencing an unset env var — hard error at parse time.
 - KMS slot with missing `provider`/`key_id`/`region` — load-time error when the first index references the slot.

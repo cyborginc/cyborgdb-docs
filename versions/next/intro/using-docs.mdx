@@ -85,8 +85,8 @@ pip install cyborgdb-core
 
 ```python
 # Python code examples use syntax highlighting
-from cyborgdb_core import Client
-client = Client(api_key="your-key")
+from cyborgdb_core import Client, StorageConfig
+client = Client(api_key="your-key", storage_config=StorageConfig.disk("/tmp/cyborgdb"))
 ```
 
 ### Information Callouts
@@ -155,18 +155,18 @@ Many code examples include multiple language options:
 
 <CodeGroup>
 ```python Python
-from cyborgdb_core import Client
-client = Client(api_key="your-key")
+from cyborgdb_core import Client, StorageConfig
+client = Client(api_key="your-key", storage_config=StorageConfig.disk("/tmp/cyborgdb"))
 ```
 
 ```javascript JavaScript
-import { CyborgDBClient } from '@cyborgdb/client';
-const client = new CyborgDBClient({ apiKey: 'your-key' });
+import { Client } from 'cyborgdb';
+const client = new Client({ baseUrl: 'http://localhost:8000', apiKey: 'your-key' });
 ```
 
 ```cpp C++
-#include <cyborgdb/client.hpp>
-auto client = cyborgdb::Client("your-key");
+#include "cyborgdb_core/client.hpp"
+cyborg::Client client("your-key", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 ```
 </CodeGroup>
 
@@ -175,20 +175,23 @@ Look for complete, runnable examples that you can copy and execute directly:
 
 ```python
 # Complete working example
-from cyborgdb_core import Client, DBConfig
+import secrets
+from cyborgdb_core import Client, StorageConfig
 
-client = Client(
-    api_key="your-api-key",
-    index_location=DBConfig("memory"),
-    config_location=DBConfig("memory")
+client = Client(storage_config=StorageConfig.disk("/tmp/cyborgdb-example"))
+
+# Create an index (store this key securely; it is required on every call)
+index_key = secrets.token_bytes(32)
+index = client.create_index(index_name="my-index", index_key=index_key, dimension=4)
+
+# Upsert vectors with metadata
+index.upsert(
+    [{"id": "doc1", "vector": [0.1, 0.2, 0.3, 0.4], "metadata": {"doc": "example"}}],
+    index_key=index_key,
 )
 
-# Create index and add vectors
-index = client.create_index("my-index", dimension=384)
-index.add_vectors([1, 2, 3, ...], metadata={"doc": "example"})
-
-# Search for similar vectors  
-results = index.search([1, 2, 3, ...], k=5)
+# Search for similar vectors
+results = index.query(query_vectors=[0.1, 0.2, 0.3, 0.4], top_k=5, index_key=index_key)
 print(results)
 ```
 

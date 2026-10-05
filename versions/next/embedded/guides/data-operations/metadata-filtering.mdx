@@ -22,14 +22,14 @@ To add items with metadata tags, you can pass a dictionary of key-value pairs to
 <CodeGroup>
 ```python Python icon="python"
 # Example data in the format:
-# [{id: int, vector: List[float], metadata: Dict)]
+# [{id: str, vector: List[float], metadata: Dict}]
 data = [
     {"id": "item_1", "vector": [0.1, 0.1, 0.1, 0.1], "metadata": {"category": "dog"}},
     {"id": "item_2", "vector": [0.2, 0.2, 0.2, 0.2], "metadata": {"category": "cat"}}
 ]
 
 # Upsert data with metadata
-index.upsert(data)
+index.upsert(data, index_key=index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -65,7 +65,7 @@ filters = {
 }
 
 # Perform query
-results = index.query(query_vectors=query_vectors, top_k=top_k, filters=filters)
+results = index.query(query_vectors=query_vectors, top_k=top_k, filters=filters, index_key=index_key)
 ```
 
 ```cpp C++ icon="brackets-curly"
@@ -87,7 +87,7 @@ cyborg::QueryResults results = index->Query(query_vectors, query_params, index_k
 
 ## Metadata Indexing
 
-All metadata fields are indexed using encrypted indexing. This allows CyborgDB to securely exclude clusters which don't match the provided metadata filters. As a result, searches with metadata filter should be as fast or faster than those without.
+By default, all metadata fields are indexed using encrypted indexing, so filters on indexed fields resolve directly from the index and filtered queries stay fast. Filters on fields declared `filterable: False` in the index's [`metadata_schema`](../../python/client/create-index#metadata-schema), and `$regex` / `$contains` on fields not declared `pattern: True`, are instead evaluated on decrypted metadata after retrieval, which is slower.
 
 ## Metadata Query Operators
 

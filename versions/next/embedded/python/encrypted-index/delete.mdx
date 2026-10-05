@@ -12,7 +12,7 @@ Deletes the specified encrypted items stored in the index, including all its ass
 def delete(self,
            ids: List[str],
            *,
-           index_key: bytes = None,
+           index_key: bytes,
            user_id: bytes = None)
 ```
 
@@ -21,8 +21,8 @@ def delete(self,
 | Parameter | Type | Description |
 |-------------------|--------------------|-----------------------|
 | `ids` | `List[str]` | IDs to delete. |
-| `index_key` | `bytes` | _(Optional, keyword-only)_ Override the per-operation index key. See [Per-operation key override](#per-operation-key-override). |
-| `user_id` | `bytes` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Per-operation key override](#per-operation-key-override). |
+| `index_key` | `bytes` | _(Required, keyword-only)_ 32-byte index KEK. See [Index key](#index-key). |
+| `user_id` | `bytes` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Index key](#index-key). |
 
 ### Exceptions
 
@@ -42,15 +42,15 @@ index = client.load_index(
 )
 
 # Delete "item_1" and "item_2"
-index.delete(["item_1", "item_2"])
+index.delete(["item_1", "item_2"], index_key=index_key)
 ```
 
-### Per-operation key override
+### Index key
 
-The call above reuses the key supplied at [`create_index()`](../client/create-index) / [`load_index()`](../client/load-index). You may instead pass `index_key=` (and `user_id=` for an [RBAC user](./manage-users)) to override the per-operation key. This is required in stateless/service deployments that reload the index per request:
+`index_key` is required on every call. Pass the same 32-byte index KEK you used with [`create_index()`](../client/create-index) / [`load_index()`](../client/load-index). For an [RBAC user](./manage-users), pass the user's KEK as `index_key=` together with their `user_id=`:
 
 ```python
-index.delete(["item_1", "item_2"], index_key=index_key)
+index.delete(["item_1", "item_2"], index_key=user_kek, user_id=user_id)
 ```
 
 <Note>Deleting items requires write permission. An [RBAC user](./manage-users) without a write wrap cannot delete items.</Note>

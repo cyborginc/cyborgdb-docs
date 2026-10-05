@@ -5,7 +5,7 @@ mode: "wide"
 noindex: true
 ---
 
-CyborgDB can persist a per-index **KMS envelope** — a small record describing how an index's 32-byte KEK is wrapped by an external Key Management Service. A service layer can then read the envelope at request time, unwrap the KEK with the external KMS, and hand the plaintext KEK to the SDK. The envelope itself is represented by the `KMSBlob` type and stored as a FlatBuffer next to the index keystore.
+CyborgDB can persist a per-index **KMS envelope** — a small record describing how an index's 32-byte KEK is wrapped by an external Key Management Service. A service layer can then read the envelope at request time, unwrap the KEK with the external KMS, and hand the plaintext KEK to the SDK. The envelope itself is represented by the `KMSBlob` type and stored alongside the index.
 
 <Note>KMS key wrapping is **advanced and optional**, and primarily intended for the **service layer**. Embedded SDK users who supply their own KEK directly (see [Managing Encryption Keys](./managing-keys)) can ignore these functions entirely, or use `provider="none"`, in which case nothing key-derived is stored and the caller supplies the plaintext KEK per request.</Note>
 

@@ -6,7 +6,7 @@ noindex: true
 ---
 
 
-CyborgDB uses a DiskIVF index, which leverages clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
+CyborgDB uses an IVF index, which leverages clustering algorithms to segment the index into smaller sections for efficient querying. These clustering algorithms must be trained on the specific data being indexed in order to adequately represent that data.
 
 In the embedded library version of CyborgDB, this training must be explicitly called once enough vectors have been added:
 
@@ -37,7 +37,7 @@ index->TrainIndex(config, index_key);
 ```
 </CodeGroup>
 
-<Tip>You must have at least `2 * n_lists` or `10,000` (whichever is greater) vectors in the index (ingested via `upsert`) before you can call `train`.</Tip>
+<Tip>Training needs at least `10,000` vectors in the index (ingested via `upsert`) **and** at least `2 * n_lists` vectors. Below either threshold, `train` does not raise: it logs a warning and leaves the index untrained. Check `is_trained()` to confirm training took effect.</Tip>
 
 ## Training Parameters
 
