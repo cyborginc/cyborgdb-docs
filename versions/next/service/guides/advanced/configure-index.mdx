@@ -15,7 +15,7 @@ CyborgDB Service stores every encrypted index as a **DiskIVF** index: an inverte
 |---|---|---|
 | `dimension` | auto-detect | Vector dimensionality. If you omit it, the server fixes the dimension to whatever shape the **first upsert** uses. |
 | `metric` | `euclidean` | Distance function used for similarity search. Accepts `euclidean`, `squared_euclidean`, or `cosine`. |
-| `embedding_model` | unset | Optional sentence-transformers model name. When set, the service generates embeddings server-side from `contents` on upsert/query; `dimension` is inferred from the model. |
+| `embedding_model` | unset | Optional built-in embedding model name. When set, the service generates embeddings server-side from `contents` on upsert/query; `dimension` is inferred from the model. |
 | `storage_precision` | `float32` | On-disk rerank-vector dtype. `float32` is highest recall; `float16` halves on-disk storage at the cost of small recall loss; the TurboQuant tiers `tq12`/`tq8`/`tq6`/`tq4` compress further (12, 8, 6, or 4 bits per component). |
 
 Two more parameters control key management — they are mutually exclusive, and exactly one must be supplied:
@@ -136,7 +136,7 @@ index, _ := client.CreateIndex(context.Background(), params)
 
 ## Automatic embeddings (`embedding_model`)
 
-Pass a sentence-transformers model name and the server will embed text `contents` server-side on upsert and query. When `embedding_model` is set, `dimension` is inferred from the model and can be omitted.
+Pass a supported embedding model name and the server will embed text `contents` server-side on upsert and query. When `embedding_model` is set, `dimension` is inferred from the model and can be omitted.
 
 ```python Python SDK icon="python"
 index = client.create_index(
@@ -165,7 +165,7 @@ params := &cyborgdb.CreateIndexParams{
 index, _ := client.CreateIndex(context.Background(), params)
 ```
 
-<Tip>The Docker service image bundles sentence-transformers. For the pip-installed service, install with `pip install 'cyborgdb-service[embeddings]'` (or `'cyborgdb-service-cu12[embeddings]'` on CUDA hosts).</Tip>
+<Tip>Embedding models are built into the service — no extra packages are required. List the supported models and their dimensions with [`GET /v1/embedding-models`](../../rest-api/client/list-embedding-models).</Tip>
 
 ## Training the index
 

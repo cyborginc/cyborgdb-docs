@@ -54,7 +54,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
     Distance metric. Options: `euclidean`, `squared_euclidean`, `cosine`. Defaults to the server's default (`euclidean`).
   </ParamField>
   <ParamField body="embedding_model" type="string">
-    Optional sentence-transformers model name for automatic embedding generation on upsert/query. When set, `dimension` is inferred from the model and may be omitted.
+    Optional embedding model name for automatic embedding generation on upsert/query. Must be one of the built-in models returned by [List Embedding Models](./list-embedding-models). When set, `dimension` is inferred from the model and may be omitted.
   </ParamField>
   <ParamField body="storage_precision" type="string">
     On-disk rerank-vector dtype. Accepts `"float32"` (default), `"float16"`, or the TurboQuant tiers `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`. Lower precisions reduce storage at the cost of small recall — `"float16"` halves it; the `tq*` tiers compress further (12, 8, 6, or 4 bits per component).
