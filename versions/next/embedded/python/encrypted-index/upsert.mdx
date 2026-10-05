@@ -18,7 +18,7 @@ def upsert(self,
 
 | Parameter | Type | Description |
 |-----------|-----------------------------------|-----------------------------------------------------------------------------------------------|
-| `items` | `List[Dict[str, Any]]` | A list of dictionaries, where each dictionary has the format `{"id": str, "vector": List[float], "contents": Union[bytes, str], "metadata": Dict[str, str]}`. |
+| `items` | `List[Dict[str, Any]]` | A list of dictionaries, where each dictionary has the format `{"id": str, "vector": List[float], "contents": Union[bytes, str], "metadata": Dict[str, Any]}`. |
 | `index_key` | `bytes` | _(Required, keyword-only)_ 32-byte index KEK. See [Index key](#index-key). |
 | `user_id` | `bytes` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Index key](#index-key). |
 
@@ -45,12 +45,13 @@ If `vector` is not provided, a vector embedding is generated in-process from `co
     <Accordion title="ValueError">
         - Throws if the vector dimensions are incompatible with the index configuration.
         - Throws if the index was not created or loaded yet.
+        - Throws if the vectors could not be upserted.
     </Accordion>
     <Accordion title="EmbeddingModelUnavailable">
         - Throws if `contents` need embedding and the index's built-in model cannot be downloaded or loaded (offline cache miss, network failure). Often transient.
     </Accordion>
-    <Accordion title="RuntimeError">
-        - Throws if the vectors could not be upserted.
+    <Accordion title="TypeError">
+        - Throws if the arguments do not match the expected types.
     </Accordion>
 </AccordionGroup>
 
@@ -137,9 +138,10 @@ This structure is suited for efficient handling of large batches, with type safe
     <Accordion title="ValueError">
         - Throws if the vector dimensions are incompatible with the index configuration.
         - Throws if the index was not created or loaded yet.
-    </Accordion>
-    <Accordion title="RuntimeError">
         - Throws if the vectors could not be upserted.
+    </Accordion>
+    <Accordion title="TypeError">
+        - Throws if the arguments do not match the expected types.
     </Accordion>
 </AccordionGroup>
 

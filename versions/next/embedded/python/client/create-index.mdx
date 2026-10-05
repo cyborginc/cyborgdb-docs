@@ -16,6 +16,9 @@ def create_index(self,
                  embedding_model: str | None = None,
                  metric: str | None = None,
                  metadata_schema: dict | None = None,
+                 text_fields: list[str] | None = None,
+                 bm25_k1: float | None = None,
+                 bm25_b: float | None = None,
                  logger: Logger | None = None) -> EncryptedIndex
 ```
 
@@ -32,6 +35,9 @@ def create_index(self,
 | `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of a built-in embedding model for automatic text embeddings. Sets the index `dimension`; an explicit `dimension` must match; call `cyborgdb.supported_embedding_models()` for the full list. |
 | `metric` | `str` \| `None` | `"euclidean"` | _(Optional, keyword-only)_ Distance metric to use: `"euclidean"`, `"cosine"`, or `"squared_euclidean"`. See [`DistanceMetric`](../types#distancemetric). |
 | `metadata_schema` | `dict` \| `None` | `None` | _(Optional, keyword-only)_ Per-field metadata indexing policy, keyed by field name (dot-paths for nested fields). Fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
+| `text_fields` | `list[str]` \| `None` | `None` | _(Optional, keyword-only)_ Shorthand for marking each listed field `full_text: True` in `metadata_schema`. |
+| `bm25_k1` | `float` \| `None` | `1.2` | _(Optional, keyword-only)_ BM25 term-frequency saturation, `>= 0`. Requires at least one `full_text` field. |
+| `bm25_b` | `float` \| `None` | `0.75` | _(Optional, keyword-only)_ BM25 length-normalization strength, in `[0, 1]`. Requires at least one `full_text` field. |
 | `logger` | [`Logger`](./logger) | `None` | _(Optional, keyword-only)_ Logger instance for capturing operation logs. |
 
 <Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>
@@ -47,10 +53,11 @@ metadata_schema = {
 }
 ```
 
-Two knobs per field:
+Three knobs per field:
 
 - `filterable` (default `True`) — index the field so filters on it resolve from the encrypted metadata index (pre-filter path, and the only path [`query_metadata()`](../encrypted-index/query-metadata) uses). Setting `False` still stores the field, but a filter referencing it forces the dense post-filter path on [`query()`](../encrypted-index/query#filters) — cheaper writes, slower filtered queries.
 - `pattern` (default `False`) — additionally index the field for pattern matching, which is what makes `$regex` / `$contains` index-resolvable. Requires `filterable=True`.
+- `full_text` (default `False`) — route the field's string value through the BM25 analyzer instead of exact-match indexing, which is what enables full-text search. Incompatible with `pattern=True` and with an explicit `filterable=True`; implies `filterable=False`.
 
 On `query()` these are a performance hint: filters that miss the index just fall back to a post-filter over the decrypted metadata, same rows either way. On `query_metadata()` they are enforced — `$regex` / `$contains` on a non-`pattern` field, or any filter on a `filterable=False` field, raises `ValueError`.
 
@@ -65,6 +72,9 @@ On `query()` these are a performance hint: filters that miss the index just fall
         - Throws if the index name is not unique.
         - Throws if the index configuration is invalid.
         - Throws if `metadata_schema` sets `pattern=True` without `filterable=True`.
+        - Throws if `metadata_schema` sets `full_text=True` together with `pattern=True` or an explicit `filterable=True`.
+        - Throws if `bm25_k1` or `bm25_b` is set and no field is `full_text`.
+        - Throws if `dimension` is negative.
         - Throws if the index could not be created.
     </Accordion>
     <Accordion title="EmbeddingModelUnavailable">

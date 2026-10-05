@@ -14,8 +14,8 @@ def query(self,
           query_contents: str = None,
           top_k: int = None,
           n_probes: int = None,
-          filters: Dict[str, Any] = {},
-          include: List[str] = [],
+          filters: Dict[str, Any] = None,
+          include: List[str] = None,
           greedy: bool = False,
           rerank_mult: int = None,
           *,
@@ -38,8 +38,8 @@ def query(self,
 | `query_contents` | `str` | `None` | _(Optional)_ Text content to auto-embed as query vector (requires `embedding_model` set during index creation). |
 | `top_k` | `int` | `None` | _(Optional)_ Number of nearest neighbors to return. When `None`, defaults to 100. |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When `None` or `0`, automatically determines the optimal value. |
-| `filters` | `Dict[str, Any]` | `{}` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `List[str]` | `[]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
+| `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
+| `include` | `List[str]` | `None` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 | `rerank_mult` | `int` | `50` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
 | `text` | `str` | `None` | _(Optional, keyword-only)_ Query text for a BM25 full-text leg. Setting it makes the query **hybrid**: BM25 ranking is fused with the vector ranking by weighted RRF and each result carries `score` instead of `distance`. Requires an index with at least one `full_text` field. |
@@ -77,12 +77,10 @@ For more info on metadata, see [Metadata Filtering](../../guides/data-operations
         - Throws if any `text_*` knob is set without a non-empty `text`.
         - Throws if `rrf_k <= 0` or `window_mult < 1` is passed explicitly (pass `None` for defaults).
         - Throws if a filter references a field the index cannot resolve when `text` is set (e.g. `$regex` on a non-`pattern` field, or any predicate on an explicitly non-`filterable` field).
+        - Throws if the query could not be executed.
     </Accordion>
     <Accordion title="EmbeddingModelUnavailable">
         - Throws if `query_contents` needs embedding and the index's built-in model cannot be downloaded or loaded (offline cache miss, network failure). Often transient.
-    </Accordion>
-    <Accordion title="RuntimeError">
-        - Throws if the query could not be executed.
     </Accordion>
 </AccordionGroup>
 
@@ -188,10 +186,11 @@ Retrieves the nearest neighbors for one or more query vectors.
 ```python
 def query(self,
           query_vectors: Union[np.ndarray, List[List[float]]],
+          query_contents: Union[str, List[str]] = None,
           top_k: int = None,
           n_probes: int = None,
-          filters: Dict[str, Any] = {},
-          include: List[str] = [],
+          filters: Dict[str, Any] = None,
+          include: List[str] = None,
           greedy: bool = False,
           rerank_mult: int = None,
           *,
@@ -204,10 +203,11 @@ def query(self,
 | Parameter | Type | Default | Description |
 |-------------------|----------------------------------|--------------|--------------------------------------------------------------------|
 | `query_vectors` | `np.ndarray` or `List[List[float]]` | - | A 2D NumPy array or list of lists, where each inner list represents a query vector (for batch query). |
+| `query_contents` | `str` or `List[str]` | `None` | _(Optional)_ Text content to auto-embed as query vectors (requires `embedding_model` set during index creation). A list is a batch. |
 | `top_k` | `int` | `None` | _(Optional)_ Number of nearest neighbors to return. When `None`, defaults to 100. |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When `None` or `0`, automatically determines the optimal value. |
-| `filters` | `Dict[str, Any]` | `{}` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `List[str]` | `[]` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
+| `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
+| `include` | `List[str]` | `None` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 | `rerank_mult` | `int` | `50` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
 | `index_key` | `bytes` | - | _(Required, keyword-only)_ 32-byte index KEK. See [Index key](#index-key). |
@@ -229,8 +229,6 @@ For more info on metadata, see [Metadata Filtering](../../guides/data-operations
     <Accordion title="ValueError">
         - Throws if the query vectors have incompatible dimensions with the index.
         - Throws if the index was not created or loaded yet.
-    </Accordion>
-    <Accordion title="RuntimeError">
         - Throws if the query could not be executed.
     </Accordion>
 </AccordionGroup>
@@ -291,7 +289,7 @@ def query_numpy(self,
 
 ### Returns
 
-`np.ndarray`: A NumPy array of integer IDs for the nearest neighbors. For a single query, returns a 1D array of shape `(top_k,)`. For batch queries, returns a 2D array of shape `(num_queries, top_k)`.
+`np.ndarray`: A NumPy array of integer IDs for the nearest neighbors. For a single query, returns a 1D array of shape `(top_k,)`. For batch queries, returns a 2D array of shape `(num_queries, top_k)`. Slots beyond the number of results found, and IDs that cannot be converted to integers, are set to `-1`.
 
 ### Exceptions
 
@@ -299,9 +297,10 @@ def query_numpy(self,
     <Accordion title="ValueError">
         - Throws if the query vectors have incompatible dimensions with the index.
         - Throws if the index was not created or loaded yet.
-    </Accordion>
-    <Accordion title="RuntimeError">
         - Throws if the query could not be executed.
+    </Accordion>
+    <Accordion title="TypeError">
+        - Throws if the `query_vectors` format does not match the `batch` parameter.
     </Accordion>
 </AccordionGroup>
 

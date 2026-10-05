@@ -38,8 +38,6 @@ def create_user_keys(self,
     <Accordion title="ValueError">
         - Throws if `permissions` is empty or contains values outside `{"read", "write"}`.
         - Throws if `user_id` or the keys are the wrong length.
-    </Accordion>
-    <Accordion title="RuntimeError">
         - Throws if the supplied `index_key` is not the root KEK.
         - Throws if the user keys could not be created.
     </Accordion>
