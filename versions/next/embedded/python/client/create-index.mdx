@@ -120,7 +120,6 @@ index = client.create_index(
 
 ```python
 import cyborgdb_core as cyborgdb
-from cyborgdb_core import StoragePrecision
 import secrets
 
 client = cyborgdb.Client("your_api_key_here", cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
@@ -130,7 +129,7 @@ index = client.create_index(
     "compact_index",
     secrets.token_bytes(32),
     dimension=768,
-    storage_precision="tq8"
+    storage_precision="tq8",
     metric="cosine",
 )
 ```
