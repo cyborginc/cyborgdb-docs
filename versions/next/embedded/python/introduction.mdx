@@ -28,4 +28,10 @@ if cyborgdb.cuda_built() and cyborgdb.cuda_available():
     print("GPU acceleration is available.")
 ```
 
-<Note>`set_working_dir()` has been removed. Configure storage locations through [`StorageConfig`](./types#storageconfig) (`disk` / `s3`) on the [`Client`](./client/client) instead.</Note>
+The module also exports:
+
+- Types: [`StorageConfig`](./types#storageconfig), [`S3Credentials`](./types#s3credentials), [`GPUConfig`](./types#gpuconfig), [`StoragePrecision`](./types#storageprecision), [`KMSBlob`](./types#kmsblob), [`Logger`](./client/logger), `MetadataResult` (the row type returned by [`query_metadata()`](./encrypted-index/query-metadata)).
+- KMS functions: [`create_index_kms`, `push_index_kms`, `get_index_kms`, `delete_index_kms`](./kms).
+- Embedding helpers: `supported_embedding_models()`, `find_embedding_model(name)`, the `EmbeddingModel` class (`embed_documents()` / `embed_queries()`), and the `EmbeddingModelUnavailable` exception (a `RuntimeError` subclass).
+- Datetime helpers: `to_epoch_millis(value)` and `from_epoch_millis(millis)`. Metadata has no native datetime type; `datetime` / `date` values are stored as epoch milliseconds.
+- `__version__`.
