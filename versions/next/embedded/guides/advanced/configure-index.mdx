@@ -37,7 +37,7 @@ index = client.create_index("test_index", index_key)
 #include <array>
 #include <openssl/rand.h>
 
-cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 
 std::array<uint8_t, 32> index_key;
 RAND_bytes(index_key.data(), index_key.size());  // 32-byte index KEK

@@ -11,7 +11,7 @@ CyborgDB supports **BM25 full-text search** on designated metadata fields, along
 | Full text (no vector) | `query_metadata(text=...)` | BM25 score |
 | Hybrid (BM25 + vector) | `query(query_vectors=..., text=...)` | weighted RRF of BM25 rank + vector rank |
 
-Indexed terms are encrypted — the backing store never sees a readable term or a document's vocabulary.
+Text-search data is stored encrypted: the backing store never sees a readable term, which terms a document contains, or how many documents contain a given term.
 
 ## How it works
 

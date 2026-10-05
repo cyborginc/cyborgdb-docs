@@ -25,7 +25,7 @@ client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborg
 
 // In-memory backing store (ephemeral, for development/tests).
 // Pass "" for api_key to run in free-tier mode.
-cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
+cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
 ```
 </CodeGroup>
 

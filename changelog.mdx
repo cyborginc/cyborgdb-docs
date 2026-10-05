@@ -33,7 +33,6 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 - Built-in embedding models no longer require PyTorch; installing the `[embeddings]` extra is no longer needed
 - `$regex` filters are now evaluated with RE2, giving linear-time matching and protection against pathological patterns
 - `$contains` filter operator for substring matching
-- Python `datetime` / `date` values in metadata and filters are stored as epoch milliseconds, so date range filters work with the numeric operators
 - The client SDKs now raise standardized error types (for example `AuthenticationError`, `NotFoundError`, `ValidationError`)
 - Telemetry is not sent when no API key is set
 - Index dimension is now validated at `create_index`
