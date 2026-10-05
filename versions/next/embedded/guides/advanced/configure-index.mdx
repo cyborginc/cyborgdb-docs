@@ -8,9 +8,9 @@ noindex: true
 
 CyborgDB uses a single index type: a disk-backed inverted-file (IVF) index. Rather than choosing between several index variants, you tune one index with a small set of knobs.
 
-The index retrieves results in two stages: a fast first stage narrows down candidates using a compact Product-Quantized (PQ) representation, then a rerank stage recomputes exact distances against the stored vectors (in `float32` or `float16`) to deliver high recall. This gives you the speed of a quantized index with the accuracy of an exact rerank, all within a single index that scales to disk.
+The index retrieves results in two stages: a fast first stage narrows down candidates using a compact Product-Quantized (PQ) representation, then a rerank stage recomputes exact distances against the stored vectors to deliver high recall. This gives you the speed of a quantized index with the accuracy of an exact rerank, all within a single index that scales to disk.
 
-There are no longer any `IVFFlat` / `IVFPQ` / `IVFSQ` variants to choose between — a single index type covers all of these use cases. You configure it at **creation time** (dimension, storage precision, metric), at **training time** (clustering parameters), and at **query time** (`n_probes`, `rerank_mult`).
+You configure the index at **creation time** (dimension, storage precision, metric), at **training time** (clustering parameters), and at **query time** (`n_probes`, `rerank_mult`).
 
 ---
 
@@ -138,7 +138,7 @@ For more on the training lifecycle, see [Training an Encrypted Index](../encrypt
 The index exposes two knobs at query time that trade recall against latency:
 
 - `n_probes`: how many clusters to search per query. Higher values increase recall at some latency cost. `0` (default) auto-selects based on `n_lists`.
-- `rerank_mult`: the stage-1 retrieval multiplier. CyborgDB first retrieves `rerank_mult * top_k` candidates using the compact PQ representation, then reranks them against the stored `float32`/`float16` vectors. Higher values improve recall at some latency cost (default `50`).
+- `rerank_mult`: the stage-1 retrieval multiplier. CyborgDB first retrieves `rerank_mult * top_k` candidates using the compact PQ representation, then reranks them against the stored vectors. Higher values improve recall at some latency cost (default `50`).
 
 <CodeGroup>
 ```python Python icon="python"
