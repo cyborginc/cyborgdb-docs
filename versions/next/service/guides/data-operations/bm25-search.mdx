@@ -341,7 +341,7 @@ query_vector = [0.5, 0.9, 0.2, 0.7]
 
 results = index.query(
     query_vectors=query_vector,
-    text='encrypted search',   # <- this is what makes it hybrid
+    text='encrypted search',
     top_k=10,
     alpha=0.5,                 # 0 = pure BM25, 1 = pure vector; default 0.5
     include=['metadata'],
@@ -356,7 +356,7 @@ const queryVector = [0.5, 0.9, 0.2, 0.7];
 
 const response = await index.query({
     queryVectors: queryVector,
-    text: 'encrypted search',  // <- this is what makes it hybrid
+    text: 'encrypted search',
     topK: 10,
     alpha: 0.5,                // 0 = pure BM25, 1 = pure vector; default 0.5
     include: ['metadata'],
@@ -373,7 +373,7 @@ const queryVector: number[] = [0.5, 0.9, 0.2, 0.7];
 
 const params = {
     queryVectors: queryVector,
-    text: 'encrypted search',  // <- this is what makes it hybrid
+    text: 'encrypted search',
     topK: 10,
     alpha: 0.5,                // 0 = pure BM25, 1 = pure vector; default 0.5
     include: ['metadata'],
@@ -388,7 +388,7 @@ console.log(response.results);
 queryVector := []float32{0.5, 0.9, 0.2, 0.7}
 params := cyborgdb.QueryParams{
     QueryVector: queryVector,
-    Text:        cyborgdb.String("encrypted search"), // <- this makes it hybrid
+    Text:        cyborgdb.String("encrypted search"),
     TopK:        int32(10),
     Alpha:       cyborgdb.Float64(0.5), // 0 = pure BM25, 1 = pure vector
     Include:     []string{"metadata"},
