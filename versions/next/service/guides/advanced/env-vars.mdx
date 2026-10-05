@@ -45,6 +45,25 @@ This key controls licensing only. Request authentication is a separate concern, 
 
 See the [Multi-Tenancy guide](./multi-tenancy) for the full operator playbook (key kinds, provisioning users, SDK-supplied indexes, revocation).
 
+## Embedding Model Cache
+
+Text `embedding_model` indexes resolve and download their model on first use. These variables control where the model is cached and whether a cache miss is allowed to reach the model hub.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `CYBORGDB_EMBED_CACHE` | Directory where downloaded embedding models are cached. Mount this on persistent storage so models survive container restarts. | `/app/cyborgdb_data/embed-cache` in Docker; otherwise the embedding backend's default cache location |
+| `CYBORGDB_EMBED_OFFLINE` | When set to `1`, the service never calls out to the model hub. A cache miss fails the request instead of downloading. Set this on air-gapped deployments after pre-populating `CYBORGDB_EMBED_CACHE`. | unset (downloads allowed) |
+
+When a model is unavailable — the hub is unreachable, or `CYBORGDB_EMBED_OFFLINE=1` and the model is not in the cache — upsert and query calls that embed `contents`/`query_contents` return HTTP `503` with a `Retry-After: 30` header. Calls on pre-computed vectors are unaffected.
+
+```bash
+# Air-gapped: pre-populate the cache, then forbid downloads
+export CYBORGDB_EMBED_CACHE=/var/lib/cyborgdb/embed-cache
+export CYBORGDB_EMBED_OFFLINE=1
+```
+
+List the models the service currently supports with [`GET /v1/embedding-models`](../../rest-api/client/list-embedding-models).
+
 ## Storage Backend
 
 Pick one of `memory`, `disk`, or `s3`. If `CYBORGDB_DB_TYPE` is unset,
