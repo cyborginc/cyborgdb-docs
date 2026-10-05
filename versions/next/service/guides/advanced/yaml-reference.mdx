@@ -47,16 +47,20 @@ A variable set to the **empty string counts as unset**. Use this pattern to keep
 service:
   # ---- Server ----
   port: 8000                                       # int. Default: 8000.
-  require_api_key: true                            # bool. Default: true.
   cyborgdb_service_log_level: INFO                 # DEBUG | INFO | WARNING | ERROR. Default: INFO.
 
   # ---- TLS / HTTPS (optional; both required, both must exist on disk) ----
   ssl_cert_path: /etc/cyborgdb/tls/cert.pem        # string. Default: unset (HTTP).
   ssl_key_path:  /etc/cyborgdb/tls/key.pem         # string. Default: unset (HTTP).
 
-  # ---- Authentication ----
-  cyborgdb_api_key: ${CYBORGDB_API_KEY}            # string. REQUIRED. The X-API-Key clients send.
-  cyborgdb_service_root_key: ${CYBORGDB_SERVICE_ROOT_KEY}  # string. Optional. When set, enables RBAC.
+  # ---- Keys ----
+  cyborgdb_api_key: ${CYBORGDB_API_KEY}            # string. Optional. Core license key — free tier
+                                                   # (1M items/index) when unset. NOT an
+                                                   # authentication credential.
+  cyborgdb_service_root_key: ${CYBORGDB_SERVICE_ROOT_KEY}  # string. Optional. When set, enables
+                                                   # authentication/RBAC: clients must send this
+                                                   # root key or a cdbk_ user token as X-API-Key.
+                                                   # When unset, no header is required.
                                                    # See ./multi-tenancy.
 
   # ---- Storage backend ----
@@ -137,11 +141,11 @@ Both providers accept `role_arn` + `external_id` for cross-account (BYOK) access
 
 ## Minimal viable configs
 
-**Dev — disk, single key:**
+**Dev — disk, no authentication:**
 
 ```yaml
 service:
-  cyborgdb_api_key: ${CYBORGDB_API_KEY}
+  cyborgdb_api_key: ${CYBORGDB_API_KEY}   # optional license key; free tier when unset
 ```
 
 **Production — S3 on AWS with instance role, TLS, RBAC:**

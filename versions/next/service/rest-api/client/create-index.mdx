@@ -10,6 +10,16 @@ Create a new encrypted DiskIVF index.
 
 <Note>v0.17 introduces a single **DiskIVF** index type and removes the polymorphic `index_config` object from previous versions. Configuration parameters (`dimension`, `metric`, `embedding_model`, `storage_precision`) are now top-level fields. The IVFFlat/IVFPQ/IVFSQ distinction no longer applies.</Note>
 
+## Authentication
+
+Required - **admin (root) API key** via `X-API-Key` header. Per-user (`cdbk_`) keys are rejected with `403` — a per-user credential operates on data, not index lifecycle:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
+
 ## Request Body
 
 ```json
@@ -32,10 +42,10 @@ Create a new encrypted DiskIVF index.
     Unique name for the index.
   </ParamField>
   <ParamField body="index_key" type="string">
-    32-byte encryption key as a hex string. Required when `kms_name` is omitted (SDK-supplied KEK path). Must be omitted when `kms_name` is set against a real KMS provider — supplying both is rejected with 400.
+    32-byte encryption key as a hex string. Required when `kms_name` is omitted (SDK-supplied KEK path). Must be omitted when `kms_name` is set — supplying both is always rejected with 400.
   </ParamField>
   <ParamField body="kms_name" type="string">
-    Name of a `kms.registry` entry in the service YAML configuration. When supplied, the service generates a fresh KEK, wraps it under the named provider (e.g. `aws-kms`), and persists the envelope. The SDK never sees the plaintext key. Mutually exclusive with `index_key` against a real provider.
+    Name of a `kms.registry` entry in the service YAML configuration. When supplied, the service generates a fresh KEK, wraps it under the named provider (e.g. `aws-kms`), and persists the envelope. The SDK never sees the plaintext key. Mutually exclusive with `index_key`.
   </ParamField>
   <ParamField body="dimension" type="integer">
     Vector dimensionality. If omitted, the server auto-detects from the first upsert.
@@ -44,10 +54,10 @@ Create a new encrypted DiskIVF index.
     Distance metric. Options: `euclidean`, `squared_euclidean`, `cosine`. Defaults to the server's default (`euclidean`).
   </ParamField>
   <ParamField body="embedding_model" type="string">
-    Optional sentence-transformers model name for automatic embedding generation on upsert/query. When set, `dimension` is inferred from the model and may be omitted.
+    Optional embedding model name for automatic embedding generation on upsert/query. Must be one of the built-in models returned by [List Embedding Models](./list-embedding-models). When set, `dimension` is inferred from the model and may be omitted.
   </ParamField>
   <ParamField body="storage_precision" type="string">
-    On-disk rerank-vector dtype. Accepts `"float32"` (default) or `"float16"`. Use `"float16"` to halve storage at the cost of small recall.
+    On-disk rerank-vector dtype. Accepts `"float32"` (default), `"float16"`, or the TurboQuant tiers `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`. Lower precisions reduce storage at the cost of small recall — `"float16"` halves it; the `tq*` tiers compress further (12, 8, 6, or 4 bits per component).
   </ParamField>
   <ParamField body="metadata_schema" type="object">
     Per-field metadata indexing policy, keyed by field name (dot-paths for nested fields). Fixed at create time and immutable. Fields omitted here inherit the default (indexed and filterable). See [Metadata Schema](#metadata-schema) below.
@@ -58,7 +68,19 @@ Create a new encrypted DiskIVF index.
       <ParamField body="pattern" type="boolean" default={false}>
         Additionally build the field's regex dictionary, needed for index-resolved `$regex` / `$contains`. Requires `filterable=true`.
       </ParamField>
+      <ParamField body="full_text" type="boolean" default={false}>
+        Route the field's string value through the BM25 analyzer instead of exact-match indexing, making it searchable via `text` on `/v1/vectors/query` and `/v1/vectors/query_metadata`. A field is either analyzed or exact-match indexed, so `full_text: true` implies `filterable: false` and is incompatible with `pattern: true`.
+      </ParamField>
     </Expandable>
+  </ParamField>
+  <ParamField body="text_fields" type="array[string]">
+    Fields to index for BM25 full-text search — shorthand for marking them `full_text: true` in `metadata_schema`. Enables `text` queries on `/v1/vectors/query` and `/v1/vectors/query_metadata`.
+  </ParamField>
+  <ParamField body="bm25_k1" type="number">
+    BM25 term-frequency saturation (`>= 0`, default `1.2`). Requires at least one `full_text` field.
+  </ParamField>
+  <ParamField body="bm25_b" type="number">
+    BM25 length-normalization strength (in `[0, 1]`, default `0.75`). Requires at least one `full_text` field.
   </ParamField>
 </Expandable>
 
@@ -69,14 +91,15 @@ Exactly one of `index_key` / `kms_name` must be supplied:
 - **SDK-supplied KEK** (set `index_key`, omit `kms_name`) — the service records the index with `provider: none`. The same key must be re-supplied on every subsequent request (load, query, upsert, etc.).
 - **KMS-backed** (set `kms_name`, omit `index_key`) — the service generates the KEK, wraps it under the named registry slot, and persists the envelope. Subsequent requests omit `index_key` entirely; the service resolves it via the stored `KMSBlob`.
 
-Supplying both against a real-KMS slot is rejected with 400. (The `none` provider is not addressable by name — omit `kms_name` to use the SDK-supplied path.)
+Supplying both is rejected with 400, regardless of the registry slot's provider type. (The `none` provider is not addressable by name — omit `kms_name` to use the SDK-supplied path.)
 
 ## Metadata Schema
 
-`metadata_schema` sets the per-field indexing policy. Metadata itself stays schemaless — this controls how each field is indexed, not what may be stored. Two knobs per field:
+`metadata_schema` sets the per-field indexing policy. Metadata itself stays schemaless — this controls how each field is indexed, not what may be stored. Three knobs per field:
 
 - `filterable` (default `true`) — build inverted-index postings so filters resolve from the index (pre-filter, and the only path `/v1/vectors/query_metadata` uses). `false` still stores the field but forces the dense post-filter path when `/v1/vectors/query` filters reference it — cheaper writes, slower filtered queries.
 - `pattern` (default `false`) — additionally build the field's regex dictionary, needed for index-resolved `$regex` / `$contains`. Requires `filterable: true`.
+- `full_text` (default `false`) — route the field through the BM25 analyzer for full-text search instead of exact-match indexing. Implies `filterable: false` and is incompatible with `pattern: true`.
 
 On `/v1/vectors/query` the schema is a performance hint: filters that miss the index fall back to a post-filter over the decrypted metadata, same rows either way. On `/v1/vectors/query_metadata` it is enforced — `$regex` / `$contains` on a non-`pattern` field, or any filter on a `filterable: false` field, is rejected with 400.
 
@@ -93,12 +116,26 @@ The recorded policy is echoed back on `POST /v1/indexes/describe` under `metadat
 
 ## Exceptions
 
-- `400`: Missing/conflicting key parameters (e.g. both `index_key` and `kms_name` against a real KMS slot, or neither supplied)
-- `401`: Authentication failed (invalid API key)
-- `409`: Index name already exists
-- `422`: Invalid request parameters — including `metadata_schema` with `pattern=true` but `filterable=false`, or an empty field name
-- `500`: Internal server error
-- `502`: KMS error (e.g. wrap operation failed)
+<AccordionGroup>
+    <Accordion title="400 Bad Request">
+        Index name already exists. Also raised for missing/conflicting key parameters (both `index_key` and `kms_name` supplied, or neither), and for BM25 parameter violations enforced by the index core: `bm25_k1` / `bm25_b` supplied for an index with no `full_text` field, `bm25_k1 < 0`, `bm25_b` outside `[0, 1]`, or a `text_fields` entry naming a field the schema sets `full_text=false`
+    </Accordion>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key)
+    </Accordion>
+    <Accordion title="403 Forbidden">
+        Authenticated with a per-user (`cdbk_`) key — this operation requires the admin (root) API key
+    </Accordion>
+    <Accordion title="422 Unprocessable Entity">
+        Invalid request parameters — including `metadata_schema` with `pattern=true` but `filterable=false`, `full_text=true` combined with `pattern=true` or an explicit `filterable=true`, an empty field name, or an empty `text_fields` entry
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+    <Accordion title="502 Bad Gateway">
+        KMS error (e.g. wrap operation failed)
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 
