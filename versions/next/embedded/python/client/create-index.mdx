@@ -126,13 +126,11 @@ import secrets
 client = cyborgdb.Client("your_api_key_here", cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 # TQ8 → 8 bits per dimension. On 768-dim vectors that's ~4x smaller than float32
-# rerank vectors, with a small recall/latency cost paid at query time when the
-# stage-2 rerank decodes the stored vectors back to float32.
 index = client.create_index(
     "compact_index",
     secrets.token_bytes(32),
     dimension=768,
-    storage_precision=StoragePrecision.TQ8,  # or the string "tq8"
+    storage_precision="tq8"
     metric="cosine",
 )
 ```
