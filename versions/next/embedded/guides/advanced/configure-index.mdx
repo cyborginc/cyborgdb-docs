@@ -37,12 +37,12 @@ index = client.create_index("test_index", index_key)
 #include <array>
 #include <openssl/rand.h>
 
-cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
+cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
 
 std::array<uint8_t, 32> index_key;
 RAND_bytes(index_key.data(), index_key.size());  // 32-byte index KEK
 
-// Create an index with defaults (dimension auto-detected on first upsert)
+// Create a DiskIVF index with defaults (dimension auto-detected on first upsert)
 auto index = client.CreateIndex("test_index", index_key);
 ```
 </CodeGroup>
@@ -78,7 +78,7 @@ index = client.create_index(
 #include "cyborgdb_core/client.hpp"
 #include "cyborgdb_core/encrypted_index.hpp"
 
-// Build an index config: dimension 768, float16 rerank storage
+// Build a DiskIVF config: dimension 768, float16 rerank storage
 cyborg::IndexDiskIVF index_config(
     /*dimension=*/768,
     /*embedding_model=*/"",

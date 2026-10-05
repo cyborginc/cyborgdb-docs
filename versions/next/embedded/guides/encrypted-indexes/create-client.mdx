@@ -23,9 +23,9 @@ client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborg
 #include "cyborgdb_core/encrypted_index.hpp"
 #include <array>
 
-// Local disk backing store.
+// In-memory backing store (ephemeral, for development/tests).
 // Pass "" for api_key to run in free-tier mode.
-cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb-dev"), 0, cyborg::kNone);
+cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
 ```
 </CodeGroup>
 
@@ -33,7 +33,7 @@ To lift the free-tier cap, pass an API key as the first argument (`cyborgdb.Clie
 
 Bear in mind that all contents stored in the backing store are end-to-end encrypted, meaning that **no index contents are stored in plaintext**.
 
-<Note>The C++ `cyborg::Client` is non-copyable and non-movable. Construct it in place, or hold it via `std::unique_ptr<cyborg::Client>` if you need to move ownership.</Note>
+<Note>The C++ `cyborg::Client` is non-copyable and non-movable (it owns the keystore handles). Construct it in place, or hold it via `std::unique_ptr<cyborg::Client>` if you need to move ownership.</Note>
 
 ## Persistent Backing Stores
 

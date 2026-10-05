@@ -42,7 +42,7 @@ index.create_user_keys(writer_id, writer_kek, permissions=["read", "write"], ind
 #include <array>
 #include <openssl/rand.h>
 
-cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
+cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
 
 // Root index KEK — the admin gate for user management
 std::array<uint8_t, 32> index_key;
