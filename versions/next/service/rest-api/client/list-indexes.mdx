@@ -14,13 +14,13 @@ None
 
 ## Authentication
 
-Required - API key via `X-API-Key` header:
+Required - **admin (root) API key** via `X-API-Key` header. Per-user (`cdbk_`) keys are rejected with `403`:
 
 ```http
 X-API-Key: cyborg_your_api_key_here
 ```
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
 
 ## Response
 
@@ -36,8 +36,17 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key)
-- `500`: Internal server error
+<AccordionGroup>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key)
+    </Accordion>
+    <Accordion title="403 Forbidden">
+        Authenticated with a per-user (`cdbk_`) key — listing indexes requires the admin (root) API key
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 

@@ -10,13 +10,13 @@ Train an index for efficient querying. Required before optimal performance.
 
 ## Authentication
 
-Required - API key via `X-API-Key` header:
+Required - **admin (root) API key** via `X-API-Key` header. Per-user (`cdbk_`) keys are rejected with `403` — a per-user credential operates on data, not index lifecycle:
 
 ```http
 X-API-Key: cyborg_your_api_key_here
 ```
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
 
 ## Request Body
 
@@ -43,18 +43,22 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
     Number of inverted lists to create. When `null` or omitted, automatically determines optimal value based on dataset size
   </ParamField>
   <ParamField body="batch_size" type="integer" default={2048}>
-    Size of each training batch
+    Size of each training batch. **Currently ignored** — see warning below
   </ParamField>
   <ParamField body="max_iters" type="integer" default={100}>
-    Maximum training iterations
+    Maximum training iterations. **Currently ignored** — see warning below
   </ParamField>
   <ParamField body="tolerance" type="number" default={1e-6}>
-    Convergence tolerance
+    Convergence tolerance. **Currently ignored** — see warning below
   </ParamField>
   <ParamField body="max_memory" type="integer" default={0}>
-    Maximum memory usage in MB (0 = no limit)
+    Maximum memory usage in MB (0 = no limit). **Currently ignored** — see warning below
   </ParamField>
 </Expandable>
+
+<Warning>
+Only `index_name`, `index_key`, and `n_lists` affect training. The remaining parameters — `batch_size`, `max_iters`, `tolerance`, and `max_memory` — are accepted and validated but **not applied**: the training job silently drops them and runs with built-in defaults. Sending them does not cause an error, but it has no effect. This will be fixed in an upcoming update.
+</Warning>
 
 ## Response
 
@@ -75,15 +79,30 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
 ```
 
 <Note>
-This endpoint blocks until training completes. It will return `"success"` when training finishes normally, or `"error"` if training fails.
+This endpoint blocks until training completes. It will return `"success"` when training finishes normally, or `"error"` if the training job fails — both as HTTP `200`, never an HTTP error status. The `"error"` message is generic; the underlying cause is written to the service logs, not the response. HTTP error codes below only cover failures *before* the job runs (auth, unknown index, malformed request).
+
+**Too few vectors is not reported as an error.** When the index holds fewer vectors than the training minimums (see [Training Requirements](#training-requirements)), the job skips training silently and still returns `"status": "success"` — the only trace is a warning in the service logs. Check your vector count before training.
 </Note>
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
-- `404`: Index not found
-- `422`: Invalid request parameters or insufficient vectors
-- `500`: Internal server error
+<AccordionGroup>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
+    </Accordion>
+    <Accordion title="403 Forbidden">
+        Authenticated with a per-user (`cdbk_`) key — this operation requires the admin (root) API key
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found
+    </Accordion>
+    <Accordion title="422 Unprocessable Entity">
+        Request body failed validation (missing/mistyped fields)
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 
@@ -98,7 +117,7 @@ curl -X POST "http://localhost:8000/v1/indexes/train" \
      }'
 ```
 
-**Custom Training Parameters:**
+**Explicit `n_lists`:**
 ```bash
 curl -X POST "http://localhost:8000/v1/indexes/train" \
      -H "X-API-Key: cyborg_your_api_key_here" \
@@ -106,18 +125,16 @@ curl -X POST "http://localhost:8000/v1/indexes/train" \
      -d '{
        "index_name": "my_index",
        "index_key": "your_64_character_hex_key_here",
-       "batch_size": 1024,
-       "max_iters": 50,
-       "tolerance": 0.0001
+       "n_lists": 128
      }'
 ```
 
-<Tip>There must be at least `2 * n_lists` vector embeddings in the index prior to training.</Tip>
+<Tip>There must be at least 10,000 vector embeddings in the index prior to training — and at least `2 × n_lists` if you set `n_lists` explicitly.</Tip>
 
 ## Training Requirements
 
-- **Minimum vectors**: At least `2 × n_lists` vectors must be present in the index
-- **Memory**: Training may require significant memory depending on `batch_size` and dataset size
+- **Minimum vectors**: At least 10,000 vectors must be present in the index, and at least `2 × n_lists` when `n_lists` is set explicitly (the auto-computed `n_lists` always satisfies this). Below either floor the job **skips training silently** and still returns `200` with `"status": "success"` — the skip is only visible as a warning in the service logs
+- **Memory**: Training may require significant memory depending on dataset size
 - **Time**: Training duration varies based on dataset size and convergence parameters
 
 ## Use Cases

@@ -152,7 +152,7 @@ query_vector = rng.random(128, dtype=np.float32)
 
 results = index.query(
     query_vectors=query_vector,
-    text="encrypted search",   # <- this is what makes it hybrid
+    text="encrypted search",
     top_k=10,
     alpha=0.5,                 # 0 = pure BM25, 1 = pure vector; default 0.5
     include=["metadata"],

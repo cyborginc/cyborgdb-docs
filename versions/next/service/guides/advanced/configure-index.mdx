@@ -15,10 +15,10 @@ CyborgDB Service stores every encrypted index as a **DiskIVF** index: an inverte
 |---|---|---|
 | `dimension` | auto-detect | Vector dimensionality. If you omit it, the server fixes the dimension to whatever shape the **first upsert** uses. |
 | `metric` | `euclidean` | Distance function used for similarity search. Accepts `euclidean`, `squared_euclidean`, or `cosine`. |
-| `embedding_model` | unset | Optional sentence-transformers model name. When set, the service generates embeddings server-side from `contents` on upsert/query; `dimension` is inferred from the model. |
-| `storage_precision` | `float32` | On-disk rerank-vector dtype. `float32` is highest recall; `float16` halves on-disk storage at the cost of small recall loss. |
+| `embedding_model` | unset | Optional built-in embedding model name. When set, the service generates embeddings server-side from `contents` on upsert/query; `dimension` is inferred from the model. |
+| `storage_precision` | `float32` | On-disk rerank-vector dtype. `float32` is highest recall; `float16` halves on-disk storage at the cost of small recall loss; the TurboQuant tiers `tq12`/`tq8`/`tq6`/`tq4` compress further (12, 8, 6, or 4 bits per component). |
 
-Two more parameters control key management — they are mutually exclusive against a real KMS slot, and at least one must be supplied:
+Two more parameters control key management — they are mutually exclusive, and exactly one must be supplied:
 
 | Parameter | When to use it |
 |---|---|
@@ -92,14 +92,15 @@ Supported values:
 - `squared_euclidean` — L2 without the square root; faster, ordering identical to `euclidean`.
 - `cosine` — cosine distance. Use with normalized vectors.
 
-## `storage_precision`: float32 vs float16
+## `storage_precision`: from float32 to TurboQuant
 
-`storage_precision` selects the dtype used for the on-disk rerank vectors. Reranking happens after IVF candidate retrieval to recover recall; storing rerank vectors at lower precision halves the on-disk footprint with a small recall trade-off.
+`storage_precision` selects the dtype used for the on-disk rerank vectors. Reranking happens after IVF candidate retrieval to recover recall; storing rerank vectors at lower precision shrinks the on-disk footprint with a small recall trade-off.
 
 | Value | On-disk size | Recall | When to use |
 |---|---|---|---|
 | `float32` (default) | 4 bytes / element | Highest | Most workloads, especially small/medium indexes |
 | `float16` | 2 bytes / element | Small recall loss | Large indexes where disk footprint matters more than the last 1–2% of recall |
+| `tq12` / `tq8` / `tq6` / `tq4` | 12 / 8 / 6 / 4 bits / element | Decreases with tier | TurboQuant tiers for maximum compression — `tq4` is the most aggressive (~8x smaller than `float32`, ~94% recall@100). All tiers work with every metric. |
 
 ```python Python SDK icon="python"
 # 50% smaller on-disk footprint
@@ -135,7 +136,7 @@ index, _ := client.CreateIndex(context.Background(), params)
 
 ## Automatic embeddings (`embedding_model`)
 
-Pass a sentence-transformers model name and the server will embed text `contents` server-side on upsert and query. When `embedding_model` is set, `dimension` is inferred from the model and can be omitted.
+Pass a supported embedding model name and the server will embed text `contents` server-side on upsert and query. When `embedding_model` is set, `dimension` is inferred from the model and can be omitted.
 
 ```python Python SDK icon="python"
 index = client.create_index(
@@ -164,7 +165,7 @@ params := &cyborgdb.CreateIndexParams{
 index, _ := client.CreateIndex(context.Background(), params)
 ```
 
-<Tip>The Docker service image bundles sentence-transformers. For the pip-installed service, install with `pip install 'cyborgdb-service[embeddings]'` (or `'cyborgdb-service-cu12[embeddings]'` on CUDA hosts).</Tip>
+<Tip>Embedding models are built into the service — no extra packages are required. List the supported models and their dimensions with [`GET /v1/embedding-models`](../../rest-api/client/list-embedding-models).</Tip>
 
 ## Training the index
 
