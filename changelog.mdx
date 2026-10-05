@@ -9,6 +9,10 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 <Update label="v0.18.0" description="2026-10-01">
 ## CyborgDB v0.18.0
 
+<Warning>
+**Upgrading to v0.18.** v0.18 changes index formats and moves both the disk and S3 backing stores onto a new storage engine. It also adds a new metadata engine and BM25 hybrid search. Indexes created on v0.17 or earlier must be re-ingested: existing indexes can't be opened in place, and an index can't be moved between the S3 and disk backing stores. v0.19 changes the wire format again to separate indexing from the write path, and will require another re-ingest. If you are planning a large ingest, [talk to us](https://www.cyborg.co/contact) before you start. See [What's New in v0.18](/versions/latest/intro/whats-new#upgrading-from-v0-17) for the upgrade steps.
+</Warning>
+
 ### Deployment Model
 
 - Embedded Library (Python & C++)
@@ -42,10 +46,16 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
 
 ### Breaking Changes
 
-- **Storage engine.** Appendix replaces RocksDB as the embedded `disk` store
+- **Storage engine and index format.** Appendix replaces RocksDB as the `disk` store and also backs the `s3` store. Indexes from v0.17 or earlier must be re-ingested
+- **`memory` backing store removed.** Use `StorageConfig.disk(...)` (optionally with in-RAM caching) or `StorageConfig.s3(...)` in the embedded library; the service's `CYBORGDB_DB_TYPE` accepts `disk` or `s3`
 - **Embeddings install.** The `cyborgdb-core[embeddings]` extra is removed — automatic embedding is built in
 - `create_index` bounds the index dimension
 - Python SDK exception types have changed — update any `except` clauses that match on the old types
+
+### Known Limits
+
+- BM25 search returns accurate results but is slower than vector search
+- S3 allows one writer per bucket and prefix, and needs strong LIST-after-write consistency (multi-site Ceph RGW is not supported)
 
 </Update>
 

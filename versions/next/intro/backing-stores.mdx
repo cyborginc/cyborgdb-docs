@@ -3,107 +3,70 @@ title: "Backing Stores"
 noindex: true
 ---
 
-CyborgDB transforms traditional databases into Confidential Vector Databases by leveraging their storage capabilities while adding encrypted vector search functionality. Choose the backing store that best fits your existing infrastructure and operational requirements.
+CyborgDB persists encrypted indexes to local disk or to S3. Both backing stores run on **Appendix**, CyborgDB's storage engine: an append-only, segmented log with an in-memory hash index. Appendix is built for the access pattern encrypted vector search produces, which is point lookups by random, hash-derived keys. Writes are sequential appends, reads are one hash lookup plus one disk read, and space from deletes and updates is reclaimed by background compaction.
+
+CyborgDB encrypts every record before it reaches Appendix, so the backing store only ever holds ciphertext.
 
 <img src="/images/cyborgdb-search-overview.png" alt="CyborgDB RAG Overview" />
 
 <Note>
-**Storage surface.** CyborgDB supports `memory`, `disk`, and `s3` (AWS S3 or any S3-compatible store) across both deployment models.
+**Storage surface.** CyborgDB supports `disk` (the default) and `s3` (AWS S3 or any S3-compatible store) in both deployment models.
 </Note>
 
-## Amazon S3
-
-*Available in: Service · Embedded*
-
-**Scalable cloud object storage for distributed deployments**
-
-CyborgDB supports Amazon S3 (and S3-compatible stores such as MinIO) as a backing store, enabling fully cloud-native deployments without managing a traditional database server.
-
-### Key Benefits
-
-**Infinite Scalability**  
-Object storage scales seamlessly with your data — no capacity planning or provisioning required.
-
-**Managed Infrastructure**  
-No database servers to patch, tune, or back up. AWS handles availability and durability.
-
-**S3-Compatible**  
-Works with AWS S3, MinIO, Cloudflare R2, and any other S3-compatible object store.
-
-**Best For:** Cloud-native deployments, multi-region architectures, and workloads that already rely on object storage infrastructure.
-
----
+<Warning>
+**v0.18 changes the storage format.** Indexes written by v0.17 or earlier can't be opened by v0.18. Pointing v0.18 at an existing data directory or bucket opens an empty database and leaves the old data untouched. An index also can't be moved between the disk and S3 backing stores in either direction. See [What's New in v0.18](./whats-new#upgrading-from-v0-17) for the re-ingest steps.
+</Warning>
 
 ## Disk
 
 *Available in: Service · Embedded*
 
-<Note>The embedded libraries and LangChain integration select this backend with the literal value `disk`. CyborgDB Service selects it via `CYBORGDB_DB_TYPE=disk` (and it is the default).</Note>
-
 **Persistent local storage for single-node deployments**
 
-The disk backend provides persistent key-value storage directly on local disk, with no network dependency. This makes it the recommended backing store for single-node CyborgDB deployments where simplicity and reliability are priorities.
+The disk backing store keeps the Appendix log on the local filesystem, with no network dependency. It is the default and the recommended choice for single-node deployments.
 
 ### Key Benefits
 
 **No Network Dependency**
-All data is stored locally on disk — no external database servers to configure or manage.
+All data is stored locally. No external database server to configure or manage.
 
 **Persistent Storage**
-Data survives process restarts with automatic durability via write-ahead logging.
+Data survives process restarts.
 
-**Optimized for Embedded Use**
-Low memory footprint with filesystem support.
+**Optional In-RAM Caching**
+Each store (vectors, metadata, IDs, metadata index) can be served from an in-RAM cache over the durable log, for memory-speed reads without giving up persistence.
 
-**Best For:** Embedded/local deployments, single-machine applications, edge devices, and scenarios where you want persistent storage without external infrastructure.
+**Best For:** Embedded and single-machine deployments, edge devices, and local development.
 
 ---
 
-## Memory
+## Amazon S3
 
 *Available in: Service · Embedded*
 
-<Note>The embedded libraries refer to this backend as "ThreadSafeMemory". CyborgDB Service v0.17 selects it via `CYBORGDB_DB_TYPE=memory`.</Note>
+**Cloud object storage for cloud-native deployments**
 
-**Local in-process storage for development and testing**
-
-Memory-based storage keeps all data in local process memory, providing the fastest possible access with zero network overhead. Perfect for development, testing, and single-process applications.
+CyborgDB supports AWS S3 and S3-compatible stores (MinIO, Cloudflare R2, single-site Ceph) as a backing store, so you don't have to manage a database server. Reads are served from an in-RAM cache over S3.
 
 ### Key Benefits
 
-**Zero Network Latency**  
-Direct memory access without serialization overhead for maximum performance.
+**Scalable Capacity**
+Object storage grows with your data, with no capacity planning.
 
-**Development Simplicity**  
-No external dependencies or configuration required — instant setup for prototyping.
+**Managed Infrastructure**
+No database servers to patch, tune, or back up.
 
-**Deterministic Performance**  
-Predictable access patterns with complete control over memory usage.
+**S3-Compatible**
+Works with AWS S3, MinIO, Cloudflare R2, and single-site Ceph.
 
-**Best For:** Development and testing environments, single-process applications, proof-of-concept scenarios, and ephemeral data requirements.
+### Requirements
 
----
+- **One writer per bucket and prefix.** A second concurrent writer to the same bucket and prefix is a fatal error. Give each writer its own prefix.
+- **Write credentials.** Opening an S3 store writes its manifest, so read-only credentials can't open it.
+- **Strong consistency.** The store needs strong LIST-after-write consistency. AWS S3, MinIO, Cloudflare R2, and single-site Ceph provide it; multi-site Ceph RGW does not and is not supported.
+- **Writes are durable on return.** A write returns only after the S3 object that covers it is durable, so write throughput depends on S3 round-trip latency.
 
-## Managed Services Support
-
-CyborgDB works seamlessly with managed object storage services, reducing operational overhead while maintaining security and performance.
-
-<CardGroup cols={3}>
-  <Card title="AWS" icon="aws">
-    **Amazon S3**  
-    Scalable object storage with 11 nines of durability
-  </Card>
-
-  <Card title="Cloudflare" icon="cloudflare">
-    **Cloudflare R2**  
-    S3-compatible object storage with zero egress fees
-  </Card>
-
-  <Card title="Self-hosted" icon="server">
-    **MinIO**  
-    S3-compatible object storage you control end-to-end
-  </Card>
-</CardGroup>
+**Best For:** Cloud-native deployments and teams already running on S3 or S3-compatible storage.
 
 ---
 
@@ -111,61 +74,58 @@ CyborgDB works seamlessly with managed object storage services, reducing operati
 
 <Tabs>
   <Tab title="Use Disk">
-    - **Single-node deployment** — You want persistent local storage with no external dependencies
-    - **Edge devices** — Running on hardware without network access to databases
-    - **Simplicity** — You want a single-binary deployment with built-in storage
-    - **Local development** — Persistent storage that survives restarts without infrastructure
-    - **Default choice** — It's the v0.17 service default and works out of the box
+    - **Single-node deployment.** You want persistent local storage with no external dependencies.
+    - **Edge devices.** The hardware has no network access to object storage.
+    - **Lowest latency.** Local reads, optionally cached in RAM.
+    - **Default choice.** It works out of the box.
   </Tab>
 
   <Tab title="Use S3">
-    - **Cloud-Native** — Your infrastructure already uses AWS or S3-compatible storage
-    - **Serverless** — You want durable storage without managing database servers
-    - **Multi-Region** — You need geo-distributed data with S3 replication
-    - **Horizontal scaling** — Multiple service replicas need to share state
-    - **Cost** — Object storage is cheaper than provisioned database instances at scale
-    - **MinIO / R2** — You want S3-compatible storage on-premise or in a private cloud
-  </Tab>
-
-  <Tab title="Use Memory">
-    - **Development** — You're building and testing your application
-    - **Single Process** — Your application runs in a single process or container
-    - **Temporary Data** — Your vectors are computed on-demand and don't need persistence
-    - **Simplicity** — You want to minimize external dependencies
-    - **Maximum Performance** — Need absolute fastest access with zero network overhead
+    - **Cloud-native.** Your infrastructure already uses AWS or S3-compatible storage.
+    - **Durability without servers.** You want durable storage without running a database.
+    - **MinIO / R2.** You want S3-compatible storage on-premises or in a private cloud.
   </Tab>
 </Tabs>
+
+<Note>
+The `memory` backing store was removed in v0.18. For memory-speed reads, use the disk store with in-RAM caching enabled. For throwaway test indexes, point the disk store at a temporary directory.
+</Note>
 
 ## Configuration Examples
 
 ### Embedded library
 
 ```python Disk
-from cyborgdb_core import DBConfig
+from cyborgdb_core import StorageConfig
 
-# Local disk (default path: ~/.cyborgdb/data)
-db_config = DBConfig("disk")
+# Local disk
+storage = StorageConfig.disk("/var/lib/cyborgdb")
+
+# Local disk, with every store served from an in-RAM cache
+storage = StorageConfig.disk(
+    "/var/lib/cyborgdb",
+    cache_vectors=True,
+    cache_metadata=True,
+    cache_ids=True,
+    cache_metadata_index=True,
+)
 ```
 
 ```python S3
-from cyborgdb_core import DBConfig
+from cyborgdb_core import StorageConfig, S3Credentials
 
-# AWS S3
-db_config = DBConfig("s3://my-bucket?region=us-east-1")
+# AWS S3, credentials from the default AWS provider chain
+storage = StorageConfig.s3("my-bucket", region="us-east-1", prefix="cyborgdb/")
 
-# AWS S3 with explicit credentials
-db_config = DBConfig("s3://my-bucket?region=us-east-1&access_key=AKID...&secret_key=...")
-
-# MinIO (S3-compatible)
-db_config = DBConfig("s3://my-bucket?region=us-east-1&endpoint=http://localhost:9000&access_key=minioadmin&secret_key=minioadmin")
+# MinIO (S3-compatible) with explicit credentials
+storage = StorageConfig.s3(
+    "my-bucket",
+    endpoint="http://localhost:9000",
+    credentials=S3Credentials(access_key="minioadmin", secret_key="minioadmin"),
+)
 ```
 
-```python ThreadSafeMemory
-from cyborgdb_core import DBConfig
-
-# Thread-safe in-memory storage
-db_config = DBConfig("threadsafememory")
-```
+See [`StorageConfig`](../embedded/python/types#storageconfig) for every option.
 
 ### Service
 
@@ -180,17 +140,5 @@ export CYBORGDB_DISK_PATH=/var/lib/cyborgdb   # optional
 export CYBORGDB_DB_TYPE=s3
 export CYBORGDB_S3_BUCKET=my-bucket
 export CYBORGDB_S3_REGION=us-east-1
-
-# memory
-export CYBORGDB_DB_TYPE=memory
+export CYBORGDB_S3_PREFIX=cyborgdb/           # optional
 ```
-
-## Performance Characteristics
-
-| Backing Store | Latency | Throughput | Durability | Consistency |
-|---------------|:-------:|:----------:|:----------:|:-----------:|
-| **Memory** / **ThreadSafeMemory** | ~1µs | Very High | None | Single Process / Thread-Safe |
-| **Disk** | ~10µs | High | Local Disk | Single Process |
-| **S3** | ~10ms | Medium | Full (11 nines) | Eventual |
-
-Choose based on your application's specific requirements for speed, durability, and consistency.

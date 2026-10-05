@@ -5,6 +5,18 @@ noindex: true
 
 **CyborgDB** is a Confidential Vector Database: a self-hosted, standalone vector search engine that keeps your embeddings encrypted end to end. It persists to local disk or S3, runs entirely inside your own infrastructure, and adds confidential vector search to your stack **while keeping your data encrypted throughout the entire process**. 
 
+<Warning>
+**Upgrading to v0.18.** v0.18 changes index formats and moves both the disk and S3 backing stores onto a new storage engine. It also adds a new metadata engine and BM25 hybrid search. Indexes created on v0.17 or earlier must be re-ingested: existing indexes can't be opened in place, and an index can't be moved between the S3 and disk backing stores. v0.19 changes the wire format again to separate indexing from the write path, and will require another re-ingest. If you are planning a large ingest, [talk to us](https://www.cyborg.co/contact) before you start. See [What's New in v0.18](./whats-new).
+</Warning>
+
+### New in v0.18
+
+- **Encrypted metadata filtering.** Metadata is indexed under encryption. `query_metadata` retrieves items by metadata alone, and a cost-based planner picks pre- or post-filtering for filtered vector queries.
+- **BM25 text search.** Full-text keyword search over encrypted fields.
+- **Hybrid queries.** Combine BM25 and vector similarity in a single query.
+- **TurboQuant.** Compress stored vector embeddings to 12, 8, 6, or 4 bits per dimension.
+- **Appendix storage engine.** A new append-only storage engine backs both the disk and S3 stores.
+
 ### Why *Confidential*?
 
 According to KPMG, 63% of enterprises say that confidentiality and data privacy are their top risk to AI adoption ([1](https://iapp.org/resources/article/consumer-perspectives-of-privacy-and-ai/)). In regulated sectors, this figure increases to 76%. Yet, when it comes to solutions which address these concerns, the market has yet to answer. This leaves a critical mass of companies unserved and unable to adopt AI in their workflows. They need **Confidential AI**.
@@ -20,7 +32,7 @@ Think of CyborgDB as a **dedicated vector layer** that sits alongside your appli
 - **No data leaves your infrastructure** - Run it in your VPC or on-prem
 - **Familiar development patterns** - A vector API that slots into existing AI pipelines
 - **Minimal operational surface** - Local disk by default; no separate database to run
-- **Gradual adoption possible** - Start with vector search, expand as needed
+- **Gradual adoption possible** - Start with vector search, then add metadata filtering and keyword search as needed
 
 ### The Vector Search Problem
 
@@ -78,7 +90,7 @@ Deploy as embedded libraries for maximum control, or as a service for easier sca
   </Card>
   
   <Card title="Backing Stores" href="./backing-stores" icon="database">
-    *Memory, Disk, S3*
+    *Disk, S3*
     
     Learn where CyborgDB persists your encrypted index, and how to pick per environment
   </Card>

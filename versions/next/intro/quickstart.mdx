@@ -17,8 +17,8 @@ pip install cyborgdb-core
 import cyborgdb_core as cyborgdb
 import secrets
 
-# Ephemeral in-memory backing store — no server, no config.
-client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+# Local disk backing store — no server, no config.
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 # Generate an encryption key for the index.
 # WARNING: store this key securely — data encrypted with a lost key is unrecoverable.
@@ -121,7 +121,7 @@ Already on Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Bring your workload 
   </Card>
 
   <Card title="Choose a Backing Store" href="./backing-stores" icon="database">
-    Memory, disk (default), or S3 — pick per environment.
+    Disk (default) or S3 — pick per environment.
   </Card>
 
   <Card title="Deployment Models" href="./deployment-models" icon="server">

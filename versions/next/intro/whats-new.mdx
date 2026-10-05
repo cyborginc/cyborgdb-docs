@@ -1,0 +1,70 @@
+---
+title: "What's New in v0.18"
+sidebarTitle: "What's New"
+noindex: true
+---
+
+<Warning>
+**Upgrading to v0.18 requires a full re-ingest.** v0.18 changes index formats and moves both the disk and S3 backing stores onto a new storage engine. Indexes created on v0.17 or earlier cannot be opened in place: pointing v0.18 at an existing data directory or bucket opens an empty database. Your old data is left untouched, so an older release can still read it. An index also cannot be moved between the S3 and disk backing stores in either direction.
+
+v0.19 changes the wire format again to separate indexing from the write path, and will require another re-ingest. If you are planning a large ingest, [talk to us](https://www.cyborg.co/contact) before you start.
+</Warning>
+
+## Headline Features
+
+### Encrypted Metadata Filtering
+
+Metadata is now indexed under encryption and can be queried directly:
+
+- **`query_metadata`** retrieves items by metadata alone, with no query vector. It is available in the embedded library, the service, and the Python, JavaScript/TypeScript, and Go SDKs.
+- **Metadata schema.** A per-index `metadata_schema`, set at `create_index` time, controls which fields are indexed and how.
+- **Query planning.** Metadata filters on vector queries go through a cost-based planner that picks pre-filtering or post-filtering for each query.
+
+See [Metadata Filtering](../service/guides/data-operations/metadata-filtering).
+
+### BM25 Text Search and Hybrid Queries
+
+Fields marked `full_text` in the metadata schema are tokenized and indexed for BM25 keyword search. Combine BM25 with vector similarity in a single hybrid query to get both lexical and semantic matching.
+
+See [BM25 Search](../service/guides/data-operations/bm25-search).
+
+### TurboQuant
+
+The `storage_precision` setting on `create_index` adds TurboQuant tiers (`tq12`, `tq8`, `tq6`, `tq4`) next to `float32` and `float16`. These tiers shrink stored vector embeddings to 12, 8, 6, or 4 bits per dimension. Each tier costs a small amount of recall and query latency, so validate on a representative sample before using the more aggressive tiers.
+
+See [storage precision](../embedded/python/types#storage-precision).
+
+### Built-in Embeddings
+
+Automatic embedding generation is now built in. You no longer need `sentence-transformers`, `torch`, or the `cyborgdb-core[embeddings]` extra. Call `supported_embedding_models()` to list the available models.
+
+### New Storage Engine
+
+Appendix, CyborgDB's append-only storage engine, replaces RocksDB as the disk backing store and also backs S3. See [Backing Stores](./backing-stores) for what changed, including the removal of the `memory` backend.
+
+## Upgrading from v0.17
+
+<Steps>
+  <Step title="Keep your source data">
+    v0.18 cannot read v0.17 indexes, so you'll rebuild each index from the data you originally ingested. Your v0.17 data is not modified, and you can keep it until the new indexes are verified.
+  </Step>
+  <Step title="Upgrade packages">
+    Upgrade `cyborgdb-core`, `cyborgdb-service`, and the client SDKs together. Drop the `[embeddings]` extra from your install command.
+  </Step>
+  <Step title="Update storage configuration">
+    The `memory` backing store is gone. In the embedded library, configure storage with `StorageConfig.disk(...)` or `StorageConfig.s3(...)`. In the service, `CYBORGDB_DB_TYPE` accepts `disk` (the default) or `s3`. Point v0.18 at a new path or bucket prefix.
+  </Step>
+  <Step title="Re-create and re-ingest each index">
+    Create each index again, adding a `metadata_schema` if you want indexed metadata filtering or BM25, then upsert your data. If your vectors currently live in Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus, [CyborgDB Migrate](./migrate) can move them directly into a v0.18 index.
+  </Step>
+  <Step title="Update error handling">
+    The Python SDK's exception types have changed. Update any `except` clauses that match the old types.
+  </Step>
+</Steps>
+
+## Known Limits in v0.18
+
+- **BM25 speed.** BM25 search returns accurate results but is slower than vector search.
+- **S3 is single-writer.** Only one writer may use a given bucket and prefix at a time, and opening an S3 store requires write credentials. The store relies on strong LIST-after-write consistency: AWS S3, MinIO, Cloudflare R2, and single-site Ceph meet this, but multi-site Ceph RGW is not supported.
+
+See the [changelog](/changelog) for the full list of v0.18.0 changes.
