@@ -72,11 +72,23 @@ The returned `api_key` is shown only in this response and is never persisted by 
 
 ## Exceptions
 
-- `400`: `permissions` is missing, empty, or contains values outside `{"read", "write"}`.
-- `401`: Authentication failed (invalid root API key).
-- `403`: RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), or the caller is not using the root key.
-- `404`: Index not found.
-- `500`: Internal server error.
+<AccordionGroup>
+    <Accordion title="400 Bad Request">
+        `permissions` is missing, empty, or contains values outside `{"read", "write"}`.
+    </Accordion>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid root API key).
+    </Accordion>
+    <Accordion title="403 Forbidden">
+        RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), or the caller is not using the root key.
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found.
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error.
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 

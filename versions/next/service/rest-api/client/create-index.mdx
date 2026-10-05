@@ -18,7 +18,7 @@ Required - **admin (root) API key** via `X-API-Key` header. Per-user (`cdbk_`) k
 X-API-Key: cyborg_your_api_key_here
 ```
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
 
 ## Request Body
 
@@ -116,12 +116,26 @@ The recorded policy is echoed back on `POST /v1/indexes/describe` under `metadat
 
 ## Exceptions
 
-- `400`: Index name already exists. Also raised for missing/conflicting key parameters (both `index_key` and `kms_name` supplied, or neither), and for BM25 parameter violations enforced by the index core: `bm25_k1` / `bm25_b` supplied for an index with no `full_text` field, `bm25_k1 < 0`, `bm25_b` outside `[0, 1]`, or a `text_fields` entry naming a field the schema sets `full_text=false`
-- `401`: Authentication failed (invalid API key)
-- `403`: Authenticated with a per-user (`cdbk_`) key — this operation requires the admin (root) API key
-- `422`: Invalid request parameters — including `metadata_schema` with `pattern=true` but `filterable=false`, `full_text=true` combined with `pattern=true` or an explicit `filterable=true`, an empty field name, or an empty `text_fields` entry
-- `500`: Internal server error
-- `502`: KMS error (e.g. wrap operation failed)
+<AccordionGroup>
+    <Accordion title="400 Bad Request">
+        Index name already exists. Also raised for missing/conflicting key parameters (both `index_key` and `kms_name` supplied, or neither), and for BM25 parameter violations enforced by the index core: `bm25_k1` / `bm25_b` supplied for an index with no `full_text` field, `bm25_k1 < 0`, `bm25_b` outside `[0, 1]`, or a `text_fields` entry naming a field the schema sets `full_text=false`
+    </Accordion>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key)
+    </Accordion>
+    <Accordion title="403 Forbidden">
+        Authenticated with a per-user (`cdbk_`) key — this operation requires the admin (root) API key
+    </Accordion>
+    <Accordion title="422 Unprocessable Entity">
+        Invalid request parameters — including `metadata_schema` with `pattern=true` but `filterable=false`, `full_text=true` combined with `pattern=true` or an explicit `filterable=true`, an empty field name, or an empty `text_fields` entry
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+    <Accordion title="502 Bad Gateway">
+        KMS error (e.g. wrap operation failed)
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 

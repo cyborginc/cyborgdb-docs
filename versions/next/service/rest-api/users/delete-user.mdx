@@ -41,11 +41,23 @@ Revocation is idempotent: an unknown or already-revoked `user_id` also returns `
 
 ## Exceptions
 
-- `400`: `user_id` is not valid hex.
-- `401`: Authentication failed (invalid root API key).
-- `403`: RBAC is not enabled, or the caller is not using the root key.
-- `404`: Index not found.
-- `500`: Internal server error.
+<AccordionGroup>
+    <Accordion title="400 Bad Request">
+        `user_id` is not valid hex.
+    </Accordion>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid root API key).
+    </Accordion>
+    <Accordion title="403 Forbidden">
+        RBAC is not enabled, or the caller is not using the root key.
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found.
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error.
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 

@@ -16,7 +16,7 @@ Required - API key via `X-API-Key` header:
 X-API-Key: cyborg_your_api_key_here
 ```
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+Any valid credential is accepted — the root key or a per-user `cdbk_` token. When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
 
 ## Request Body
 
@@ -119,11 +119,23 @@ Any of these come back as 400 with the reason; use `/v1/vectors/query` with a ve
 
 ## Exceptions
 
-- `400`: Filter references a field the metadata index cannot resolve — a `$regex`/`$contains` on a non-`pattern` field, a `filterable: false` field, or an unsupported operator. Also raised for text-parameter violations: `text` on an index with no `full_text` field, a `text_fields` entry that is not a `full_text` field, a text knob (`text_fields` / `text_field_weights` / `require_all_terms`) without `text`, or `order_by` combined with `text`
-- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
-- `404`: Index not found
-- `422`: Invalid request parameters
-- `500`: Internal server error
+<AccordionGroup>
+    <Accordion title="400 Bad Request">
+        Filter references a field the metadata index cannot resolve — a `$regex`/`$contains` on a non-`pattern` field, a `filterable: false` field, or an unsupported operator. Also raised for text-parameter violations: `text` on an index with no `full_text` field, a `text_fields` entry that is not a `full_text` field, a text knob (`text_fields` / `text_field_weights` / `require_all_terms`) without `text`, or `order_by` combined with `text`
+    </Accordion>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found
+    </Accordion>
+    <Accordion title="422 Unprocessable Entity">
+        Invalid request parameters
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 

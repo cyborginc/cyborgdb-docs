@@ -13,13 +13,12 @@ This page is the operator playbook: how to enable RBAC, mint and revoke users, a
 
 | Mode | Enabled by | Who can call what |
 |---|---|---|
-| **Single-key (default)** | `CYBORGDB_SERVICE_ROOT_KEY` unset | One `CYBORGDB_API_KEY` has full access to everything. No user routes available. |
-| **RBAC** | `CYBORGDB_SERVICE_ROOT_KEY` set | The root key has admin (mint/list/revoke users, create/train/delete indexes). Per-user `cdbk_…` keys are scoped to one index with `read` / `write` permissions. The legacy `CYBORGDB_API_KEY` is no longer accepted on index routes. |
+| **Unauthenticated (default)** | `CYBORGDB_SERVICE_ROOT_KEY` unset | Authentication is disabled — every request is accepted, with or without an `X-API-Key` header. No user routes available. |
+| **RBAC** | `CYBORGDB_SERVICE_ROOT_KEY` set | The root key has admin (mint/list/revoke users, create/train/delete indexes). Per-user `cdbk_…` keys are scoped to one index with `read` / `write` permissions. |
 
-You enable RBAC by setting **both** keys at startup:
+You enable RBAC by setting the root key at startup:
 
 ```bash
-export CYBORGDB_API_KEY=cyborg_your_legacy_key      # still required (license)
 export CYBORGDB_SERVICE_ROOT_KEY=cyborg_your_root_key   # opt-in: enables RBAC
 cyborgdb-service
 ```
@@ -28,23 +27,22 @@ Or via YAML:
 
 ```yaml cyborgdb.yaml
 service:
-  cyborgdb_api_key: ${CYBORGDB_API_KEY}
   cyborgdb_service_root_key: ${CYBORGDB_SERVICE_ROOT_KEY}
 ```
 
-<Warning>Pick **fresh, distinct** values for the two keys. The root key has admin privileges; treat it like a master credential. Rotate it independently of `CYBORGDB_API_KEY`.</Warning>
+<Warning>The root key has admin privileges; treat it like a master credential. Pick a fresh value — don't reuse the `CYBORGDB_API_KEY` license key, which is a separate, non-authentication key (sending it as `X-API-Key` is rejected with 401).</Warning>
 
 ## Key kinds
 
-When RBAC is on, the service classifies every `X-API-Key` request header into one of three kinds:
+When RBAC is on, the service classifies every `X-API-Key` request header:
 
 | Kind | Header value | What it can do |
 |---|---|---|
 | `root` | `CYBORGDB_SERVICE_ROOT_KEY` | Full admin: create/train/delete indexes; mint/list/revoke users; all data operations. |
 | `user` | A `cdbk_…` token minted via `POST /v1/indexes/{name}/users` | Data operations on **one** index, gated by the `read` / `write` permission set requested at mint time. Cannot create/delete indexes or manage users. |
-| `legacy` | `CYBORGDB_API_KEY` | **Rejected on index routes** when RBAC is on. Health endpoint still works. |
+| *(anything else)* | Any other value — including the `CYBORGDB_API_KEY` license key — or no header at all | Rejected with `401`. (`GET /health` is exempt — it never requires a key.) |
 
-If `CYBORGDB_SERVICE_ROOT_KEY` is unset, the legacy single key keeps its full-access behavior — RBAC is strictly opt-in.
+If `CYBORGDB_SERVICE_ROOT_KEY` is unset, authentication is disabled entirely — RBAC is strictly opt-in.
 
 ## Provisioning users
 
@@ -210,7 +208,6 @@ A typical operator workflow for onboarding a new tenant:
 - **Read vs write semantics.** `read` covers `query`, `get`, `list_ids`, `describe`. `write` covers `upsert`, `delete`. Index lifecycle operations (`create`, `train`, `delete_index`) and user management are root-only — there's no "delegated admin" permission.
 - **KEK cache.** Plaintext index KEKs live in an in-process cache for `INDEX_KEK_CACHE_TTL_SECONDS` (default 60s). Revoking a user is immediate and cryptographic; revoking *KMS-level* access to the wrap key propagates within the cache TTL.
 - **Restarting the service.** User keys survive restart — the wrapped DEKs are persisted alongside the index envelope. The root key is read from env/YAML on every start.
-- **Auditing.** The service logs the kind of key (`root` / `user` / `legacy` / `none`) on each request at `INFO`. Pair with structured logging to attribute index activity to users.
 
 ## See also
 

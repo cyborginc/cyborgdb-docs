@@ -16,7 +16,7 @@ Required - API key via `X-API-Key` header:
 X-API-Key: cyborg_your_api_key_here
 ```
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+Any valid credential is accepted — the root key or a per-user `cdbk_` token. When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
 
 ## Request Body
 
@@ -127,12 +127,26 @@ In rare cases where the training check encounters an error but the upsert operat
 
 ## Exceptions
 
-- `400`: Invalid values (e.g. vector dimension mismatch with the index)
-- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
-- `404`: Index not found
-- `422`: Request body failed validation (missing/mistyped fields)
-- `500`: Internal server error
-- `503`: Embedding model unavailable (auto-embedding upserts on indexes with an `embedding_model`)
+<AccordionGroup>
+    <Accordion title="400 Bad Request">
+        Invalid values (e.g. vector dimension mismatch with the index)
+    </Accordion>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found
+    </Accordion>
+    <Accordion title="422 Unprocessable Entity">
+        Request body failed validation (missing/mistyped fields)
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+    <Accordion title="503 Service Unavailable">
+        Embedding model unavailable (auto-embedding upserts on indexes with an `embedding_model`)
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 

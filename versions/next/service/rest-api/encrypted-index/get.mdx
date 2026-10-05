@@ -16,7 +16,7 @@ Required - API key via `X-API-Key` header:
 X-API-Key: cyborg_your_api_key_here
 ```
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+Any valid credential is accepted — the root key or a per-user `cdbk_` token. When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
 
 ## Request Body
 
@@ -80,10 +80,20 @@ If an item ID doesn't exist, it will be omitted from the results.
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
-- `404`: Index not found
-- `422`: Invalid request parameters
-- `500`: Internal server error
+<AccordionGroup>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found
+    </Accordion>
+    <Accordion title="422 Unprocessable Entity">
+        Invalid request parameters
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 

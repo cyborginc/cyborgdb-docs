@@ -16,7 +16,7 @@ Required - API key via `X-API-Key` header:
 X-API-Key: cyborg_your_api_key_here
 ```
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+Any valid credential is accepted — the root key or a per-user `cdbk_` token. When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
 
 ## Request Body
 
@@ -232,12 +232,26 @@ On a three-way query the filter is resolved **once**, before retrieval, and the 
 
 ## Exceptions
 
-- `400`: Invalid values (e.g. vector dimension mismatch with the index), or a hybrid-parameter violation enforced by the index core — a filter disallowed on a hybrid (`text`) query (see the Note above), `text` on an index with no `full_text` field, a `text_fields` entry that is not a `full_text` field, a text knob (`text_fields` / `text_field_weights` / `require_all_terms`) without `text`, `alpha` outside `[0, 1]`, `rrf_k <= 0`, or `window_mult < 1`
-- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
-- `404`: Index not found
-- `422`: Request body failed validation (missing/mistyped fields)
-- `500`: Internal server error
-- `503`: Embedding model unavailable (semantic search via `query_contents`)
+<AccordionGroup>
+    <Accordion title="400 Bad Request">
+        Invalid values (e.g. vector dimension mismatch with the index), or a hybrid-parameter violation enforced by the index core — a filter disallowed on a hybrid (`text`) query (see the Note above), `text` on an index with no `full_text` field, a `text_fields` entry that is not a `full_text` field, a text knob (`text_fields` / `text_field_weights` / `require_all_terms`) without `text`, `alpha` outside `[0, 1]`, `rrf_k <= 0`, or `window_mult < 1`
+    </Accordion>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found
+    </Accordion>
+    <Accordion title="422 Unprocessable Entity">
+        Request body failed validation (missing/mistyped fields)
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+    <Accordion title="503 Service Unavailable">
+        Embedding model unavailable (semantic search via `query_contents`)
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 
