@@ -363,29 +363,23 @@ Setup is a two-party handshake:
 
 ## Configuration changes after creation
 
-The KMS registry is read once at startup, so any YAML change
-requires a service restart to take effect. The persisted envelope
-records a snapshot of the YAML config (`provider`, `key_id`,
-`region`) that was used to wrap each index. At startup the service
-compares that snapshot against the current YAML and:
+Changes to the YAML registry take effect only after a service
+restart. Each index remembers the `provider`, `key_id`, and `region`
+it was created with, and on restart the service handles changes as
+follows:
 
 - **`role_arn` / `external_id` / `role_session_name` changes** —
-  used on the next unwrap after the restart. No rotation is needed.
-  KEKs already in the cache keep serving until
-  `INDEX_KEK_CACHE_TTL_SECONDS` expires.
-- **`provider` / `key_id` / `region` changes** — interpreted as an
-  operator-initiated rotation. The service automatically unwraps
-  the existing KEK with the **old** snapshot, generates a new KEK
-  via the **new** entry, re-wraps the index's DEK under it, and
-  updates the snapshot. The old wrap key must still be accessible
-  for this to succeed. The old unwrap uses the slot's *current*
-  `role_arn` / `external_id`, so don't move a slot to a new account
-  and a new key in the same change. A rotation failure is logged
-  and the service still starts; that index keeps failing until it
-  is fixed.
-- **Slot removed from the YAML** — no rotation. The service logs
-  `stored kms_name='<slot>' not in YAML registry` and requests for
-  that index fail with HTTP 401.
+  picked up automatically. Nothing else to do.
+- **`provider` / `key_id` / `region` changes** — treated as a key
+  rotation. The service re-wraps each affected index under the new
+  key on startup. The **old** key must still be reachable with the
+  slot's new `role_arn` / `external_id`, so change the account and
+  the key in separate steps. If a rotation fails, the service still
+  starts, but requests for that index fail until the issue is fixed;
+  check the startup logs.
+- **Slot removed** — don't remove a slot while indexes still use it.
+  Requests for those indexes fail with HTTP 401 until the slot is
+  restored.
 
 ## Troubleshooting
 
