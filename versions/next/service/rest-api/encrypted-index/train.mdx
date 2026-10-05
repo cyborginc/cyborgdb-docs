@@ -43,18 +43,22 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
     Number of inverted lists to create. When `null` or omitted, automatically determines optimal value based on dataset size
   </ParamField>
   <ParamField body="batch_size" type="integer" default={2048}>
-    Size of each training batch
+    Size of each training batch. **Currently ignored** — see warning below
   </ParamField>
   <ParamField body="max_iters" type="integer" default={100}>
-    Maximum training iterations
+    Maximum training iterations. **Currently ignored** — see warning below
   </ParamField>
   <ParamField body="tolerance" type="number" default={1e-6}>
-    Convergence tolerance
+    Convergence tolerance. **Currently ignored** — see warning below
   </ParamField>
   <ParamField body="max_memory" type="integer" default={0}>
-    Maximum memory usage in MB (0 = no limit)
+    Maximum memory usage in MB (0 = no limit). **Currently ignored** — see warning below
   </ParamField>
 </Expandable>
+
+<Warning>
+Only `index_name`, `index_key`, and `n_lists` affect training. The remaining parameters — `batch_size`, `max_iters`, `tolerance`, and `max_memory` — are accepted and validated but **not applied**: the training job silently drops them and runs with built-in defaults. Sending them does not cause an error, but it has no effect. This will be fixed in an upcoming update.
+</Warning>
 
 ## Response
 
@@ -101,7 +105,7 @@ curl -X POST "http://localhost:8000/v1/indexes/train" \
      }'
 ```
 
-**Custom Training Parameters:**
+**Explicit `n_lists`:**
 ```bash
 curl -X POST "http://localhost:8000/v1/indexes/train" \
      -H "X-API-Key: cyborg_your_api_key_here" \
@@ -109,9 +113,7 @@ curl -X POST "http://localhost:8000/v1/indexes/train" \
      -d '{
        "index_name": "my_index",
        "index_key": "your_64_character_hex_key_here",
-       "batch_size": 1024,
-       "max_iters": 50,
-       "tolerance": 0.0001
+       "n_lists": 128
      }'
 ```
 
@@ -120,7 +122,7 @@ curl -X POST "http://localhost:8000/v1/indexes/train" \
 ## Training Requirements
 
 - **Minimum vectors**: At least 10,000 vectors must be present in the index, and at least `2 × n_lists` when `n_lists` is set explicitly (the auto-computed `n_lists` always satisfies this). Below either floor the job **skips training silently** and still returns `200` with `"status": "success"` — the skip is only visible as a warning in the service logs
-- **Memory**: Training may require significant memory depending on `batch_size` and dataset size
+- **Memory**: Training may require significant memory depending on dataset size
 - **Time**: Training duration varies based on dataset size and convergence parameters
 
 ## Use Cases
