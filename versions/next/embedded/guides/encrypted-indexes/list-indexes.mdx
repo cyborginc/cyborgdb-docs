@@ -20,18 +20,6 @@ print(indexes)
 # ["index_one", "index_two", "index_three"]
 ```
 
-```cpp C++ icon="brackets-curly"
-#include "cyborgdb_core/client.hpp"
-
-cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
-
-auto indexes = client.ListIndexes();
-
-// Print the indexes
-for (const auto& index_name : indexes) {
-    std::cout << index_name << std::endl;
-}
-```
 </CodeGroup>
 
 ## API Reference
@@ -41,8 +29,5 @@ For more information on listing encrypted indexes, refer to the API reference:
 <CardGroup cols={2}>
     <Card title="Python API Reference" href="../../python/client/list-indexes" icon="python">
         API reference for `list_indexes()` in Python
-    </Card>
-    <Card title="C++ API Reference" href="../../cpp/client/list-indexes" icon="brackets-curly">
-        API reference for `ListIndexes()` in C++
     </Card>
 </CardGroup>

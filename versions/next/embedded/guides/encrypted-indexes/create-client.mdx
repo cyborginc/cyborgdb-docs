@@ -18,22 +18,11 @@ import cyborgdb_core as cyborgdb
 client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb-dev"))
 ```
 
-```cpp C++ icon="brackets-curly"
-#include "cyborgdb_core/client.hpp"
-#include "cyborgdb_core/encrypted_index.hpp"
-#include <array>
-
-// In-memory backing store (ephemeral, for development/tests).
-// Pass "" for api_key to run in free-tier mode.
-cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
-```
 </CodeGroup>
 
 To lift the free-tier cap, pass an API key as the first argument (`cyborgdb.Client(api_key, storage_config=...)`). Get a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co); for more info, follow [this guide](../../../intro/get-api-key).
 
 Bear in mind that all contents stored in the backing store are end-to-end encrypted, meaning that **no index contents are stored in plaintext**.
-
-<Note>The C++ `cyborg::Client` is non-copyable and non-movable (it owns the keystore handles). Construct it in place, or hold it via `std::unique_ptr<cyborg::Client>` if you need to move ownership.</Note>
 
 ## Persistent Backing Stores
 
@@ -54,20 +43,9 @@ client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.s3(
 ))
 ```
 
-```cpp C++ icon="brackets-curly"
-#include "cyborgdb_core/client.hpp"
-
-// Local persistent storage on disk (pass "" for api_key to run in free-tier mode)
-cyborg::Client disk_client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
-
-// Or AWS S3 / S3-compatible (MinIO, etc.)
-cyborg::S3Options s3_opts;
-s3_opts.region = "us-east-1";
-cyborg::Client s3_client("", cyborg::StorageConfig::S3("my-bucket", s3_opts), 0, cyborg::kNone);
-```
 </CodeGroup>
 
-Omit `credentials=` (Python) / leave `credentials` unset in `S3Options` (C++) to use the AWS default credential provider chain (environment variables, `~/.aws/credentials`, EC2 instance profile, EKS IRSA). The disk store also accepts cache options (`cache_vectors`, `cache_metadata`, `cache_ids`) to keep hot data in memory.
+Omit `credentials=` to use the AWS default credential provider chain (environment variables, `~/.aws/credentials`, EC2 instance profile, EKS IRSA). The disk store also accepts cache options (`cache_vectors`, `cache_metadata`, `cache_ids`) to keep hot data in memory.
 
 ## Setting Device Configurations
 
@@ -92,14 +70,6 @@ client = cyborgdb.Client(
 )
 ```
 
-```cpp C++ icon="brackets-curly"
-// ... existing setup
-
-// Enable GPU for specific operations (upsert and train)
-cyborg::GPUConfig gpu_config = cyborg::kUpsert | cyborg::kTrain;
-
-cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 4, gpu_config);
-```
 </CodeGroup>
 
 <Info>`gpu_config` can only be set if running on a CUDA-enabled system with the CUDA driver installed. Use [`GPUConfig`](../../python/types#gpuconfig) to specify which operations (upsert, train, query) should use GPU acceleration.</Info>
@@ -113,8 +83,5 @@ For more information on the `Client` class, refer to the API Reference:
 <CardGroup cols={2}>
     <Card title="Python API Reference" href="../../python/client/client" icon="python">
         API reference for `Client` in Python
-    </Card>
-    <Card title="C++ API Reference" href="../../cpp/client" icon="brackets-curly">
-        API reference for `cyborg::Client` in C++
     </Card>
 </CardGroup>

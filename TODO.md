@@ -3,6 +3,7 @@
 ## At next release cut (v0.18 promote)
 
 - [ ] Add `versions/latest/service/rest-api/client/list-embedding-models` to the REST API "Client" nav group in docs.json (page is staged in `next/` only; `scripts/docs.py` will also flag it during promote)
+- [ ] C++ docs are removed in `next/`. Before running `promote`, delete `versions/latest/embedded/cpp/`, the C++ nav group for the latest version in docs.json, and point the `/cpp-embedded` redirect to `/versions/latest/embedded/python/introduction`. Until then, `promote` refuses and `sync-next` re-creates the pages in `next/`.
 
 ## Should have
 
@@ -35,12 +36,6 @@
 - [ ] Document async patterns more thoroughly
 - [ ] Add version compatibility note (e.g., "Compatible with langchain-core >= 0.2.0")
 
-#### C++
-- [ ] Add thread-safety documentation (if applicable)
-- [ ] Add memory management guidance (unique_ptr vs raw pointers)
-- [ ] Add performance notes to methods like Train() and Query()
-- [ ] Create a "Migration from Python" guide for C++ users
-
 #### Python
 - [ ] Add note about cache size units (bytes vs megabytes) - clarify in create-index and load-index docs
 - [ ] Add examples of multi-tenancy use cases in encrypted-indexes/introduction.mdx
@@ -50,8 +45,6 @@
 
 - [ ] Standardize embedding model paths (use full HuggingFace paths like "sentence-transformers/all-MiniLM-L6-v2" vs short names "all-MiniLM-L6-v2")
 - [ ] Clarify DBConfig constructor usage pattern (positional vs keyword arguments)
-- [ ] Add cross-reference table showing C++ ↔ Python method equivalents
-- [ ] Document GPUConfig differences between Python and C++ more prominently
 - [ ] Standardize index type string format (ivf_flat vs ivfflat) across JS/TS SDK
 
 ### API Documentation
@@ -66,13 +59,11 @@
 
 #### Service-specific
 - [ ] Add use cases to get-vector-count.mdx for consistency
-- [ ] Document the extra Client constructor parameters in C++ (e.g., `0, false` parameters)
 
 ### General Improvements
 
 - [ ] Add "Common Mistakes" or "Common Pitfalls" sections to major methods
 - [ ] Verify JavaScript SDK package name `@cyborgdb/client` against actual npm package
-- [ ] Verify C++ API against actual library implementation
 - [ ] Replace placeholder vector values `[1, 2, 3, ...]` with realistic examples or mark as pseudocode
 - [ ] Add more complex, real-world examples throughout
 - [ ] Verify embedding model short names vs. full paths support

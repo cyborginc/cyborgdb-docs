@@ -32,15 +32,6 @@ data = [
 index.upsert(data, index_key=index_key)
 ```
 
-```cpp C++ icon="brackets-curly"
-// Example data
-std::vector<std::string> ids = {"item_1", "item_2"};
-cyborg::Array2D<float> vectors{{0.1, 0.1, 0.1, 0.1}, {0.2, 0.2, 0.2, 0.2}};
-std::vector<std::string> metadata = {R"({"category": "dog"})", R"({"category": "cat"})"};
-
-// Upsert data with metadata
-index->Upsert(ids, vectors, /*contents=*/{}, metadata, index_key);
-```
 </CodeGroup>
 
 This metadata will be encrypted and stored in the index.
@@ -68,21 +59,6 @@ filters = {
 results = index.query(query_vectors=query_vectors, top_k=top_k, filters=filters, index_key=index_key)
 ```
 
-```cpp C++ icon="brackets-curly"
-// Example query
-cyborg::Array2D<float> query_vectors{{0.5, 0.9, 0.2, 0.7}};
-int top_k = 10;
-
-// Example filters
-std::string filters = R"({"category": {"$in": ["dog", "cat"]}})";
-
-// Create QueryParams
-cyborg::QueryParams query_params(top_k);
-query_params.filters = filters;
-
-// Perform query
-cyborg::QueryResults results = index->Query(query_vectors, query_params, index_key);
-```
 </CodeGroup>
 
 ## Metadata Indexing

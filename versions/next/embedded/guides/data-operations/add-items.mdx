@@ -20,25 +20,15 @@ items = [
 index.upsert(items, index_key=index_key)
 ```
 
-```cpp C++ icon="brackets-curly"
-// Items to add to the encrypted index
-std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
-
-// Add items to the encrypted index (index_key implicitly builds the KeyContext)
-index->Upsert(ids, vectors, /*contents=*/{}, /*metadata=*/{}, index_key);
-```
 </CodeGroup>
 
-For more info on `Array2D` in C++, see the [API Reference](../../cpp/types#array2d).
-
-<Note>In Python, every data operation takes `index_key` as a keyword argument — the client does not cache the key across calls. In C++ every key-bearing method takes a trailing `KeyContext`, which constructs implicitly from a bare 32-byte KEK — so `index->Upsert(..., index_key)` is the common path. You can also pass `user_id=` (Python) / a scoped `KeyContext` (C++) for an RBAC user.</Note>
+<Note>Every data operation takes `index_key` as a keyword argument — the client does not cache the key across calls. You can also pass `user_id=` for an RBAC user.</Note>
 
 ## Adding Items with Contents
 
 It's also possible to store item contents alongside vectors. To do this, include `contents` to the `upsert()` call.
 
-For Python, the contents field accepts both strings and bytes. For C++, the contents field only accepts bytes. All contents are encoded to bytes and encrypted before storage using the index key, and will be returned as bytes when retrieved with `get()`.
+The contents field accepts both strings and bytes. All contents are encoded to bytes and encrypted before storage using the index key, and will be returned as bytes when retrieved with `get()`.
 
 <CodeGroup>
 ```python Python icon="python"
@@ -53,19 +43,6 @@ items = [
 index.upsert(items, index_key=index_key)
 ```
 
-```cpp C++ icon="brackets-curly"
-// Items to add to the encrypted index
-std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
-std::vector<std::vector<uint8_t>> contents = {
-    std::vector<uint8_t>{'H', 'e', 'l', 'l', 'o', '!'},
-    std::vector<uint8_t>{'W', 'o', 'r', 'l', 'd', '!'},
-    std::vector<uint8_t>{'C', 'y', 'b', 'o', 'r', 'g', '!'}
-};
-
-// Add items to the encrypted index
-index->Upsert(ids, vectors, contents, /*metadata=*/{}, index_key);
-```
 </CodeGroup>
 
 ## Adding Items with Metadata
@@ -87,19 +64,6 @@ items = [
 index.upsert(items, index_key=index_key)
 ```
 
-```cpp C++ icon="brackets-curly"
-// Items to add to the encrypted index
-std::vector<std::string> ids = {"item_1", "item_2", "item_3"};
-cyborg::Array2D<float> vectors{{0.1, 0.2, 0.3, 0.4}, {0.5, 0.6, 0.7, 0.8}, {0.9, 0.10, 0.11, 0.12}};
-std::vector<std::string> metadata = {
-    R"({"name": "Alice", "age": 30})",
-    R"({"name": "Bob", "age": 40})",
-    R"({"name": "Charlie", "age": 50})"
-};
-
-// Add items to the encrypted index
-index->Upsert(ids, vectors, /*contents=*/{}, metadata, index_key);
-```
 </CodeGroup>
 
 For more info on metadata storage and filtering, see [Metadata Filtering](./metadata-filtering).
@@ -138,8 +102,5 @@ For more information on adding items to an encrypted index, refer to the API ref
 <CardGroup cols={2}>
     <Card title="Python API Reference" href="../../python/encrypted-index/upsert" icon="python">
         API reference for `upsert()` in Python
-    </Card>
-    <Card title="C++ API Reference" href="../../cpp/encrypted-index/upsert" icon="brackets-curly">
-        API reference for `Upsert()` in C++
     </Card>
 </CardGroup>

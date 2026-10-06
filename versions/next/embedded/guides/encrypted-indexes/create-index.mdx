@@ -22,24 +22,6 @@ index_key = secrets.token_bytes(32)
 index = client.create_index("my_index", index_key)
 ```
 
-```cpp C++ icon="brackets-curly"
-#include "cyborgdb_core/client.hpp"
-#include "cyborgdb_core/encrypted_index.hpp"
-#include <openssl/rand.h>
-#include <array>
-
-// Create a client (use the same backing store you'll load the index with)
-cyborg::Client client("", cyborg::StorageConfig::Disk("/tmp/cyborgdb"), 0, cyborg::kNone);
-
-// Generate a 32-byte secure encryption key using OpenSSL
-std::array<uint8_t, 32> index_key;
-if (RAND_bytes(index_key.data(), index_key.size()) != 1) {
-    throw std::runtime_error("Failed to generate secure random key");
-}
-
-// Create an encrypted index (returns std::unique_ptr<cyborg::EncryptedIndex>)
-auto index = client.CreateIndex("my_index", index_key);
-```
 </CodeGroup>
 
 This creates a new encrypted index. The vector dimension is auto-detected from the first upsert (or derived from an `embedding_model`); you can also set it explicitly with the keyword-only `dimension` parameter. Other optional parameters include `metric` (`"euclidean"` default, `"cosine"`, or `"squared_euclidean"`) and `storage_precision`. `storage_precision` picks the on-disk format for the rerank vectors: `"float32"` (default) or `"float16"` to halve the footprint at a slight precision cost, or one of the TurboQuant tiers `"tq12"` / `"tq8"` / `"tq6"` / `"tq4"` (12/8/6/4 bits per dimension) to trade storage for a small recall/latency cost — `"tq4"` is the most aggressive (~8x smaller than `float32`, ~94% recall@100 on a 768-dimensional benchmark dataset). All tiers work with every metric; the choice is fixed at create time.
@@ -50,7 +32,7 @@ This creates a new encrypted index. The vector dimension is auto-detected from t
 **Store `index_key` before you upsert any data.** CyborgDB has no key-recovery path — data encrypted with a lost key is unrecoverable. For anything past evaluation, keep the key in AWS Secrets Manager, Vault, or your KMS. See [Managing Keys](../advanced/managing-keys).
 </Warning>
 
-<Note>To lift the free-tier 1M-items-per-index cap, pass an API key as the first argument (`cyborgdb.Client(api_key, storage_config=...)` in Python; `cyborg::Client(api_key, ...)` in C++). Get a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). See [Get an API Key](../../../intro/get-api-key).</Note>
+<Note>To lift the free-tier 1M-items-per-index cap, pass an API key as the first argument (`cyborgdb.Client(api_key, storage_config=...)`). Get a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). See [Get an API Key](../../../intro/get-api-key).</Note>
 
 ## Automatic Embedding Generation
 
@@ -83,8 +65,5 @@ For more information on creating encrypted indexes, refer to the API reference:
 <CardGroup cols={2}>
     <Card title="Python API Reference" href="../../python/client/create-index" icon="python">
         API reference for `create_index()` in Python
-    </Card>
-    <Card title="C++ API Reference" href="../../cpp/client/create-index" icon="brackets-curly">
-        API reference for `CreateIndex()` in C++
     </Card>
 </CardGroup>
