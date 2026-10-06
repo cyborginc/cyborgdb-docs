@@ -10,7 +10,7 @@ file on conflict.
 
 <Note>
 **Storage surface.** The service exposes a single, flat storage
-surface: `memory`, `disk`, or `s3` (AWS S3 or any S3-compatible
+surface: `disk` or `s3` (AWS S3 or any S3-compatible
 store). Configure it with `CYBORGDB_DB_TYPE` plus the matching
 `CYBORGDB_DISK_PATH` / `CYBORGDB_S3_*` variables.
 </Note>
@@ -42,16 +42,35 @@ This key controls licensing only. Request authentication is a separate concern, 
 | `CYBORGDB_SERVICE_ROOT_KEY` | When set, enables authentication and RBAC. The holder of this key has full admin access and can mint per-user API keys via `POST /v1/indexes/{index_name}/users`. Per-user keys are scoped to one index with `read` / `write` permissions enforced cryptographically. When unset, authentication is disabled. | unset (auth off) |
 | `INDEX_KEK_CACHE_TTL_SECONDS` | TTL for plaintext index KEKs in the service-side cache. Shorter = faster KMS revocation propagation; longer = fewer KMS calls. | `60` |
 
-See the [Multi-Tenancy guide](./multi-tenancy) for the full operator playbook (key kinds, provisioning users, KMS-backed constraint, revocation).
+See the [Multi-Tenancy guide](./multi-tenancy) for the full operator playbook (key kinds, provisioning users, SDK-supplied indexes, revocation).
+
+## Embedding Model Cache
+
+Text `embedding_model` indexes resolve and download their model on first use. These variables control where the model is cached and whether a cache miss is allowed to reach the model hub.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `CYBORGDB_EMBED_CACHE` | Directory where downloaded embedding models are cached. Mount this on persistent storage so models survive container restarts. | `/app/cyborgdb_data/embed-cache` in Docker; otherwise the embedding backend's default cache location |
+| `CYBORGDB_EMBED_OFFLINE` | When set to `1`, the service never calls out to the model hub. A cache miss fails the request instead of downloading. Set this on air-gapped deployments after pre-populating `CYBORGDB_EMBED_CACHE`. | unset (downloads allowed) |
+
+When a model is unavailable — the hub is unreachable, or `CYBORGDB_EMBED_OFFLINE=1` and the model is not in the cache — upsert and query calls that embed `contents`/`query_contents` return HTTP `503` with a `Retry-After: 30` header. Calls on pre-computed vectors are unaffected.
+
+```bash
+# Air-gapped: pre-populate the cache, then forbid downloads
+export CYBORGDB_EMBED_CACHE=/var/lib/cyborgdb/embed-cache
+export CYBORGDB_EMBED_OFFLINE=1
+```
+
+List the models the service currently supports with [`GET /v1/embedding-models`](../../rest-api/client/list-embedding-models).
 
 ## Storage Backend
 
-Pick one of `memory`, `disk`, or `s3`. If `CYBORGDB_DB_TYPE` is unset,
+Pick either `disk` or `s3`. If `CYBORGDB_DB_TYPE` is unset,
 the service defaults to `disk`.
 
 | Variable | Description | Default | Example |
 |----------|-------------|---------|---------|
-| `CYBORGDB_DB_TYPE` | Storage backend: `memory`, `disk`, or `s3` | `disk` | `s3` |
+| `CYBORGDB_DB_TYPE` | Storage backend: `disk` or `s3` | `disk` | `s3` |
 
 ### Disk (default)
 
@@ -64,15 +83,6 @@ Persistent local key-value storage with no external dependency.
 ```bash
 export CYBORGDB_DB_TYPE=disk
 export CYBORGDB_DISK_PATH=/var/lib/cyborgdb   # optional
-```
-
-### Memory
-
-In-process storage. Nothing persists across restarts. Use only for
-tests and ephemeral indexes.
-
-```bash
-export CYBORGDB_DB_TYPE=memory
 ```
 
 ### S3
@@ -156,8 +166,8 @@ export CYBORGDB_S3_SECRET_KEY=minioadmin
         |----------|-------------|---------|
         | `CPU_THREADS` | Worker threads. `0` = auto-detect | `0` |
         | `GPU_OPERATIONS` | GPU-accelerated ops: `none`, `upsert`, `train`, `all`, or comma-separated (e.g. `upsert,train`) | `none` |
-        | `RETRAIN_THRESHOLD` | Auto-retrain trigger — fires when `num_vectors > n_lists * RETRAIN_THRESHOLD` | `10000` |
-        | `AUTO_TRAIN_DISABLED` | Fully disable post-upsert auto-training. Explicit `train()` / `POST /v1/indexes/train` still work. Useful for benchmarking a fixed index state or controlling training timing yourself. Also implied when `RETRAIN_THRESHOLD < 0`. | `false` |
+        | `AUTO_TRAIN_MIN_VECTORS` | An untrained index is trained automatically once it holds more than this many vectors. Trained indexes are retrained automatically as they grow; see [How automatic training works](./train-index#how-automatic-training-works). | `65536` |
+        | `AUTO_TRAIN_DISABLED` | Fully disable post-upsert auto-training and retraining. Explicit `train()` / `POST /v1/indexes/train` still work. Useful for benchmarking a fixed index state or controlling training timing yourself. | `false` |
 
         <Note>GPU-accelerated query is not yet supported by `cyborgdb-core`. Passing `query` in `GPU_OPERATIONS` is silently ignored.</Note>
     </Accordion>
@@ -184,13 +194,12 @@ error.
 ```yaml cyborgdb.yaml
 service:
   port: 8000
-  require_api_key: true
   cyborgdb_service_log_level: INFO
 
   # Optional: enable RBAC by setting a root API key. See ./multi-tenancy.
   # cyborgdb_service_root_key: ${CYBORGDB_SERVICE_ROOT_KEY}
 
-  # Storage backend: memory | disk | s3 (default: disk)
+  # Storage backend: disk | s3 (default: disk)
   cyborgdb_db_type: disk
   # cyborgdb_disk_path: /var/lib/cyborgdb
 
@@ -213,8 +222,7 @@ kms:
     #   region:   us-east-1
 ```
 
-**Precedence:** init args > environment variables > `.env` > YAML
-file > file secrets.
+**Precedence:** environment variables > `.env` > YAML file.
 
 **Env-var substitution.** Any string value in the YAML may reference
 an environment variable as `${VAR}` (required — startup fails if
@@ -230,13 +238,6 @@ variable set to the empty string counts as **unset**.
         export CYBORGDB_API_KEY="cyborg_your_api_key_here"
         cyborgdb-service
         # Data goes to ~/.cyborgdb/data
-        ```
-    </Accordion>
-    <Accordion title="In-memory (tests only)">
-        ```bash
-        export CYBORGDB_API_KEY="cyborg_your_api_key_here"
-        export CYBORGDB_DB_TYPE=memory
-        cyborgdb-service
         ```
     </Accordion>
     <Accordion title="S3 on AWS with instance role">
@@ -301,7 +302,7 @@ docker run -p 8000:8000 --env-file .env cyborginc/cyborgdb-service:latest
         `cyborg_`.
     </Accordion>
     <Accordion title="`Invalid CYBORGDB_DB_TYPE`">
-        CyborgDB accepts `memory`, `disk`, or `s3`. Set
+        CyborgDB accepts `disk` or `s3`. Set
         `CYBORGDB_DISK_PATH` if you use a custom directory for the
         disk store.
     </Accordion>

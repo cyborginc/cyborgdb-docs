@@ -28,7 +28,7 @@ X-API-Key: cyborg_your_root_api_key_here
 
 | Header | Type | Description |
 |---|---|---|
-| `X-Index-Key` | `string` | _(Optional)_ 32-byte index KEK as a hex string. Required for SDK-supplied indexes (`provider: none`). Omit for KMS-backed indexes — the service resolves the KEK via the stored `KMSBlob`. |
+| `X-Index-Key` | `string` | _(Optional)_ 32-byte index KEK as a hex string. Required for SDK-supplied indexes (`provider: none`). Omit for KMS-backed indexes — the service resolves the key from the index's stored key envelope. |
 
 <Note>`GET`/`DELETE` on this resource have no request body, so the index key travels in the `X-Index-Key` header. The sibling `POST /v1/indexes/{index_name}/users` endpoint takes the same key as an `index_key` field in its JSON body.</Note>
 
@@ -36,13 +36,27 @@ X-API-Key: cyborg_your_root_api_key_here
 
 `204 No Content` on success — body is empty.
 
+Revocation is idempotent: an unknown or already-revoked `user_id` also returns `204`, not an error.
+
 ## Exceptions
 
-- `400`: `user_id` is not valid hex.
-- `401`: Authentication failed (invalid root API key).
-- `403`: RBAC is not enabled, or the caller is not using the root key.
-- `404`: Index or user not found.
-- `500`: Internal server error.
+<AccordionGroup>
+    <Accordion title="400 Bad Request">
+        `user_id` is not valid hex.
+    </Accordion>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid root API key).
+    </Accordion>
+    <Accordion title="403 Forbidden">
+        RBAC is not enabled, or the caller is not using the root key.
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found.
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error.
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 

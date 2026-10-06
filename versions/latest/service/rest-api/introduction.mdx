@@ -45,17 +45,17 @@ This `X-API-Key` credential is **not** the same as `CYBORGDB_API_KEY`. `CYBORGDB
 
 ## Error model: API keys, index keys, and KMS
 
-A small amount of nuance applies to error codes on index-scoped routes (anything under `/v1/indexes/{index_name}/…` and `/v1/indexes/{upsert,query,query-binary,train,delete,…}`):
+A small amount of nuance applies to error codes on index-scoped routes — the data-plane routes under `/v1/vectors/…` (`upsert`, `upsert_binary`, `query`, `query_binary`, `query_metadata`, `get`, `delete`, `list_ids`, `num_vectors`) and the index-lifecycle routes under `/v1/indexes/…` (`create`, `train`, `delete`, `training-status`, …):
 
 | Status | Meaning |
 |---|---|
-| `400 Bad Request` | The request is malformed for this index's key path. The most common case is supplying `index_key` (header or body) for a **KMS-backed** index — the service resolves the KEK itself and rejects user-supplied keys with: _"index is KMS-backed; do not supply index_key. Omit index_key from the request."_ |
-| `401 Unauthorized` | Either (a) the `X-API-Key` header is missing/invalid, **or** (b) for SDK-supplied indexes, the `index_key` was supplied but does not match the key the index was created with (_"Invalid encryption key for index"_). Inspect the `detail` field to disambiguate. |
-| `403 Forbidden` | RBAC routes (user create/list/delete) called without the root API key, or when RBAC is not enabled on the service. |
+| `400 Bad Request` | The request is malformed for this index's key path. The most common case is supplying `index_key` (header or body) for a **KMS-backed** index — the service resolves the key itself using its KMS configuration, so the error `detail` says the index is KMS-backed and asks you to omit `index_key` from the request. |
+| `401 Unauthorized` | Either (a) the `X-API-Key` header is missing/invalid, **or** (b) for SDK-supplied indexes, the `index_key` was supplied but does not match the key the index was created with (_"Wrong encryption key for index '&lt;name&gt;'"_). Inspect the `detail` field to disambiguate. |
+| `403 Forbidden` | An admin-gated route (`/v1/indexes/list`, `create`, `delete`, `train`, `training-status`) called with a non-root (`cdbk_`) API key, or an RBAC route (user create/list/delete) called without the root API key or when RBAC is not enabled on the service. |
 | `404 Not Found` | The named index does not exist. |
 
-<Note>Wrong-`index_key` returns **401** in v0.17 (previously some paths returned 500). KMS-backed indexes that receive an unexpected `index_key` return **400** rather than silently ignoring it — this surfaces SDK-versus-KMS confusion early.</Note>
+<Note>A wrong `index_key` returns **401**. KMS-backed indexes that receive an unexpected `index_key` return **400** rather than silently ignoring it — this surfaces SDK-versus-KMS confusion early.</Note>
 
 ## Interactive Documentation
 
-Explore the complete API at: [http://localhost:8000/docs](http://localhost:8000/docs) after starting the service.
+Explore the complete API at: [http://localhost:8000/v1/docs](http://localhost:8000/v1/docs) after starting the service. ReDoc is served at `/v1/redoc` and the OpenAPI spec at `/v1/openapi.json`.

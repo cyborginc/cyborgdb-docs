@@ -21,30 +21,21 @@ To add items with metadata tags, you can pass a dictionary of key-value pairs to
 <CodeGroup>
 ```python Python icon="python"
 # Example data in the format:
-# [{id: int, vector: List[float], metadata: Dict)]
+# [{id: str, vector: List[float], metadata: Dict}]
 data = [
     {"id": "item_1", "vector": [0.1, 0.1, 0.1, 0.1], "metadata": {"category": "dog"}},
     {"id": "item_2", "vector": [0.2, 0.2, 0.2, 0.2], "metadata": {"category": "cat"}}
 ]
 
-# Upsert data with metadata (index_key is required on every data operation)
+# Upsert data with metadata
 index.upsert(data, index_key=index_key)
 ```
 
-```cpp C++ icon="brackets-curly"
-// Example data
-std::vector<std::string> ids = {"item_1", "item_2"};
-cyborg::Array2D<float> vectors{{0.1, 0.1, 0.1, 0.1}, {0.2, 0.2, 0.2, 0.2}};
-std::vector<std::string> metadata = {R"({"category": "dog"})", R"({"category": "cat"})"};
-
-// Upsert data with metadata
-index->Upsert(ids, vectors, /*contents=*/{}, metadata, index_key);
-```
 </CodeGroup>
 
 This metadata will be encrypted and stored in the index.
 
-<Tip>Metadata field names and string values are **case-sensitive**. Ensure that the metadata field names and values are consistent when filtering queries.</Tip> 
+<Tip>Metadata field names and string values are **case-sensitive**. Ensure that the metadata field names and values are consistent when filtering queries.</Tip>
 
 ## Filtering Queries with Metadata
 
@@ -67,26 +58,11 @@ filters = {
 results = index.query(query_vectors=query_vectors, top_k=top_k, filters=filters, index_key=index_key)
 ```
 
-```cpp C++ icon="brackets-curly"
-// Example query
-cyborg::Array2D<float> query_vectors{{0.5, 0.9, 0.2, 0.7}};
-int top_k = 10;
-
-// Example filters
-std::string filters = R"({"category": {"$in": ["dog", "cat"]}})";
-
-// Create QueryParams
-cyborg::QueryParams query_params(top_k);
-query_params.filters = filters;
-
-// Perform query
-cyborg::QueryResults results = index->Query(query_vectors, query_params, index_key);
-```
 </CodeGroup>
 
 ## Metadata Indexing
 
-All metadata fields are indexed using encrypted indexing. This allows CyborgDB to securely exclude clusters which don't match the provided metadata filters. As a result, searches with metadata filter should be as fast or faster than those without.
+By default, all metadata fields are indexed using encrypted indexing, so filters on indexed fields resolve directly from the index and filtered queries stay fast. Filters on fields declared `filterable: False` in the index's [`metadata_schema`](../../python/client/create-index#metadata-schema), and `$regex` / `$contains` on fields not declared `pattern: True`, are instead evaluated on decrypted metadata after retrieval, which is slower.
 
 ## Metadata Query Operators
 
@@ -103,3 +79,17 @@ CyborgDB supports a subset of [MongoDB's Query and Projection Operators](https:/
 | `$gte` | `Number` | Matches vectors with metadata that is greater than or equal to the filter value |
 | `$lt` | `Number` | Matches vectors with metadata that is less than the filter value |
 | `$lte` | `Number` | Matches vectors with metadata that is less than or equal to the filter value |
+| `$regex` | `String` | Matches vectors whose metadata string matches the given pattern (see [Regex patterns](#regex-patterns)) |
+| `$contains` | `String` | Matches vectors whose metadata string contains the given substring |
+
+### Regex patterns
+
+`$regex` and `$contains` patterns are evaluated by [RE2](https://github.com/google/re2/wiki/Syntax), matched **unanchored** — the same convention as MongoDB's `$regex`. Anchor with `^` and `$` explicitly if you need a full-string match.
+
+RE2 is linear-time and safe against catastrophic-backtracking patterns, but accepts a narrower syntax than PCRE / ECMAScript regex. In particular:
+
+- **Lookahead** and **lookbehind** (`(?=…)`, `(?!…)`, `(?<=…)`, `(?<!…)`) are unsupported.
+- **Backreferences** (`\1`, `\2`, …) are unsupported.
+- Malformed patterns (e.g. unbalanced groups) raise a validation error.
+
+Any of the above raises `ValueError` at query time — patterns are rejected up front rather than at match time, so a bad pattern fails fast.

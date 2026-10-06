@@ -4,7 +4,7 @@ sidebarTitle: "Introduction"
 mode: "wide"
 ---
 
-CyborgDB Embedded provides native libraries for Python and C++, enabling you to integrate confidential vector search directly into your applications. This deployment model gives you maximum control, performance, and security by running entirely within your infrastructure.
+CyborgDB Embedded provides a native Python library, enabling you to integrate confidential vector search directly into your applications. This deployment model gives you maximum control, performance, and security by running entirely within your infrastructure.
 
 ## Why Choose CyborgDB Embedded?
 
@@ -18,7 +18,7 @@ Direct integration eliminates network overhead and serialization costs. Take adv
 Configure every aspect of the system - from index parameters to memory management. Perfect for custom requirements and specialized deployments.
 
 **Any Environment**  
-Deploy in air-gapped networks, edge devices, or custom infrastructure where external APIs aren't suitable.
+Deploy in air-gapped networks, edge devices, or custom infrastructure where external APIs aren't suitable. Air-gapped use requires running without an API key (free tier).
 
 ---
 
@@ -26,9 +26,9 @@ Deploy in air-gapped networks, edge devices, or custom infrastructure where exte
 
 <CardGroup cols={1}>
   <Card title="Embedded Quickstart" href="/versions/latest/embedded/guides/intro/quickstart" icon="rocket">
-    *Get running in 5 minutes with Python or C++*
+    *Get running in 5 minutes with Python*
 
-    Step-by-step guide covering both Python and C++ embedded library setup and usage.
+    Step-by-step guide covering embedded library setup and usage.
   </Card>
 </CardGroup>
 
@@ -47,16 +47,15 @@ CyborgDB Embedded integrates directly into your application process:
 ```mermaid
 flowchart TB
   subgraph Your_Applications [Your Application]
-    Library("CyborgDB Library (Python/C++)")
+    Library("CyborgDB Library (Python)")
   end
 
   Library --> Disk("Disk (local)")
   Library --> S3("S3 (AWS or S3-compatible)")
-  Library --> Memory("Memory (for development)")
 ```
 
 **Key Benefits:**
-- No external API dependencies
+- No external API dependencies without an API key
 - Sub-millisecond query latency potential
 - Complete data sovereignty
 - Custom integration possibilities
@@ -72,7 +71,7 @@ flowchart TB
     - **Ultra-low latency needed** - Sub-millisecond response requirements  
     - **Custom integration required** - Unique workflow or system requirements
     - **Cost optimization critical** - High-volume usage with cost sensitivity
-    - **Air-gapped deployment** - No external network access available
+    - **Air-gapped deployment** - No external network access available (free tier without an API key)
     - **Single application focus** - One primary application using vector search
   </Tab>
   
@@ -91,7 +90,7 @@ flowchart TB
   <Card title="Start Building" href="/versions/latest/embedded/guides/intro/quickstart" icon="rocket">
     *Get hands-on with the quickstart guide*
 
-    Follow our comprehensive guide covering both Python and C++ setup
+    Follow our comprehensive guide covering Python setup
   </Card>
   <Card title="Browse Capabilities" href="../encrypted-indexes/introduction" icon="code">
     *Explore detailed integration examples*

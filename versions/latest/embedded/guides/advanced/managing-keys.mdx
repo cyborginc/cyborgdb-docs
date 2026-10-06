@@ -2,15 +2,13 @@
 title: "Managing Encryption Keys"
 ---
 
-Encryption keys are one of the most critical elements that enable the security guarantees of CyborgDB. By default, one key is used for the entire index, and it is used to generate and secure other encryption keys, including:
+Encryption keys are one of the most critical elements that enable the security guarantees of CyborgDB. By default, one key is used for the entire index, and it secures all index data, including:
 
-- Encrypted index tokens
-- Index centroid salted hashes
-- Index payload (embedding) encryption
-- Item content encryptions
-- Encrypted query tokens
+- Vector embeddings
+- Item contents
+- Metadata
 
-This main key, known in the code as the `index_key`, is a 256-bit (32-byte) symmetric Key-Encryption-Key (KEK)—the same you would find when using AES-256 encryption. CyborgDB wraps a per-index data key (DEK) under this KEK internally and encrypts all index data with that DEK using **AES-256-GCM**; callers only ever handle the KEK. CyborgDB's cryptography is based entirely on well-established cryptographic standards, including AES-256-GCM, HMAC, and SHA-3 (Keccak).
+This main key, referred to in the API as the `index_key`, is a 256-bit (32-byte) symmetric Key-Encryption-Key (KEK)—the same you would find when using AES-256 encryption. CyborgDB wraps a per-index data key (DEK) under this KEK internally and encrypts all index data with that DEK using **AES-256-GCM**; callers only ever handle the KEK. CyborgDB's cryptography is based entirely on well-established cryptographic standards, including AES-256-GCM, HMAC, and SHA-3 (Keccak).
 
 Without the correct `index_key`, it is impossible to use a CyborgDB Encrypted Index. You cannot upsert vectors, query the index, or even delete it. Hence, it is critical to manage these encryption keys safely.
 
@@ -36,13 +34,6 @@ The `index_key` must be **exactly 32 raw bytes**. The simplest way to generate o
     index_key = secrets.token_bytes(32)  # 32-byte index KEK
     ```
 
-    ```cpp C++ icon="brackets-curly"
-    #include <array>
-    #include <openssl/rand.h>
-
-    std::array<uint8_t, 32> index_key;
-    RAND_bytes(index_key.data(), index_key.size());  // 32-byte index KEK
-    ```
     </CodeGroup>
 
     Alternatively, generate a key on the command line and persist the raw bytes to a file:
@@ -61,8 +52,8 @@ The `index_key` must be **exactly 32 raw bytes**. The simplest way to generate o
     ```python Python icon="python"
     import cyborgdb_core as cyborgdb
 
-    # Backing store: in-memory (use .disk("/path") or .s3("bucket") for persistence)
-    client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+    # Backing store: local disk (or use .s3("bucket") for cloud persistence)
+    client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
     # Load the raw 32-byte key (or use the one generated above)
     with open("index_key.bin", "rb") as key_file:
@@ -72,16 +63,6 @@ The `index_key` must be **exactly 32 raw bytes**. The simplest way to generate o
     index = client.create_index("test_index", index_key)
     ```
 
-    ```cpp C++ icon="brackets-curly"
-    #include "cyborgdb_core/client.hpp"
-    #include "cyborgdb_core/encrypted_index.hpp"
-
-    // In-memory backing store (use StorageConfig::Disk(path) or ::S3(bucket) to persist)
-    cyborg::Client client("", cyborg::StorageConfig::Memory(), 0, cyborg::kNone);
-
-    // index_key holds the 32 raw bytes generated above
-    auto index = client.CreateIndex("test_index", index_key);
-    ```
     </CodeGroup>
     </Step>
 </Steps>
@@ -190,8 +171,8 @@ CyborgDB can integrate with popular KMS providers, such as:
     import base64
     import cyborgdb_core as cyborgdb
 
-    # Backing store: in-memory (use .disk("/path") or .s3("bucket") for persistence)
-    client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+    # Backing store: local disk (or use .s3("bucket") for cloud persistence)
+    client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
     # Initialize AWS KMS client
     kms_client = boto3.client('kms')

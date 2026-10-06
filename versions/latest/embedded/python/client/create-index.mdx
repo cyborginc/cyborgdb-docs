@@ -3,7 +3,7 @@ title: "Create Index"
 mode: "wide"
 ---
 
-Creates and returns a new encrypted index. CyborgDB v0.17 uses a single **DiskIVF** index type, so there is no longer an `index_config` parameter to choose between index variants.
+Creates and returns a new encrypted index. CyborgDB uses a single IVF index type, so there is no `index_config` parameter to choose between index variants.
 
 ```python
 def create_index(self,
@@ -14,6 +14,10 @@ def create_index(self,
                  storage_precision = None,
                  embedding_model: str | None = None,
                  metric: str | None = None,
+                 metadata_schema: dict | None = None,
+                 text_fields: list[str] | None = None,
+                 bm25_k1: float | None = None,
+                 bm25_b: float | None = None,
                  logger: Logger | None = None) -> EncryptedIndex
 ```
 
@@ -26,12 +30,35 @@ def create_index(self,
 | `index_name` | `str` | - | Name of the index to create. Must be unique. |
 | `index_key` | `bytes` | - | 32-byte encryption key (KEK) for the index, used to secure the index data. |
 | `dimension` | `int` \| `None` | `None` | _(Optional, keyword-only)_ Dimensionality of vector embeddings. When `None`, auto-detected from the first upsert (or derived from `embedding_model`). |
-| `storage_precision` | `np.float32` \| `np.float16` | `np.float32` | _(Optional, keyword-only)_ On-disk dtype for the rerank vectors. `np.float16` (or `"float16"`) halves the disk footprint with a slight precision loss. See [storage precision](../types#storage-precision). |
-| `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of the SentenceTransformer model to use for automatic text embeddings. |
+| `storage_precision` | `str` \| `np.float32` \| `np.float16` | `StoragePrecision.FLOAT32` | _(Optional, keyword-only)_ On-disk format for vectors, fixed at create time. The raw strings (`"float32"`, `"float16"`, `"tq12"`, `"tq8"`, `"tq6"`, `"tq4"`) as well as numpy's dtypes `np.float32` / `np.float16` are accepted. |
+| `embedding_model` | `str` \| `None` | `None` | _(Optional, keyword-only)_ Name of a built-in embedding model for automatic text embeddings. Sets the index `dimension`; an explicit `dimension` must match; call `cyborgdb.supported_embedding_models()` for the full list. |
 | `metric` | `str` \| `None` | `"euclidean"` | _(Optional, keyword-only)_ Distance metric to use: `"euclidean"`, `"cosine"`, or `"squared_euclidean"`. See [`DistanceMetric`](../types#distancemetric). |
+| `metadata_schema` | `dict` \| `None` | `None` | _(Optional, keyword-only)_ Per-field metadata indexing policy, keyed by field name (dot-paths for nested fields). Fixed at create time and immutable. See [Metadata Schema](#metadata-schema) below. |
+| `text_fields` | `list[str]` \| `None` | `None` | _(Optional, keyword-only)_ Shorthand for marking each listed field `full_text: True` in `metadata_schema`. |
+| `bm25_k1` | `float` \| `None` | `1.2` | _(Optional, keyword-only)_ BM25 term-frequency saturation, `>= 0`. Requires at least one `full_text` field. |
+| `bm25_b` | `float` \| `None` | `0.75` | _(Optional, keyword-only)_ BM25 length-normalization strength, in `[0, 1]`. Requires at least one `full_text` field. |
 | `logger` | [`Logger`](./logger) | `None` | _(Optional, keyword-only)_ Logger instance for capturing operation logs. |
 
 <Note>For more info on auto-generating embeddings, refer to [Auto-Generate Embeddings](../../guides/data-operations/add-items#automatic-embedding-generation).</Note>
+
+### Metadata Schema
+
+`metadata_schema` sets the per-field indexing policy. Metadata stays schemaless — this controls how each field is indexed, not what may be stored. Fields left out inherit the default (indexed and filterable).
+
+```python
+metadata_schema = {
+    "title":         {"filterable": True, "pattern": True},   # regex-searchable
+    "internal_blob": {"filterable": False},                    # stored, not index-filterable
+}
+```
+
+Three knobs per field:
+
+- `filterable` (default `True`) — index the field so filters on it resolve from the encrypted metadata index (pre-filter path, and the only path [`query_metadata()`](../encrypted-index/query-metadata) uses). Setting `False` still stores the field, but a filter referencing it forces the dense post-filter path on [`query()`](../encrypted-index/query#filters) — cheaper writes, slower filtered queries.
+- `pattern` (default `False`) — additionally index the field for pattern matching, which is what makes `$regex` / `$contains` index-resolvable. Requires `filterable=True`.
+- `full_text` (default `False`) — route the field's string value through the BM25 analyzer instead of exact-match indexing, which is what enables full-text search. Incompatible with `pattern=True` and with an explicit `filterable=True`; implies `filterable=False`.
+
+On `query()` these are a performance hint: filters that miss the index just fall back to a post-filter over the decrypted metadata, same rows either way. On `query_metadata()` they are enforced — `$regex` / `$contains` on a non-`pattern` field, or any filter on a `filterable=False` field, raises `ValueError`.
 
 ### Returns
 
@@ -43,7 +70,14 @@ def create_index(self,
     <Accordion title="ValueError">
         - Throws if the index name is not unique.
         - Throws if the index configuration is invalid.
+        - Throws if `metadata_schema` sets `pattern=True` without `filterable=True`.
+        - Throws if `metadata_schema` sets `full_text=True` together with `pattern=True` or an explicit `filterable=True`.
+        - Throws if `bm25_k1` or `bm25_b` is set and no field is `full_text`.
+        - Throws if `dimension` is negative.
         - Throws if the index could not be created.
+    </Accordion>
+    <Accordion title="EmbeddingModelUnavailable">
+        - Throws if `embedding_model` cannot be downloaded or loaded (network or model-hub failure, offline cache miss). Often transient.
     </Accordion>
 </AccordionGroup>
 
@@ -55,7 +89,9 @@ def create_index(self,
 import cyborgdb_core as cyborgdb
 import secrets
 
-client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.memory())
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 index_name = "my_index"
 index_key = secrets.token_bytes(32)  # 32-byte index KEK — store securely
@@ -71,7 +107,9 @@ import cyborgdb_core as cyborgdb
 import numpy as np
 import secrets
 
-client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+api_key = "your_api_key_here"  # Replace with your CyborgDB API key
+
+client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 index_name = "my_index"
 index_key = secrets.token_bytes(32)  # 32-byte index KEK — store securely
@@ -84,8 +122,45 @@ index = client.create_index(
     index_name,
     index_key,
     dimension=128,
-    storage_precision=np.float16,  # halve on-disk rerank-vector footprint
+    storage_precision=np.float16,  # halve the on-disk footprint of stored vectors
     metric="cosine",
     logger=logger,
 )
+```
+
+#### With TurboQuant Storage Precision
+
+```python
+import cyborgdb_core as cyborgdb
+import secrets
+
+client = cyborgdb.Client("your_api_key_here", cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+
+# TQ8 → 8 bits per dimension. On 768-dim vectors that's ~4x smaller than float32
+index = client.create_index(
+    "compact_index",
+    secrets.token_bytes(32),
+    dimension=768,
+    storage_precision="tq8",
+    metric="cosine",
+)
+```
+
+#### With Per-Field Metadata Policy
+
+```python
+# Opt `title` into pattern matching; keep `internal_blob` out of the
+# metadata index (still stored, still filterable via post-filter on query()).
+index = client.create_index(
+    "docs_index",
+    index_key,
+    dimension=384,
+    metadata_schema={
+        "title":         {"filterable": True, "pattern": True},
+        "internal_blob": {"filterable": False},
+    },
+)
+
+# $regex now resolves from the index on query_metadata() and query() alike.
+results = index.query_metadata(filters={"title": {"$regex": "^intro"}}, index_key=index_key)
 ```

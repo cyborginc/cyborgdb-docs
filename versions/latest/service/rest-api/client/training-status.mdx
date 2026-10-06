@@ -5,28 +5,28 @@ api: "GET /v1/indexes/training-status"
 playground: "simple"
 ---
 
-Get the current training status including indexes being trained and the retrain threshold configuration.
+Get the current training status including indexes being trained and the first-train vector-count floor.
 
 ## Authentication
 
-Required - API key via `X-API-Key` header:
+Required - **admin (root) API key** via `X-API-Key` header. Per-user (`cdbk_`) keys are rejected with `403`:
 
 ```http
 X-API-Key: cyborg_your_api_key_here
 ```
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
 
 ## Request
 
-This is a GET request with no request body. Authentication is required via the API key header.
+This is a GET request with no request body. Authentication is required via the admin API key header.
 
 ## Response
 
 ```json
 {
   "training_indexes": ["my_index", "semantic_index"],
-  "retrain_threshold": 10000,
+  "retrain_threshold": 65536,
   "currently_training": "my_index",
   "queued_indexes": ["semantic_index"],
   "worker_running": true,
@@ -40,7 +40,7 @@ This is a GET request with no request body. Authentication is required via the A
     List of index names currently being trained or queued for training
   </ResponseField>
   <ResponseField name="retrain_threshold" type="integer">
-    The multiplier for the retraining threshold. Auto-training triggers when `num_vectors > n_lists * retrain_threshold`
+    Vector-count floor before the first automatic training: an untrained index is auto-trained once `num_vectors > retrain_threshold`. Reflects the service's `AUTO_TRAIN_MIN_VECTORS` setting (default 65536).
   </ResponseField>
   <ResponseField name="currently_training" type="string | null">
     Name of the index currently being trained, or null if none
@@ -69,8 +69,17 @@ Training state is inferred from the `currently_training` and `queued_indexes` fi
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key)
-- `500`: Internal server error
+<AccordionGroup>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key)
+    </Accordion>
+    <Accordion title="403 Forbidden">
+        Authenticated with a per-user (`cdbk_`) key — training status requires the admin (root) API key
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 
@@ -112,21 +121,23 @@ while true; do
 done
 ```
 
-**Check Retrain Threshold:**
+**Check First-Train Floor:**
 ```bash
-# Get the current retrain threshold
+# Get the current first-train vector-count floor
 threshold=$(curl -s -X GET "http://localhost:8000/v1/indexes/training-status" \
      -H "X-API-Key: cyborg_your_api_key_here" | \
      jq '.retrain_threshold')
 
-echo "Indexes will retrain when vector count exceeds ${threshold}x the initial training size"
+echo "Untrained indexes will auto-train once they exceed ${threshold} vectors"
 ```
 
 <Note>
 Training is automatically triggered when:
-1. An index reaches the configured vector threshold (`num_vectors > n_lists * retrain_threshold`)
-2. Manual training is requested via the `/v1/indexes/train` endpoint
-3. The index has never been trained and reaches the minimum vector count
+1. An untrained index's vector count exceeds the first-train floor (`num_vectors > retrain_threshold`)
+2. A trained index grows enough that its optimal number of inverted lists exceeds the current `n_lists`
+3. Manual training is requested via the `/v1/indexes/train` endpoint
+
+Set `AUTO_TRAIN_DISABLED=true` on the service to turn off automatic training. See [Train an Encrypted Index](../../guides/advanced/train-index) for details.
 </Note>
 
 <Tip>Use this endpoint to avoid querying an index while it's being trained, as training can temporarily affect query performance.</Tip>

@@ -1,9 +1,9 @@
 ---
 title: "Query Vectors"
 mode: "wide"
-noindex: true
 api: "POST /v1/vectors/query"
 playground: "simple"
+noindex: true
 ---
 
 Retrieve the nearest neighbors for a given query vector. Passing `text` alongside `query_vectors` turns this into a **hybrid** query that fuses BM25 full-text ranking with the vector ranking (see [Full-Text and Hybrid Search](../../guides/data-operations/bm25-search)). Adding `filters` on top composes with either form — including a **three-way** query (vector + BM25 + metadata); see [Combining search legs](#combining-search-legs).
