@@ -12,7 +12,7 @@ CyborgDB Service provides a self-hosted microservice deployment with REST API an
 REST API and multi-language SDKs accelerate development across different teams and technology stacks.
 
 **Built for Scale**  
-Designed for high-throughput production workloads with horizontal scaling capabilities and connection pooling.
+Designed for high-throughput production workloads, with multi-threaded CPU and optional GPU acceleration and connection pooling.
 
 **DevOps Friendly**  
 Docker-based deployment with comprehensive monitoring, logging, and operational tooling built-in.
@@ -121,17 +121,15 @@ flowchart TB
 
   CyborgDB --> Disk
   CyborgDB --> S3
-  CyborgDB --> Memory
 
   Disk("Disk (local)")
   S3("Amazon S3 / MinIO")
-  Memory("Memory")
 ```
 
 
 **Key Benefits:**
 - Language-agnostic API access
-- Horizontal scaling capabilities
+- Scales independently of your application
 - Operational monitoring and logging
 - Production-ready deployment patterns
 
@@ -145,15 +143,15 @@ flowchart TB
     - **Multi-language teams** - Need to support different programming languages
     - **Microservice architecture** - Want to separate vector operations from application logic
     - **Operational simplicity** - Prefer service-based deployment patterns
-    - **Horizontal scaling** - Need to scale vector operations independently
+    - **Independent scaling** - Need to scale vector operations independently of your application
     - **Team collaboration** - Multiple teams need access to the same vector data
     - **REST API preference** - Want standard HTTP endpoints for integration
   </Tab>
   
   <Tab title="Consider CyborgDB Embedded">
     - **Maximum performance** - Need sub-millisecond latency with zero network overhead
-    - **Single-language environment** - Python or C++ applications exclusively
-    - **Air-gapped deployment** - No network access between components allowed
+    - **Single-language environment** - Python applications exclusively
+    - **Air-gapped deployment** - No outbound network access (requires running without an API key)
     - **Custom integration** - Require deep integration with existing systems
     - **Resource optimization** - Want to eliminate network serialization overhead
   </Tab>
@@ -162,7 +160,7 @@ flowchart TB
 ## Production Considerations
 
 ### Scaling and Performance
-- **Horizontal Scaling**: Deploy multiple service instances behind a load balancer (use the `s3` backend so they share state)
+- **Scaling**: Running multiple service instances against the same storage target (disk path or S3 bucket/prefix) is not currently supported. Scale vertically (CPU threads, GPU), or shard indexes across separate service instances that each use their own storage target
 - **Caching**: Opt in to per-keystore RAM caches via `CACHE_POLICY_VECTORS`, `CACHE_POLICY_METADATA`, and `CACHE_POLICY_IDS` (see [Environment Variables](../advanced/env-vars))
 - **GPU Acceleration**: Set `GPU_OPERATIONS=upsert,train` (or `all`) on a CUDA host to offload index ops
 - **Monitoring**: Enable telemetry and monitoring for production visibility

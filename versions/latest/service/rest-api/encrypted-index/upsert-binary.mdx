@@ -15,7 +15,7 @@ Required - API key via `X-API-Key` header:
 X-API-Key: cyborg_your_api_key_here
 ```
 
-You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). For more info, follow [this guide](../../../intro/get-api-key).
+Any valid credential is accepted — the root key or a per-user `cdbk_` token. When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
 
 ## Request Body
 
@@ -41,7 +41,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
     Name of the target index
   </ParamField>
   <ParamField body="index_key" type="string">
-    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key via the stored KMSBlob).
+    32-byte encryption key as a hex string. Required for indexes created with the SDK-supplied KEK path; omit for KMS-backed indexes (the service resolves the key from the index's stored key envelope).
   </ParamField>
   <ParamField body="batch" type="object" required="true">
     Batch of vectors in binary format:
@@ -57,7 +57,7 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
         Dimensionality of each vector
       </ParamField>
       <ParamField body="metadata" type="array[object]">
-        Optional list of metadata objects, one per vector
+        Optional list of metadata objects, one per vector. String values in fields the index designates `full_text` are BM25-indexed on ingest, same as the standard endpoint — see [Full-text (BM25) ingestion](./upsert#full-text-bm25-ingestion)
       </ParamField>
       <ParamField body="contents" type="array[string]">
         Optional list of text content strings, one per vector
@@ -81,16 +81,42 @@ You can get an API key from the [CyborgDB Admin Dashboard](https://cyborgdb.co).
   "status": "success",
   "message": "Upserted 2 vectors",
   "training_triggered": true,
-  "training_message": "Index training has been triggered (vectors: 5000, threshold: 10000)"
+  "training_message": "Index training has been triggered (vectors: 5000)"
 }
 ```
 
+**With Training Check Warning:**
+```json
+{
+  "status": "success",
+  "message": "Upserted 2 vectors",
+  "warning": "Training check failed but upsert succeeded"
+}
+```
+
+<Note>
+In rare cases where the training check encounters an error but the upsert operation itself succeeds, a `warning` field will be included instead. The vectors are still successfully upserted in this scenario.
+</Note>
+
 ## Exceptions
 
-- `401`: Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
-- `404`: Index not found
-- `422`: Invalid request parameters or vector dimensions
-- `500`: Internal server error
+<AccordionGroup>
+    <Accordion title="400 Bad Request">
+        Invalid values (e.g. vector dimension mismatch with the index)
+    </Accordion>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key) **or** wrong `index_key` on SDK-supplied indexes — see [error model](../introduction#error-model-api-keys-index-keys-and-kms)
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found
+    </Accordion>
+    <Accordion title="422 Unprocessable Entity">
+        Request body failed validation (missing/mistyped fields)
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 

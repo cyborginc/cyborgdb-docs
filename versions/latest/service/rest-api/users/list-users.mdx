@@ -27,7 +27,7 @@ X-API-Key: cyborg_your_root_api_key_here
 
 | Header | Type | Description |
 |---|---|---|
-| `X-Index-Key` | `string` | _(Optional)_ 32-byte index KEK as a hex string. Required for SDK-supplied indexes (`provider: none`). Omit for KMS-backed indexes — the service resolves the KEK via the stored `KMSBlob`. |
+| `X-Index-Key` | `string` | _(Optional)_ 32-byte index KEK as a hex string. Required for SDK-supplied indexes (`provider: none`). Omit for KMS-backed indexes — the service resolves the key from the index's stored key envelope. |
 
 <Note>`GET`/`DELETE` on this resource have no request body, so the index key travels in the `X-Index-Key` header. The sibling `POST /v1/indexes/{index_name}/users` endpoint takes the same key as an `index_key` field in its JSON body.</Note>
 
@@ -64,10 +64,20 @@ X-API-Key: cyborg_your_root_api_key_here
 
 ## Exceptions
 
-- `401`: Authentication failed (invalid root API key).
-- `403`: RBAC is not enabled, or the caller is not using the root key.
-- `404`: Index not found.
-- `500`: Internal server error.
+<AccordionGroup>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid root API key).
+    </Accordion>
+    <Accordion title="403 Forbidden">
+        RBAC is not enabled, or the caller is not using the root key.
+    </Accordion>
+    <Accordion title="404 Not Found">
+        Index not found.
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error.
+    </Accordion>
+</AccordionGroup>
 
 ## Example Usage
 
@@ -76,7 +86,7 @@ curl -X GET "http://localhost:8000/v1/indexes/documents/users" \
      -H "X-API-Key: cyborg_your_root_api_key_here"
 ```
 
-**SDK-supplied index (legacy path):**
+**SDK-supplied index (KEK via header):**
 ```bash
 curl -X GET "http://localhost:8000/v1/indexes/documents/users" \
      -H "X-API-Key: cyborg_your_root_api_key_here" \

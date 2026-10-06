@@ -17,10 +17,10 @@ Deploy CyborgDB as a self-contained microservice that provides REST API access t
 ### Key Benefits
 
 **Independent Scaling**  
-Scale vector operations separately from your main application. Handle high query loads without impacting your core services.
+Scale vector operations separately from your main application. Handle high query loads without impacting your core services. Each service process must own its storage target (disk path or S3 bucket/prefix); running multiple replicas against the same storage is not currently supported, so scale with more CPU threads or GPU acceleration, or shard indexes across separate storage targets.
 
 **Self-Optimization**  
-The service automatically optimizes index performance, manages memory efficiently, and adapts to query patterns over time.
+The service automatically trains (and retrains) indexes as they grow, so search performance keeps up with your data without manual tuning.
 
 **Multi-Language Access**  
 One service deployment supports multiple applications and programming languages through REST API and client SDKs.
@@ -66,7 +66,7 @@ Centralized deployment, monitoring, and maintenance. Update vector search capabi
 
 **Direct library integration**
 
-Embed CyborgDB directly into your applications using Python or C++ libraries. This approach provides maximum control and performance by eliminating network overhead.
+Embed CyborgDB directly into your applications using the Python library. This approach provides maximum control and performance by eliminating network overhead.
 
 <Tip>Learn more about CyborgDB Embedded [here](../embedded/guides/intro/about).</Tip>
 
@@ -92,12 +92,7 @@ Access to low-level APIs for custom index configurations, memory management, and
     
     Embed confidential vector search directly in Python applications
   </Card>
-  
-  <Card title="C++ Embedded" href="../embedded/cpp/introduction" icon="brackets-curly">
-    *Native C++ integration*
-    
-    High-performance native integration for C++ applications
-  </Card>
+
 </CardGroup>
 
 ---
@@ -109,7 +104,7 @@ Access to low-level APIs for custom index configurations, memory management, and
   - **Multi-application architecture** - Multiple services need vector search capabilities
   - **Team scalability** - Different teams use different programming languages
   - **Operational simplicity** - You want centralized vector search management
-  - **Independent scaling** - Vector workloads need to scale separately from applications
+  - **Independent scaling** - Vector workloads need to scale separately from applications (one service process per storage target)
   - **Microservice patterns** - You prefer service-oriented architecture
   </Tab>
   

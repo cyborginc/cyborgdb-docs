@@ -9,7 +9,7 @@ Adds or updates vector embeddings in the index. Accepts a list of dictionaries, 
 def upsert(self,
            items: List[Dict[str, Any]],
            *,
-           index_key: bytes = None,
+           index_key: bytes,
            user_id: bytes = None)
 ```
 
@@ -17,9 +17,9 @@ def upsert(self,
 
 | Parameter | Type | Description |
 |-----------|-----------------------------------|-----------------------------------------------------------------------------------------------|
-| `items` | `List[Dict[str, Any]]` | A list of dictionaries, where each dictionary has the format `{"id": str, "vector": List[float], "contents": Union[bytes, str], "metadata": Dict[str, str]}`. |
-| `index_key` | `bytes` | _(Optional, keyword-only)_ Override the per-operation index key. See [Per-operation key override](#per-operation-key-override). |
-| `user_id` | `bytes` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Per-operation key override](#per-operation-key-override). |
+| `items` | `List[Dict[str, Any]]` | A list of dictionaries, where each dictionary has the format `{"id": str, "vector": List[float], "contents": Union[bytes, str], "metadata": Dict[str, Any]}`. |
+| `index_key` | `bytes` | _(Required, keyword-only)_ 32-byte index KEK. See [Index key](#index-key). |
+| `user_id` | `bytes` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Index key](#index-key). |
 
 Where each `item` dictionary has the following fields:
 
@@ -34,7 +34,7 @@ Where each `item` dictionary has the following fields:
 
 <Note>If embedding auto-generation is enabled (by setting the `embedding_model` parameter in [`create_index()`](../client/create-index)), then the `vector` parameter is optional.
 If `vector` provided, then it will be used (its dimensionality must match that of the `embedding_model`).
-If `vector` is not provided, a vector embedding will be auto-generated from `contents` using `sentence-transformers`. `contents` must be text in this case.</Note>
+If `vector` is not provided, a vector embedding is generated in-process from `contents` using the index's built-in model — no `sentence-transformers` or `torch` install required. `contents` must be a `str` in this case.</Note>
 
 <Tip>For more info on metadata, see [Metadata Filtering](../../guides/data-operations/metadata-filtering).</Tip>
 
@@ -44,9 +44,13 @@ If `vector` is not provided, a vector embedding will be auto-generated from `con
     <Accordion title="ValueError">
         - Throws if the vector dimensions are incompatible with the index configuration.
         - Throws if the index was not created or loaded yet.
-    </Accordion>
-    <Accordion title="RuntimeError">
         - Throws if the vectors could not be upserted.
+    </Accordion>
+    <Accordion title="EmbeddingModelUnavailable">
+        - Throws if `contents` need embedding and the index's built-in model cannot be downloaded or loaded (offline cache miss, network failure). Often transient.
+    </Accordion>
+    <Accordion title="TypeError">
+        - Throws if the arguments do not match the expected types.
     </Accordion>
 </AccordionGroup>
 
@@ -62,7 +66,7 @@ index = client.load_index(
 )
 
 # Single upsert (wrapped in a list)
-index.upsert([{"id": "item_1", "vector": [0.1, 0.2, 0.3]}])
+index.upsert([{"id": "item_1", "vector": [0.1, 0.2, 0.3]}], index_key=index_key)
 
 # Upsert with metadata
 index.upsert([
@@ -70,30 +74,30 @@ index.upsert([
    "vector": [0.1, 0.2, 0.3],
    "metadata": {"type": "dog", "temperament": "good boy"}
   }
-])
+], index_key=index_key)
 
 # Batch upsert
 index.upsert([
     {"id": "item_1", "vector": [0.1, 0.2, 0.3]},
     {"id": "item_2", "vector": [0.4, 0.5, 0.6]}
-])
+], index_key=index_key)
 
 # Upsert with items
 index.upsert([
     {"id": "item_1", "vector": [0.1, 0.1, 0.1, 0.1], "contents": b'item_contents_here...'}, # Bytes
     {"id": "item_2", "vector": [0.2, 0.2, 0.2, 0.2], "contents": "item_contents_here..."} # Text
-])
+], index_key=index_key)
 ```
 
-### Per-operation key override
+### Index key
 
-The simple calls above reuse the key supplied at [`create_index()`](../client/create-index) / [`load_index()`](../client/load-index). You may instead pass `index_key=` (and `user_id=` for an [RBAC user](./manage-users)) to override the per-operation key. This is required in stateless/service deployments that reload the index per request:
+`index_key` is required on every call. Pass the same 32-byte index KEK you used with [`create_index()`](../client/create-index) / [`load_index()`](../client/load-index). For an [RBAC user](./manage-users), pass the user's KEK as `index_key=` together with their `user_id=`:
 
 ```python
-# Stateless / service style: supply the key per operation
 index.upsert(
     [{"id": "item_1", "vector": [0.1, 0.2, 0.3]}],
-    index_key=index_key,
+    index_key=user_kek,
+    user_id=user_id,
 )
 ```
 
@@ -109,7 +113,7 @@ def upsert(self,
            ids: Union[list[str], np.ndarray],
            vectors: np.ndarray,
            *,
-           index_key: bytes = None,
+           index_key: bytes,
            user_id: bytes = None)
 ```
 
@@ -133,9 +137,10 @@ This structure is suited for efficient handling of large batches, with type safe
     <Accordion title="ValueError">
         - Throws if the vector dimensions are incompatible with the index configuration.
         - Throws if the index was not created or loaded yet.
-    </Accordion>
-    <Accordion title="RuntimeError">
         - Throws if the vectors could not be upserted.
+    </Accordion>
+    <Accordion title="TypeError">
+        - Throws if the arguments do not match the expected types.
     </Accordion>
 </AccordionGroup>
 
@@ -151,5 +156,5 @@ index = client.load_index(index_name=index_name, index_key=index_key)
 vectors = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=np.float32)  # 2 vectors of dimension 3
 ids = np.array(["item_101", "item_102"])  # Unique string IDs for each vector
 
-index.upsert(ids, vectors)
+index.upsert(ids, vectors, index_key=index_key)
 ```

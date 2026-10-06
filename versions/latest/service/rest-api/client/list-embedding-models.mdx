@@ -1,0 +1,71 @@
+---
+title: "List Embedding Models"
+mode: "wide"
+api: "GET /v1/embedding-models"
+playground: "simple"
+---
+
+List the text embedding models accepted by `embedding_model` on index create. This reads the service's model table — nothing is downloaded.
+
+## Parameters
+
+None
+
+## Authentication
+
+Required - API key via `X-API-Key` header:
+
+```http
+X-API-Key: cyborg_your_api_key_here
+```
+
+Any valid credential is accepted — the root key or a per-user `cdbk_` token. When RBAC is not enabled (`CYBORGDB_SERVICE_ROOT_KEY` unset), no header is required.
+
+## Response
+
+```json
+{
+  "models": [
+    {
+      "name": "sentence-transformers/all-MiniLM-L6-v2",
+      "dimension": 384,
+      "max_seq_length": 256
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `models` | `array[object]` | Supported embedding models |
+| `models[].name` | `string` | Canonical model name. The bare name (without the organization prefix) is also accepted, in any case |
+| `models[].dimension` | `integer` | Length of each embedding; indexes created with this model use it as their dimension |
+| `models[].max_seq_length` | `integer` | Longest input, in tokens, before truncation |
+
+## Exceptions
+
+<AccordionGroup>
+    <Accordion title="401 Unauthorized">
+        Authentication failed (invalid API key)
+    </Accordion>
+    <Accordion title="500 Internal Server Error">
+        Internal server error
+    </Accordion>
+</AccordionGroup>
+
+## Example Usage
+
+```bash
+curl -X GET "http://localhost:8000/v1/embedding-models" \
+     -H "X-API-Key: cyborg_your_api_key_here"
+
+# Or with HTTPS
+curl -X GET "https://your-domain.com:8000/v1/embedding-models" \
+     -H "X-API-Key: cyborg_your_api_key_here"
+```
+
+## Use Cases
+
+- **Index creation**: Pick a valid `embedding_model` (and its dimension) before calling create index
+- **Validation**: Verify a model name is supported before deploying
+- **Client UIs**: Populate model-selection dropdowns from the live service

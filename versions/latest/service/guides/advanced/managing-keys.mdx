@@ -3,9 +3,9 @@ title: "Managing Encryption Keys"
 mode: "wide"
 ---
 
-CyborgDB encrypts every index under a 256-bit AES key (the **index key**, also called the KEK in the service code). Without that key it is impossible to read the index — you cannot query, list, upsert, or even safely delete its contents.
+CyborgDB encrypts every index under a 256-bit AES key (the **index key**, also referred to as the KEK). Without that key it is impossible to read the index — you cannot query, list, upsert, or even safely delete its contents.
 
-v0.17 supports two completely different ways to provision and hold that key. Pick one per index:
+CyborgDB Service supports two completely different ways to provision and hold that key. Pick one per index:
 
 | Mode | What you set on `create_index` | Who holds the plaintext key | Best for |
 |---|---|---|---|

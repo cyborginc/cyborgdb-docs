@@ -100,10 +100,11 @@ pip install "cyborgdb-migrate[all]"
 
     [destination]
     host = "http://localhost:8000"           # your CyborgDB Service URL
-    api_key = "${CYBORGDB_API_KEY}"
+    api_key = "${CYBORGDB_SERVICE_ROOT_KEY}" # service root key (needed to create indexes)
     index_name = "my-cyborgdb-index"
     create_index = true                      # set false to migrate into an existing index
-    index_type = "ivfsq"                     # ivfsq (default) | ivfpq
+    # kms_name = "aws-kms"                   # use a KMS-backed key instead of a generated one
+    # index_key = "hex-encoded-key"          # existing non-KMS index: its key (or key_file)
 
     [options]
     batch_size = 200                         # vectors per batch (default: 100)

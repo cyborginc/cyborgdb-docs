@@ -1,7 +1,7 @@
 ---
 title: "CyborgDB - LangChain Integration"
 sidebarTitle: "LangChain Introduction"
-description: "`v0.17.x`"
+description: "`v0.18.x`"
 mode: "wide"
 ---
 
@@ -27,10 +27,10 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
     </Tab>
 
     <Tab title="JS/TS">
-        Install the `cyborgdb` npm package:
+        Install the `cyborgdb` npm package and `@langchain/core` (an optional peer of `cyborgdb`, only required for this integration):
 
         ```bash
-        npm install cyborgdb
+        npm install cyborgdb @langchain/core
         ```
     </Tab>
 </Tabs>
@@ -54,7 +54,7 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
 
     <Tab title="JS/TS">
         ```typescript
-        import { CyborgVectorStore } from 'cyborgdb';
+        import { CyborgVectorStore } from 'cyborgdb/integrations/langchain';
         ```
     </Tab>
 </Tabs>
@@ -83,9 +83,9 @@ Implements the LangChain-compatible vector store interface. Supports:
 - Reversible document ID tracking
 - Configurable distance metric (`cosine`, `euclidean`, `squared_euclidean`)
 
-### `DBConfig` (Embedded only)
+### `StorageConfig` (Embedded only)
 
-Configuration object for defining the location of index data. v0.17 supports `memory`, `disk`, and `s3`. Used only with the Embedded library (`cyborgdb-core`).
+Configuration object for defining where index data is stored, built with `StorageConfig.disk(path)` or `StorageConfig.s3(bucket, ...)`. Used only with the Embedded library (`cyborgdb-core`).
 
 ## Quick Start
 
@@ -93,17 +93,15 @@ Configuration object for defining the location of index data. v0.17 supports `me
     <Tab title="Embedded">
         ```python
         from cyborgdb_core.integrations.langchain import CyborgVectorStore
-        from cyborgdb_core import DBConfig
+        from cyborgdb_core import StorageConfig
         from langchain_openai import OpenAIEmbeddings
 
         store = CyborgVectorStore.from_texts(
             texts=["hello world", "goodbye world"],
             embedding=OpenAIEmbeddings(),
-            index_key=CyborgVectorStore.generate_key(save=True),
+            index_key=CyborgVectorStore.generate_key(),
             api_key="your-api-key",
-            index_location=DBConfig("memory"),
-            config_location=DBConfig("memory"),
-            index_type="ivfsq",
+            storage_config=StorageConfig.disk("/tmp/cyborgdb-langchain"),
             metric="cosine"
         )
 
@@ -121,7 +119,6 @@ Configuration object for defining the location of index data. v0.17 supports `me
             index_key=CyborgVectorStore.generate_key(save=True),
             api_key="your-api-key",
             base_url="http://localhost:8000",
-            index_type="ivfflat",
             metric="cosine"
         )
 
@@ -131,7 +128,7 @@ Configuration object for defining the location of index data. v0.17 supports `me
 
     <Tab title="JS/TS">
         ```typescript
-        import { CyborgVectorStore } from 'cyborgdb';
+        import { CyborgVectorStore } from 'cyborgdb/integrations/langchain';
         import { OpenAIEmbeddings } from '@langchain/openai';
 
         const store = await CyborgVectorStore.fromTexts(
@@ -143,7 +140,6 @@ Configuration object for defining the location of index data. v0.17 supports `me
                 apiKey: "your-api-key",
                 indexName: "my_documents",
                 indexKey: CyborgVectorStore.generateKey(),
-                indexType: "ivfflat",
                 metric: "cosine"
             }
         );

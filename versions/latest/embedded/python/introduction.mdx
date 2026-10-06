@@ -1,16 +1,15 @@
 ---
 title: "CyborgDB Embedded - Python API Reference"
 sidebarTitle: "Python API Introduction"
-description: "`v0.17.x`"
+description: "`v0.18.x`"
 mode: "wide"
 ---
 
-The Python API for CyborgDB is split into two main classes within the `CyborgDB` class:
+The Python API for CyborgDB is split into two main classes within the `cyborgdb_core` module:
 
 - `Client` – Handles configuration, index creation/loading, and listing available indexes.
 - `EncryptedIndex` – Provides data operations on a specific encrypted index such as upserting vectors, training the index, querying, and retrieving stored items.
 
-This API is also available in [C++](../cpp/introduction).
 
 ## Module-level helpers
 
@@ -28,4 +27,10 @@ if cyborgdb.cuda_built() and cyborgdb.cuda_available():
     print("GPU acceleration is available.")
 ```
 
-<Note>**Removed in v0.17.** `set_working_dir()` has been removed. Configure storage locations through [`StorageConfig`](./types#storageconfig) (`memory` / `disk` / `s3`) on the [`Client`](./client/client) instead.</Note>
+The module also exports:
+
+- Types: [`StorageConfig`](./types#storageconfig), [`S3Credentials`](./types#s3credentials), [`GPUConfig`](./types#gpuconfig), [`StoragePrecision`](./types#storageprecision), [`KMSBlob`](./types#kmsblob), [`Logger`](./client/logger), `MetadataResult` (the row type returned by [`query_metadata()`](./encrypted-index/query-metadata)).
+- KMS functions: [`create_index_kms`, `push_index_kms`, `get_index_kms`, `delete_index_kms`](./kms).
+- Embedding helpers: `supported_embedding_models()`, `find_embedding_model(name)`, the `EmbeddingModel` class (`embed_documents()` / `embed_queries()`), and the `EmbeddingModelUnavailable` exception (a `RuntimeError` subclass).
+- Datetime helpers: `to_epoch_millis(value)` and `from_epoch_millis(millis)`. Metadata has no native datetime type; `datetime` / `date` values are stored as epoch milliseconds.
+- `__version__`.

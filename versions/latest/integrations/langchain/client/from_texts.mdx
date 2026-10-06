@@ -13,7 +13,7 @@ Creates a CyborgVectorStore instance from a list of texts.
         from_texts(
             cls,
             texts: List[str],
-            embedding: Union[str, Embeddings, SentenceTransformer],
+            embedding: Union[str, Embeddings],
             metadatas: Optional[List[dict]] = None,
             *,
             ids: Optional[List[str]] = None,
@@ -26,7 +26,7 @@ Creates a CyborgVectorStore instance from a list of texts.
         | Parameter | Type | Description |
         |-----------|------|-------------|
         | `texts` | `List[str]` | List of text strings to add to the store |
-        | `embedding` | `Union[str, Embeddings, SentenceTransformer]` | Embedding model or model name |
+        | `embedding` | `Union[str, Embeddings]` | Embedding model or model name |
         | `metadatas` | `Optional[List[dict]]` | _(Optional)_ List of metadata dictionaries for each text |
         | `**kwargs` | `Any` | Additional arguments passed to constructor and add_texts |
 
@@ -37,10 +37,9 @@ Creates a CyborgVectorStore instance from a list of texts.
         | `ids` | `List[str]` | _(Optional)_ IDs for the texts |
         | `index_name` | `str` | Name of the index (default: "langchain_index") |
         | `index_key` | `bytes` | 32-byte encryption key (required) |
-        | `api_key` | `str` | API key for CyborgDB (required) |
-        | `index_location` | `DBConfig` | Index storage location (required) |
-        | `config_location` | `DBConfig` | Config storage location (required) |
-        | `index_type` | `str` | Index type (default: "ivfflat") |
+        | `api_key` | `str` | API key for CyborgDB (required; pass `""` for free-tier mode) |
+        | `storage_config` | `StorageConfig` | Backing-store configuration (required) |
+        | `dimension` | `int` | _(Optional)_ Embedding dimension (auto-inferred if not provided) |
         | `metric` | `str` | Distance metric (default: "cosine") |
 
         ### Returns
@@ -50,7 +49,7 @@ Creates a CyborgVectorStore instance from a list of texts.
         ### Example Usage
 
         ```python
-        from cyborgdb_core import DBConfig
+        from cyborgdb_core import StorageConfig
 
         # Create store from texts
         texts = [
@@ -69,10 +68,9 @@ Creates a CyborgVectorStore instance from a list of texts.
             embedding="sentence-transformers/all-MiniLM-L6-v2",
             metadatas=metadatas,
             index_name="python_docs",
-            index_key=CyborgVectorStore.generate_key(save=True),
+            index_key=CyborgVectorStore.generate_key(),
             api_key="your-api-key",
-            index_location=DBConfig("s3", bucket="my-bucket"),
-            config_location=DBConfig("s3", bucket="my-bucket")
+            storage_config=StorageConfig.s3("my-bucket", region="us-east-1")
         )
         ```
 
@@ -112,7 +110,6 @@ Creates a CyborgVectorStore instance from a list of texts.
         | `api_key` | `str` | API key for CyborgDB (required) |
         | `base_url` | `str` | Base URL of CyborgDB microservice (required) |
         | `verify_ssl` | `bool` | _(Optional)_ SSL verification |
-        | `index_type` | `str` | Index type (default: "ivfflat") |
         | `metric` | `str` | Distance metric (default: "cosine") |
 
         ### Returns
@@ -164,7 +161,7 @@ Creates a CyborgVectorStore instance from a list of texts.
         ### Example Usage
 
         ```typescript
-        import { CyborgVectorStore } from 'cyborgdb';
+        import { CyborgVectorStore } from 'cyborgdb/integrations/langchain';
         import { OpenAIEmbeddings } from '@langchain/openai';
 
         const store = await CyborgVectorStore.fromTexts(
