@@ -34,6 +34,15 @@ StorageConfig.s3(bucket: str,
 | `disk(path, ...)` | Local persistent store on disk. Optional `cache_*` flags keep vectors / metadata / IDs / the metadata index in memory for faster reads. |
 | `s3(bucket, ...)` | S3 or S3-compatible object store. Set `endpoint` for non-AWS providers (path-style addressing is auto-selected). Omit `credentials` to use the AWS default credential provider chain. |
 
+### Properties (Read-Only)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `cache_vectors` | `bool` | Whether the vectors store is served from the in-RAM cache. |
+| `cache_metadata` | `bool` | Whether the metadata store is served from the in-RAM cache. |
+| `cache_ids` | `bool` | Whether the ids store is served from the in-RAM cache. |
+| `cache_metadata_index` | `bool` | Whether the encrypted metadata index store is served from the in-RAM cache. |
+
 ### Example Usage
 
 ```python
@@ -141,6 +150,22 @@ if gpu_config2.train:
 - `"cosine"`: Cosine similarity.
 - `"euclidean"`: Euclidean distance.
 - `"squared_euclidean"`: Squared Euclidean distance.
+
+---
+
+## StoragePrecision
+
+`StoragePrecision` is a `str` enum naming the on-disk rerank-vector format, chosen at create time and immutable. Each member's value is its lowercase string, so the raw strings (and `np.float32` / `np.float16`) are also accepted wherever `storage_precision` is.
+
+```python
+class StoragePrecision(str, Enum):
+    FLOAT32 = "float32"
+    FLOAT16 = "float16"
+    TQ12 = "tq12"
+    TQ8 = "tq8"
+    TQ6 = "tq6"
+    TQ4 = "tq4"
+```
 
 ---
 

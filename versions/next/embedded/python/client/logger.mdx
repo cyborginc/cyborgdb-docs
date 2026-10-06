@@ -23,13 +23,14 @@ Configures the logger with the specified log level and output options.
 |-----------|------|---------|-------------|
 | `level` | `str` | - | Log level. Must be one of: "debug", "info", "warning", "error", "critical". |
 | `to_file` | `bool` | `False` | Whether to write logs to a file instead of stdout/stderr. |
-| `file_path` | `str` | `"cyborgdb_client.log"` | _(Optional)_ Path to the log file. Only used when `to_file` is `True`. |
+| `file_path` | `str` | `"cyborg_client.log"` | _(Optional)_ Path to the log file. Only used when `to_file` is `True`. |
 
 ### Exceptions
 
 <AccordionGroup>
     <Accordion title="ValueError">
         - Throws if the log level is invalid.
+        - Throws if `level` is `"debug"` in a non-debug build.
     </Accordion>
 </AccordionGroup>
 

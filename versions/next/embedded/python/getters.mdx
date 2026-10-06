@@ -129,6 +129,9 @@ def index_config(self) -> dict: ...
 - `metric`: The distance metric used (e.g., `'euclidean'`, `'cosine'`)
 - `index_type`: The type of the index (`'disk_ivf'`)
 - `n_lists`: The number of inverted lists in the index
+- `embedding_model`: The configured embedding-model name, or `""` if none
+- `metadata_schema`: Per-field metadata indexing overrides as a flat map `{field: {'filterable': bool, 'pattern': bool, 'full_text': bool}}`; empty when using the default index-everything posture
+- `bm25`: `{'k1': float, 'b': float, 'analyzer_version': str}` when the index has at least one `full_text` field, else `None`
 
 ### Example Usage
 

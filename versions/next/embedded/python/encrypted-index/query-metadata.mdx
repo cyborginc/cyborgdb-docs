@@ -55,8 +55,6 @@ def query_metadata(self,
         - Throws if `order_by` is neither a field name (`str`) nor a single-field dict.
         - Throws if `text` is passed but the index has no `full_text` field, or `text_fields` names a field that is not `full_text`.
         - Throws if any `text_*` parameter is set without a non-empty `text`.
-    </Accordion>
-    <Accordion title="RuntimeError">
         - Throws if the query could not be executed.
     </Accordion>
 </AccordionGroup>
