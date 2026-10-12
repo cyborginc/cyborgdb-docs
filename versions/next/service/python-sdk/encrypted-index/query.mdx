@@ -29,7 +29,7 @@ index.query(query_vectors=vector, text="encrypted search", top_k=10)
 | `top_k` | `int` | `None` (service default: `100`) | _(Optional)_ Results to return per query. Must be at least `1`. |
 | `n_probes` | `int` | `None` (service default: auto) | _(Optional)_ Clusters to probe. Higher values improve recall and add latency. |
 | `filters` | `Dict` | `None` | _(Optional)_ Metadata filter. See [Metadata filtering](../types#metadata-filtering). |
-| `include` | `List[str]` | `None` (service default: `[]`) | _(Optional)_ Extra fields per result: `"distance"` and `"metadata"`. `id` is always returned. See [Result fields](#result-fields). |
+| `include` | `List[str]` | `None` (service default: `[]`) | _(Optional)_ Extra fields per result. The only accepted values are `"distance"` and `"metadata"`; any other value — including `"vector"` or `"contents"` — is rejected with `422` before the query runs. `id` is always returned. See [Result fields](#result-fields). |
 | `greedy` | `bool` | `None` (service default: `False`) | _(Optional)_ Use greedy search. |
 | `rerank_mult` | `int` | `None` (service default: `50`) | _(Optional)_ Stage 1 returns `top_k * rerank_mult` candidates before reranking narrows them to `top_k`. Higher values trade latency for recall. |
 | `text` | `str` | `None` | _(Optional)_ Query text for a BM25 leg, which makes the query hybrid. Requires an index with at least one full-text field. `query_vectors` is still required. |
@@ -59,7 +59,7 @@ A query with exactly one vector always returns single results, even when it's se
 }
 ```
 
-`query()` never returns `vector` or `contents`, even when they're listed in `include`. To read them, pass the result IDs to [`get()`](./get).
+`query()` never returns `vector` or `contents`. Listing either in `include` is rejected with `422`; to read them, pass the result IDs to [`get()`](./get).
 
 ### Exceptions
 
@@ -69,7 +69,7 @@ A query with exactly one vector always returns single results, even when it's se
     </Accordion>
     <Accordion title="cyborgdb.ValidationError">
         - A NumPy `query_vectors` array is not 1-D or 2-D. Raised before any request is sent.
-        - The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, or an out-of-range `alpha`, `rrf_k`, or `window_mult`. Other numeric parameters aren't range-checked.
+        - The service rejects the query (HTTP `400`/`422`): wrong vector dimension, `text` on an index without full-text fields, an out-of-range `alpha`, `rrf_k`, or `window_mult`, or an `include` value other than `"distance"` / `"metadata"` (the error names the bad value and lists the accepted ones). Other numeric parameters aren't range-checked.
     </Accordion>
     <Accordion title="cyborgdb.AuthenticationError">
         The `index_key` or `api_key` is invalid (HTTP `401`).

@@ -21,7 +21,7 @@ def get(self,
 | Parameter | Type | Default | Description |
 |-------------------|-------------------------|---------|--------------|
 | `ids` | `List[str]` | - | Item IDs to retrieve & decrypt |
-| `include` | `List[str]` | `"vector", "contents", "metadata"` | _(Optional)_ List of item fields to return. Can include `vector`, `contents`, and `metadata`. |
+| `include` | `List[str]` | `"vector", "contents", "metadata"` | _(Optional)_ List of item fields to return. The only accepted values are `"vector"`, `"contents"`, and `"metadata"`; any other value raises `ValueError`. |
 | `index_key` | `bytes` | - | _(Required, keyword-only)_ 32-byte index KEK. See [Index key](#index-key). |
 | `user_id` | `bytes` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. See [Index key](#index-key). |
 
@@ -36,6 +36,7 @@ def get(self,
 <AccordionGroup>
     <Accordion title="ValueError">
         - Throws if the item could not be retrieved or decrypted.
+        - Throws if `include` contains a value other than `"vector"`, `"contents"`, or `"metadata"` — the error names the bad value and lists the accepted ones. Passing a bare string (e.g. `include="metadata"`) is also an error; wrap it in a list.
         - Throws if an unexpected error occurs during retrieval.
     </Accordion>
 </AccordionGroup>
