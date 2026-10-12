@@ -1,0 +1,22 @@
+name: llms.txt has no archive pages
+
+on:
+  schedule:
+    - cron: "0 9 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch llms.txt and fail on superseded-version entries
+        run: |
+          curl -fsSL https://docs.cyborg.co/llms.txt -o llms.txt
+          archive=$(grep -c 'docs.cyborg.co/versions/v0\.' llms.txt || true)
+          latest=$(grep -c 'versions/latest/' llms.txt || true)
+          echo "latest entries: $latest, archive entries: $archive"
+          test "$archive" -eq 0
+          grep -q 'versions/latest/intro/quickstart' llms.txt
