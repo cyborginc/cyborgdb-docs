@@ -103,8 +103,8 @@ Already on Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Bring your workload 
     store = CyborgVectorStore.from_texts(
         texts=["hello world", "goodbye world"],
         embedding="all-MiniLM-L6-v2",
-        index_key=CyborgVectorStore.generate_key(),
-        api_key="your-api-key",
+        index_key=CyborgVectorStore.generate_key(),  # keep this key — a lost key means lost data
+        api_key="",  # free tier
         storage_config=StorageConfig.disk("/tmp/cyborgdb-langchain"),
     )
     ```

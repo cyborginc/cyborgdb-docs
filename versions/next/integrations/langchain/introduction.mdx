@@ -15,7 +15,7 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
         Install `cyborgdb-core` with the `langchain` extra:
 
         ```bash
-        pip install cyborgdb-core[langchain]
+        pip install "cyborgdb-core[langchain]"
         ```
     </Tab>
 
@@ -23,7 +23,7 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
         Install the `cyborgdb` package with the `langchain` extra:
 
         ```bash
-        pip install cyborgdb[langchain]
+        pip install "cyborgdb[langchain]"
         ```
     </Tab>
 
@@ -93,20 +93,36 @@ Configuration object for defining where index data is stored, built with `Storag
 <Tabs>
     <Tab title="Embedded">
         ```python
-        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+        import secrets
         from cyborgdb_core import StorageConfig
-        from langchain_openai import OpenAIEmbeddings
+        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+
+        # Generate an encryption key for the index.
+        # WARNING: store this key securely — data encrypted with a lost key is unrecoverable.
+        index_key = secrets.token_bytes(32)
 
         store = CyborgVectorStore.from_texts(
             texts=["hello world", "goodbye world"],
-            embedding=OpenAIEmbeddings(),
-            index_key=CyborgVectorStore.generate_key(),
-            api_key="your-api-key",
-            storage_config=StorageConfig.disk("/tmp/cyborgdb-langchain"),
-            metric="cosine"
+            embedding="all-MiniLM-L6-v2",   # built-in model: no extra install, no paid key
+            index_key=index_key,
+            api_key="",                     # free tier; pass your key to lift the 1M-item cap
+            storage_config=StorageConfig.disk("./cyborgdb-langchain"),
+            metric="cosine",
         )
 
-        docs = store.similarity_search("hello")
+        for doc in store.similarity_search("hello"):
+            print(doc.page_content)
+
+        # Delete the index so the example can be run again (the key above is not saved).
+        store.delete(delete_index=True)
+        ```
+
+        To keep the index between runs, store `index_key` and construct `CyborgVectorStore(index_name="langchain_index", index_key=index_key, api_key="", embedding="all-MiniLM-L6-v2", storage_config=...)` directly: it reopens an existing index instead of creating one.
+
+        To embed with OpenAI instead of the built-in model, install `langchain-openai` (it is not part of the `langchain` extra), set `OPENAI_API_KEY`, and pass `embedding=OpenAIEmbeddings()`:
+
+        ```bash
+        pip install langchain-openai
         ```
     </Tab>
 
@@ -151,3 +167,11 @@ Configuration object for defining where index data is stored, built with `Storag
         <Note>`fromExistingIndex()` is available as a JS/TS-only convenience factory method for connecting to an already-created index without re-adding documents.</Note>
     </Tab>
 </Tabs>
+
+<Warning>
+**Store `index_key` before you upsert any data.** CyborgDB has no key-recovery path — losing the key means losing the data. For anything past evaluation, keep the key in AWS Secrets Manager, Vault, or your KMS. See [Managing Keys](../../embedded/guides/advanced/managing-keys).
+</Warning>
+
+<Note>
+`generate_key(save=True)` exists in the Python SDK only. The embedded library's `generate_key()` returns the bytes and nothing else, so persist the key yourself as shown above.
+</Note>
