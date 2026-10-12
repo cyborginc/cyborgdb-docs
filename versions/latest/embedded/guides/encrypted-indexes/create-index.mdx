@@ -31,7 +31,7 @@ This creates a new encrypted index. The vector dimension is auto-detected from t
 **Store `index_key` before you upsert any data.** CyborgDB has no key-recovery path — data encrypted with a lost key is unrecoverable. For anything past evaluation, keep the key in AWS Secrets Manager, Vault, or your KMS. See [Managing Keys](../advanced/managing-keys).
 </Warning>
 
-<Note>To lift the free-tier 1M-items-per-index cap, pass an API key as the first argument (`cyborgdb.Client(api_key, storage_config=...)`). Get a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co). See [Get an API Key](../../../intro/get-api-key).</Note>
+<Note>To lift the free-tier 1M-items-per-index cap, pass an API key as the first argument (`cyborgdb.Client(api_key, storage_config=...)`). Get a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co/new). See [Get an API Key](../../../intro/get-api-key).</Note>
 
 ## Automatic Embedding Generation
 

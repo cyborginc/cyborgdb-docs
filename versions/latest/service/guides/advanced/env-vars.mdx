@@ -25,7 +25,7 @@ store). Configure it with `CYBORGDB_DB_TYPE` plus the matching
 **Free tier vs paid.** `CYBORGDB_API_KEY` is the single switch between the two:
 
 - **Unset** → free tier. cyborgdb-core enforces a 1M-item-per-index cap. At startup the service logs `CYBORGDB_API_KEY not set — the service will run in free tier`. For evaluation only.
-- **Set to a paid key** (from the [CyborgDB dashboard](https://cyborgdb.co/)) → unlimited items, full feature set.
+- **Set to a paid key** (from the [CyborgDB dashboard](https://cyborgdb.co/new)) → unlimited items, full feature set.
 - **Set to a demo key** (from `cyborgdb.get_demo_api_key()` / `getDemoApiKey()` / `cyborgdb.GetDemoAPIKey(...)`) → also free tier, time-limited. Useful for evaluating without dashboard signup.
 
 This key controls licensing only. Request authentication is a separate concern, gated by `CYBORGDB_SERVICE_ROOT_KEY` (see [RBAC / Multi-Tenancy](#rbac-multi-tenancy)).
