@@ -1,7 +1,7 @@
 ---
 title: "Manage Users (RBAC)"
 mode: "wide"
-canonical: https://docs.cyborg.co/versions/latest/embedded/python/encrypted-index/manage-users
+noindex: true
 ---
 
 CyborgDB supports per-user access control (RBAC) on an encrypted index. The holder of the **root** index KEK can mint per-user wrapped keys, each granting `read` and/or `write` access. A user then loads the index with their own per-user key (KEK) and is restricted to the permissions they were granted.

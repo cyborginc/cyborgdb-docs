@@ -2,7 +2,7 @@
 title: "Multi-Tenancy & RBAC"
 sidebarTitle: "Multi-Tenancy"
 mode: "wide"
-canonical: https://docs.cyborg.co/versions/latest/service/guides/advanced/multi-tenancy
+noindex: true
 ---
 
 CyborgDB Service v0.17 ships with an **operator-side multi-tenancy model** built on cryptographic isolation: each index is wrapped by its own key, and per-user API keys hold their own wrapped data-encryption keys (DEKs). Permissions aren't stored as a policy blob — the **set of wrapped DEKs a user holds *is* their permission set**, enforced by the encrypted-index engine on every request.

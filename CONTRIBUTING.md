@@ -6,7 +6,7 @@
 |---|---|---|
 | `versions/latest/` | the published, indexed docs | none |
 | `versions/next/` | full mirror of `latest/` plus unreleased changes; not reachable in production | `noindex: true` |
-| `versions/vX.Y.x/` | frozen archives (the last three releases) | `canonical:` → `latest/` |
+| `versions/vX.Y.x/` | frozen archives (the last three releases) | `noindex: true` |
 
 `docs.json` is the source of truth for the current version label, not the directory name.
 

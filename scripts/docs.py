@@ -4,7 +4,7 @@
     versions/latest/     the published, indexed copy
     versions/next/       full mirror of latest/ plus unreleased changes; noindex'd
                          and unreachable in production via a permanent redirect
-    versions/vX.Y.x/     frozen archives, canonical'd back to latest/
+    versions/vX.Y.x/     frozen archives; noindex'd (and so absent from llms.txt)
 
 Every command exists to keep those tiers consistent:
 
@@ -25,7 +25,6 @@ import subprocess
 import sys
 import tempfile
 
-SITE = "https://docs.cyborg.co"
 VERSIONS = pathlib.Path("versions")
 DOCS_JSON = pathlib.Path("docs.json")
 LATEST, NEXT = "latest", "next"
@@ -168,10 +167,8 @@ def element_spans(text, key):
 def desired_tag(version, relpath):
     if version == LATEST:
         return None
-    if version == NEXT:
-        return NOINDEX
-    if (VERSIONS / LATEST / relpath).with_suffix(".mdx").exists():
-        return f"canonical: {SITE}/{VERSIONS.name}/{LATEST}/{relpath}"
+    # Archives are deindexed (core#2020) and, because Mintlify builds llms.txt
+    # from indexed pages only, kept out of it as well (core#2711).
     return NOINDEX
 
 
@@ -445,8 +442,7 @@ def cmd_promote(args):
         dst.write_text(apply_tag(body, NOINDEX) or body, encoding="utf-8")
     shutil.rmtree(VERSIONS / lapsed)
 
-    # The freshly archived version needs canonicals, and surviving archives may
-    # gain or lose them as pages appear in or vanish from the new latest/.
+    # The freshly archived version needs its noindex tags.
     cmd_seo(argparse.Namespace(check=False))
 
     # ---- docs.json --------------------------------------------------------

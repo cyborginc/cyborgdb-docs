@@ -2,7 +2,7 @@
 title: "External Key Management (KMS)"
 sidebarTitle: "KMS"
 mode: "wide"
-canonical: https://docs.cyborg.co/versions/latest/embedded/guides/advanced/kms
+noindex: true
 ---
 
 CyborgDB can persist a per-index **KMS envelope** — a small record describing how an index's 32-byte KEK is wrapped by an external Key Management Service. A service layer can then read the envelope at request time, unwrap the KEK with the external KMS, and hand the plaintext KEK to the SDK. The envelope itself is represented by the `KMSBlob` type and stored as a FlatBuffer next to the index keystore.
