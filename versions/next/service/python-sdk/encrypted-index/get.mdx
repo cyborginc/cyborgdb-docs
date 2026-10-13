@@ -15,7 +15,7 @@ index.get(ids, include=["vector", "contents", "metadata"])
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `ids` | `List[str]` | - | IDs of the items to retrieve. |
-| `include` | `List[str]` | `["vector", "contents", "metadata"]` | _(Optional)_ Fields to return besides `id`. |
+| `include` | `List[str]` | `["vector", "contents", "metadata"]` | _(Optional)_ Fields to return besides `id`. The only accepted values are `"vector"`, `"contents"`, and `"metadata"`; any other value is rejected with `422` before the lookup runs. |
 
 
 ### Returns
@@ -36,6 +36,9 @@ index.get(ids, include=["vector", "contents", "metadata"])
 ### Exceptions
 
 <AccordionGroup>
+    <Accordion title="cyborgdb.ValidationError">
+        The service rejects the request (HTTP `422`), for example an `include` value other than `"vector"`, `"contents"`, or `"metadata"` (the error names the bad value and lists the accepted ones).
+    </Accordion>
     <Accordion title="cyborgdb.AuthenticationError">
         The `index_key` or `api_key` is invalid (HTTP `401`).
     </Accordion>

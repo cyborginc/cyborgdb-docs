@@ -99,7 +99,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
     MongoDB-style metadata filters
   </ParamField>
   <ParamField body="include" type="array[string]" default={[]}>
-    Fields to include in response. `id` is always returned. `contents` and `vector` are **not** valid values for query — to retrieve stored vectors or contents, call `POST /v1/vectors/get` (or the SDK's `get`) with the matching IDs afterwards.
+    Fields to include in response. `id` is always returned. The only accepted values are `"distance"` and `"metadata"`; any other value — including `"contents"` or `"vector"` — is rejected with `422` before the query runs. To retrieve stored vectors or contents, call `POST /v1/vectors/get` (or the SDK's `get`) with the matching IDs afterwards.
     <Expandable title="include options">
       <ParamField body="distance" type="string">
         Include distance/similarity score to query vector (pure vector query only)
@@ -243,7 +243,7 @@ On a three-way query the filter is resolved **once**, before retrieval, and the 
         Index not found
     </Accordion>
     <Accordion title="422 Unprocessable Entity">
-        Request body failed validation (missing/mistyped fields)
+        Request body failed validation (missing/mistyped fields, or an `include` value other than `"distance"` / `"metadata"` — the `detail` names the bad value and lists the accepted ones).
     </Accordion>
     <Accordion title="500 Internal Server Error">
         Internal server error

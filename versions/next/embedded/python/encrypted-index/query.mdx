@@ -39,7 +39,7 @@ def query(self,
 | `top_k` | `int` | `None` | _(Optional)_ Number of nearest neighbors to return. When `None`, defaults to 100. |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When `None` or `0`, automatically determines the optimal value. |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `List[str]` | `None` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
+| `include` | `List[str]` | `None` | _(Optional)_ List of item fields to return. The only accepted values are `"distance"` and `"metadata"`; any other value (including `"contents"` or `"vector"`) raises `ValueError`. When empty, only IDs are returned. To fetch contents or vectors, pass the result IDs to [`get()`](./get). |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 | `rerank_mult` | `int` | `50` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
 | `text` | `str` | `None` | _(Optional, keyword-only)_ Query text for a BM25 full-text leg. Setting it makes the query **hybrid**: BM25 ranking is fused with the vector ranking by weighted RRF and each result carries `score` instead of `distance`. Requires an index with at least one `full_text` field. |
@@ -77,6 +77,7 @@ For more info on metadata, see [Metadata Filtering](../../guides/data-operations
         - Throws if any `text_*` knob is set without a non-empty `text`.
         - Throws if `rrf_k <= 0` or `window_mult < 1` is passed explicitly (pass `None` for defaults).
         - Throws if a filter references a field the index cannot resolve when `text` is set (e.g. `$regex` on a non-`pattern` field, or any predicate on an explicitly non-`filterable` field).
+        - Throws if `include` contains a value other than `"distance"` or `"metadata"` — the error names the bad value and lists the accepted ones. Passing a bare string (e.g. `include="metadata"`) is also an error; wrap it in a list.
         - Throws if the query could not be executed.
     </Accordion>
     <Accordion title="EmbeddingModelUnavailable">
@@ -207,7 +208,7 @@ def query(self,
 | `top_k` | `int` | `None` | _(Optional)_ Number of nearest neighbors to return. When `None`, defaults to 100. |
 | `n_probes` | `int` | `None` | _(Optional)_ Number of lists probed during the query; higher values may increase recall but can also reduce performance. When `None` or `0`, automatically determines the optimal value. |
 | `filters` | `Dict[str, Any]` | `None` | _(Optional)_ A dictionary of filters to apply to vector metadata, limiting search scope to these vectors. |
-| `include` | `List[str]` | `None` | _(Optional)_ List of item fields to return. Can include `distance` and `metadata`. When empty, only IDs are returned. |
+| `include` | `List[str]` | `None` | _(Optional)_ List of item fields to return. The only accepted values are `"distance"` and `"metadata"`; any other value (including `"contents"` or `"vector"`) raises `ValueError`. When empty, only IDs are returned. To fetch contents or vectors, pass the result IDs to [`get()`](./get). |
 | `greedy` | `bool` | `False` | _(Optional)_ Whether to use greedy search (higher recall with same `n_probes`). |
 | `rerank_mult` | `int` | `50` | _(Optional)_ Stage-1 retrieval multiplier for reranking. The index retrieves `rerank_mult * top_k` candidates before reranking them against the stored vectors to produce the final `top_k`. Higher values improve recall at some cost to performance. |
 | `index_key` | `bytes` | - | _(Required, keyword-only)_ 32-byte index KEK. See [Index key](#index-key). |
@@ -229,6 +230,7 @@ For more info on metadata, see [Metadata Filtering](../../guides/data-operations
     <Accordion title="ValueError">
         - Throws if the query vectors have incompatible dimensions with the index.
         - Throws if the index was not created or loaded yet.
+        - Throws if `include` contains a value other than `"distance"` or `"metadata"` — the error names the bad value and lists the accepted ones. Passing a bare string (e.g. `include="metadata"`) is also an error; wrap it in a list.
         - Throws if the query could not be executed.
     </Accordion>
 </AccordionGroup>

@@ -40,7 +40,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
     List of item IDs to retrieve
   </ParamField>
   <ParamField body="include" type="array[string]" default={["vector", "contents", "metadata"]}>
-    Fields to include in response:
+    Fields to include in response. The only accepted values are `"vector"`, `"contents"`, and `"metadata"`; any other value is rejected with `422` before the lookup runs.
     <Expandable title="include options">
       <ParamField body="vector" type="string">
         Include the stored rerank vector. Returned at the index's configured `storage_precision` (`float32` by default; `float16` or a TurboQuant tier `tq12`/`tq8`/`tq6`/`tq4` if set at create time).
@@ -88,7 +88,7 @@ If an item ID doesn't exist, it will be omitted from the results.
         Index not found
     </Accordion>
     <Accordion title="422 Unprocessable Entity">
-        Invalid request parameters
+        Invalid request parameters (missing/mistyped fields, or an `include` value other than `"vector"` / `"contents"` / `"metadata"` — the `detail` names the bad value and lists the accepted ones).
     </Accordion>
     <Accordion title="500 Internal Server Error">
         Internal server error
