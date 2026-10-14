@@ -218,7 +218,7 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
     - `cyborgdb-lite` package has been deprecated and removed
     - All features previously available in `cyborgdb-lite` are now included in `cyborgdb-core`
     - Simplified package structure with a single unified library for embedded use
-- CyborgDB Service now supports CUDA with `pip install cyborgdb-service[cuda]`:
+- CyborgDB Service now supports CUDA with `pip install "cyborgdb-service[cuda]"`:
     - Enables existing `cyborgdb-core` CUDA optimizations in the REST API microservice
 - Deprecated support for Python 3.9 due to EOL for:
     - `cyborgdb-core`
@@ -293,7 +293,7 @@ CyborgDB follows a bi-monthly release cadence, with new features, enhancements, 
     - JavaScript
     - TypeScript
 - [LangChain integration for CyborgDB](/versions/latest/integrations/langchain/introduction) now available
-    - Install via `pip install cyborgdb-core[langchain]`
+    - Install via `pip install "cyborgdb-core[langchain]"`
     - Use via `from cyborgdb_core.integrations.langchain import CyborgVectorStore`
     - Supports both `cyborgdb-core` and `cyborgdb-lite`
 - Added configurable logging utility for embedded library in C++ and [Python](/versions/latest/embedded/python/client/logger)

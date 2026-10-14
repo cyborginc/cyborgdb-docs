@@ -351,6 +351,12 @@ def cmd_check(args):
         if not pathlib.Path(dst.lstrip("/")).with_suffix(".mdx").exists():
             problems.append(f"redirect destination does not exist: {src} -> {dst}")
 
+    # 4. pip extras must be quoted: zsh (the macOS default shell) expands [..] as a glob
+    for mdx in sorted(pathlib.Path(".").glob("*.mdx")) + sorted((VERSIONS / LATEST).rglob("*.mdx")):
+        for i, line in enumerate(mdx.read_text(encoding="utf-8").splitlines(), 1):
+            if re.search(r'pip install (?!["\'])\S+\[', line):
+                problems.append(f"unquoted pip extra in {mdx}:{i} (zsh glob): {line.strip()}")
+
     if problems:
         for p in problems:
             print(f"  {p}")

@@ -62,18 +62,20 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
     </Step>
 
     <Step title="Run with Docker (Quick Start)">
+        Evaluating? Use `docker run` below. Deploying? Use Docker Compose in the next step.
+
         <Tabs>
             <Tab title="Disk (default)">
                 <CodeGroup>
                 ```bash Linux
                 # Minimal — no API key needed; disk is the default; bind the data dir to a host volume
-                sudo docker run -it --rm --network host \
+                docker run -it --rm --network host \
                   -v cyborgdb_data:/app/cyborgdb_data \
                   cyborginc/cyborgdb-service:latest
                 ```
 
                 ```bash macOS
-                sudo docker run -it -p 8000:8000 \
+                docker run -it -p 8000:8000 \
                   -v cyborgdb_data:/app/cyborgdb_data \
                   cyborginc/cyborgdb-service:latest
                 ```
@@ -85,7 +87,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
             <Tab title="S3 (AWS)">
                 <CodeGroup>
                 ```bash Linux
-                sudo docker run -it --network host \
+                docker run -it --network host \
                   -e CYBORGDB_DB_TYPE=s3 \
                   -e CYBORGDB_S3_BUCKET=my-bucket \
                   -e CYBORGDB_S3_REGION=us-east-1 \
@@ -95,7 +97,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 ```
 
                 ```bash macOS
-                sudo docker run -it -p 8000:8000 \
+                docker run -it -p 8000:8000 \
                   -e CYBORGDB_DB_TYPE=s3 \
                   -e CYBORGDB_S3_BUCKET=my-bucket \
                   -e CYBORGDB_S3_REGION=us-east-1 \
@@ -111,7 +113,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
             <Tab title="S3 (MinIO / R2)">
                 <CodeGroup>
                 ```bash Linux
-                sudo docker run -it --network host \
+                docker run -it --network host \
                   -e CYBORGDB_DB_TYPE=s3 \
                   -e CYBORGDB_S3_BUCKET=my-bucket \
                   -e CYBORGDB_S3_ENDPOINT=http://minio:9000 \
@@ -121,7 +123,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
                 ```
 
                 ```bash macOS
-                sudo docker run -it -p 8000:8000 \
+                docker run -it -p 8000:8000 \
                   -e CYBORGDB_DB_TYPE=s3 \
                   -e CYBORGDB_S3_BUCKET=my-bucket \
                   -e CYBORGDB_S3_ENDPOINT=http://host.docker.internal:9000 \
@@ -168,7 +170,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
                 Then run:
                 ```bash
-                docker-compose up -d
+                docker compose up -d
                 ```
             </Tab>
 
@@ -192,7 +194,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
                 Then run:
                 ```bash
-                docker-compose up -d
+                docker compose up -d
                 ```
             </Tab>
 
@@ -233,7 +235,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
                 Then run:
                 ```bash
-                docker-compose up -d
+                docker compose up -d
                 ```
 
                 <Note>Create the `cyborgdb` bucket once via the MinIO console (`http://localhost:9001`) before first use.</Note>
@@ -339,7 +341,7 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
                 **Docker Run Example:**
                 ```bash
-                sudo docker run -it -p 8000:8000 \
+                docker run -it -p 8000:8000 \
                   -e CYBORGDB_API_KEY=cyborg_your_api_key_here \
                   -e CYBORGDB_DB_TYPE=s3 \
                   -e CYBORGDB_S3_BUCKET=cyborgdb-prod \
@@ -409,10 +411,9 @@ The Docker service is ideal for teams looking to self-host CyborgDB in cloud, on
 
 <Accordion title="Technical Specifications">
 
-- **Base Image**: `python:3.11-slim`
-- **Python Version**: 3.11
-- **PyTorch**: CPU-optimized for maximum compatibility
-- **Docker Image Size**: ~1.8GB
+- **Base Image**: `python:3.14-slim`
+- **Python Version**: 3.14
+- **Docker Image Size**: about 124 MB compressed (no PyTorch bundled; see the Docker Hub page for the current size)
 - **Platform**: linux/amd64, linux/arm64
 - **Default Port**: 8000
 

@@ -69,6 +69,10 @@
       "destination": "/versions/latest/intro/quickstart"
     },
     {
+      "source": "/quickstart-docker",
+      "destination": "/versions/latest/service/guides/intro/quickstart-docker"
+    },
+    {
       "source": "/versions/changelog",
       "destination": "/changelog"
     },
@@ -1924,6 +1928,10 @@
   "navbar": {
     "links": [
       {
+        "label": "Quickstart",
+        "href": "/quickstart"
+      },
+      {
         "label": "Support",
         "href": "https://www.cyborg.co/contact"
       }
@@ -1931,7 +1939,7 @@
     "primary": {
       "type": "button",
       "label": "Get API Key",
-      "href": "https://cyborgdb.co"
+      "href": "https://cyborgdb.co/new"
     }
   },
   "footer": {

@@ -6,7 +6,7 @@ mode: "wide"
 
 ## Try CyborgDB in 5 minutes
 
-Run this end-to-end — install, create an encrypted index, upsert, and query — with no server to run:
+Run this end-to-end — install, create an encrypted index, upsert, and query — with no server to run. CyborgDB needs Python 3.10 or newer. The `python3` that ships with macOS is 3.9, so check `python3 --version` before installing.
 
 ```bash
 pip install cyborgdb-core
@@ -103,8 +103,8 @@ Already on Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Bring your workload 
     store = CyborgVectorStore.from_texts(
         texts=["hello world", "goodbye world"],
         embedding="all-MiniLM-L6-v2",
-        index_key=CyborgVectorStore.generate_key(),
-        api_key="your-api-key",
+        index_key=CyborgVectorStore.generate_key(),  # keep this key — a lost key means lost data
+        api_key="",  # free tier
         storage_config=StorageConfig.disk("/tmp/cyborgdb-langchain"),
     )
     ```
