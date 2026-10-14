@@ -3,7 +3,7 @@ title: "Delete User"
 mode: "wide"
 api: "DELETE /v1/indexes/{index_name}/users/{user_id}"
 playground: "simple"
-canonical: https://docs.cyborg.co/versions/latest/service/rest-api/users/delete-user
+noindex: true
 ---
 
 Revoke a user. Erases their wrapped DEK(s) for this index — even a captured `cdbk_…` token becomes useless on the next request. Cryptographic revocation, no propagation lag.

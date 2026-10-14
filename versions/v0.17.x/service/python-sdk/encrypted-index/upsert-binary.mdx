@@ -1,7 +1,7 @@
 ---
 title: "Upsert (Binary)"
 mode: "wide"
-canonical: https://docs.cyborg.co/versions/latest/service/python-sdk/encrypted-index/upsert-binary
+noindex: true
 ---
 
 `upsert_binary` is the low-level, high-throughput upsert path. Vectors are sent as base64-encoded binary instead of JSON arrays, which is significantly faster for large batches. Unlike the two-arg form of [`upsert()`](./upsert), this method also accepts parallel `metadata` and `contents` lists.

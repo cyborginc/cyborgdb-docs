@@ -2,7 +2,7 @@
 title: "Access Control (RBAC)"
 sidebarTitle: "Access Control"
 mode: "wide"
-canonical: https://docs.cyborg.co/versions/latest/embedded/guides/advanced/access-control
+noindex: true
 ---
 
 CyborgDB supports per-user access control (RBAC) on an encrypted index. Instead of sharing the single root index key with every caller, the holder of the **root** index KEK can mint per-user keys that grant scoped `read` and/or `write` access. Each user then loads the index with their own per-user key and is restricted to the permissions they were granted.
