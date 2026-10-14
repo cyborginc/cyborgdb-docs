@@ -22,7 +22,7 @@ X-API-Key: your-root-key-or-cdbk-token
 The accepted credential is either the root key itself or a per-user `cdbk_` token minted under it (see [Managing Keys](../guides/advanced/managing-keys)).
 
 <Note>
-This `X-API-Key` credential is **not** the same as `CYBORGDB_API_KEY`. `CYBORGDB_API_KEY` is the core *license* key — it sets the usage tier (unset → free tier with a 1M-item-per-index cap; a paid key from the [CyborgDB Admin Dashboard](https://cyborgdb.co) → unlimited) and is never sent by clients. Service request authentication is gated only by `CYBORGDB_SERVICE_ROOT_KEY`.
+This `X-API-Key` credential is **not** the same as `CYBORGDB_API_KEY`. `CYBORGDB_API_KEY` is the core *license* key — it sets the usage tier (unset → free tier with a 1M-item-per-index cap; a paid key from the [CyborgDB Admin Dashboard](https://cyborgdb.co/new) → unlimited) and is never sent by clients. Service request authentication is gated only by `CYBORGDB_SERVICE_ROOT_KEY`.
 </Note>
 
 ## Response Format
