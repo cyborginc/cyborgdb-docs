@@ -12,11 +12,13 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
 
 <Tabs>
     <Tab title="Embedded">
-        Install `cyborgdb-core` with the `langchain` extra (Python 3.10 or newer; the `python3` that ships with macOS is 3.9):
+        Install `langchain-cyborgdb` (Python 3.10 or newer; the `python3` that ships with macOS is 3.9):
 
         ```bash
-        pip install "cyborgdb-core[langchain]"
+        pip install langchain-cyborgdb
         ```
+
+        `langchain-cyborgdb` re-exports the integration that ships in `cyborgdb-core`, so `pip install "cyborgdb-core[langchain]"` with `from cyborgdb_core.integrations.langchain import CyborgVectorStore` works the same way.
     </Tab>
 
     <Tab title="Python SDK">
@@ -43,7 +45,7 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
 <Tabs>
     <Tab title="Embedded">
         ```python
-        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+        from langchain_cyborgdb import CyborgVectorStore
         ```
     </Tab>
 
@@ -94,8 +96,7 @@ Configuration object for defining where index data is stored, built with `Storag
     <Tab title="Embedded">
         ```python
         import secrets
-        from cyborgdb_core import StorageConfig
-        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+        from langchain_cyborgdb import CyborgVectorStore, StorageConfig
 
         # Generate an encryption key for the index.
         # WARNING: store this key securely — data encrypted with a lost key is unrecoverable.
