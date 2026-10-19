@@ -106,6 +106,19 @@ pip install "cyborgdb-migrate[all]"
     create_index = true                      # set false to migrate into an existing index
     # kms_name = "aws-kms"                   # use a KMS-backed key instead of a generated one
     # index_key = "hex-encoded-key"          # existing non-KMS index: its key (or key_file)
+    # storage_precision = "float16"          # float32 (default) | float16 | tq12 | tq8 | tq6 | tq4
+
+    # Full-text (BM25) search — fixed at index creation, immutable afterward.
+    # text_fields = ["title", "body"]        # metadata fields to make BM25-searchable
+    # bm25_k1 = 1.2                          # term-frequency saturation (default 1.2)
+    # bm25_b = 0.75                          # length normalization (default 0.75)
+
+    # Per-field metadata indexing policy — fixed at index creation, immutable.
+    # Fields left out are filterable by default.
+    # [destination.metadata_schema]
+    # title = { filterable = true, pattern = true }
+    # blob = { filterable = false }
+    # body = { full_text = true }            # same as listing it in text_fields
 
     [options]
     batch_size = 200                         # vectors per batch (default: 100)

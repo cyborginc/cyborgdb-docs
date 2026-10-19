@@ -1,0 +1,71 @@
+---
+title: "Async Usage"
+sidebarTitle: "Async Usage"
+mode: "wide"
+noindex: true
+---
+
+`AsyncClient` and `AsyncEncryptedIndex` are native asyncio counterparts of [`Client`](./client/client) and `EncryptedIndex`, backed by `httpx`. Every method that talks to the service has the same name, parameters and return value as the sync version — it is awaited instead of called.
+
+## Constructor
+
+```python
+AsyncClient(base_url, api_key=None, verify_ssl=None)
+```
+
+Signature matches [`Client`](./client/client). The `api_key` auth model (single service key, root key, per-user `cdbk_` token), `verify_ssl` behavior and TLS auto-detection rules are identical.
+
+Construction opens no connections — the httpx pool is created lazily on the first request, inside the running loop.
+
+## Connection pool lifecycle
+
+The client owns an httpx connection pool. Close it with `await client.close()` or use the client as an async context manager:
+
+```python
+import asyncio
+import numpy as np
+from cyborgdb import AsyncClient
+
+
+async def main():
+    async with AsyncClient("http://localhost:8000", api_key=api_key) as client:
+        index = await client.load_index(index_name="my-index", index_key=index_key)
+
+        results = await index.query(query_vectors=np.random.rand(128), top_k=5)
+        for r in results:
+            print(f"ID: {r['id']}, Distance: {r['distance']:.4f}")
+
+        # Independent calls run concurrently on one connection pool.
+        batches = await asyncio.gather(
+            index.query(query_vectors=np.random.rand(128), top_k=5),
+            index.query(query_vectors=np.random.rand(128), top_k=5),
+        )
+
+
+asyncio.run(main())
+```
+
+Index handles share the client's connection pool — close the client once when you are done with all of its indexes, not per-index. See [`examples/fastapi_example.py`](https://github.com/cyborginc/cyborgdb-py/blob/main/examples/fastapi_example.py) for opening a client and index in a FastAPI lifespan.
+
+## Properties become methods
+
+The describe-backed attributes that are properties on `EncryptedIndex` are **async methods** on `AsyncEncryptedIndex`, because a property cannot be awaited. `index_name` needs no request and stays a property.
+
+```python
+# Sync (EncryptedIndex)
+index.dimension             # property
+index.metric                # property
+index.n_lists               # property
+index.metadata_schema       # property
+index.bm25                  # property
+index.index_name            # property
+
+# Async (AsyncEncryptedIndex)
+await index.dimension()     # method; same for metric, n_lists,
+                            # metadata_schema and bm25
+index.index_name            # plain property on both
+```
+
+## Methods
+
+Every service-backed method on `Client` and `EncryptedIndex` has an awaited counterpart on `AsyncClient` and `AsyncEncryptedIndex` with the same name, parameters and return value. See the [sync client](./client/client) and encrypted-index pages for signatures.
