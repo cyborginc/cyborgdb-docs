@@ -35,3 +35,7 @@ docker run -p 8000:8000 cyborginc/cyborgdb-service
 ```
 
 For detailed service setup instructions, see our quickstart guides for [Docker](../guides/intro/quickstart-docker) and [Python](../guides/intro/quickstart-python).
+
+## Async usage
+
+For asyncio code paths, use `AsyncClient` and `AsyncEncryptedIndex` — same method surface as the sync `Client` / `EncryptedIndex`, awaited. See [Async usage](./async-usage).
