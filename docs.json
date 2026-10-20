@@ -161,6 +161,8 @@
                 "pages": [
                   "versions/latest/intro/security-overview",
                   "versions/latest/intro/threat-model",
+                  "versions/latest/intro/tenant-isolation",
+                  "versions/latest/intro/compliance-architecture",
                   "versions/latest/intro/embedding-inversion",
                   "versions/latest/intro/encryption"
                 ]
