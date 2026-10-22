@@ -49,7 +49,7 @@ You must securely deliver each user's `user_id` and `user_kek` to that user out-
 
 ## Loading the Index as a User
 
-A user loads the index with their own KEK as the `index_key` and passes their `user_id`. From then on, every operation is gated to the permissions they hold — a read-only user's `upsert`/`delete` is rejected, raising `RuntimeError`.
+A user loads the index with their own KEK as the `index_key` and passes their `user_id`. From then on, every operation is gated to the permissions they hold — a read-only user's `upsert`/`delete` is rejected, raising `ValueError: permission denied`.
 
 <CodeGroup>
 ```python Python icon="python"
@@ -65,7 +65,7 @@ results = user_index.query(
 )
 
 # Writes are rejected for a read-only user
-# user_index.upsert([...], index_key=reader_kek, user_id=reader_id)  # raises RuntimeError — no write wrap
+# user_index.upsert([...], index_key=reader_kek, user_id=reader_id)  # raises ValueError — no write wrap
 ```
 
 </CodeGroup>
