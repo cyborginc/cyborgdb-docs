@@ -25,6 +25,12 @@ client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborg
 index_key = secrets.token_bytes(32)
 index = client.create_index("shared_index", index_key)
 
+# Seed the index so queries below have data (dimension is auto-detected on first upsert)
+index.upsert(
+    [{"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4]}],
+    index_key=index_key,
+)
+
 # Mint a read-only user and a read/write user
 reader_id = secrets.token_bytes(16)
 reader_kek = secrets.token_bytes(32)
