@@ -26,6 +26,12 @@ client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborg
 index_key = secrets.token_bytes(32)
 index = client.create_index("shared_index", index_key)
 
+# Seed the index so queries below have data (dimension is auto-detected on first upsert)
+index.upsert(
+    [{"id": "item_1", "vector": [0.1, 0.2, 0.3, 0.4]}],
+    index_key=index_key,
+)
+
 # Mint a read-only user and a read/write user
 reader_id = secrets.token_bytes(16)
 reader_kek = secrets.token_bytes(32)
@@ -44,7 +50,7 @@ You must securely deliver each user's `user_id` and `user_kek` to that user out-
 
 ## Loading the Index as a User
 
-A user loads the index with their own KEK as the `index_key` and passes their `user_id`. From then on, every operation is gated to the permissions they hold — a read-only user's `upsert`/`delete` is rejected, raising `RuntimeError`.
+A user loads the index with their own KEK as the `index_key` and passes their `user_id`. From then on, every operation is gated to the permissions they hold — a read-only user's `upsert`/`delete` is rejected, raising `ValueError: permission denied`.
 
 <CodeGroup>
 ```python Python icon="python"
@@ -60,7 +66,7 @@ results = user_index.query(
 )
 
 # Writes are rejected for a read-only user
-# user_index.upsert([...], index_key=reader_kek, user_id=reader_id)  # raises RuntimeError — no write wrap
+# user_index.upsert([...], index_key=reader_kek, user_id=reader_id)  # raises ValueError — no write wrap
 ```
 
 </CodeGroup>
