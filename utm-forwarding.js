@@ -1,5 +1,5 @@
 // Forwards campaign attribution from docs.cyborg.co to the dashboard (cyborgdb.co).
-// The dashboard lives on a different registrable domain, so cookies can't carry attribution across
+// The dashboard lives on a different registrable domain, so cookies can't carry attribution across domains.
 //
 // Mintlify injects this file on every page (it sits next to docs.json). UTM
 // parameters are captured from the URL on landing and on each client-side
