@@ -6,7 +6,7 @@ noindex: true
 
 Retrieves documents by their IDs from the vector store.
 
-<Note>Available in Python SDK and JS/TS SDK. For the Embedded library, use `get_by_id()`, `get_by_ids()`, `get_document()`, or `get_documents()` directly on the CyborgVectorStore instance.</Note>
+<Note>Available in Python SDK and JS/TS SDK. For the Embedded library, use `get_by_ids()`, `get_document()`, or `get_documents()` directly on the CyborgVectorStore instance. IDs not present in the index are omitted from the returned list (per the LangChain contract); use `get_documents()` if you want position-aligned results with `None` for missing IDs.</Note>
 
 <Tabs>
     <Tab title="Python SDK">

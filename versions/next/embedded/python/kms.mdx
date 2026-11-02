@@ -94,11 +94,11 @@ cyborgdb.push_index_kms(config, "my_index", blob)
 
 ## get_index_kms
 
-Retrieves the KMS envelope for an index.
+Retrieves the KMS envelope for an index. Returns `None` for an index that exists but has no stored envelope (SDK-supplied KEK path); a lookup for an index that does not exist raises instead.
 
 ```python
 def get_index_kms(config_location: StorageConfig,
-                 index_name: str) -> KMSBlob
+                 index_name: str) -> Optional[KMSBlob]
 ```
 
 ### Parameters
@@ -110,13 +110,17 @@ def get_index_kms(config_location: StorageConfig,
 
 ### Returns
 
-[`KMSBlob`](./types#kmsblob): The stored KMS envelope for the index.
+`Optional[`[`KMSBlob`](./types#kmsblob)`]`: The stored KMS envelope, or `None` when the index has no envelope.
 
 ### Example Usage
 
 ```python
 blob = cyborgdb.get_index_kms(config, "my_index")
-print(blob.provider, blob.key_id, blob.version)
+if blob is None:
+    # Index exists but is SDK-supplied-KEK: no envelope stored.
+    ...
+else:
+    print(blob.provider, blob.key_id, blob.version)
 ```
 
 ---
