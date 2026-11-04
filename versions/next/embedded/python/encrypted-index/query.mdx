@@ -72,6 +72,7 @@ For more info on metadata, see [Metadata Filtering](../../guides/data-operations
     <Accordion title="ValueError">
         - Throws if the query vector has incompatible dimensions with the index.
         - Throws if the index was not created or loaded yet.
+        - Throws if `top_k` is `0`. Vector queries require at least one requested result; use [`query_metadata()`](./query-metadata) if you want a filter-only sweep with no top-k cap.
         - Throws if `text` is passed but the index has no `full_text` field.
         - Throws if `text_fields` names a field that is not `full_text`.
         - Throws if any `text_*` knob is set without a non-empty `text`.
