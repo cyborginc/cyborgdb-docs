@@ -1,0 +1,72 @@
+---
+title: "Compliance Architecture"
+sidebarTitle: "Compliance architecture"
+description: "How CyborgDB's self-hosted, encrypted-in-use architecture maps to HIPAA, SOC 2 and GDPR controls for RAG, and what stays your responsibility."
+---
+
+CyborgDB is designed for HIPAA, GDPR, SOC 2, and FedRAMP-adjacent architectures. It's self-hosted in your environment, so Cyborg Inc. never receives your keys, vectors, or queries, and the compliance frameworks you work under apply to your environment.
+
+<Warning>
+A database can support your controls. It can't make an application compliant. The right-hand column of the table below lists what remains yours to build and document.
+</Warning>
+
+## What does CyborgDB give a compliance-bound RAG system?
+
+Five properties matter to an auditor reviewing a RAG stack, and each follows from where the pieces run.
+
+CyborgDB is self-hosted in your environment. Cyborg Inc. never receives your keys, vectors, or queries, so there's no CyborgDB-operated service in your data path to put in scope.
+
+Keys live in your KMS. The service caches KMS-managed keys in memory for a short TTL (60 s by default). Native integrations are AWS KMS (HSM-managed) and AWS Secrets Manager, with cross-account BYOK.
+
+The backing store holds only ciphertext. Storage is tiered: local disk with a configurable in-memory cache, and S3-compatible object stores. No other backing store is supported.
+
+CyborgDB performs vector search on encrypted data (encryption-in-use). Data is protected with AES-256-GCM, per-record IVs and AEAD authentication, with TLS in transit. The service decrypts only transiently, in memory, during a query: the PQ codes in the first pass, then a small set of survivors for reranking.
+
+Per-tenant encryption keys mean one tenant's data is cryptographically unreadable to another. See [Tenant isolation](./tenant-isolation) for how that works.
+
+## How do those properties map to the controls you're asked for?
+
+The names differ across HIPAA, SOC 2 and GDPR, so the table groups by control area. Read the last column as your to-do list.
+
+| Control area | What CyborgDB does | What stays your responsibility |
+|---|---|---|
+| Encryption at rest | Backing store holds only ciphertext, encrypted with AES-256-GCM | Encryption of everything else in your pipeline: source documents, logs, caches, LLM prompts |
+| Encryption in transit | TLS in transit | Certificates, TLS configuration at your load balancers and clients |
+| Encryption in use | Search runs on encrypted data; decryption is transient, in memory, at query time | Protection of the hosts the service runs on, and of the application that sees query results |
+| Key management | Keys held in your KMS (AWS KMS or AWS Secrets Manager); BYOK across accounts. Other key stores only as a place you keep a key you supply | KMS key policies, who can use the keys, backup of keys, rotation procedures |
+| Tenant separation | One index and one key per tenant | Mapping users to tenants, access policy in your application |
+| Deletion and erasure | Crypto-shredding: delete the key and the data is computationally unrecoverable | Retention schedules, erasure requests, keeping source data and backups in step with the index |
+| Data residency | Self-hosted: data stays where you deploy it, and Cyborg Inc. receives none of it | Choosing regions, and where your embedding model and LLM providers process data |
+| Business associate and vendor agreements | Cyborg Inc. isn't in the data path for your keys, vectors or queries | BAAs and DPAs with every vendor that does touch the data, including model and cloud providers |
+| Audit logging | Nothing here replaces your application's audit trail | Audit logging in your application: who queried what, on whose behalf, and retention of those logs |
+| Incident response | A copied disk, bucket or snapshot yields ciphertext; the keys stay in your KMS | Your breach process, notification timelines and evidence handling |
+
+## How should you read this for HIPAA, SOC 2 and GDPR?
+
+HIPAA turns on safeguards for protected health information and on agreements with the parties that handle it. Encryption, key control and tenant separation are technical safeguards you can point to. The agreements, workforce policies and risk analysis are yours.
+
+SOC 2 is about your own controls over time. An auditor will want evidence for access management, change management and monitoring in your system. CyborgDB's design gives you fewer places to explain, since the vector store holds ciphertext and the keys sit in your KMS.
+
+GDPR raises erasure and residency. Crypto-shredding gives you a clean way to make a tenant's index unrecoverable, and self-hosting keeps the data in the regions you choose. Lawful basis, data subject requests and processor agreements remain with you.
+
+## What is Cyborg's own compliance status?
+
+SOC 2 Type I (December 2025); Type II audit complete, report in progress.
+
+That statement describes Cyborg Inc. as a company. It isn't a statement about your deployment, which is assessed against your own scope.
+
+<Note>
+Read the [Threat Model](./threat-model) for the adversaries CyborgDB is designed against and the ones it isn't. It defines what "encrypted" does and doesn't cover.
+</Note>
+
+<CardGroup cols={3}>
+  <Card title="Security Overview" href="./security-overview" icon="shield">
+    The centralized-intelligence risk and CyborgDB's approach
+  </Card>
+  <Card title="Threat Model" href="./threat-model" icon="bomb">
+    Adversary model and mitigation mapping
+  </Card>
+  <Card title="Tenant isolation" href="./tenant-isolation" icon="users">
+    One index and one key per tenant
+  </Card>
+</CardGroup>

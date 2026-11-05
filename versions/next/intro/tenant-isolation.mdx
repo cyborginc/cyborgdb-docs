@@ -1,0 +1,81 @@
+---
+title: "Tenant Isolation"
+sidebarTitle: "Tenant isolation"
+description: "How to isolate tenants in a vector database: filters, namespaces, clusters, or per-tenant keys. What each protects, and how CyborgDB uses one key per index."
+noindex: true
+---
+
+To isolate tenants in a vector database, give each tenant its own encryption key and its own index, so one tenant's data can't be read with another tenant's key. Metadata filters, namespaces and separate clusters each cover part of the problem. Only a per-tenant key puts a cryptographic barrier between tenants.
+
+<Tip>
+This page explains the concepts. For the operator steps (enabling RBAC, minting and revoking tenant keys), see the [Multi-Tenancy playbook](../service/guides/advanced/multi-tenancy).
+</Tip>
+
+## What are the ways to isolate tenants in a vector database?
+
+Teams usually pick one of four patterns, and often stack two. They differ in what an attacker, a buggy query, or an administrator can still reach.
+
+| Pattern | What it isolates | What it doesn't |
+|---|---|---|
+| Shared index, metadata filter | Query results, as long as every query carries the right filter | Storage. All tenants' vectors sit in one structure, in plaintext to anyone who can read it |
+| Namespace or collection per tenant | Logical separation and cleaner deletes | The operator's view. Everything in every namespace is still readable by whoever runs the database |
+| Cluster or deployment per tenant | Compute, storage and network, at the infrastructure level | Cost. You multiply deployments, upgrades and monitoring by the tenant count |
+| Encryption key per tenant | Data at rest and in use, enforced by a key a tenant's index can't be opened without | Nothing by itself about who your application lets call the API |
+
+Here's the practical difference. A metadata filter is an authorization control. It decides which rows a query is allowed to return, and it works until someone forgets the filter, a bug drops it, or a new code path skips it. The data was never separated. A leaked disk snapshot, a misconfigured bucket or an over-privileged operator sees every tenant at once.
+
+A namespace is better, since a query can't wander across tenants by accident. But the namespaces live inside one database process with one set of storage credentials. The operator still sees all of it.
+
+A cluster per tenant fixes both problems and creates a third. Ten tenants is manageable. Ten thousand is a fleet.
+
+Embeddings make this more pressing than it is for ordinary rows. [Embedding inversion](./embedding-inversion) can reconstruct source content from stored vectors, so a vector store that is readable is a document store that is readable.
+
+## How does CyborgDB isolate tenants?
+
+CyborgDB uses one index per tenant, and each index has its own key. CyborgDB performs vector search on encrypted data (encryption-in-use), so the index stays encrypted while it's being searched. Data is encrypted with AES-256-GCM, with per-record IVs and AEAD authentication, and TLS covers data in transit.
+
+The key hierarchy is two layers. Each index has a key-encryption key (KEK) and a data-encryption key (DEK). The DEK is generated inside the service when the index is created, wrapped under the KEK, and stored alongside the index. It never leaves the service. The KEK is the thing you control, and it's the thing that differs per tenant. The detail is in [KMS & BYOK](../service/guides/advanced/kms-byok).
+
+Per-tenant keys mean one tenant's data is cryptographically unreadable to another. Two tenants' indexes are wrapped under different keys, so access to tenant A's key opens nothing of tenant B's.
+
+Users get the same treatment. In the [multi-tenancy model](../service/guides/advanced/multi-tenancy), a tenant's API key is scoped to exactly one index and carries its own wrapped copy of that index's DEK. The set of wrapped DEKs a user holds is their permission set, so access is enforced by what the key can unwrap rather than by a policy lookup. That tenant can't list, describe or touch any other tenant's index.
+
+## Which key mode gives you the cryptographic barrier?
+
+CyborgDB indexes are provisioned one of two ways, and the choice decides where the KEK lives.
+
+With KMS-backed indexes, you register a named slot in the service configuration, pointing at AWS KMS (HSM-managed) or AWS Secrets Manager, and create the index with `kms_name`. The service resolves the KEK on demand and caches it in memory for a short TTL (60 s by default). Cross-account BYOK is supported, so a tenant's wrap key can live in the tenant's own AWS account and be reached through `sts:AssumeRole` with an external ID. Cutting that access stops the service at the next cache miss.
+
+With SDK-supplied indexes, your application generates a 32-byte `index_key` and sends it on every call. The service stores only a hash to verify it and never persists the plaintext. You own key storage, which means the key lives wherever your secret store puts it.
+
+Both modes give each index its own key. The docs recommend KMS-backed for production and multi-tenant work, mostly for operational reasons: minting tenant users needs no key material in the request, and auto-training keeps working for user writes.
+
+<Note>
+The key-mode description on this page is pending engineering confirmation. The existing docs state who holds each key and where the KEK is cached, but they don't state what a service operator can or can't observe under each mode. Don't treat either mode as a guarantee about operator visibility until that's confirmed.
+</Note>
+
+## What does a tenant's key protect in practice?
+
+The backing store holds only ciphertext. CyborgDB supports tiered storage: local disk with a configurable in-memory cache, and S3-compatible object stores. No other backing store is supported. Someone who copies a bucket or a disk gets encrypted data from every tenant and keys to none of them.
+
+At query time the service decrypts only transiently, in memory: the PQ codes in the first pass, then a small set of survivors for reranking. Keys stay in your KMS, and the service caches KMS-managed keys for the TTL above.
+
+Isolation by key does not replace authorization. Your application still decides which tenant a request belongs to and which API key it uses. The key makes a mistake there harder to turn into a cross-tenant read, since a request can only open the index its key unwraps.
+
+## Deleting a tenant
+
+Deleting a tenant's wrap key makes that tenant's data unrecoverable. This is crypto-shredding: delete the key and the data is computationally unrecoverable. The BYOK docs spell out the consequence. If the secret is deleted, every index wrapped under it becomes permanently unreadable, so keep a backup of any key you might need later.
+
+You can also remove one user without touching the index. Deleting a user erases that user's wrapped DEK, and a captured `cdbk_` token for it stops working on the next request, with no propagation lag. Revoking KMS-level access to the wrap key takes effect within the KEK cache TTL.
+
+<CardGroup cols={3}>
+  <Card title="Multi-Tenancy playbook" href="../service/guides/advanced/multi-tenancy" icon="users">
+    Enable RBAC, mint and revoke tenant keys
+  </Card>
+  <Card title="KMS & BYOK" href="../service/guides/advanced/kms-byok" icon="key">
+    AWS KMS, Secrets Manager and cross-account setup
+  </Card>
+  <Card title="Threat Model" href="./threat-model" icon="bomb">
+    Adversaries, attack surfaces and what's out of scope
+  </Card>
+</CardGroup>
