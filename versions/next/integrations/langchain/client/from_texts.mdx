@@ -70,7 +70,7 @@ Creates a CyborgVectorStore instance from a list of texts.
             metadatas=metadatas,
             index_name="python_docs",
             index_key=CyborgVectorStore.generate_key(),
-            api_key="your-api-key",
+            api_key="",  # free tier; pass your key to lift the 1M-item cap
             storage_config=StorageConfig.s3("my-bucket", region="us-east-1")
         )
         ```

@@ -59,7 +59,7 @@ noindex: true
         store = CyborgVectorStore(
             index_name="docs",
             index_key=key,
-            api_key="your-api-key",
+            api_key="",  # free tier; pass your key to lift the 1M-item cap
             embedding=OpenAIEmbeddings(),
             storage_config=StorageConfig.disk("/tmp/cyborgdb-langchain")
         )

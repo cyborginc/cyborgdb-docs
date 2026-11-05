@@ -89,9 +89,8 @@ On `query()` these are a performance hint: filters that miss the index just fall
 import cyborgdb_core as cyborgdb
 import secrets
 
-api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
-client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+# Free tier — no API key needed (capped at 1M items per index)
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 index_name = "my_index"
 index_key = secrets.token_bytes(32)  # 32-byte index KEK — store securely
@@ -100,6 +99,8 @@ index_key = secrets.token_bytes(32)  # 32-byte index KEK — store securely
 index = client.create_index(index_name, index_key)
 ```
 
+<Note>Without an API key the client runs in free-tier mode, capped at 1,000,000 items per index. Pass a key from the [CyborgDB Admin Dashboard](https://cyborgdb.co/new) as the first argument (`cyborgdb.Client(api_key, storage_config=...)`) for unlimited usage. See [Get an API Key](../../../intro/get-api-key).</Note>
+
 #### Explicit Setup
 
 ```python
@@ -107,9 +108,7 @@ import cyborgdb_core as cyborgdb
 import numpy as np
 import secrets
 
-api_key = "your_api_key_here"  # Replace with your CyborgDB API key
-
-client = cyborgdb.Client(api_key, cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 index_name = "my_index"
 index_key = secrets.token_bytes(32)  # 32-byte index KEK — store securely
@@ -134,7 +133,7 @@ index = client.create_index(
 import cyborgdb_core as cyborgdb
 import secrets
 
-client = cyborgdb.Client("your_api_key_here", cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
 
 # TQ8 → 8 bits per dimension. On 768-dim vectors that's ~4x smaller than float32
 index = client.create_index(

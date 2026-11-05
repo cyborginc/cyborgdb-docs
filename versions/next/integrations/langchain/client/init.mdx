@@ -53,7 +53,7 @@ Initializes a new CyborgVectorStore instance for use with LangChain.
         store = CyborgVectorStore(
             index_name="my_documents",
             index_key=index_key,
-            api_key="your-api-key",
+            api_key="",  # free tier; pass your key to lift the 1M-item cap
             embedding=OpenAIEmbeddings(),
             storage_config=StorageConfig.disk("/var/lib/cyborgdb"),
             metric="cosine"
