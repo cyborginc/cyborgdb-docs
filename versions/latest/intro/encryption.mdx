@@ -167,7 +167,7 @@ Traditional encrypted search schemes are vulnerable to statistical attacks. Cybo
 
 ## 5. Performance
 
-While comprehensive cryptographic protection typically comes with significant overhead, CyborgDB's implementation has been **extensively optimized** to achieve production-grade performance that rivals plaintext systems.
+Cryptographic protection usually costs performance. CyborgDB's implementation is optimized to keep that cost low.
 
 ### Performance Optimizations
 
@@ -179,8 +179,4 @@ CyborgDB achieves exceptional performance through several key optimizations:
 - **Vectorized operations**: Batch processing of similarity computations in encrypted space
 - **Cache-optimized layouts**: Organizing encrypted index structures for optimal memory access patterns
 
-These optimizations deliver industry-leading performance:
-
-> **>10,000 QPS** at **95% recall** for ANN search over encrypted embeddings<br />
->
-> **Sub-10ms query latency** for typical workloads
+On [ANN Benchmarks](https://github.com/erikbern/ann-benchmarks) (wiki-all-1M, 768 dimensions, top-k 10, single-threaded, c8g.4xlarge, May 2026), CyborgDB v0.17.0 built its encrypted DiskIVF index in **2 min 32 s at 99% recall**, faster than every plaintext engine benchmarked (LanceDB, Qdrant, Milvus, Weaviate, pgvector, Elasticsearch). This is index build time, not query speed.
