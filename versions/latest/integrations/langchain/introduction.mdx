@@ -7,15 +7,27 @@ mode: "wide"
 
 CyborgDB provides a seamless integration with [LangChain](https://www.langchain.com/), enabling developers to leverage encrypted vector search for large language models (LLMs) and RAG pipelines. This integration is implemented via the `CyborgVectorStore` class, which conforms to the `VectorStore` interface from `langchain-core`.
 
+Prefer a runnable example? Open the end-to-end encrypted RAG chatbot notebook in Colab:
+
+<a href="https://colab.research.google.com/github/cyborginc/cyborgdb-examples/blob/main/encrypted-rag/encrypted-rag-chatbot.ipynb" target="_blank" rel="noopener noreferrer">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" noZoom />
+</a>
+
+## Why Encryption?
+
+Embeddings are not anonymous. Publicly available inversion techniques can [reconstruct the original content](../../intro/embedding-inversion) from plaintext vectors with 95-99%+ fidelity, so a leaked vector index is a leaked document store. CyborgDB keeps vectors, metadata, and index structures encrypted end-to-end — including while they are being searched — and only you hold the keys. Your LangChain pipeline code stays the same; only the vector store changes. See the [Security Overview](../../intro/security-overview) for details.
+
 ## Installation
 
 <Tabs>
     <Tab title="Embedded">
-        Install `cyborgdb-core` with the `langchain` extra (Python 3.10 or newer; the `python3` that ships with macOS is 3.9):
+        Install `langchain-cyborgdb` (Python 3.10 or newer; the `python3` that ships with macOS is 3.9):
 
         ```bash
-        pip install "cyborgdb-core[langchain]"
+        pip install langchain-cyborgdb
         ```
+
+        `langchain-cyborgdb` re-exports the integration that ships in `cyborgdb-core`, so `pip install "cyborgdb-core[langchain]"` with `from cyborgdb_core.integrations.langchain import CyborgVectorStore` works the same way.
     </Tab>
 
     <Tab title="Python SDK">
@@ -42,7 +54,7 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
 <Tabs>
     <Tab title="Embedded">
         ```python
-        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+        from langchain_cyborgdb import CyborgVectorStore
         ```
     </Tab>
 
@@ -93,8 +105,7 @@ Configuration object for defining where index data is stored, built with `Storag
     <Tab title="Embedded">
         ```python
         import secrets
-        from cyborgdb_core import StorageConfig
-        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+        from langchain_cyborgdb import CyborgVectorStore, StorageConfig
 
         # Generate an encryption key for the index.
         # WARNING: store this key securely — data encrypted with a lost key is unrecoverable.
