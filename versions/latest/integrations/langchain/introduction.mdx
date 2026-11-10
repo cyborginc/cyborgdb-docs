@@ -7,6 +7,16 @@ mode: "wide"
 
 CyborgDB provides a seamless integration with [LangChain](https://www.langchain.com/), enabling developers to leverage encrypted vector search for large language models (LLMs) and RAG pipelines. This integration is implemented via the `CyborgVectorStore` class, which conforms to the `VectorStore` interface from `langchain-core`.
 
+Prefer a runnable example? Open the end-to-end encrypted RAG chatbot notebook in Colab:
+
+<a href="https://colab.research.google.com/github/cyborginc/cyborgdb-examples/blob/main/encrypted-rag/encrypted-rag-chatbot.ipynb" target="_blank" rel="noopener noreferrer">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" noZoom />
+</a>
+
+## Why Encryption?
+
+Embeddings are not anonymous. Publicly available inversion techniques can [reconstruct the original content](../../intro/embedding-inversion) from plaintext vectors with 95-99%+ fidelity, so a leaked vector index is a leaked document store. CyborgDB keeps vectors, metadata, and index structures encrypted end-to-end — including while they are being searched — and only you hold the keys. Your LangChain pipeline code stays the same; only the vector store changes. See the [Security Overview](../../intro/security-overview) for details.
+
 ## Installation
 
 <Tabs>
