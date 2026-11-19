@@ -160,28 +160,34 @@ const complexFilter: FilterExpression = {
 
 ### Dates
 
-CyborgDB has no date type. Store dates in metadata as integer milliseconds since the Unix epoch (UTC), so range operators work on them. Don't store `Date` objects: the SDK sends them as ISO strings, which only support equality filters.
+CyborgDB has no date type. Dates are stored as integer milliseconds since the Unix epoch (UTC), so range operators work on them. The SDK accepts `Date` objects in `upsert()` metadata and in `query()`, `queryBinary()`, and `queryMetadata()` filter operands — including nested in objects and arrays, and inside operators like `$gte`, `$lt`, `$in`, and `$nin` — and converts each one to its epoch-millisecond integer before the request is sent. ISO strings in metadata are stored as strings; only actual `Date` instances are converted. An invalid `Date` (`new Date(NaN)`) throws `CyborgDBValidationError`.
 
 ```typescript
-const publishedMs = Date.UTC(2026, 0, 15); // 15 January 2026, 00:00 UTC
-
 await index.upsert({
-    items: [{ id: 'doc1', vector: [0.1, 0.2, 0.3, 0.4], metadata: { publishedMs } }],
+    items: [{ id: 'doc1', vector: [0.1, 0.2, 0.3, 0.4], metadata: { published: new Date('2026-01-15T00:00:00Z') } }],
 });
 
 // Everything published on or after 2026-01-01
 const results = await index.queryMetadata({
-    filters: { publishedMs: { $gte: Date.UTC(2026, 0, 1) } },
+    filters: { published: { $gte: new Date('2026-01-01T00:00:00Z') } },
 });
 console.log(results);
 // Output: [ { id: 'doc1' } ]
+```
+
+Passing epoch milliseconds directly still works and is equivalent:
+
+```typescript
+await index.upsert({
+    items: [{ id: 'doc2', vector: [0.1, 0.2, 0.3, 0.4], metadata: { publishedMs: Date.UTC(2026, 0, 15) } }],
+});
 ```
 
 Values come back as numbers. Convert one back to a `Date` with:
 
 ```typescript
 const [item] = await index.get({ ids: ['doc1'], include: ['metadata'] });
-const published = new Date(Number(item.metadata?.publishedMs));
+const published = new Date(Number(item.metadata?.published));
 console.log(published.toISOString());
 // Output: 2026-01-15T00:00:00.000Z
 ```
