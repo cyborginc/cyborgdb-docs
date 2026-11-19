@@ -98,8 +98,7 @@ Already on Pinecone, Qdrant, Weaviate, ChromaDB, or Milvus? Bring your workload 
   <Card title="LangChain Integration" href="../integrations/langchain/introduction" icon="link">
     Drop-in replacement for existing vector stores:
     ```python
-    from cyborgdb_core import StorageConfig
-    from cyborgdb_core.integrations.langchain import CyborgVectorStore
+    from langchain_cyborgdb import CyborgVectorStore, StorageConfig
 
     store = CyborgVectorStore.from_texts(
         texts=["hello world", "goodbye world"],
