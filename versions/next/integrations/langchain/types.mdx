@@ -52,8 +52,7 @@ noindex: true
 
         ```python
         from langchain_openai import OpenAIEmbeddings
-        from cyborgdb_core.integrations.langchain import CyborgVectorStore
-        from cyborgdb_core import StorageConfig
+        from langchain_cyborgdb import CyborgVectorStore, StorageConfig
 
         # Using LangChain Embeddings
         store = CyborgVectorStore(
