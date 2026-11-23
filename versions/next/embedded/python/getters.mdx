@@ -130,6 +130,7 @@ def index_config(self) -> dict: ...
 - `index_type`: The type of the index (`'disk_ivf'`)
 - `n_lists`: The number of inverted lists in the index
 - `embedding_model`: The configured embedding-model name, or `""` if none
+- `embedding_max_seq_length`: The model's token limit as an `int`. Absent when the index has no model, or names one this build does not support — read it with `.get()`. The limit includes the model's special tokens and any prefix it adds. `contents` longer than this are truncated before embedding and the truncated tail is not searchable; chunk long text before `upsert()`.
 - `metadata_schema`: Per-field metadata indexing overrides as a flat map `{field: {'filterable': bool, 'pattern': bool, 'full_text': bool}}`; empty when using the default index-everything posture
 - `bm25`: `{'k1': float, 'b': float, 'analyzer_version': str}` when the index has at least one `full_text` field, else `None`
 
