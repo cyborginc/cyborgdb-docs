@@ -57,7 +57,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
     </Expandable>
   </ParamField>
   <ParamField body="top_k" type="integer">
-    Number of nearest neighbors to return per query. Defaults to 100
+    Number of nearest neighbors to return per query. Defaults to 100. Capped at `10000`; a larger value is rejected with `400 invalid_argument`.
   </ParamField>
   <ParamField body="n_probes" type="integer">
     Number of clusters to probe during search. Auto-determined when not specified

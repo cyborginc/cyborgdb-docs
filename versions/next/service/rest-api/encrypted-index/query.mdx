@@ -84,7 +84,7 @@ Any valid credential is accepted — the root key or a per-user `cdbk_` token. W
     Alternative to `query_vectors` for automatic embedding generation
   </ParamField>
   <ParamField body="top_k" type="integer" default={100}>
-    Number of nearest neighbors to return
+    Number of nearest neighbors to return. Capped at `10000`; a larger value is rejected with `400 invalid_argument`.
   </ParamField>
   <ParamField body="n_probes" type="integer" default="auto">
     Number of index lists to probe. When set to 0 or omitted, automatically determines optimal value based on index size and query requirements
