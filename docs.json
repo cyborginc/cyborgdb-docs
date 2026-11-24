@@ -5,8 +5,11 @@
   "description": "Documentation for CyborgDB, the Confidential Vector Database.",
   "colors": {
     "primary": "#10A3AE",
-    "light": "#5DC3CA",
+    "light": "#00E0E0",
     "dark": "#314656"
+  },
+  "fonts": {
+    "family": "Geist"
   },
   "favicon": "/images/favicon-light.svg",
   "contextual": {

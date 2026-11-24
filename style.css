@@ -2,3 +2,61 @@
 div[class*="mt-8"][class*="lg:mt-0"][class*="flex"][class*="xl:hidden"] {
     display: none !important;
 }
+
+/* Homepage (index.mdx): lead paragraph, the two buttons and the note under
+   the code sample. Buttons follow cyborg.co: filled cyan primary, outlined
+   secondary, pill-shaped. */
+.cdb-home-lead p {
+    max-width: 62ch;
+    font-size: 17px;
+    line-height: 1.6;
+}
+.cdb-home-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 24px 0 32px;
+}
+.cdb-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-radius: 9999px;
+    border: 1px solid transparent !important;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+.cdb-btn-primary {
+    background: #0b7f88;
+    color: #ffffff !important;
+}
+.cdb-btn-primary:hover {
+    background: #0a6f77;
+}
+.cdb-btn-secondary {
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    color: inherit !important;
+}
+.cdb-btn-secondary:hover {
+    border-color: rgba(0, 0, 0, 0.35) !important;
+}
+.dark .cdb-btn-primary {
+    background: #00e0e0;
+    color: #0b1a22 !important;
+}
+.dark .cdb-btn-primary:hover {
+    background: #3debeb;
+}
+.dark .cdb-btn-secondary {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+}
+.dark .cdb-btn-secondary:hover {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+.cdb-home-note {
+    margin-top: 12px;
+    font-size: 14px;
+    opacity: 0.75;
+}
