@@ -127,6 +127,14 @@
     {
       "source": "/versions/latest/embedded/cpp/:slug*",
       "destination": "/versions/latest/embedded/python/introduction"
+    },
+    {
+      "source": "/versions/latest/service/guides/encrypted-indexes/configure-index",
+      "destination": "/versions/latest/service/guides/advanced/configure-index"
+    },
+    {
+      "source": "/versions/latest/service/guides/encrypted-indexes/train-index",
+      "destination": "/versions/latest/service/guides/advanced/train-index"
     }
   ],
   "navigation": {
