@@ -30,7 +30,7 @@ Generates a secure random 32-byte encryption key for index encryption.
         store = CyborgVectorStore(
             index_name="secure_index",
             index_key=index_key,
-            api_key="your-api-key",
+            api_key="",  # free tier; pass your key to lift the 1M-item cap
             embedding="all-MiniLM-L6-v2",
             storage_config=StorageConfig.s3("secure-bucket", region="us-east-1")
         )
