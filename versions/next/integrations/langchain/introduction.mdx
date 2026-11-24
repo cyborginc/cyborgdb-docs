@@ -6,17 +6,33 @@ mode: "wide"
 noindex: true
 ---
 
-CyborgDB provides a seamless integration with [LangChain](https://www.langchain.com/), enabling developers to leverage encrypted vector search for large language models (LLMs) and RAG pipelines. This integration is implemented via the `CyborgVectorStore` class, which conforms to the `VectorStore` interface from `langchain-core`.
+`langchain-cyborgdb` is an encrypted vector store for [LangChain](https://www.langchain.com/): search and metadata filtering run on encrypted vectors, self-hosted in your environment. Each tenant gets its own key, so one customer's data is cryptographically unreadable to another in multi-tenant RAG and agent memory. Disk encryption doesn't protect data while the database is searching it. CyborgDB is designed for HIPAA-regulated workloads and RAG over sensitive data.
+
+The integration is the `CyborgVectorStore` class, which implements the `VectorStore` interface from `langchain-core`.
+
+Prefer a runnable example? The quickstart notebook needs no API keys and runs in about a minute:
+
+<a href="https://colab.research.google.com/github/cyborginc/cyborgdb-examples/blob/main/langchain-quickstart/langchain-quickstart.ipynb" target="_blank" rel="noopener noreferrer">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" noZoom />
+</a>
+
+For a full app with hybrid search and a chat UI, see the [encrypted RAG chatbot notebook](https://colab.research.google.com/github/cyborginc/cyborgdb-examples/blob/main/encrypted-rag/encrypted-rag-chatbot.ipynb) (needs an OpenAI key).
+
+## Why Encryption?
+
+Embeddings are not anonymous. Published inversion attacks [reconstruct the original content](../../intro/embedding-inversion) from plaintext vectors: one recovers 92% of 32-token text inputs exactly ([Morris et al., EMNLP 2023](https://arxiv.org/abs/2310.06816)), so a leaked vector index is a leaked document store. CyborgDB keeps vectors, metadata, and index structures encrypted at rest and in use, so a breach of the index exposes ciphertext, and only you hold the keys. Your LangChain pipeline code stays the same; only the vector store changes. See the [Security Overview](../../intro/security-overview) for details.
 
 ## Installation
 
 <Tabs>
     <Tab title="Embedded">
-        Install `cyborgdb-core` with the `langchain` extra (Python 3.10 or newer; the `python3` that ships with macOS is 3.9):
+        Install `langchain-cyborgdb` (Python 3.10 or newer; the `python3` that ships with macOS is 3.9):
 
         ```bash
-        pip install "cyborgdb-core[langchain]"
+        pip install langchain-cyborgdb
         ```
+
+        `langchain-cyborgdb` re-exports the integration that ships in `cyborgdb-core`, so `pip install "cyborgdb-core[langchain]"` with `from cyborgdb_core.integrations.langchain import CyborgVectorStore` works the same way.
     </Tab>
 
     <Tab title="Python SDK">
@@ -25,6 +41,8 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
         ```bash
         pip install "cyborgdb[langchain]"
         ```
+
+        This is the client for a running CyborgDB service. To run CyborgDB inside your own Python process with no service, use `langchain-cyborgdb` (the Embedded tab).
     </Tab>
 
     <Tab title="JS/TS">
@@ -43,7 +61,7 @@ CyborgDB provides a seamless integration with [LangChain](https://www.langchain.
 <Tabs>
     <Tab title="Embedded">
         ```python
-        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+        from langchain_cyborgdb import CyborgVectorStore
         ```
     </Tab>
 
@@ -94,8 +112,7 @@ Configuration object for defining where index data is stored, built with `Storag
     <Tab title="Embedded">
         ```python
         import secrets
-        from cyborgdb_core import StorageConfig
-        from cyborgdb_core.integrations.langchain import CyborgVectorStore
+        from langchain_cyborgdb import CyborgVectorStore, StorageConfig
 
         # Generate an encryption key for the index.
         # WARNING: store this key securely — data encrypted with a lost key is unrecoverable.
