@@ -1,65 +1,59 @@
 ---
-title: "CyborgDB Docs"
+title: "Vector search on encrypted data"
 sidebarTitle: "Introduction"
+description: "CyborgDB runs similarity search directly on encrypted embeddings. Self-hosted, with your own keys."
 mode: "wide"
 ---
 
-<div style={{margin: "0 0 32px", padding: "48px 32px 44px", borderRadius: "16px", background: "#0b1a22", backgroundImage: "radial-gradient(ellipse 900px 400px at 50% 0%, rgba(16,163,174,0.28) 0%, transparent 70%)", textAlign: "center", border: "1px solid rgba(16,163,174,0.18)", overflow: "hidden"}}>
-  <img src="/images/cyborgdb-white.svg" alt="CyborgDB" style={{height: "28px", width: "auto", display: "block", margin: "0 auto 24px"}} />
-  <div style={{margin: "0 0 16px", fontSize: "clamp(26px, 5vw, 52px)", fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.05, color: "#f0f6f8"}}>The vector database that keeps<br />your data encrypted at rest, in transit, and in use.</div>
-  <div style={{margin: "0 auto", maxWidth: "580px", fontSize: "16px", lineHeight: 1.6, color: "#8ba8b5"}}>Similarity search directly on encrypted embeddings — self-hosted in your VPC or on-prem. AES-256-GCM with your KMS key, per-operation key derivation, keys zeroized after use.</div>
-</div>
-
-**CyborgDB** is an encrypted vector database — similarity search directly on encrypted embeddings, with per-operation key derivation via your KMS and keys zeroized after use. Only the final candidates are decrypted. It runs self-hosted and standalone — persisting to local disk (default) or S3 — exposes a familiar API that slots into existing AI pipelines, and can be [GPU-accelerated with NVIDIA cuVS](https://developer.nvidia.com/blog/bringing-confidentiality-to-vector-search-with-cyborg-and-nvidia-cuvs/).
-
-<div style={{display: "grid", gridTemplateColumns: "repeat(3, 1fr)", margin: "24px 0 32px", borderRadius: "12px", border: "1px solid rgba(16,163,174,0.25)", overflow: "hidden"}}>
-  <div style={{padding: "20px 16px", textAlign: "center", borderRight: "1px solid rgba(16,163,174,0.25)"}}>
-    <div style={{fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "#10A3AE"}}>&lt;5ms</div>
-    <div style={{marginTop: "4px", fontSize: "12px", color: "#6b8a96"}}>p95 encrypted query latency</div>
-  </div>
-  <div style={{padding: "20px 16px", textAlign: "center", borderRight: "1px solid rgba(16,163,174,0.25)"}}>
-    <div style={{fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "#10A3AE"}}>100M+</div>
-    <div style={{marginTop: "4px", fontSize: "12px", color: "#6b8a96"}}>vectors per index</div>
-  </div>
-  <div style={{padding: "20px 16px", textAlign: "center"}}>
-    <div style={{fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "#10A3AE"}}>Zero</div>
-    <div style={{marginTop: "4px", fontSize: "12px", color: "#6b8a96"}}>data leaves your boundary</div>
+<div className="cdb-home-lead">
+  <p>Only the final candidates are ever decrypted, with per-operation keys derived from your KMS. CyborgDB persists to local disk or S3, slots into existing AI pipelines, and can be <a href="https://developer.nvidia.com/blog/bringing-confidentiality-to-vector-search-with-cyborg-and-nvidia-cuvs/">GPU-accelerated with NVIDIA cuVS</a>.</p>
+  <div className="cdb-home-ctas">
+    <a className="cdb-btn cdb-btn-primary" href="/versions/latest/intro/quickstart">Quickstart</a>
+    <a className="cdb-btn cdb-btn-secondary" href="/versions/latest/intro/get-api-key">Get an API key</a>
   </div>
 </div>
 
-### Choose Your Path
+```python Your first encrypted query icon="python"
+# pip install cyborgdb-core   (Python 3.10+)
+import cyborgdb_core as cyborgdb
+import secrets
 
-<CardGroup cols={3}>
-    <Card title="Learn the Fundamentals" href="versions/latest/intro/about" icon="book-open-cover">
-        Understand the architecture and principles behind encrypted vector search
-    </Card>
-    <Card title="Start Building" href="versions/latest/intro/quickstart" icon="rocket-launch">
-        Get hands-on with CyborgDB in minutes using our quickstart guide
-    </Card>
-    <Card title="Explore Deployment Options" href="versions/latest/intro/deployment-models" icon="server">
-        Discover embedded libraries, managed service, and custom deployment options
-    </Card>
-</CardGroup>
+client = cyborgdb.Client(storage_config=cyborgdb.StorageConfig.disk("/tmp/cyborgdb"))
+index_key = secrets.token_bytes(32)  # store this securely: a lost key means lost data
+index = client.create_index(index_name="my_index", index_key=index_key)
 
-### Documentation Structure
+index.upsert([{"id": "a", "vector": [0.1, 0.2, 0.3, 0.4], "contents": "Hello!"}], index_key=index_key)
+results = index.query(query_vectors=[0.1, 0.2, 0.3, 0.4], top_k=1, index_key=index_key)
+```
 
-<CardGroup cols={3}>
-    <Card title="Introduction" href="versions/latest/intro/about" icon="graduation-cap">
-        Core concepts, deployment models, and getting started guides
-    </Card>
-    <Card title="CyborgDB Service" href="versions/latest/service/guides/intro/about" icon="cloud">
-        CyborgDB self-hosted with REST API and client SDKs
-    </Card>
-    <Card title="CyborgDB Embedded" href="versions/latest/embedded/guides/intro/about" icon="code">
-        Self-hosted, embedded deployments with Python and C++ bindings
-    </Card>
-</CardGroup>
+<p className="cdb-home-note">Runs locally, with no server and no API key (the free tier allows up to 1M items per index). The <a href="/versions/latest/intro/quickstart">Quickstart</a> walks through it end to end.</p>
+
+## Choose how to run it
 
 <CardGroup cols={2}>
-    <Card title="Integrations" href="versions/latest/integrations/about" icon="plug">
-        LangChain and other framework integrations for seamless adoption
-    </Card>
-    <Card title="How to Use These Docs" href="versions/latest/intro/using-docs" icon="map">
-        Navigation tips and conventions used throughout these docs
-    </Card>
+  <Card title="Embedded" href="versions/latest/embedded/guides/intro/about" icon="code">
+    A Python library that runs inside your process. The fastest way to a first query.
+  </Card>
+  <Card title="Service" href="versions/latest/service/guides/intro/about" icon="server">
+    A self-hosted REST API with client SDKs. What you deploy to production.
+  </Card>
 </CardGroup>
+
+## SDKs and integrations
+
+<CardGroup cols={3}>
+  <Card title="Python" href="versions/latest/service/python-sdk/introduction" icon="python" horizontal />
+  <Card title="JavaScript / TypeScript" href="versions/latest/service/js-ts-sdk/introduction" icon="js" horizontal />
+  <Card title="Go" href="versions/latest/service/go-sdk/introduction" icon="golang" horizontal />
+  <Card title="REST API" href="versions/latest/service/rest-api/introduction" icon="brackets-curly" horizontal />
+  <Card title="Embedded Python" href="versions/latest/embedded/python/introduction" icon="microchip" horizontal />
+  <Card title="LangChain" href="versions/latest/integrations/about" icon="link" horizontal />
+</CardGroup>
+
+## Learn more
+
+- [About CyborgDB](versions/latest/intro/about): how encrypted vector search works.
+- [Security overview](versions/latest/intro/security-overview) and [threat model](versions/latest/intro/threat-model): what's protected, and from whom.
+- [Deployment models](versions/latest/intro/deployment-models) and [backing stores](versions/latest/intro/backing-stores): embedded or service, local disk or S3.
+- [Migrate](versions/latest/intro/migrate) from Pinecone, Qdrant, Weaviate, ChromaDB or Milvus.
+- [Release notes](/changelog) and [how to use these docs](versions/latest/intro/using-docs).
