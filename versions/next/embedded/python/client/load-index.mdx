@@ -22,9 +22,11 @@ def load_index(self,
 | `index_name` | `str` | - | Name of the index to load. |
 | `index_key` | `bytes` | - | 32-byte encryption key. For a normal load this is the index KEK used during [`create_index()`](./create-index). For an RBAC user-scoped load (`user_id` set), this is that user's 32-byte KEK. |
 | `logger` | [`Logger`](./logger) | `None` | _(Optional)_ Logger instance for capturing operation logs. |
-| `user_id` | `bytes` \| `None` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. When set, the index is loaded scoped to that user and `index_key` is interpreted as the user's KEK; per-operation permissions are enforced. |
+| `user_id` | `bytes` \| `None` | `None` | _(Optional, keyword-only)_ 16-byte RBAC user identifier. When set, `index_key` is interpreted as that user's KEK and the open is authorized against the user's permissions; per-operation permissions are enforced. |
 
 <Note>RBAC user keys are minted by the root KEK holder via `create_user_keys`. A user then loads with `load_index(name, their_user_kek, user_id=their_id)`. See [access control](../../guides/advanced/access-control).</Note>
+
+<Note>`load_index` only opens the index — the returned handle does not retain the identity it was loaded under. Every call on the handle takes its own `index_key` and `user_id`, and those arguments decide the authorization of that specific call. A handle opened as a user can still serve a root call when invoked with the root key; a handle opened as root rejects a bare user KEK as a wrong-key error.</Note>
 
 ### Returns
 

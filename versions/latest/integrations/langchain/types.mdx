@@ -1,5 +1,6 @@
 ---
 title: "Types"
+description: "Types used by the CyborgDB LangChain integration, including StorageConfig, DistanceMetric, Document, Embeddings, filter formats and query return types."
 mode: "wide"
 ---
 
@@ -51,14 +52,13 @@ mode: "wide"
 
         ```python
         from langchain_openai import OpenAIEmbeddings
-        from cyborgdb_core.integrations.langchain import CyborgVectorStore
-        from cyborgdb_core import StorageConfig
+        from langchain_cyborgdb import CyborgVectorStore, StorageConfig
 
         # Using LangChain Embeddings
         store = CyborgVectorStore(
             index_name="docs",
             index_key=key,
-            api_key="your-api-key",
+            api_key="",  # free tier; pass your key to lift the 1M-item cap
             embedding=OpenAIEmbeddings(),
             storage_config=StorageConfig.disk("/tmp/cyborgdb-langchain")
         )

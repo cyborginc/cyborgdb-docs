@@ -44,7 +44,7 @@ func main() {
 | Type | Returned for | `Retryable()` |
 |------|--------------|---------------|
 | `*ValidationError` | HTTP `400` or `422`, and every argument check the SDK runs before sending (see [below](#errors-returned-before-a-request-is-sent)). | `false` |
-| `*AuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match an index that has vectors and is already in the service's cache. | `false` |
+| `*AuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match an index that has vectors and is already in the service's cache. Call `Kind()` to tell the cases apart — `KindUnauthenticated` (API key missing or rejected), `KindWrongKey` (the index key doesn't decrypt the index), `KindPermissionDenied`, or `KindQuotaExceeded`. | `false` |
 | `*NotFoundError` | HTTP `404`: the index or resource does not exist, or (in most cases) the `indexKey` doesn't match. | `false` |
 | `*ConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `false` |
 | `*RateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `true` |
@@ -62,6 +62,8 @@ All eight implement `cyborgdb.Error`. A `2xx` response whose body can't be decod
 | `Detail() string` | The service's error message, from the response body's `detail` field. |
 | `RequestID() string` | Value of the `X-Request-Id` response header, when the service sends one. Include it when reporting a problem. |
 | `RetryAfter() float64` | Seconds from a numeric `Retry-After` header, or `0`. |
+| `Kind() string` | Machine-readable error category for branching where a status is shared. One of the `KindXxx` constants exported by the package (`KindInvalidArgument`, `KindUnauthenticated`, `KindWrongKey`, `KindPermissionDenied`, `KindQuotaExceeded`, `KindNotFound`, `KindAlreadyExists`, `KindFailedPrecondition`, `KindRateLimited`, `KindUnavailable`, `KindDataLoss`, `KindInternal`, `KindTransport`). The SDK uses the service's `kind` field when present, otherwise derives it from the status code; treat an unknown value like `KindInternal`. |
+| `FieldErrors() []FieldError` | Per-field rejections from the service, or `nil` when the request didn't fail field validation. Each `FieldError` carries `Field` (dotted path, e.g. `"body.items.0.vector"`), `Message` (human-readable reason), and `Type` (machine-readable slug, e.g. `"missing"`). |
 | `Retryable() bool` | Fixed per type; see the table above. |
 | `Unwrap() error` | The underlying error. |
 

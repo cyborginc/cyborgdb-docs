@@ -26,7 +26,7 @@ try {
 | Class | Thrown for | `retryable` |
 |-------|------------|-------------|
 | `CyborgDBValidationError` | HTTP `400` or `422`: the service rejected the request's arguments. Also thrown by the `Client` constructor for an invalid `baseUrl`. | `false` |
-| `CyborgDBAuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match an index that has vectors and is already in the service's cache. | `false` |
+| `CyborgDBAuthenticationError` | HTTP `401` or `403`: a missing or invalid `apiKey`, a non-root key used for a root-only operation, or an `indexKey` that doesn't match an index that has vectors and is already in the service's cache. Inspect `kind` to tell the cases apart — `unauthenticated` (API key missing or rejected), `wrong_key` (the index key doesn't decrypt the index), `permission_denied`, or `quota_exceeded`. | `false` |
 | `CyborgDBNotFoundError` | HTTP `404`: the index or resource does not exist. | `false` |
 | `CyborgDBConflictError` | HTTP `409`: the request conflicts with the current state on the server. | `false` |
 | `CyborgDBRateLimitError` | HTTP `429`. The service does not rate-limit requests yet. | `true` |
@@ -44,6 +44,8 @@ All seven classes extend `CyborgDBError`, which extends `Error`, so existing `ca
 | `requestId` | `string \| null` | Value of the `X-Request-Id` response header, when the service sends one. Include it when reporting a problem. |
 | `retryAfter` | `number \| null` | Seconds from a numeric `Retry-After` header. |
 | `indexName` | `string \| null` | The index the call targeted. Set by `loadIndex()` and by `upsert()` with `items` or `number[][]` vectors; `null` for other calls, including `Float32Array` upserts. |
+| `kind` | `string \| null` | Machine-readable error category for branching where a status is shared. Known values: `invalid_argument`, `unauthenticated`, `wrong_key`, `permission_denied`, `quota_exceeded`, `not_found`, `already_exists`, `failed_precondition`, `rate_limited`, `unavailable`, `data_loss`, `internal`, `transport`. Treat an unknown value like `internal`. The SDK fills `kind` from the service's `kind` field when present, otherwise derives it from the status code. `null` only when no status and no kind are available. |
+| `errors` | `FieldError[]` | Per-field rejections from the service — one `{ field, message, type }` each, where `field` is a dotted path (e.g. `"body.items.0.vector"`), `message` is the human-readable reason, and `type` is a machine-readable slug (e.g. `"missing"`). Empty when the request didn't fail field validation. |
 | `retryable` | `boolean` | Fixed per class; see the table above. |
 | `cause` | `unknown` | The underlying error. |
 

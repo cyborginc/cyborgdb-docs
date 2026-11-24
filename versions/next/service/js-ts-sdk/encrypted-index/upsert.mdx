@@ -35,7 +35,7 @@ Each item can contain:
 
 Strings in `contents` are stored as-is; bytes are base64-encoded first. [`get()`](./get) always returns `contents` as a `string`, so bytes come back as their base64 text.
 
-<Tip>Store dates in `metadata` as epoch milliseconds (`date.getTime()`) so range filters work on them. See [Dates](../types#dates).</Tip>
+<Tip>Dates in `metadata` can be passed as `Date` objects or as epoch milliseconds. The SDK converts `Date` instances to epoch ms before sending so range filters work on them. See [Dates](../types#dates).</Tip>
 
 #### Shape 2: parallel arrays
 

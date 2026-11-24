@@ -1,5 +1,6 @@
 ---
 title: "from_documents"
+description: "Create a CyborgVectorStore from a list of LangChain Document objects with from_documents, with parameters and examples for Embedded, Python SDK and JS/TS."
 mode: "wide"
 noindex: true
 ---
@@ -58,7 +59,7 @@ Creates a CyborgVectorStore instance from a list of LangChain Document objects.
             embedding="sentence-transformers/all-mpnet-base-v2",
             index_name="nlp_documents",
             index_key=CyborgVectorStore.generate_key(),
-            api_key="your-api-key",
+            api_key="",  # free tier; pass your key to lift the 1M-item cap
             storage_config=StorageConfig.disk("/tmp/cyborgdb-langchain")
         )
         ```
